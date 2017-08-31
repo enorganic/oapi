@@ -1,9 +1,15 @@
+import collections
 import functools
 import json
 from copy import copy
-from swallow.utilities import bases
+
+from marshmallow import missing
+
+from openswallow.utilities import bases
 
 SCHEMAS_OBJECTS = {}
+
+Missing = type(missing)
 
 
 class JSONObject(object):
@@ -16,58 +22,68 @@ class JSONDict(JSONObject):
     @property
     @functools.lru_cache()
     def __schema__(self):
-        from swallow.schemas import OBJECTS_SCHEMAS
-        return OBJECTS_SCHEMAS[self.__class__.__name__](strict=True)
-
-    def __str__(self):
-        return self.__schema__.dumps(self).data
-
-
-
-class JSONList(JSONObject, list):
-
-    def __str__(self):
-        items = self[:]
-        if items and isinstance(items[0], JSONDict):
-            return items[0].schema.dumps(items, many=True)
+        from openswallow.schemas import OBJECTS_SCHEMAS
+        c = self.__class__
+        n = c.__name__
+        if n in OBJECTS_SCHEMAS:
+            return OBJECTS_SCHEMAS[n](strict=True, many=False)
         else:
-            return json.dumps(items)
+            for b in bases(c):
+                bn = b.__name__
+                if bn in OBJECTS_SCHEMAS:
+                    return OBJECTS_SCHEMAS[bn](strict=True, many=False)
+            raise KeyError(n)
+
+    def __iter__(self):
+        for k in dir(self):
+            if k[0] != '_':
+                v = getattr(self, k)
+                if not isinstance(v, (collections.Callable, Missing)):
+                    yield k, v
+
+    def __copy__(self):
+        return self.__class__(**{
+            k: copy(v) for k, v in self
+        })
+
+    def __str__(self):
+        return self.__schema__.dumps(self, many=False).data
 
 
 # Swagger ("Open API") 2.0
 
 
-class SwaggerInfo(JSONDict):
+class Info(JSONDict):
 
     def __init__(
         self,
-        version=None,  # type: Optional[str]
-        title=None,  # type: Optional[str]
+        version=missing,  # type: Optional[str]
+        title=missing,  # type: Optional[str]
     ):
         self.version = version  # type: Optional[str]
         self.title = title  # type: Optional[str]
 
 
-class SwaggerTag(JSONDict):
+class Tag(JSONDict):
 
     def __init__(
         self,
-        name=None,  # type: Optional[str]
-        description=None,  # type: Optional[str]
+        name=missing,  # type: Optional[str]
+        description=missing,  # type: Optional[str]
     ):
         self.name = name  # type: Optional[str]
         self.description = description  # type: Optional[str]
 
 
-class SwaggerService(JSONDict):
+class Service(JSONDict):
 
     def __init__(
         self,
-        get=None,  # type: Optional[dict]
-        put=None,  # type: Optional[dict]
-        post=None,  # type: Optional[dict]
-        delete=None,  # type: Optional[dict]
-        patch=None,  # type: Optional[dict]
+        get=missing,  # type: Optional[dict]
+        put=missing,  # type: Optional[dict]
+        post=missing,  # type: Optional[dict]
+        delete=missing,  # type: Optional[dict]
+        patch=missing,  # type: Optional[dict]
     ):
         self.get = get  # type: Optional[dict]
         self.put = put  # type: Optional[dict]
@@ -76,25 +92,27 @@ class SwaggerService(JSONDict):
         self.patch = patch  # type: Optional[dict]
 
 
-class Swagger(JSONDict):
+class OpenAPI(JSONDict):
 
     def __init__(
         self,
-        swagger=None,  # type: Optional[str]
-        info=None,  # type: Optional[SwaggerInfo]
-        host=None,  # type: Optional[str]
-        base_path=None,  # type: Optional[str]
-        schemes=None,  # type: Optional[Sequence[str]]
-        tags=None,  # type: Optional[Dict[str, SwaggerTag]]
-        paths=None,  # type: Optional[Dict[str, SwaggerService]]
+        swagger=missing,  # type: Optional[str]
+        open_api=missing,  # type: Optional[str]
+        info=missing,  # type: Optional[Info]
+        host=missing,  # type: Optional[str]
+        base_path=missing,  # type: Optional[str]
+        schemes=missing,  # type: Optional[Sequence[str]]
+        tags=missing,  # type: Optional[Dict[str, Tag]]
+        paths=missing,  # type: Optional[Dict[str, Service]]
     ):
         self.swagger = swagger  # type: Optional[str]
-        self.info = info  # type: Optional[SwaggerInfo]
+        self.open_api = open_api  # type: Optional[str]
+        self.info = info  # type: Optional[Info]
         self.host = host  # type: Optional[str]
         self.base_path = base_path  # type: Optional[Sequence[str]]
         self.schemes = schemes  # type: Optional[Sequence[str]]
-        self.tags = None if tags is None else JSONList(t for t in tags)  # type: Optional[Sequence[SwaggerTag]]
-        self.paths = paths  # type: Optional[Dict[str, SwaggerService]]
+        self.tags = missing if tags is missing else tuple(t for t in tags)  # type: Optional[Sequence[Tag]]
+        self.paths = paths  # type: Optional[Dict[str, Service]]
 
 
 for k, v in copy(locals()).items():

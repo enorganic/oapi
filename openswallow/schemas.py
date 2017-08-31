@@ -1,18 +1,31 @@
 from copy import copy
-from marshmallow import Schema, fields, post_load, post_dump
-
-from swallow.model import SCHEMAS_OBJECTS
-from swallow.utilities import bases
+from marshmallow import Schema, fields, post_load, post_dump, pre_load, pre_dump
+from openswallow.model import SCHEMAS_OBJECTS, Service
+from openswallow.utilities import bases
 
 OBJECTS_SCHEMAS = {}
 
 
 class JSONSchema(Schema):
 
+    @pre_load
+    def pre_load(
+        self,
+        data  # type: str
+    ):
+        return copy(data)
+
+    @pre_dump
+    def pre_dump(
+        self,
+        data  # type: str
+    ):
+        return copy(data)
+
     @post_load
     def post_load(
         self,
-        data
+        data  # type: str
     ):
         """
         :param data:
@@ -22,8 +35,10 @@ class JSONSchema(Schema):
         :return:
             An python object (an instance of ``JSONDict``).
         """
+        if data is None:
+           return None
         try:
-            return SCHEMAS_OBJECTS[self.__class__.__name__](**data)  # [:-6]
+            return SCHEMAS_OBJECTS[self.__class__.__name__](**data)
         except KeyError:
             raise TypeError(
                 'JSON object type ``%s`` is not recognized'
@@ -33,26 +48,26 @@ class JSONSchema(Schema):
 # Swagger ("Open API") 2.0
 
 
-class SwaggerResponseSchematicSchema(JSONSchema):
+class ResponseSchematicSchema(JSONSchema):
 
     type = fields.String()
     items = fields.Dict()
 
 
-class SwaggerResponseSchema(JSONSchema):
+class ResponseSchema(JSONSchema):
 
     description = fields.String()
-    schema = fields.Nested(SwaggerResponseSchematicSchema)
+    schema = fields.Nested(ResponseSchematicSchema)
 
 
-class SwaggerResponsesSchema(JSONSchema):
+class ResponsesSchema(JSONSchema):
 
-    success = fields.Nested(SwaggerResponseSchema, load_from='200', dump_to='200')
-    unauthorized = fields.Nested(SwaggerResponseSchema, load_from='401', dump_to='401')
-    default = fields.Nested(SwaggerResponseSchema)
+    success = fields.Nested(ResponseSchema, load_from='200', dump_to='200')
+    unauthorized = fields.Nested(ResponseSchema, load_from='401', dump_to='401')
+    default = fields.Nested(ResponseSchema)
 
 
-class SwaggerParameterSchema(JSONSchema):
+class ParameterSchema(JSONSchema):
 
     name = fields.String()
     parameter_in = fields.String(load_from='in', dump_to='in')
@@ -60,16 +75,16 @@ class SwaggerParameterSchema(JSONSchema):
     required = fields.Boolean()
 
 
-class SwaggerServiceMethodSchema(JSONSchema):
+class ServiceMethodSchema(JSONSchema):
 
     tags = fields.List(fields.String)
     description = fields.String
     operation_id = fields.String(load_from='operationId', dump_to='operationId')
-    parameters = fields.Nested(SwaggerParameterSchema, many=True)
-    responses = fields.Nested(SwaggerResponsesSchema)
+    parameters = fields.Nested(ParameterSchema, many=True)
+    responses = fields.Nested(ResponsesSchema)
 
 
-class SwaggerServiceSchema(JSONSchema):
+class ServiceSchema(JSONSchema):
 
     get = fields.Dict()
     put = fields.Dict()
@@ -78,26 +93,30 @@ class SwaggerServiceSchema(JSONSchema):
     delete = fields.Dict()
 
 
-class SwaggerTagSchema(JSONSchema):
+class TagSchema(JSONSchema):
 
     name = fields.String()
     description = fields.String()
 
 
-class SwaggerInfoSchema(JSONSchema):
+class InfoSchema(JSONSchema):
 
     version = fields.String()
     title = fields.String()
 
 
-class SwaggerSchema(JSONSchema):
+class OpenAPISchema(JSONSchema):
 
-    swagger = fields.String()
-    info = fields.Nested(SwaggerInfoSchema)
+    # For Swagger 2.0 Compatibility
+    open_api = fields.String(dump_to='openapi', load_from='openapi')
+
+    # OpenAPI 3.0
+    swagger = fields.String(dump_to='swagger', load_from='swagger')
+    info = fields.Nested(InfoSchema)
     host = fields.String()
     base_path = fields.String(dump_to='basePath', load_from='basePath')
     schemes = fields.List(fields.String())
-    tags = fields.Nested(SwaggerTagSchema, many=True)
+    tags = fields.Nested(TagSchema, many=True)
     paths = fields.Dict()
 
     @post_load
@@ -107,12 +126,14 @@ class SwaggerSchema(JSONSchema):
     ):
         """
         This overrides the behavior of ``JSONSchema.post_load`` in order to loads each value in Swagger.paths as an
-        instance of the ``SwaggerService`` class.
+        instance of the ``Service`` class.
         """
         o = super().post_load(data=data)
         if o.paths is not None:
-            for path, service in o.paths.items():
-                o.paths[path] = SCHEMAS_OBJECTS['SwaggerServiceSchema'](**service)
+            for path, service in copy(o.paths).items():
+                if not isinstance(service, dict):
+                    raise TypeError(service)
+                o.paths[path] = SCHEMAS_OBJECTS['ServiceSchema'](**service)
         return o
 
     @post_dump
@@ -122,51 +143,16 @@ class SwaggerSchema(JSONSchema):
     ):
         """
         This ensures each value in Swagger.paths is rendered serializable, since ``SwaggerSchema.post_load`` causes
-        this dictionary to hold (non-serializable) instances of the ``SwaggerService`` class.
+        this dictionary to hold (non-serializable) instances of the ``Service`` class.
         """
-        if 'paths' in data:
-            for k, v in data['paths'].items():
-                data['paths'][k] = SwaggerServiceSchema().dump(v)
+        if ('paths' in data) and (data['paths'] is not None):
+            for path, service in copy(data['paths']).items():
+                if not isinstance(service, Service):
+                    raise TypeError(type(service))
+                data['paths'][path] = ServiceSchema(strict=True, many=False).dump(service).data
+                if not isinstance(data['paths'][path], dict):
+                    raise TypeError(data['paths'][path])
         return data
-
-
-# Magento
-
-
-class CredentialsSchema(JSONSchema):
-
-    username = fields.String()
-    password = fields.String()
-
-
-class FilterSchema(JSONSchema):
-
-    field = fields.String()
-    value = fields.String()
-    condition_type = fields.String()
-
-
-class SortOrderSchema(JSONSchema):
-
-    field = fields.String()
-    direction = fields.String()
-
-
-class SearchCriteriaSchema(JSONSchema):
-
-    filter_groups = fields.List(
-        fields.Nested(FilterSchema, many=True),
-        dump_to='filterGroups',
-        load_from='filterGroups'
-    )
-    sort_orders = fields.Nested(
-        SortOrderSchema,
-        dump_to='sortOrders',
-        load_from='sortOrders',
-        many=True
-    )
-    current_page = fields.Integer(load_from='currentPage', dump_to='currentPage')
-    page_size = fields.Integer(load_from='pageSize', dump_to='pageSize')
 
 
 for k, v in copy(locals()).items():

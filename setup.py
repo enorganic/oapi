@@ -24,9 +24,11 @@ with open(
 setup(
     name='openswallow',
 
-    version='2.0.0',
+    version='0.0.0',
 
-    description="A python library for generating Marshmallow Schemas from a Swagger (Open API) 2.0 JSON Schema.",
+    description=(
+        'A python library for constructing python classes from an Open API schema.'
+    ),
     long_description=long_description,
 
     # The project's main homepage.
@@ -65,7 +67,8 @@ setup(
     # See https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'future>=0.15.2',
-        'marshmallow>=2.13.6'
+        'marshmallow>=2.13.6',
+        'pyyaml>=3.12'
     ],
 
     # pip install -e .[dev,test]
