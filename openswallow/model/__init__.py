@@ -5,9 +5,12 @@ from typing import List, Union, Any
 
 from marshmallow import missing, Schema
 
-from openswallow.utilities import bases
-
 Missing = type(missing)
+
+
+def get_schema(model):
+    # type: (type) -> schemas.JSONObjectSchema
+    return model.__schema__
 
 
 class JSONObject(object):
@@ -27,7 +30,7 @@ class JSONObject(object):
         })
 
     def __str__(self):
-        return self.__schema__(strict=True, many=False).dumps(self, many=False).data
+        return get_schema(self)(strict=True, many=False).dumps(self, many=False).data
 
 
 class Info(JSONObject):
@@ -54,14 +57,182 @@ class Tag(JSONObject):
         self.description = description  # type: Union[str, Missing]
 
 
+class Parameter(JSONObject):
+    """
+    Properties:
+
+        - name (str)
+
+        - location (str):
+
+            - "path"
+            - "query"
+            - "header"
+            - "cookie"
+
+        - description (str)
+
+        - required (bool)
+
+        - depracated (bool)
+
+        - allow_empty_value (bool): Sets the ability to pass empty-valued parameters. This is valid only for query
+          parameters and allows sending a parameter with an empty value. The default value is ``False``. If ``style``
+          is used, and if ``behavior`` is inapplicable (cannot be serialized), the value of ``allow_empty_value`` will
+          be ignored.
+
+        - style (str): Describes how the parameter value will be serialized, depending on the type of the parameter
+          value.
+
+            - "matrix": Path-style parameters defined by `RFC6570 <https://tools.ietf.org/html/rfc6570#section-3.2.7>`.
+            - "label": Label-style parameters defined by `RFC6570 <https://tools.ietf.org/html/rfc6570#section-3.2.5>`.
+            - "form": Form style parameters defined by `RFC6570 <https://tools.ietf.org/html/rfc6570#section-3.2.8>`.
+            - "simple": Simple style parameters defined by
+              `RFC6570 <https://tools.ietf.org/html/rfc6570#section-3.2.2>`.
+            - "spaceDelimited": Space separated array values.
+            - "pipeDelimited": Pipe separated array values.
+            - "deepObject": Provides a simple way of rendering nested objects using form parameters.
+
+          Default values (based on value of ``location``):
+
+            - query: "form"
+            - path: "simple"
+            - header: "simple"
+            - cookie: "form"
+
+          https://swagger.io/specification/#style-values-52
+
+        - explode (bool): When this is ``True``, array or object parameter values generate separate parameters for
+          each value of the array or key-value pair of the map. For other types of parameters this property has no
+          effect. When ``style`` is "form", the default value is ``True``. For all other styles, the default value is
+          ``False``.
+
+        - allow_reserved (bool): Determines whether the parameter value SHOULD allow reserved characters
+          :/?#[]@!$&'()*+,;= (as defined by `RFC3986 <https://tools.ietf.org/html/rfc3986#section-2.2>`) to be included
+          without percent-encoding. This property only applies to parameters with a location value of "query". The
+          default value is ``False``.
+
+        - schema (Schematic): The schema defining the type used for the parameter.
+
+        - example (Any): Example of the media type. The example should match the specified schema and encoding
+          properties if present. The ``example`` parameter should not be present if ``examples`` is present. If
+          referencing a ``schema`` which contains an example—*this* example overrides the example provided by the
+          ``schema``. To represent examples of media types that cannot naturally be represented in JSON or YAML, a
+          string value can contain the example with escaping where necessary.
+
+        - examples (Dict[str, Example]): Examples of the media type. Each example should contain a value in the correct
+          format, as specified in the parameter encoding. The ``examples`` parameter should not be present if
+          ``example`` is present. If referencing a ``schema`` which contains an example—*these* example override the
+          example provided by the ``schema``. To represent examples of media types that cannot naturally be represented
+          in JSON or YAML, a string value can contain the example with escaping where necessary.
+    """
+
+    def __init__(
+        self,
+        name=missing,  # type: Union[str, Missing]
+        location=missing,  # type: Union[str, Missing]
+        description=missing,  # type: Union[str, Missing]
+        required=missing,  # type: Union[bool, Missing]
+        depracated=missing,  # type: Union[bool, Missing]
+        allow_empty_value=missing, # type: Union[bool, Missing]
+        style=missing,  # type: Union[str, Missing]
+        explode=missing, # type: Union[bool, Missing]
+        allow_reserved=missing, # type: Union[bool, Missing]
+        schema=missing, # type: Union[Schematic, Missing]
+        example=missing, # type: Any
+        examples=missing, # type: Union[Dict[str, Example], Missing]
+    ):
+        self.name = name  # type: Union[str, Missing]
+        self.location = location  # type: Union[str, Missing]
+        self.description = description  # type: Union[str, Missing]
+        self.required = required  # type: Union[bool, Missing]
+        self.depracated = depracated  # type: Union[bool, Missing]
+        self.allow_empty_value = allow_empty_value  # type: Union[bool, Missing]
+        self.style = style  # type: Union[str, Missing]
+        self.explode = explode  # type: Union[bool, Missing]
+        self.allow_reserved = allow_reserved  # type: Union[bool, Missing]
+        self.schema = schema  # type: Union[Schematic, Missing]
+        self.example = example  # type: Any
+        self.examples = examples  # type: Union[Dict[str, Example], Missing]
+
+
+class Header(JSONObject):
+    """
+    Properties:
+
+        - description (str)
+
+        - required (bool)
+
+        - depracated (bool)
+
+        - allow_empty_value (bool): Sets the ability to pass empty-valued parameters. This is valid only for query
+          parameters and allows sending a parameter with an empty value. The default value is ``False``. If ``style``
+          is used, and if ``behavior`` is inapplicable (cannot be serialized), the value of ``allow_empty_value`` will
+          be ignored.
+
+        - style (str): Describes how the parameter value will be serialized, depending on the type of the parameter
+          value.
+
+            - "matrix": Path-style parameters defined by `RFC6570 <https://tools.ietf.org/html/rfc6570#section-3.2.7>`.
+            - "label": Label-style parameters defined by `RFC6570 <https://tools.ietf.org/html/rfc6570#section-3.2.5>`.
+            - "form": Form style parameters defined by `RFC6570 <https://tools.ietf.org/html/rfc6570#section-3.2.8>`.
+            - "simple": Simple style parameters defined by
+              `RFC6570 <https://tools.ietf.org/html/rfc6570#section-3.2.2>`.
+            - "spaceDelimited": Space separated array values.
+            - "pipeDelimited": Pipe separated array values.
+            - "deepObject": Provides a simple way of rendering nested objects using form parameters.
+
+          Default value: "simple"
+
+          https://swagger.io/specification/#style-values-52
+    """
+
+    def __init__(
+        self,
+        description=missing,  # type: Union[str, Missing]
+        required=missing,  # type: Union[bool, Missing]
+        depracated=missing,  # type: Union[bool, Missing]
+        allow_empty_value=missing, # type: Union[bool, Missing]
+        style=missing, # type: Union[str, Missing]
+    ):
+        self.description = description  # type: Union[str, Missing]
+        self.required = required  # type: Union[bool, Missing]
+        self.depracated = depracated  # type: Union[bool, Missing]
+        self.allow_empty_value = allow_empty_value  # type: Union[bool, Missing]
+        self.style = style  # type: Union[str, Missing]
+
+
+
+class Headers(JSONObject):
+
+    pass
+
+
+class Content(JSONObject):
+
+    pass
+
+
+class Links(JSONObject):
+
+    pass
+
+
 class Response(JSONObject):
 
     def __init__(
         self,
-
+        description=missing,  # type: Union[str, Missing]
+        headers=missing,  # type: Union[Dict[str, Headers], Missing]
+        content=missing,  # type: Union[Dict[str, Content], Missing]
+        links=missing,  # type: Union[Dict[str, Links], Missing]
     ):
         # type: (...) -> None
-        pass
+        self.description = description  # type: Union[str, Missing]
+        self.headers = headers  # type: Union[Dict[str, Headers], Missing]
+        self.content = content  # type: Union[Dict[str, Content], Missing]
+        self.links = links  # type: Union[Dict[str, Links], Missing]
 
 
 class Responses(JSONObject):
@@ -126,7 +297,75 @@ class Server(JSONObject):
         self.variables = variables  # type: Union[Dict[str, ServerVariable], Missing]
 
 
-class JSONSchematic(JSONObject):
+class Discriminator(JSONObject):
+    """
+    Properties:
+
+        - property_name (str): The name of the property which will hold the discriminating value.
+
+        - mapping (dict): An object to hold mappings between payload values and schema names or references.
+
+    https://swagger.io/specification/#discriminatorObject
+    """
+
+    def __init__(
+        self,
+        property_name=missing,  # type: Union[str, Missing]
+        mapping=missing,  # type: Union[Dict[str], Missing]
+    ):
+        self.property_name = property_name  # type: Union[str, Missing]
+        self.mapping = mapping  # type: Union[Dict[str], Missing]
+
+
+class XMLMetadata(JSONObject):
+    """
+    Properties:
+
+        - name (str): The element name.
+
+        - name_space (str): The *absolute* URI of a namespace.
+
+        - prefix (str): The prefix to be used with the name to reference the name-space.
+
+        - attribute (bool): If ``True``, the property described is an attribute rather than a sub-element.
+
+        - wrapped (bool): If ``True``, an array instance described by the schema will be wrapped by a tag (named
+          according to the parent element's property, while ``name`` refers to the child element name).
+    """
+
+    def __init__(
+        self,
+        name=missing,  # type: Union[str, Missing]
+        name_space=missing,  # type: Union[str, Missing]
+        prefix=missing,  # type: Union[str, Missing]
+        attribute=missing,  # type: Union[bool, Missing]
+        wrapped=missing,  # type: Union[bool, Missing]
+    ):
+        self.name = name  # type: Union[str, Missing]
+        self.name_space = name_space  # type: Union[str, Missing]
+        self.prefix = prefix  # type: Union[str, Missing]
+        self.attribute = attribute  # type: Union[bool, Missing]
+        self.wrapped = wrapped  # type: Union[bool, Missing]
+
+
+class ExternalDocumentation(JSONObject):
+    """
+    Properties:
+
+        - description (str)
+        - url (str)
+    """
+
+    def __init__(
+        self,
+        description=missing,  # type: Union[str, Missing]
+        url=missing,  # type: Union[str, Missing]
+    ):
+        self.description = description  # type: Union[str, Missing]
+        self.url = url  # type: Union[str, Missing]
+
+
+class Schematic(JSONObject):
     """
     Instances of this class represent a JSON validation schema, as defined on <http://json-schema.org> and
     <https://swagger.io/specification/#schemaObject>.
@@ -137,7 +376,7 @@ class JSONSchematic(JSONObject):
 
         - description (str)
 
-        - multiple_of (Number): The number this schema describes should be divisible by this number.
+        - multiple_of (Number): The numeric value this schema describes should be divisible by this number.
 
         - maximum (Number): The number this schema describes should be less than or equal to this value, or less than
           this value, depending on the value of ``exclusive_maximum``.
@@ -161,7 +400,7 @@ class JSONSchematic(JSONObject):
 
         - pattern (str): The string instance described by this schema should match this regular expression (ECMA 262).
 
-        - items (JSONSchematic|Sequence[JSONSchematic]):
+        - items (Schematic|Sequence[Schematic]):
 
             - If ``items`` is a sub-schema—each item in the array instance described by this schema should be valid as
               described by this sub-schema.
@@ -170,8 +409,8 @@ class JSONSchematic(JSONObject):
               length to this sequence, and each value should be valid as described by the sub-schema at the
               corresponding index within this sequence of sub-schemas.
 
-        - additional_items (JSONSchematic|bool): If ``additional_items`` is ``True``—the array instance described by this schema may contain additional
-          values beyond those defined in ``items``.
+        - additional_items (Schematic|bool): If ``additional_items`` is ``True``—the array instance described by
+          this schema may contain additional values beyond those defined in ``items``.
 
         - max_items (int): The array instance described by this schema should contain no more than this number of
           items.
@@ -185,14 +424,14 @@ class JSONSchematic(JSONObject):
 
         - min_properties (int)
 
-        - properties (Dict[str, JSONSchematic]): Any properties of the object instance described by this schema which
+        - properties (Dict[str, Schematic]): Any properties of the object instance described by this schema which
           correspond to a key in this mapping should be valid as described by the sub-schema corresponding to that key.
 
-        - pattern_properties (JSONSchematic): Any properties of the object instance described by this schema which
+        - pattern_properties (Schematic): Any properties of the object instance described by this schema which
           match a key in this mapping, when the key is evaluated as a regular expression, should be valid as described by
           the sub-schema corresponding to the matched key.
 
-        - additional_properties (bool|JSONSchematic):
+        - additional_properties (bool|Schematic):
 
             - If ``additional_properties`` is ``True``—properties may be present in the object described by
               this schema with names which do not match those in either ``properties`` or ``pattern_properties``.
@@ -200,7 +439,7 @@ class JSONSchematic(JSONObject):
             - If ``additional_properties`` is ``False``—all properties present in the object described by this schema
               must correspond to a property matched in either ``properties`` or ``pattern_properties``.
 
-        - dependencies (Dict[str, Dict[str, Union[JSONSchematic, Sequence[str]]]]):
+        - dependencies (Dict[str, Dict[str, Union[Schematic, Sequence[str]]]]):
 
             A dictionary mapping properties of the object instance described by this schema to a mapping other
             properties and either:
@@ -233,25 +472,47 @@ class JSONSchematic(JSONObject):
             - "uri"
             - "uriref": A URI or a relative reference.
 
-        - all_of (Sequence[JSONSchematic]): The value/instance described by the schema should *also* be valid as
+        - all_of (Sequence[Schematic]): The value/instance described by the schema should *also* be valid as
           described by all sub-schemas in this sequence.
 
-        - any_of (Sequence[JSONSchematic]): The value/instance described by the schema should *also* be valid as
+        - any_of (Sequence[Schematic]): The value/instance described by the schema should *also* be valid as
           described in at least one of the sub-schemas in this sequence.
 
-        - one_of (Sequence[JSONSchematic]): The value/instance described by the schema should *also* be valid as
+        - one_of (Sequence[Schematic]): The value/instance described by the schema should *also* be valid as
           described in one (but *only* one) of the sub-schemas in this sequence.
 
-        - not (JSONSchematic): The value/instance described by this schema should *not* be valid as described by this
+        - is_not (Schematic): The value/instance described by this schema should *not* be valid as described by this
           sub-schema.
 
-        - definitions (Dict[JSONSchematic]): A dictionary of sub-schemas, stored for the purpose of referencing
+        - definitions (Dict[Schematic]): A dictionary of sub-schemas, stored for the purpose of referencing
           these sub-schemas elsewhere in the schema.
 
         - required (Sequence[str]): A list of attributes which must be present on the object instance described by this
           schema.
 
         - default (Any): The value presumed if the value/instance described by this schema is absent.
+
+        The following properties are specific to OpenAPI (not part of the core `JSON Schema <http://json-schema.org>`):
+
+        - nullable (bool): If ``True``, the value/instance described by this schema may be a null value (``None``).
+
+        - discriminator (Discriminator): Adds support for polymorphism.
+
+        - read_only (bool): If ``True``, the property described may be returned as part of a response, but should not
+          be part of a request.
+
+        - write_only (bool): If ``True``, the property described may be sent as part of a request, but should not
+          be returned as part of a response.
+
+        - xml (XML): Provides additional information describing XML representation of the property described by this
+          schema.
+
+        - external_docs (ExternalDocumentation)
+
+        - example (Any)
+
+        - depracated (bool): If ``True``, the property or instance described by this schema should be phased out, as
+          if will no longer be supported in future versions.
     """
 
     def __init__(
@@ -266,27 +527,34 @@ class JSONSchematic(JSONObject):
         max_length=missing,  # type: Union[int, Missing]
         min_length=missing,  # type: Union[int, Missing]
         pattern=missing,  # type: Union[str, Missing]
-        items=missing,  # type: Union[JSONSchematic, Sequence[JSONSchematic], Missing]
-        additional_items=missing,  # type: Union[JSONSchematic, bool, Missing]
+        items=missing,  # type: Union[Schematic, Sequence[Schematic], Missing]
+        additional_items=missing,  # type: Union[Schematic, bool, Missing]
         max_items=missing,  # type: Union[int, Missing]
         min_items=missing,  # type: Union[int, Missing]
         unique_items=missing,  # type: Union[bool, Missing]
         max_properties=missing,  # type: Union[int, Missing]
         min_properties=missing,  # type: Union[int, Missing]
-        properties=missing,  # type: Union[Dict[str, JSONSchematic], Missing]
-        pattern_properties=missing,  # type: Union[JSONSchematic, Missing]
-        additional_properties=missing,  # type: Union[bool, JSONSchematic, Missing]
-        dependencies=missing,  # type: Union[Dict[str, Dict[str, Union[JSONSchematic, Sequence[str]]]], Missing]
+        properties=missing,  # type: Union[Dict[str, Schematic], Missing]
+        pattern_properties=missing,  # type: Union[Schematic, Missing]
+        additional_properties=missing,  # type: Union[bool, Schematic, Missing]
+        dependencies=missing,  # type: Union[Dict[str, Dict[str, Union[Schematic, Sequence[str]]]], Missing]
         enum=missing,  # type: Union[Sequence, Missing]
         data_type=missing,  # type: Union[str, Sequence, Missing]
         format=missing,  # type: Union[str, Sequence, Missing]
-        all_of=missing,  # type: Union[Sequence[JSONSchematic], Missing]
-        any_of=missing,  # type: Union[Sequence[JSONSchematic], Missing]
-        one_of=missing,  # type: Union[Sequence[JSONSchematic], Missing]
-        is_not=missing,  # type: Union[JSONSchematic, Missing]
-        definitions=missing,  # type: Union[Dict[JSONSchematic], Missing]
+        all_of=missing,  # type: Union[Sequence[Schematic], Missing]
+        any_of=missing,  # type: Union[Sequence[Schematic], Missing]
+        one_of=missing,  # type: Union[Sequence[Schematic], Missing]
+        is_not=missing,  # type: Union[Schematic, Missing]
+        definitions=missing,  # type: Union[Dict[Schematic], Missing]
         required=missing,  # type: Union[Sequence[str], Missing]
         default=missing,  # type: Union[Any, Missing]
+        discriminator=missing,  # type: Union[Discriminator, Missing]
+        read_only=missing,  # type: Union[bool, Missing]
+        write_only=missing,  # type: Union[bool, Missing]
+        xml=missing,  # type: Union[XMLMetadata, Missing]
+        external_docs=missing,  # type: Union[ExternalDocumentation, Missing]
+        example=missing,  # type: Any
+        depracated=missing,  # type: Union[bool, Missing]
     ):
         self.title = title  # type: Union[str, Missing]
         self.description = description  # type: Union[str, Missing]
@@ -298,27 +566,34 @@ class JSONSchematic(JSONObject):
         self.max_length = max_length  # type: Union[int, Missing]
         self.min_length = min_length  # type: Union[int, Missing]
         self.pattern = pattern  # type: Union[str, Missing]
-        self.items = items  # type: Union[JSONSchematic, Sequence[JSONSchematic], Missing]
-        self.additional_items = additional_items  # type: Union[JSONSchematic, bool, Missing]
+        self.items = items  # type: Union[Schematic, Sequence[Schematic], Missing]
+        self.additional_items = additional_items  # type: Union[Schematic, bool, Missing]
         self.max_items = max_items  # type: Union[int, Missing]
         self.min_items = min_items  # type: Union[int, Missing]
         self.unique_items = unique_items  # type: Union[bool, Missing]
         self.max_properties = max_properties  # type: Union[int, Missing]
         self.min_properties = min_properties  # type: Union[int, Missing]
-        self.properties = properties  # type: Union[Dict[str, JSONSchematic], Missing]
-        self.pattern_properties = pattern_properties  # type: Union[JSONSchematic, Missing]
-        self.additional_properties = additional_properties  # type: Union[bool, JSONSchematic, Missing]
-        self.dependencies = dependencies  # type: Union[Dict[str, Dict[str, Union[JSONSchematic, Sequence[str]]]], Missing]
+        self.properties = properties  # type: Union[Dict[str, Schematic], Missing]
+        self.pattern_properties = pattern_properties  # type: Union[Schematic, Missing]
+        self.additional_properties = additional_properties  # type: Union[bool, Schematic, Missing]
+        self.dependencies = dependencies  # type: Union[Dict[str, Dict[str, Union[Schematic, Sequence[str]]]], Missing]
         self.enum = enum  # type: Union[Sequence, Missing]
         self.data_type = data_type  # type: Union[str, Sequence, Missing]
         self.format = format  # type: Union[str, Sequence, Missing]
-        self.all_of = all_of  # type: Union[Sequence[JSONSchematic], Missing]
-        self.any_of = any_of  # type: Union[Sequence[JSONSchematic], Missing]
-        self.one_of = one_of  # type: Union[Sequence[JSONSchematic], Missing]
-        self.is_not = is_not  # type: Union[JSONSchematic, Missing]
-        self.definitions = definitions  # type: Union[Dict[JSONSchematic], Missing]
+        self.all_of = all_of  # type: Union[Sequence[Schematic], Missing]
+        self.any_of = any_of  # type: Union[Sequence[Schematic], Missing]
+        self.one_of = one_of  # type: Union[Sequence[Schematic], Missing]
+        self.is_not = is_not  # type: Union[Schematic, Missing]
+        self.definitions = definitions  # type: Union[Dict[Schematic], Missing]
         self.required = required  # type: Union[Sequence[str], Missing]
         self.default = default  # type: Union[Any, Missing]
+        self.discriminator = discriminator  # type: Union[Discriminator, Missing]
+        self.read_only = missing  # type: Union[bool, Missing]
+        self.write_only = read_only  # type: Union[bool, Missing]
+        self.xml = xml  # type: Union[XMLMetadata, Missing]
+        self.external_docs = external_docs  # type: Union[ExternalDocumentation, Missing]
+        self.example = example  # type: Any
+        self.depracated = depracated  # type: Union[bool, Missing]
 
 
 class Components(JSONObject):
@@ -326,8 +601,9 @@ class Components(JSONObject):
     def __init__(
         self,
         schemas=missing,  # type: Union[Dict[str, Union[JSONSchema, Reference]]]
+        responses=missing,  # type: Union[Dict[str, Union[JSONSchema, Reference]]]
     ):
-        pass
+        schemas = schemas  # type: Union[Dict[str, Union[JSONSchema, Reference]]]
 
 
 class OpenAPI(JSONObject):
@@ -358,21 +634,42 @@ class OpenAPI(JSONObject):
         self.components = components  # type: Union[Components, Missing]
 
 
+from openswallow.model import schemas
+
+
+def set_schema(model, schema):
+    # type: (type, type)
+    if not issubclass(model, JSONObject):
+        raise TypeError(
+            'This function requires a sub-class of ``openswallow.model.JSONObject``, not ``%s``' % (
+                repr(model)
+            )
+        )
+    elif not issubclass(schema, schemas.JSONObjectSchema):
+        raise TypeError(
+            'This function requires a sub-class of ``openswallow.model.schemas.JSONObjectSchema``, not ``%s``' % (
+                repr(schema)
+            )
+        )
+    model.__schema__ = schema
+    schema.__model__ = model
+
+
 # Map schemas to objects
 
-from openswallow.model import schemas
 
 _schemas = {}
 
-for k in dir(schemas):
-    v = getattr(schemas, k)
-    if isinstance(v, type) and (Schema in bases(v)):
-        _schemas[k] = v
+for _k in dir(schemas):
+    _v = getattr(schemas, _k)
+    if isinstance(_v, type) and (issubclass(_v, Schema)):
+        _schemas[_k] = _v
 
-for k, v in copy(locals()).items():
-    if isinstance(v, type) and (JSONObject in bases(v)):
-        sn = v.__name__ + 'Schema'
-        if sn in _schemas:
-            _schema = _schemas[sn]
-            v.__schema__ = _schema
-            _schema.__model__ = v
+for _k, _v in copy(locals()).items():
+    if isinstance(_v, type) and (issubclass(_v, JSONObject)):
+        _sn = _v.__name__ + 'Schema'
+        if _sn in _schemas:
+            _schema = _schemas[_sn]
+            set_schema(_v, _schema)
+        elif _sn != 'JSONObjectSchema':
+            raise KeyError(_sn)
