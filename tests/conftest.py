@@ -2,6 +2,8 @@ import os
 import pytest
 
 from openswallow import open_api
+from openswallow import model
+from openswallow.model import schemas
 
 
 @pytest.fixture
@@ -12,7 +14,7 @@ def open_apis(request):
         sd = os.path.join(d, sd)
         for fn in os.listdir(sd):
             ext = fn.split('.')[-1].lower()
-            if ext in ('json', ):
+            if ext in ('json', 'yaml'):
                 with open(
                     os.path.join(sd, fn),
                     mode='r',

@@ -10,7 +10,7 @@ from collections import OrderedDict
 import yaml
 
 from openswallow.model import OpenAPI
-from openswallow.schemas import OpenAPISchema
+from openswallow.model.schemas import OpenAPISchema
 
 
 def open_api(
@@ -33,6 +33,9 @@ def open_api(
         data = json.loads(data, object_hook=OrderedDict)
     except json.JSONDecodeError as e:
         data = yaml.load(data)
-    return OpenAPISchema().load(data).data
+    return OpenAPISchema(strict=True, many=False).load(data).data
+
+
+
 
 
