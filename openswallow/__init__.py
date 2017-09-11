@@ -1,7 +1,7 @@
 """
-An SDK/library for parsing OpenAPI (Swagger) 2.0 JSON specifications and generating python code representing the
-data model as python classes (for both requests and responses). Output modules are dependent on ``marshmallow`` (as well
-as this package) for parsing and serialization.
+An SDK/library for parsing OpenAPI (Swagger) 2.0 - 3.0 JSON specifications, and generating python code representing the
+data model as python classes (for both requests and responses). The name of this package is a portmanteau of "Open API",
+"Swagger", and "Marshmallow".
 """
 import json
 import typing
@@ -21,7 +21,7 @@ def open_api(
     """
     if isinstance(data, str):
         pass
-    elif hasattr(data, 'read'): # and isinstance(data.read, collections.Callable):
+    elif hasattr(data, 'read'):  # and isinstance(data.read, collections.Callable):
         data = data.read()
         if not isinstance(data, str):
             data = str(data, encoding='utf-8')

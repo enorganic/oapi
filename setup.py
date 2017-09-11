@@ -1,9 +1,13 @@
+import sys
 import re
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
 d = path.abspath(path.dirname(__file__))
+sys.path.append(d)
+
+import openswallow
 
 # Get a long description from the README file
 with open(
@@ -13,22 +17,14 @@ with open(
     ),
     encoding='utf-8'
 ) as f:
-    long_description = ''.join(
-        re.split(
-            r'(^\s*To\s*install::\s*$)',
-            f.read(),
-            flags=re.IGNORECASE+re.MULTILINE
-        )[1:]
-    )
+    long_description = f.read()
 
 setup(
     name='openswallow',
 
     version='0.0.0',
 
-    description=(
-        'A python library for constructing python classes from an Open API schema.'
-    ),
+    description=help(openswallow),
     long_description=long_description,
 
     # The project's main homepage.
@@ -57,7 +53,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
 
-    keywords='mdm mercury',
+    keywords='openapi swagger',
 
     packages=find_packages(),
     # packages=[], # explicitly set packages
@@ -71,7 +67,7 @@ setup(
         'pyyaml>=3.12'
     ],
 
-    # pip install -e .[dev,test]
+    # pip install -e .[dev, test]
     extras_require={
         'dev': [
             'pytest>=2.9.0'
