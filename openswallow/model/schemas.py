@@ -1,12 +1,11 @@
 import collections
 import json
-from copy import copy
-from time import sleep
-from typing import Any
+from collections import OrderedDict
+from copy import copy, deepcopy
+from itertools import chain
 
-from marshmallow import Schema, fields, post_load, post_dump, pre_load, pre_dump, missing
-from openswallow.model import PathItem, JSONObject, JSONDict, JSONList
-from openswallow.utilities import bases
+from marshmallow import Schema, fields, post_load, post_dump, pre_load, pre_dump, missing, ValidationError
+from openswallow.model import JSONObject, JSONDict, JSONList, get_data, get_properties_values
 
 
 def get_model(schema):
@@ -15,52 +14,57 @@ def get_model(schema):
 
 
 def serialize_polymorph(
-    data,  # type: Union[JSONObject, Sequence[JSONObject]]
+    data,  # type: Sequence[JSONObjectSchema]
     schemas=None,  # type: Optional[Sequence[JSONObjectSchema]]
     types=None,  # type: Optional[Sequence[type]]
     many=None  # type: bool
 ):
+    # type: (...) -> Any
+    if (data is None) or (data is missing):
+        return data
     data = copy(data)
-    if isinstance(schemas, JSONObjectSchema):
-        schemas = (schemas,)
-    if isinstance(types, type):
-        types = (types,)
-    # print(data)
-    # print('many = ' + repr(many))
-    if many is None:
+    # print(
+    #     'Data to be serialized: ' +
+    #     repr({k:v for k, v in get_properties_values(data)})
+    # )
+    if (
+        (many is not False) and
+        (schemas is not None) and
+        (ReferenceSchema in schemas) and
+        isinstance(data, get_model(ReferenceSchema))
+    ):
+        many = False
+    elif many is None:
         many = isinstance(data, collections.Sequence) and (not isinstance(data, (str, bytes)))
-    # print('many = ' + repr(many))
     if many:
         if (not isinstance(data, collections.Sequence)) or isinstance(data, (str, bytes)):
             raise TypeError(
-                'Error encountered while parsing %s:\n%s\n...is not a sequence' % (
-                    '|'.join(s.__name__ for s in schemas),
+                'Error encountered while parsing:\n%s\n...this is not a sequence' % (
                     repr(data)
                 )
             )
-        data = JSONList([
-            serialize_polymorph(d, schemas=schemas, types=types, many=False)
+        data = [
+            serialize_polymorph(copy(d), schemas=schemas, types=types, many=False)
             for d in data
-        ])
-    elif not (types and isinstance(data, tuple(types))):
-        models = tuple(get_model(s) for s in schemas)
-        if not isinstance(data, models):
-            # return data
-            raise TypeError(repr(data) + '\n...is not an instance of ' + '|'.join(m.__name__ for m in models))
-        schema = None
-        for i in range(len(schemas)):
-            if isinstance(data, models[i]):
-                schema = schemas[i]
-                break
-        if schema is None:
+        ]
+    else:
+        if schemas:
+            models = tuple(get_model(s) for s in schemas)
+        else:
+            models = None
+        if models and isinstance(data, models):
+            data = get_data(data)
+        elif not (types and isinstance(data, tuple(types))):
             raise TypeError(
-                'Could not identify a schema (%s) for:%s' % (
-                    '|'.join(s.__name__ for s in schemas),
-                    repr(data)
+                repr({k: v for k, v in get_properties_values(data)}) +
+                '\n`%s` is not an instance of ' % type(data).__name__ +
+                '|'.join(
+                    chain(
+                        (m.__name__ for m in (models or [])),
+                        (t.__name__ for t in (types or []))
+                    )
                 )
             )
-        else:
-            data = get_model(schema)(**data)
     return data
 
 
@@ -71,67 +75,85 @@ def deserialize_polymorph(
     many=None  # type: bool
 ):
     # type: (...) -> JSONObjectSchema
+    # print('Data to be de-serialized: ' + repr(data))
+    data = copy(data)
     if isinstance(schemas, JSONObjectSchema):
         schemas = (schemas,)
     if isinstance(types, type):
         types = (types,)
-    if many is None:
-        many = isinstance(data, collections.Sequence) and (not isinstance(data, (dict, str, bytes)))
+    if (
+        (many is not False) and
+        (schemas is not None) and
+        (ReferenceSchema in schemas) and
+        isinstance(data, dict) and
+        len(data.keys()) == 1 and
+        ('$ref' in data.keys())
+    ):
+        many = False
+    elif many is None:
+        many = isinstance(data, collections.Sequence) and (not isinstance(data, (str, bytes)))
     if many:
-        if (not isinstance(data, collections.Sequence)) or isinstance(data, (dict, str, bytes)):
+        if (not isinstance(data, collections.Sequence)) or isinstance(data, (str, bytes)):
             raise TypeError(data)
-        data = [
+        data = JSONList([
             deserialize_polymorph(d, schemas=schemas, types=types, many=False)
             for d in data
-        ]
-    elif not (types and isinstance(data, tuple(types))):
-        if not isinstance(data, dict):
-            raise TypeError(data)
-        data = copy(data)
-        properties = set(data.keys())
+        ])
+    else:
         schema = None
         smallest_unconsumed = None
-        for s in schemas:
-            sp = set()
-            si = s(strict=True)
-            for n, p in si.fields.items():
-                if isinstance(p, fields.FieldABC):
-                    pn = p.load_from or n
-                    # print('Field: ' + pn)
-                    sp.add(pn)
-            unconsumed = properties - sp
-            if unconsumed:
-                if (smallest_unconsumed is None) or len(smallest_unconsumed[-1] > len(unconsumed)):
-                    smallest_unconsumed = (s, unconsumed)
-            else:
-                schema = s
-                break
-        # print('schema = ' + repr(schema))
+        if isinstance(data, collections.Mapping):
+            data = JSONDict(data)
+            properties = set(data.keys())
+            for s in schemas:
+                sp = set()
+                si = s(strict=True, many=False)
+                for n, p in si.fields.items():
+                    if isinstance(p, fields.Field):
+                        pn = p.load_from or n
+                        sp.add(pn)
+                unconsumed = properties - sp
+                if unconsumed:
+                    if (smallest_unconsumed is None) or len(smallest_unconsumed[-1] > len(unconsumed)):
+                        smallest_unconsumed = (s, unconsumed)
+                else:
+                    schema = s
+                    break
+        type_match = False
         if schema is None:
-            raise TypeError(
-                'Could not identify a schema (%s) for:%s%s' % (
-                    '|'.join(s.__name__ for s in schemas),
-                    json.dumps(data),
-                    (
-                        '' if smallest_unconsumed is None else
-                        '\n(closest match: %s does not consume: %s)' % (
-                            smallest_unconsumed[0].__name__,
-                            ', '.join(smallest_unconsumed[1])
+            type_match = bool(types and isinstance(data, tuple(types)))
+            if not type_match:
+                raise TypeError(
+                    'Could not identify a schema%s or type%s for: %s%s' % (
+                        ' (%s)' % '|'.join(s.__name__ for s in schemas) if schemas else '',
+                        ' (%s)' % '|'.join(t.__name__ for t in types) if types else '',
+                        json.dumps(data),
+                        (
+                            '' if smallest_unconsumed is None else
+                            '\n(closest match: %s does not consume: %s)' % (
+                                smallest_unconsumed[0].__name__,
+                                ', '.join(smallest_unconsumed[1])
+                            )
                         )
                     )
                 )
-            )
-        else:
-            # print(repr(schema))
-            # print('data = ' + repr(data))
+        if not type_match:
             if isinstance(data, JSONObject):
-                data = schema(strict=True, many=False).dump(data).data
+                # data = OrderedDict(get_properties_values(data))
+                data = schema(
+                    strict=True,
+                    many=False
+                ).dump(data).data
+            elif isinstance(data, collections.Mapping):
+                data = JSONDict(data)
+            elif isinstance(data, collections.Sequence) and not isinstance(data, (str, bytes)):
+                data = JSONList(data)
     return data
 
 
 def serialize_mapping(
     data, # type: dict
-    schemas,  # type: Optional[Sequence[JSONObjectSchema]]
+    schemas=None,  # type: Optional[Sequence[JSONObjectSchema]]
     types=None,  # type: Optional[Sequence[type]]
     many=None,  # type: Optional[bool]
     depth=1
@@ -139,9 +161,11 @@ def serialize_mapping(
     # type: (dict, type, Optional[bool]) -> dict
     if (data is missing) or (data is None):
         return data
-    data = copy(data)
+    if isinstance(data, (collections.MutableSequence, collections.MutableMapping, collections.MutableSet)):
+        data = copy(data)
     for k, v in copy(data).items():
-        v = copy(v)
+        if isinstance(v, (collections.MutableSequence, collections.MutableMapping, collections.MutableSet)):
+            v = copy(v)
         if depth > 1 and (
             # This allows references to occur at every depth
             (ReferenceSchema not in schemas) or
@@ -157,7 +181,7 @@ def serialize_mapping(
 
 def deserialize_mapping(
     data,  # type: dict
-    schemas,  # type: Optional[Sequence[JSONObjectSchema]]
+    schemas=None,  # type: Optional[Sequence[JSONObjectSchema]]
     types=None,  # type: Optional[Sequence[type]]
     many=None,  # type: Optional[bool]
     depth=1
@@ -165,35 +189,47 @@ def deserialize_mapping(
     # type: (dict, type, Optional[bool]) -> JSONObject
     if (data is missing) or (data is None):
         return data
-    data = JSONDict(copy(data))
+    # if isinstance(data, (collections.MutableSequence, collections.MutableMapping, collections.MutableSet)):
+    if isinstance(data, collections.Mapping):
+        data = JSONDict(data)
+    else:
+        raise TypeError(data)
     if ReferenceSchema in schemas:
         reference_model = get_model(ReferenceSchema)
     else:
         reference_model = None
-    for k, v in copy(data).items():
-        # print('"%s": %s' % (k, json.dumps(v)))
+    for k, v in data.items():
         if depth > 1 and (
             (reference_model is None) or
             isinstance(data, reference_model)
         ):
-            data[k] = deserialize_mapping(data[k], schemas=schemas, types=types, many=many, depth=depth - 1)
+            data[k] = deserialize_mapping(v, schemas=schemas, types=types, many=many, depth=depth - 1)
         else:
-            data[k] = deserialize_polymorph(data[k], schemas=schemas, types=types, many=many)
+            data[k] = deserialize_polymorph(v, schemas=schemas, types=types, many=many)
     return data
 
 
 def polymorph(
-    schemas,  # type: Optional[Sequence[JSONObjectSchema]]
+    schemas=None,  # type: Optional[Union[Sequence[JSONObjectSchema], str]]
     types=None,  # type: Optional[Sequence[type]]
     many=None,  # type: bool
     load_from=None,  # type: Optional[str]
     dump_to=None,  # type: Optional[str]
+    attribute=None,  # type: Optional[str]
 ):
     # type: (...) -> fields.Function
     if isinstance(schemas, type):
         schemas = (schemas,)
     if isinstance(types, type):
         types = (types,)
+    kwargs = dict(
+        load_from=load_from,
+        dump_to=dump_to,
+        attribute=attribute
+    )
+    for k in tuple(kwargs.keys()):
+        if kwargs[k] is None:
+            del kwargs[k]
     return fields.Function(
         serialize=lambda data: serialize_polymorph(
             data,
@@ -207,8 +243,7 @@ def polymorph(
             types=types,
             many=many
         ),
-        load_from=load_from,
-        dump_to=dump_to
+        **kwargs
     )
 
 
@@ -218,13 +253,22 @@ def mapping(
     many=None,  # type: Optional[bool]
     depth=1,  # type: int
     load_from=None,  # type: Optional[str]
-    dump_to=None  # type: Optional[str]
+    dump_to=None,  # type: Optional[str]
+    attribute=None,  # type: Optional[str]
 ):
     # type: (...) -> fields.Function
     if isinstance(schemas, type):
         schemas = (schemas,)
-    if isinstance(types, type):
+    if isinstance(types, (type, str)):
         types = (types,)
+    kwargs = dict(
+        load_from=load_from,
+        dump_to=dump_to,
+        attribute=attribute
+    )
+    for k in tuple(kwargs.keys()):
+        if kwargs[k] is None:
+            del kwargs[k]
     return fields.Function(
         serialize=lambda data: serialize_mapping(
             data,
@@ -240,8 +284,7 @@ def mapping(
             many=many,
             depth=depth
         ),
-        load_from=load_from,
-        dump_to=dump_to
+        **kwargs
     )
 
 
@@ -249,32 +292,58 @@ class JSONObjectSchema(Schema):
 
     __model__ = None
 
-    @pre_load
-    def pre_load(
-        self,
-        data  # type: dict
-    ):
-        return copy(data)
-
-    @pre_dump
-    def pre_dump(
-        self,
-        data  # type: dict
-    ):
-        return copy(data)
+    # @pre_load
+    # def pre_load(
+    #     self,
+    #     data  # type: dict
+    # ):
+    #     # print(
+    #     #     self.__class__.__name__ +
+    #     #     ' - data to be loaded: ' +
+    #     #     str(tuple(sorted((k for k in data.keys()), key=lambda k: k.replace('$', ''))))
+    #     # )
+    #     # print('Data to be loaded: ' + str(data))
+    #     if isinstance(data, (collections.MutableMapping, collections.MutableSequence, collections.MutableSet)):
+    #         data = copy(data)
+    #     if isinstance(data, collections.Mapping):
+    #         data = JSONDict(data)
+    #     return data
+    #
+    # @pre_dump
+    # def pre_dump(
+    #     self,
+    #     data  # type: dict
+    # ):
+    #     # print(
+    #     #     self.__class__.__name__ +
+    #     #     ' - data to be dumped: ' +
+    #     #     str(tuple(sorted((k for k, v in get_properties_values(data)), key=lambda k: k.replace('$', ''))))
+    #     # )
+    #     print('Data to be dumped: ' + str(
+    #         OrderedDict(
+    #             list(get_properties_values(data))
+    #             if isinstance(data, JSONObject)
+    #             else data
+    #         )
+    #     ))
+    #     #if not isinstance(data, get_model(JSONObjectSchema)):
+    #     #    data = get_data(data)
+    #     # if isinstance(data, (collections.MutableMapping, collections.MutableSequence, collections.MutableSet)):
+    #     #     data = copy(data)
+    #     # if isinstance(data, collections.Mapping):
+    #     #     data = JSONDict(data)
+    #     return data
 
     @post_load
     def post_load(
         self,
         data  # type: dict
     ):
-        if data is missing:
-           return missing
-        elif data is None:
-           return None
         m = get_model(self)
-        if m is None:
-            return None
+        # if isinstance(data, (collections.MutableMapping, collections.MutableSequence, collections.MutableSet)):
+        #     data = copy(data)
+        # if isinstance(data, collections.Mapping):
+        #     data = JSONDict(data)
         try:
             return m(**data)
         except (KeyError, TypeError) as e:
@@ -287,7 +356,15 @@ class JSONObjectSchema(Schema):
         self,
         data  # type: JSONObject
     ):
+        # if isinstance(data, (collections.MutableMapping, collections.MutableSequence, collections.MutableSet)):
+        #     data = copy(data)
+        if isinstance(data, collections.Mapping):
+            data = JSONDict(data)
         return data
+
+    class Meta:
+
+        strict = True
 
 
 class ReferenceSchema(JSONObjectSchema):
@@ -295,14 +372,16 @@ class ReferenceSchema(JSONObjectSchema):
     ref = fields.String(load_from='$ref', dump_to='$ref')
 
 
-class ResponseSchematicSchema(JSONObjectSchema):
+class LinkSchema(JSONObjectSchema):
 
-    type = fields.String()
-    items = fields.Dict()
+    rel = fields.String()
+    href = fields.String()
 
 
 class SchematicSchema(JSONObjectSchema):
 
+    schema = fields.String(load_from='$schema', dump_to='$schema')
+    schema_id = fields.String(load_from='$id', dump_to='$id')
     title = fields.String()
     description = fields.String()
     multiple_of = fields.Number(dump_to='multipleOf', load_from='multipleOf')
@@ -313,81 +392,95 @@ class SchematicSchema(JSONObjectSchema):
     max_length = fields.Integer(dump_to='maxLength', load_from='maxLength')
     min_length = fields.Integer(dump_to='minLength', load_from='minLength')
     pattern = fields.String()
-    items = None
-    additional_items = None
     max_items = fields.Integer(load_from='maxItems', dump_to='maxItems')
     min_items = fields.Integer(load_from='minItems', dump_to='minItems')
     unique_items = fields.String(load_from='uniqueItems', dump_to='uniqueItems')
     max_properties = fields.Integer(load_from='maxProperties', dump_to='maxProperties')
     min_properties = fields.Integer(load_from='minProperties', dump_to='minProperties')
-    properties = None
     pattern_properties = fields.Dict()
     additional_properties = fields.Dict()
-    dependencies = None
     enum = fields.List(fields.String())
-    data_type = fields.String(load_from='type', dump_to='type')
+    # data_type = polymorph(types=(str, collections.Sequence), load_from='type', dump_to='type', many=None)
+    data_type = fields.Raw(load_from='type', dump_to='type')
     format = fields.String()
-    all_of = fields.Nested('self', load_from='allOf', dump_to='allOf', many=True)
-    any_of = fields.Nested('self', load_from='anyOf', dump_to='anyOf', many=True)
-    one_of = fields.Nested('self', load_from='oneOf', dump_to='oneOf', many=True)
-    is_not = fields.Nested('self', load_from='isNot', dump_to='isNot', many=False)
-    definitions = fields.Dict()
-    required = fields.List(fields.String())
+    required = fields.String(many=True)
     default = fields.Raw()
+    links = fields.Nested(LinkSchema, many=True)
 
-    # @pre_load
-    # def pre_load(self, data):
-    #     data = super().pre_load(data)
-    #     if 'items' in data:
-    #         if isinstance(data['items'], dict):
-    #             self.items = fields.Nested(self.__class__)
-    #         elif isinstance(data['items'], collections.Sequence):
-    #             self.items = fields.Nested('self', many=True)
-    #     if 'additionalItems' in data:
-    #         if isinstance(data['additionalItems'], dict):
-    #             self.additional_items = fields.Nested('self')
-    #         elif isinstance(data['additionalItems'], collections.Sequence):
-    #             self.additional_items = fields.Nested('self', many=True)
-    #     return data
-    #
-    # @pre_dump
-    # def pre_dump(self, data):
-    #     data = super().pre_dump(data)
-    #     # type: (JSONSchematic) -> Any
-    #     if isinstance(data.items, get_model(self)):
-    #         self.items = fields.Nested('self')
-    #     elif isinstance(data.items, collections.Sequence):
-    #         self.items = fields.Nested('self', many=True)
-    #     if isinstance(data.additional_items, self.__class__):
-    #         self.additional_items = fields.Nested(
-    #             'self',
-    #             load_from='additionalItems',
-    #             dump_to='additionalItems'
-    #         )
-    #     elif isinstance(data.additional_items, bool):
-    #         self.additional_items = fields.Boolean(
-    #             'self',
-    #             load_from='additionalItems',
-    #             dump_to='additionalItems'
-    #         )
-    #     return data
+    @property
+    @staticmethod
+    def items():
+        return polymorph(schemas=(SchematicSchema,))
 
+    @property
+    @staticmethod
+    def additional_items():
+        return polymorph(
+            schemas=(SchematicSchema,),
+            types=(bool,),
+            load_from='additionalItems',
+            dump_to='additionalItems',
+        )
 
-SchematicSchema.items = polymorph(
-    schemas=(SchematicSchema,),
-)
+    @property
+    @staticmethod
+    def properties():
+        return mapping((SchematicSchema,))
 
+    @property
+    @staticmethod
+    def dependencies():
+        return mapping((SchematicSchema,), depth=2)
 
-SchematicSchema.additional_items = polymorph(
-    schemas=(SchematicSchema,),
-    types=(bool,),
-    load_from='additionalItems',
-    dump_to='additionalItems'
-)
+    @property
+    @staticmethod
+    def all_of():
+        return polymorph(
+            (SchematicSchema, ReferenceSchema),
+            load_from='allOf', dump_to='allOf',
+            many=True,
+        )
 
+    @property
+    @staticmethod
+    def any_of():
+        return polymorph(
+            (SchematicSchema, ReferenceSchema),
+            load_from='anyOf', dump_to='anyOf',
+            many=True,
+        )
 
-SchematicSchema.properties = mapping(SchematicSchema)
-SchematicSchema.dependencies = mapping(SchematicSchema, depth=2)
+    @property
+    @staticmethod
+    def one_of():
+        return polymorph(
+            (SchematicSchema, ReferenceSchema),
+            load_from='oneOf', dump_to='oneOf',
+            many=True,
+        )
+
+    @property
+    @staticmethod
+    def is_not():
+        return polymorph(
+            (SchematicSchema, ReferenceSchema),
+            load_from='isNot', dump_to='isNot',
+            many=False,
+        )
+
+    @property
+    @staticmethod
+    def definitions():
+        return mapping((SchematicSchema, ReferenceSchema), many=False)
+
+    class Meta:
+
+        additional = (
+            'items', 'additional_items', 'properties', 'dependencies', 'all_of', 'any_of', 'one_of', 'is_not',
+            'definitions',
+        )
+        ordered = True
+        strict = True
 
 
 class ExampleSchema(JSONObjectSchema):
@@ -443,7 +536,7 @@ class ServerSchema(JSONObjectSchema):
     variables = mapping(ServerVariableSchema)
 
 
-class LinkSchema(JSONObjectSchema):
+class LinkedOperationSchema(JSONObjectSchema):
 
     operation_ref = fields.String(load_from='operationRef', dump_to='operationRef')
     operation_id = fields.String(load_from='operationId', dump_to='operationId')
@@ -458,7 +551,7 @@ class ResponseSchema(JSONObjectSchema):
     description = fields.String()
     headers = mapping((HeaderSchema, ReferenceSchema))
     content = mapping((MediaTypeSchema, ReferenceSchema))
-    links = mapping((LinkSchema, ReferenceSchema))
+    links = mapping((LinkedOperationSchema, ReferenceSchema))
     # version 2.0 compatibility
     schema = polymorph((SchematicSchema, ReferenceSchema))
 
@@ -525,7 +618,7 @@ class ParameterSchema(JSONObjectSchema):
     examples = mapping((SchematicSchema, ReferenceSchema))
     content = mapping(MediaTypeSchema)
     # version 2x compatibility
-    data_type = fields.String(load_from='type', dump_to='type')
+    data_type = polymorph(types=(str,), load_from='type', dump_to='type', many=None)
     enum = fields.List(fields.Raw())
 
 
@@ -571,8 +664,6 @@ class OperationSchema(JSONObjectSchema):
         dump_to='requestBody'
     )
     responses = mapping((ResponseSchema,))
-    # responses = fields.Nested(ResponsesSchema)
-    callbacks = None
     deprecated = fields.Boolean()
     security = fields.Raw()
     servers = fields.Nested(
@@ -581,6 +672,23 @@ class OperationSchema(JSONObjectSchema):
     )
     # Version 2x Compatibility
     produces = fields.String(many=True)
+
+    @property
+    @staticmethod
+    def callbacks():
+        return mapping(
+            schemas=(PathItemSchema, ReferenceSchema),
+            depth=1,
+            load_from='callbacks',
+            dump_to='callbacks',
+            attribute='callbacks'
+        )
+
+    class Meta:
+
+        additional = ('callbacks',)
+        ordered = True
+        strict = True
 
 
 class PathItemSchema(JSONObjectSchema):
@@ -598,11 +706,6 @@ class PathItemSchema(JSONObjectSchema):
     servers = fields.Nested(ServerSchema, many=True)
     parameters = polymorph((ParameterSchema, ReferenceSchema), many=True)
 
-
-OperationSchema.callbacks = mapping(
-    schemas=(PathItemSchema, ReferenceSchema),
-    depth=2
-)
 
 class ContactSchema(JSONObjectSchema):
 
@@ -696,7 +799,7 @@ class ComponentsSchema(JSONObjectSchema):
     request_bodies = mapping((RequestBodySchema, ReferenceSchema))
     headers = mapping((HeaderSchema, ReferenceSchema))
     security_schemes = mapping((SecuritySchemeSchema, ReferenceSchema))
-    links = mapping((LinkSchema, ReferenceSchema))
+    links = mapping((LinkedOperationSchema, ReferenceSchema))
     callbacks = mapping(
         schemas=(ReferenceSchema,),
         types=(dict,)
@@ -711,9 +814,16 @@ class OpenAPISchema(JSONObjectSchema):
     base_path = fields.String(dump_to='basePath', load_from='basePath')
     schemes = fields.List(fields.String())
     tags = fields.Nested(TagSchema, many=True)
-    paths = mapping((PathItemSchema,))
+    paths = mapping((PathItemSchema, ReferenceSchema))
     # version 2x compatibility
     swagger = fields.String(dump_to='swagger', load_from='swagger')
     host = fields.String()
+    consumes = fields.List(fields.String())
+
+    # class Meta:
+    #
+    #     additional = ('paths',)
+    #     strict = True
+    #     ordered = True
 
 

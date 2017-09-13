@@ -5,103 +5,89 @@ Version 3x: https://swagger.io/specification
 
 import collections
 import json
-from collections import OrderedDict
+from collections import OrderedDict, Mapping, Sequence
 from copy import copy
 from numbers import Number
-from typing import List, Union, Any
+import typing
+from typing import List, Union, Any, AnyStr
+from openswallow.model import properties
 
 from marshmallow import missing, Schema
 
 Missing = type(missing)
 
 
-def get_schema(model):
-    # type: (type) -> schemas.JSONObjectSchema
-    return model.__schema__
-
-
-def get_data(o):
-    # type: (Union[Dict, Sequence]) -> schemas.JSONObjectSchema
+def dump(o):
+    # type: (Any) -> schemas.JSONObjectSchema
     return o._data if hasattr(o, '_data') else o
 
 
+class JSON(object):
 
-class JSONObject(object):
+    pass
 
-    __schema__ = None
 
-    def __iter__(self):
-        for k in dir(self):
-            if k[0] != '_':
-                v = getattr(self, k)
-                if not isinstance(v, (collections.Callable, Missing)):
-                    yield k, v
+def get_properties(o):
+    # type: (JSONObject) -> Sequence[properties.Property]
+    return o._properties
 
-    def __setattr__(
+
+def define_properties(class_object, class_properties):
+    # type: (type, Union[Sequence[Tuple[str, Property]], Dict[str, Property]]) -> None
+    if not isinstance(properties, dict):
+        class_properties = OrderedDict(class_properties)
+    class_object._properties = class_properties
+
+
+def set_property(c, property_name, property):
+    # type: (type, str, Property) -> None
+    if not isinstance(c._properties, dict):
+        c._properties = OrderedDict()
+    c._properties[property_name] = property
+
+
+class JSONObject(JSON):
+
+    _properties = None  # type: Optional[typing.Mapping[str, Property]]
+
+    def __init__(
         self,
-        attribute,
-        value
+        json_data=None,  # type: Optional[Union[AnyStr, typing.Mapping, typing.Sequence, typing.IO]]
     ):
-        if isinstance(value, (JSONDict, JSONList, JSONObject, str, bytes, Number)):
-            pass
-        elif isinstance(value, dict):
-            value = JSONDict(value)
-        elif isinstance(value, collections.Sequence):
-            value = JSONList(value)
-        super().__setattr__(attribute, value)
+        if json_data is not None:
+            for k, v in json_data.items():
+                self[k] = v
+
+    def __setitem__(self, key, value):
+        # type: (str, str) -> None
+        for property_name, property in get_properties(self).items():
+            if key == (property.key or property_name):
+                setattr(self, property_name, property.load(value))
+                return None
+        raise KeyError(
+            '`%s.properties` has no property mapped to the key "%s"' % (
+                self.__class__.__name__,
+                key
+            )
+        )
 
     def __copy__(self):
         return self.__class__(**{
-            k: copy(v) for k, v in self
+            k: getattr(k)
+            for k in get_properties(self).keys()
         })
 
-    @property
-    def _data(self):
-        return get_schema(self)(strict=True, many=False).dump(self, many=False).data
-
-    def __str__(self):
-        return get_schema(self)(strict=True, many=False).dumps(self, many=False).data
-
-
-class JSONList(list):
-
-    def __setitem__(self, index, value):
-        # type: (str, collections.Sequence) -> None
-        if isinstance(value, dict) and not isinstance(value, JSONDict):
-            value = JSONDict(value)
-        elif isinstance(value, collections.Sequence) and (not isinstance(value, self.__class__)):
-            value = self.__class__(value)
-        super().__setitems__(index, value)
-
-    @property
-    def _data(self):
-        return [
-            get_data(v for v in self)
-        ]
-
-    def __str__(self):
-        return json.dumps(get_data(self))
-
-
-class JSONDict(OrderedDict):
-
-    def __setitem__(self, key, value):
-        # type: (str, Any) -> None
-        if isinstance(value, dict) and not isinstance(value, self.__class__):
-            value = self.__class__(value)
-        elif isinstance(value, collections.Sequence) and not isinstance(value, JSONList):
-            value = JSONList(value)
-        super().__setitem__(key, value)
-
-    @property
-    def _data(self):
+    def _dump(self):
         data = OrderedDict()
-        for k, v in self.items():
-            data[k] = get_data(v)
+        for pn, p in get_properties(self).items():
+            v = dump(getattr(self, pn))
+            if v is not None:
+                k = p.key or pn
+                data[k] = v
         return data
 
     def __str__(self):
-        return json.dumps(get_data(self))
+        return json.dumps(dump(self))
 
 
 class Reference(JSONObject):
@@ -111,6 +97,13 @@ class Reference(JSONObject):
         ref=missing,  # type: Union[str, Missing]
     ):
         self.ref = ref
+
+define_properties(
+    Reference,
+    [
+        ('ref', properties.String(key='$ref'))
+    ]
+)
 
 
 class Info(JSONObject):
@@ -134,6 +127,14 @@ class Info(JSONObject):
         self.contact = contact
         self.license = license
         self.version = version
+
+define_properties(
+    Info,
+    [
+        ('title', properties.String()),
+        ('description', properties.String()),
+    ]
+)
 
 
 class Tag(JSONObject):
@@ -434,7 +435,7 @@ class Example(JSONObject):
         self.external_value = external_value
 
 
-class Link(JSONObject):
+class LinkedOperation(JSONObject):
 
     def __init__(
         self,
@@ -485,7 +486,7 @@ class Response(JSONObject):
         - content ({str:Content|Reference}): A mapping of media types to ``MediaType`` instances describing potential
           payloads.
 
-        - links ({str:Link|Reference}): A map of operations links that can be followed from the response.
+        - links ({str:LinkedOperation|Reference}): A map of operations links that can be followed from the response.
     """
 
     def __init__(
@@ -715,7 +716,6 @@ class Responses(JSONObject):
         self.service_unavailable = service_unavailable
         self.gateway_timeout = gateway_timeout
         self.http_version_not_supported = http_version_not_supported
-
 
 
 class Operation(JSONObject):
@@ -958,6 +958,17 @@ class ExternalDocumentation(JSONObject):
         self.url = url
 
 
+class Link(JSONObject):
+
+    def __init__(
+        self,
+        rel=missing,  # type: Union[str, Missing]
+        href=missing,  # type: Union[str, Missing]
+    ):
+        self.rel = rel
+        self.href = href
+
+
 class Schematic(JSONObject):
     """
     Instances of this class represent a JSON validation schema, as defined on <http://json-schema.org> and
@@ -1106,10 +1117,16 @@ class Schematic(JSONObject):
 
         - depracated (bool): If ``True``, the property or instance described by this schema should be phased out, as
           if will no longer be supported in future versions.
+
+        - links
+
+        - callbacks
     """
 
     def __init__(
         self,
+        schema=missing,  # type: Union[str, Missing]
+        schema_id=missing,  # type: Union[str, Missing]
         title=missing,  # type: Union[str, Missing]
         description=missing,  # type: Union[str, Missing]
         multiple_of=missing,  # type: Union[Number, Missing]
@@ -1147,8 +1164,11 @@ class Schematic(JSONObject):
         xml=missing,  # type: Union[XML, Missing]
         external_docs=missing,  # type: Union[ExternalDocumentation, Missing]
         example=missing,  # type: Any
-        depracated=missing,  # type: Union[bool, Missing]
+        deprecated=missing,  # type: Union[bool, Missing]
+        links=missing,  # type: Union[Sequence[Link], Missing]
     ):
+        self.schema = schema
+        self.schema_id = schema_id
         self.title = title
         self.description = description
         self.multiple_of = multiple_of
@@ -1181,12 +1201,15 @@ class Schematic(JSONObject):
         self.required = required
         self.default = default
         self.discriminator = discriminator
-        self.read_only = missing
-        self.write_only = read_only
+        self.read_only = read_only
+        self.write_only = write_only
         self.xml = xml
         self.external_docs = external_docs
         self.example = example
-        self.depracated = depracated
+        self.deprecated = deprecated
+        self.links = (
+            links if (links is missing) or (links is None) else list(links)
+        )  # type: Union[Sequence[LinkedOperation], Missing]
 
 
 class RequestBody(JSONObject):
@@ -1272,7 +1295,7 @@ class Components(JSONObject):
         request_bodies=missing,  # type: Union[Dict[str, Union[RequestBody, Reference]]]
         headers=missing,  # type: Union[Dict[str, Union[Header, Reference]]]
         security_schemes=missing,  # type: Union[Dict[str, Union[SecurityScheme, Reference]]]
-        links=missing,  # type: Union[Dict[str, Union[Link, Reference]]]
+        links=missing,  # type: Union[Dict[str, Union[LinkedOperation, Reference]]]
         callbacks=missing,  # type: Union[Dict[str, Union[Dict[str, PathItem], Reference]]]
     ):
         self.schemas = schemas
@@ -1300,6 +1323,7 @@ class OpenAPI(JSONObject):
         tags=missing,  # type: Union[Sequence[Tag], Missing]
         paths=missing,  # type: Union[Dict[str, PathItem], Missing]
         components=missing,  # type: Union[Components, Missing]
+        consumes=missing,  # type: Any
     ):
         # type: (...) -> None
         self.swagger = swagger
@@ -1312,9 +1336,10 @@ class OpenAPI(JSONObject):
         self.tags = missing if tags is missing else list(tags)  # type: Union[Sequence[Tag], Missing]
         self.paths = paths
         self.components = components
+        self.consumes = consumes
 
 
-from openswallow.model import schemas
+from openswallow.model import schemas, properties
 
 
 def set_schema(model, schema):
@@ -1331,7 +1356,7 @@ def set_schema(model, schema):
                 repr(schema)
             )
         )
-    model.__schema__ = schema
+    model._schema = schema
     schema.__model__ = model
 
 
