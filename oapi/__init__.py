@@ -10,8 +10,7 @@ from warnings import warn
 
 import yaml
 
-from openswallow.model import OpenAPI
-from openswallow.model.schemas import OpenAPISchema, SchematicSchema
+from oapi.model import OpenAPI, Schematic
 
 
 def open_api(
@@ -34,7 +33,7 @@ def open_api(
         data = json.loads(data, object_hook=OrderedDict)
     except json.JSONDecodeError:
         data = yaml.load(data)
-    return OpenAPISchema(strict=True, many=False).load(data).data
+    return OpenAPI(data)
 
 
 def json_schema(
@@ -57,10 +56,7 @@ def json_schema(
         data = json.loads(data, object_hook=OrderedDict)
     except json.JSONDecodeError as e:
         data = yaml.load(data)
-    result = SchematicSchema(
-        strict=True,
-        many=False
-    ).load(data)
+    result = Schematic(data)
     if result.errors:
         warn(repr(result.errors))
     return result.data

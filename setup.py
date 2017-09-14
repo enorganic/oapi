@@ -7,7 +7,7 @@ from os import path
 d = path.abspath(path.dirname(__file__))
 sys.path.append(d)
 
-import openswallow
+import oapi
 
 # Get a long description from the README file
 with open(
@@ -20,15 +20,15 @@ with open(
     long_description = f.read()
 
 setup(
-    name='openswallow',
+    name='oapi',
 
     version='0.0.0',
 
-    description=help(openswallow),
+    description=help(oapi),
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://bitbucket.com/davebelais/openswallow.git',
+    url='https://bitbucket.com/davebelais/oapi.git',
 
     # Author details
     author='David Belais',

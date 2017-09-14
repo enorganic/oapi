@@ -1,10 +1,10 @@
 import os
 import pytest
 
-from openswallow import open_api
-from openswallow import model
+from oapi import open_api
+from oapi import model
 
-from openswallow.model import schemas
+from oapi.model import schemas
 
 
 @pytest.fixture

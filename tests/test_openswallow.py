@@ -8,14 +8,14 @@ from warnings import warn
 
 from marshmallow import ValidationError
 
-from openswallow import open_api, json_schema
-from openswallow.model import OpenAPI, JSONObject, get_schema, get_properties_values, JSONDict, JSONList, JSON
+from oapi import open_api, json_schema
+from oapi.model import OpenAPI, Object, get_schema, get_properties_values, JSONDict, JSONList, JSON
 
 
 def object_test(
-    o  # type: Union[JSONObject, Sequence]
+    o  # type: Union[Object, Sequence]
 ):
-    if isinstance(o, JSONObject):
+    if isinstance(o, Object):
         string = str(o)
         # print(string)
         try:
