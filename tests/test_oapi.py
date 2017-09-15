@@ -8,20 +8,20 @@ from warnings import warn
 
 from marshmallow import ValidationError
 
-from oapi import open_api, json_schema
-from oapi.model import OpenAPI, Object, get_schema, get_properties_values, JSONDict, JSONList, JSON
+from oapi import open_api, json_schema, model
+from oapi.model import OpenAPI, Object, get_properties
 
 
 def object_test(
     o  # type: Union[Object, Sequence]
 ):
     if isinstance(o, Object):
+        t = type(o)
         string = str(o)
         # print(string)
         try:
             assert string != ''
-            schema_instance = get_schema(o)(strict=True, many=False)
-            reloaded = schema_instance.loads(string).data
+            reloaded = t(string)
             assert string == str(reloaded)
         except ValidationError as e:
             warn(string)
@@ -29,20 +29,25 @@ def object_test(
         reloaded_json = json.loads(string)
         # for k, v in get_schema(o)().fields.items():
         #     print('    field - %s: %s' % (k, str(v)))
-        for k, v in get_properties_values(o):
-            f = schema_instance.fields[k]
-            n = f.load_from or f.name
-            if n not in reloaded_json:
+        keys = set()
+        for n, p in get_properties(o).items():
+            keys.add(p.key or n)
+        for k in reloaded_json.keys():
+            if k not in keys:
                 raise KeyError(
                     '"%s" not found in dumped JSON: %s' % (
-                        n,
+                        k,
                         string
                     )
                 )
-            object_test(v)
-    elif isinstance(o, collections.Sequence) and not isinstance(o, (str, bytes)):
-        for oo in o:
-            object_test(oo)
+            object_test(getattr(o, n))
+    elif isinstance(o, (collections.Iterable, collections.Mapping)) and not isinstance(o, (str, bytes)):
+        if isinstance(o, collections.Mapping):
+            for k, v in o.items():
+                object_test(v)
+        else:
+            for oo in o:
+                object_test(oo)
 
 
 def test_json_schema():
@@ -69,6 +74,7 @@ def test_json_schema():
     #
     for url in (
         'http://json-schema.org/schema',
+        'http://json-schema.org/hyper-schema',
     ):
         with urlopen(url) as response:
             try:
@@ -85,8 +91,8 @@ def test_json_schema():
                                 print('    %s = %s' % (p, repr(v)))
 
                 raise e
-            for k, v in get_properties_values(oa):
-                print('    %s = %s' % (k, str(v) if isinstance(v, JSON) else repr(v)))
+            for k, v in get_properties(oa):
+                print('    %s = %s' % (k, json.dumps(model.dump(getattr(oa, k)))))
             print(oa)
             object_test(oa)
 
@@ -97,8 +103,8 @@ def test_open_api():
         sd = os.path.join(d, sd)
         if os.path.isdir(sd):
             for fn in os.listdir(sd):
-                if fn != 'api-with-examples.json':
-                    continue
+                # if fn != 'api-with-examples.json':
+                #     continue
                 ext = fn.split('.')[-1].lower()
                 if ext in (
                     'json',
@@ -112,9 +118,9 @@ def test_open_api():
                         mode='r',
                         encoding='utf-8'
                     ) as f:
-                        s = f.read()
+                        # s = f.read()
                         # print(s)
-                        oa = open_api(s)
+                        oa = open_api(f)
                         #print(repr(oa))
                         print(oa)
                         object_test(oa)
@@ -123,6 +129,7 @@ def test_open_api():
         'https://stage.commerceapi.io/swagger/docs/v1',
         'https://stage.commerceapi.io/swagger/docs/v2',
     ):
+        print(url)
         with urlopen(url) as response:
             oa = open_api(response)
             print(oa)
@@ -130,5 +137,5 @@ def test_open_api():
 
 
 if __name__ == '__main__':
-    # test_json_schema()
+    test_json_schema()
     test_open_api()

@@ -10,7 +10,7 @@ from warnings import warn
 
 import yaml
 
-from oapi.model import OpenAPI, Schematic
+from oapi.model import OpenAPI, Schema
 
 
 def open_api(
@@ -56,7 +56,7 @@ def json_schema(
         data = json.loads(data, object_hook=OrderedDict)
     except json.JSONDecodeError as e:
         data = yaml.load(data)
-    result = Schematic(data)
+    result = Schema(data)
     if result.errors:
         warn(repr(result.errors))
     return result.data

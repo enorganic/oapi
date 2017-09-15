@@ -5,17 +5,37 @@ Version 3x: https://swagger.io/specification
 
 import json
 from base64 import b64encode
-from collections import OrderedDict, Mapping, Sequence, Container, Iterable
+from collections import OrderedDict, Mapping, Sequence, Iterable
+from copy import copy, deepcopy
+from itertools import chain
 from numbers import Number
 import typing
-from typing import List, Union, Any, AnyStr
+from typing import List, Union, Any, AnyStr, Hashable
+
+from io import IOBase, StringIO
+
 from oapi.model import properties
+
+
+NoneType = type(None)
+
+
+class Null(object):
+    """
+    This is a stand-in for explicit inclusion of a null value.
+    """
+    pass
+
+
+NULL = Null()
 
 
 def dump(data):
     # type: (Any) -> Union[Object, str, Number, bytes, typing.Collection]
-    if hasattr(data, '_data'):
-        return data._data
+    if isinstance(data, Object):
+        return data._dump
+    elif isinstance(data, Null):
+        return None
     elif isinstance(data, (bytes, bytearray)):
         return b64encode(data)
     elif isinstance(data, (str, Number, bool)):
@@ -28,6 +48,7 @@ def dump(data):
         return OrderedDict([
             (k, dump(v)) for k, v in
             sorted(data.items(), key=lambda kk, vv: kk)
+            if v is not None
         ])
     elif isinstance(data, Iterable):
         return tuple(dump(i) for i in data)
@@ -38,22 +59,57 @@ def dump(data):
 
 
 def get_properties(o):
-    # type: (Object) -> Sequence[properties.Property]
+    # type: (Object) -> typing.Sequence[properties.Property]
     return o._properties
 
 
 def define_properties(class_object, class_properties):
-    # type: (type, Union[Sequence[Tuple[str, Property]], Dict[str, Property]]) -> None
+    # type: (type, Union[typing.Sequence[Tuple[str, Property]], typing.Mapping[str, Property]]) -> None
     if not isinstance(properties, dict):
         class_properties = OrderedDict(class_properties)
     class_object._properties = class_properties
 
 
-def define_property(class_object, property_name, property):
+def define_property(class_or_instance, property_name, property):
     # type: (type, str, Property) -> None
-    if not isinstance(class_object._properties, dict):
-        class_object._properties = OrderedDict()
-    class_object._properties[property_name] = property
+    if not isinstance(class_or_instance._properties, dict):
+        class_or_instance._properties = OrderedDict()
+    class_or_instance._properties[property_name] = property
+
+
+def set_version(data, version):
+    # type: (Any, typing.Hashable) -> Any
+    if isinstance(data, Object):
+        old_properties = get_properties(data)
+        new_properties = deepcopy(old_properties)
+        for n, p in old_properties.items():
+            if (p.versions is not None) and (version not in p.versions):
+                matched = False
+                for v in p.versions:
+                    if isinstance(v, str):
+                        if v[:2] == '>=' and (version >= v[2:]):
+                            matched = True
+                            break
+                        elif v[:2] == '<=' and (version <= v[2:]):
+                            matched = True
+                            break
+                        elif v[0] == '>' and (version > v[1:]):
+                            matched = True
+                            break
+                        elif v[0] == '<' and (version < v[1:]):
+                            matched = True
+                            break
+                if not matched:
+                    del new_properties[n]
+        define_properties(data, new_properties)
+        for n, p in new_properties.items():
+            set_version(getattr(data, n), version)
+    elif isinstance(data, Mapping):
+        for v in data.values():
+            set_version(v, version)
+    elif isinstance(data, Iterable) and not isinstance(data, (str, bytes)):
+        for v in data:
+            set_version(v, version)
 
 
 class Object(object):
@@ -65,8 +121,22 @@ class Object(object):
         _=None,  # type: Optional[Union[AnyStr, typing.Mapping, typing.Sequence, typing.IO]]
     ):
         if _ is not None:
+            if isinstance(_, IOBase):
+                _.seek(0)
+                _ = _.readall()
+            if isinstance(_, bytes):
+                _ = str(_, encoding='utf-8')
+            if isinstance(_, str):
+                _ = json.loads(_, object_hook=OrderedDict)
             for k, v in _.items():
-                self[k] = v
+                try:
+                    self[k] = v
+                except KeyError as e:
+                    if e.args and len(e.args) == 1:
+                        e.args = (
+                            r'%s: %s' % (e.args[0], json.dumps(_)),
+                        )
+                    raise e
 
     def __setitem__(self, key, value):
         # type: (str, str) -> None
@@ -87,12 +157,18 @@ class Object(object):
             for k in get_properties(self).keys()
         })
 
+    @property
     def _dump(self):
         data = OrderedDict()
         for pn, p in get_properties(self).items():
-            v = dump(getattr(self, pn))
+            v = getattr(self, pn)
             if v is not None:
+                v = dump(v)
                 k = p.key or pn
+                if (v is None) and (p.types is not None) and (Null not in p.types):
+                    raise TypeError(
+                        'Null values are not allowed in `oapi.model.%s.%s`.' % (self.__class__.__name__, pn)
+                    )
                 data[k] = v
         return data
 
@@ -104,7 +180,7 @@ class Reference(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         ref=None,  # type: Optional[str]
     ):
         self.ref = ref
@@ -126,7 +202,7 @@ class Info(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         title=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         terms_of_service=None,  # type: Optional[str]
@@ -164,7 +240,7 @@ class Tag(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         name=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
     ):
@@ -190,7 +266,7 @@ class Contact(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         name=None,  # type: Optional[str]
         url=None,  # type: Optional[str]
         email=None,  # type: Optional[str]
@@ -219,7 +295,7 @@ class License(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         name=None,  # type: Optional[str]
         url=None,  # type: Optional[str]
     ):
@@ -242,7 +318,7 @@ class Link(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         rel=None,  # type: Optional[str]
         href=None,  # type: Optional[str]
     ):
@@ -260,10 +336,10 @@ define_properties(
 )
 
 
-class Schematic(Object):
+class Schema(Object):
     """
-    Instances of this class represent a JSON validation schema, as defined on <http://json-schema.org> and
-    <https://swagger.io/specification/#schemaObject>.
+    https://swagger.io/specification/#schemaObject
+    http://json-schema.org
 
     Properties:
 
@@ -295,7 +371,7 @@ class Schematic(Object):
 
         - pattern (str): The string instance described by this schema should match this regular expression (ECMA 262).
 
-        - items (Schematic|Sequence[Schematic]):
+        - items (Schema|[Schema]):
 
             - If ``items`` is a sub-schema—each item in the array instance described by this schema should be valid as
               described by this sub-schema.
@@ -304,7 +380,7 @@ class Schematic(Object):
               length to this sequence, and each value should be valid as described by the sub-schema at the
               corresponding index within this sequence of sub-schemas.
 
-        - additional_items (Schematic|bool): If ``additional_items`` is ``True``—the array instance described by
+        - additional_items (Schema|bool): If ``additional_items`` is ``True``—the array instance described by
           this schema may contain additional values beyond those defined in ``items``.
 
         - max_items (int): The array instance described by this schema should contain no more than this number of
@@ -319,14 +395,14 @@ class Schematic(Object):
 
         - min_properties (int)
 
-        - properties (Dict[str, Schematic]): Any properties of the object instance described by this schema which
+        - properties ({str:Schema}): Any properties of the object instance described by this schema which
           correspond to a key in this mapping should be valid as described by the sub-schema corresponding to that key.
 
-        - pattern_properties (Schematic): Any properties of the object instance described by this schema which
+        - pattern_properties (Schema): Any properties of the object instance described by this schema which
           match a key in this mapping, when the key is evaluated as a regular expression, should be valid as described by
           the sub-schema corresponding to the matched key.
 
-        - additional_properties (bool|Schematic):
+        - additional_properties (bool|Schema):
 
             - If ``additional_properties`` is ``True``—properties may be present in the object described by
               this schema with names which do not match those in either ``properties`` or ``pattern_properties``.
@@ -334,7 +410,7 @@ class Schematic(Object):
             - If ``additional_properties`` is ``False``—all properties present in the object described by this schema
               must correspond to a property matched in either ``properties`` or ``pattern_properties``.
 
-        - dependencies (Dict[str, Dict[str, Union[Schematic, Sequence[str]]]]):
+        - dependencies ({str:{str:Schema|[str]}}):
 
             A dictionary mapping properties of the object instance described by this schema to a mapping other
             properties and either:
@@ -344,9 +420,9 @@ class Schematic(Object):
                 - A list of properties which must *also* be present when the first and second properties are present on
                   the object instance described by this schema.
 
-        - enum (Sequence): The value/instance described by this schema should be among those in this sequence.
+        - enum ([Any]): The value/instance described by this schema should be among those in this sequence.
 
-        - data_type (str|Sequence): The value/instance described by this schema should be of the types indicated
+        - data_type (str|[str]): The value/instance described by this schema should be of the types indicated
           (if this is a string), or *one of* the types indicated (if this is a sequence).
 
             - "null"
@@ -356,7 +432,7 @@ class Schematic(Object):
             - "number"
             - "string"
 
-        - format (str|Sequence):
+        - format (str|[str]):
 
             - "date-time": A date and time in the format YYYY-MM-DDThh:mm:ss.sTZD (eg 1997-07-16T19:20:30.45+01:00),
               YYYY-MM-DDThh:mm:ssTZD (eg 1997-07-16T19:20:30+01:00), or YYYY-MM-DDThh:mmTZD (eg 1997-07-16T19:20+01:00).
@@ -367,22 +443,22 @@ class Schematic(Object):
             - "uri"
             - "uriref": A URI or a relative reference.
 
-        - all_of (Sequence[Schematic]): The value/instance described by the schema should *also* be valid as
+        - all_of ([Schema]): The value/instance described by the schema should *also* be valid as
           described by all sub-schemas in this sequence.
 
-        - any_of (Sequence[Schematic]): The value/instance described by the schema should *also* be valid as
+        - any_of ([Schema]): The value/instance described by the schema should *also* be valid as
           described in at least one of the sub-schemas in this sequence.
 
-        - one_of (Sequence[Schematic]): The value/instance described by the schema should *also* be valid as
+        - one_of ([Schema]): The value/instance described by the schema should *also* be valid as
           described in one (but *only* one) of the sub-schemas in this sequence.
 
-        - is_not (Schematic): The value/instance described by this schema should *not* be valid as described by this
+        - is_not (Schema): The value/instance described by this schema should *not* be valid as described by this
           sub-schema.
 
-        - definitions (Dict[Schematic]): A dictionary of sub-schemas, stored for the purpose of referencing
+        - definitions ({str:Schema}): A dictionary of sub-schemas, stored for the purpose of referencing
           these sub-schemas elsewhere in the schema.
 
-        - required (Sequence[str]): A list of attributes which must be present on the object instance described by this
+        - required ([str]): A list of attributes which must be present on the object instance described by this
           schema.
 
         - default (Any): The value presumed if the value/instance described by this schema is absent.
@@ -406,17 +482,15 @@ class Schematic(Object):
 
         - example (Any)
 
+        - definitions (Any)
+
         - depracated (bool): If ``True``, the property or instance described by this schema should be phased out, as
           if will no longer be supported in future versions.
-
-        - links
-
-        - callbacks
     """
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         schema=None,  # type: Optional[str]
         schema_id=None,  # type: Optional[str]
         title=None,  # type: Optional[str]
@@ -429,25 +503,25 @@ class Schematic(Object):
         max_length=None,  # type: Optional[int]
         min_length=None,  # type: Optional[int]
         pattern=None,  # type: Optional[str]
-        items=None,  # type: Optional[Schematic, Sequence[Schematic]]
-        additional_items=None,  # type: Optional[Schematic, bool]
+        items=None,  # type: Optional[Schema, Sequence[Schema]]
+        additional_items=None,  # type: Optional[Schema, bool]
         max_items=None,  # type: Optional[int]
         min_items=None,  # type: Optional[int]
         unique_items=None,  # type: Optional[bool]
         max_properties=None,  # type: Optional[int]
         min_properties=None,  # type: Optional[int]
-        properties=None,  # type: Optional[Dict[str, Schematic]]
-        pattern_properties=None,  # type: Optional[Schematic]
-        additional_properties=None,  # type: Optional[bool, Schematic]
-        dependencies=None,  # type: Optional[Dict[str, Dict[str, Union[Schematic, Sequence[str]]]]]
+        properties=None,  # type: Optional[typing.Mapping[str, Schema]]
+        pattern_properties=None,  # type: Optional[Schema]
+        additional_properties=None,  # type: Optional[bool, Schema]
+        dependencies=None,  # type: Optional[typing.Mapping[str, typing.Mapping[str, Union[Schema, Sequence[str]]]]]
         enum=None,  # type: Optional[Sequence]
         data_type=None,  # type: Optional[str, Sequence]
         format=None,  # type: Optional[str, Sequence]
-        all_of=None,  # type: Optional[Sequence[Schematic]]
-        any_of=None,  # type: Optional[Sequence[Schematic]]
-        one_of=None,  # type: Optional[Sequence[Schematic]]
-        is_not=None,  # type: Optional[Schematic]
-        definitions=None,  # type: Optional[Dict[Schematic]]
+        all_of=None,  # type: Optional[Sequence[Schema]]
+        any_of=None,  # type: Optional[Sequence[Schema]]
+        one_of=None,  # type: Optional[Sequence[Schema]]
+        is_not=None,  # type: Optional[Schema]
+        definitions=None,  # type: Optional[typing.Mapping[Schema]]
         required=None,  # type: Optional[Sequence[str]]
         default=None,  # type: Optional[Any]
         discriminator=None,  # type: Optional[Discriminator]
@@ -506,7 +580,7 @@ class Schematic(Object):
         
         
 define_properties(
-    Schematic,
+    Schema,
     [
         ('schema', properties.String(key='$schema')),
         ('schema_id', properties.String(key='$id')),
@@ -527,11 +601,26 @@ define_properties(
         ('min_properties', properties.Integer(key='minProperties')),
         ('pattern_properties', properties.Object(key='patternProperties')),
         ('additional_properties', properties.Object(key='additionalProperties')),
+        ('dependencies', ),
         ('enum', properties.Array(item_types=(properties.String(),))),
         ('data_type', properties.Property(types=(properties.Array(item_types=(str,)), str), key='type')),
         ('format', properties.String()),
         ('required', properties.Array(item_types=(properties.String(),))),
+        ('all_of', ),
+        ('any_of', ),
+        ('one_of', ),
+        ('is_not', ),
+        ('definitions', ),
         ('default', properties.Property()),
+        ('required', properties.Array(item_types=(str,))),
+        ('default', properties.Property()),
+        ('discriminator', ),
+        ('read_only', ),
+        ('write_only', ),
+        ('xml', ),
+        ('external_docs', ),
+        ('example', ),
+        ('deprecated', ),
         ('links', properties.Array(item_types=(Link,))),
     ]
 )
@@ -544,7 +633,7 @@ class Example(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         summary=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         value=None,  # type: Any
@@ -576,9 +665,9 @@ class Encoding(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         content_type=None,  # type: Optional[str]
-        headers=None,  # type: Optional[Dict[str, Union[Header, Reference]]]
+        headers=None,  # type: Optional[typing.Mapping[str, Union[Header, Reference]]]
         style=None,  # type: Optional[str]
         explode=None,  # type: Optional[bool]
         allow_reserved=None,  # type: Optional[bool]
@@ -601,11 +690,11 @@ class MediaType(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
-        schema=None,  # type: Optional[Schematic, Reference]
+        _=None,  # type: Optional[typing.Mapping]
+        schema=None,  # type: Optional[Schema, Reference]
         example=None,  # type: Any
-        examples=None,  # type: Union[Dict[str, Union[Example, Reference]]]
-        encoding=None,  # type: Union[Dict[str, Union[Encoding, Reference]]]
+        examples=None,  # type: Union[typing.Mapping[str, Union[Example, Reference]]]
+        encoding=None,  # type: Union[typing.Mapping[str, Union[Encoding, Reference]]]
     ):
         self.schema = schema
         self.example = example
@@ -617,7 +706,7 @@ class MediaType(Object):
 define_properties(
     MediaType,
     [
-        ('schema', properties.Object(types=(Schematic, Reference))),
+        ('schema', properties.Object(types=(Schema, Reference))),
         ('example', properties.Property()),
         ('examples', properties.Object(value_types=(Example, Reference))),
         ('encoding', properties.Object(value_types=(Encoding, Reference))),
@@ -673,7 +762,7 @@ class Header(Object):
            without percent-encoding. This property only applies to parameters with a location value of "query". The
            default value is ``False``.
 
-         - schema (Schematic): The schema defining the type used for the parameter.
+         - schema (Schema): The schema defining the type used for the parameter.
 
          - example (Any): Example of the media type. The example should match the specified schema and encoding
            properties if present. The ``example`` parameter should not be present if ``examples`` is present. If
@@ -681,7 +770,7 @@ class Header(Object):
            ``schema``. To represent examples of media types that cannot naturally be represented in JSON or YAML, a
            string value can contain the example with escaping where necessary.
 
-         - examples (Dict[str, Example]): Examples of the media type. Each example should contain a value in the correct
+         - examples (typing.Mapping[str, Example]): Examples of the media type. Each example should contain a value in the correct
            format, as specified in the parameter encoding. The ``examples`` parameter should not be present if
            ``example`` is present. If referencing a ``schema`` which contains an example—*these* example override the
            example provided by the ``schema``. To represent examples of media types that cannot naturally be represented
@@ -693,7 +782,7 @@ class Header(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         description=None,  # type: Optional[str]
         required=None,  # type: Optional[bool]
         deprecated=None,  # type: Optional[bool]
@@ -701,10 +790,10 @@ class Header(Object):
         style=None,  # type: Optional[str]
         explode=None,  # type: Optional[bool]
         allow_reserved=None,  # type: Optional[bool]
-        schema=None,  # type: Optional[Schematic]
+        schema=None,  # type: Optional[Schema]
         example=None,  # type: Any
-        examples=None,  # type: Optional[Dict[str, Example]]
-        content=None,  # type: Optional[Dict[str, MediaType]]
+        examples=None,  # type: Optional[typing.Mapping[str, Example]]
+        content=None,  # type: Optional[typing.Mapping[str, MediaType]]
     ):
         self.description = description
         self.required = required
@@ -742,7 +831,7 @@ define_properties(
         ('style', properties.String()),
         ('explode', properties.Boolean()),
         ('allow_reserved', properties.Boolean(key='allowReserved')),
-        ('schema', properties.Object(types=(Schematic,))),
+        ('schema', properties.Object(types=(Schema,))),
         ('example', properties.Property()),
         ('examples', properties.Object(value_types=(Example,))),
         ('content', properties.Object(value_types=(MediaType,))),
@@ -807,7 +896,7 @@ class Parameter(Object):
           without percent-encoding. This property only applies to parameters with a location value of "query". The
           default value is ``False``.
 
-        - schema (Schematic): The schema defining the type used for the parameter.
+        - schema (Schema): The schema defining the type used for the parameter.
 
         - example (Any): Example of the media type. The example should match the specified schema and encoding
           properties if present. The ``example`` parameter should not be present if ``examples`` is present. If
@@ -815,7 +904,7 @@ class Parameter(Object):
           ``schema``. To represent examples of media types that cannot naturally be represented in JSON or YAML, a
           string value can contain the example with escaping where necessary.
 
-        - examples (Dict[str, Example]): Examples of the media type. Each example should contain a value in the correct
+        - examples ({str:Example}): Examples of the media type. Each example should contain a value in the correct
           format, as specified in the parameter encoding. The ``examples`` parameter should not be present if
           ``example`` is present. If referencing a ``schema`` which contains an example—*these* example override the
           example provided by the ``schema``. To represent examples of media types that cannot naturally be represented
@@ -833,7 +922,7 @@ class Parameter(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         name=None,  # type: Optional[str]
         parameter_in=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
@@ -843,10 +932,10 @@ class Parameter(Object):
         style=None,  # type: Optional[str]
         explode=None, # type: Optional[bool]
         allow_reserved=None, # type: Optional[bool]
-        schema=None, # type: Optional[Schematic]
+        schema=None, # type: Optional[Schema]
         example=None, # type: Any
-        examples=None, # type: Optional[Dict[str, Example]]
-        content=None,  # type: Optional[Dict[str, MediaType]]
+        examples=None, # type: Optional[typing.Mapping[str, Example]]
+        content=None,  # type: Optional[typing.Mapping[str, MediaType]]
         # 2x compatibility
         data_type=None,  # type: Optional[str]
         enum=None,  # type: Optional[Sequence[str]]
@@ -882,9 +971,9 @@ define_properties(
         ('style', properties.String()),
         ('explode', properties.Boolean()),
         ('allow_reserved', properties.Boolean()),
-        ('schema', properties.Object(types=(Schematic, Reference))),
+        ('schema', properties.Object(types=(Schema, Reference))),
         ('example', properties.Property()),
-        ('examples', properties.Object(types=(Schematic, Reference))),
+        ('examples', properties.Object(types=(Schema, Reference))),
         ('content', properties.Object(types=(MediaType,))),
         # version 2x compatibility
         ('data_type', properties.Property(types=(properties.String(),), key='type')),
@@ -897,7 +986,7 @@ class ServerVariable(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         enum=None,  # type: Optional[Sequence[str]]
         default=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
@@ -925,10 +1014,10 @@ class Server(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         url=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
-        variables=None  # type: Optional[Dict[str, ServerVariable]]
+        variables=None  # type: Optional[typing.Mapping[str, ServerVariable]]
     ):
         # type: (...) -> None
         self.url = url
@@ -954,10 +1043,10 @@ class LinkedOperation(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         operation_ref=None,  # type: Optional[str]
         operation_id=None,  # type: Optional[str]
-        parameters=None,  # type: Optional[Dict[str, Any]]
+        parameters=None,  # type: Optional[typing.Mapping[str, Any]]
         request_body=None,  # type: Any
         description=None,  # type: Optional[str]
         server=None,  # type: Optional[Server]
@@ -1003,11 +1092,11 @@ class Response(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         description=None,  # type: Optional[str]
-        headers=None,  # type: Optional[Dict[str, Union[Header, Reference]]]
-        content=None,  # type: Optional[Dict[str, Union[Content, Reference]]]
-        links=None,  # type: Optional[Dict[str, Union[Link, Reference]]]
+        headers=None,  # type: Optional[typing.Mapping[str, Union[Header, Reference]]]
+        content=None,  # type: Optional[typing.Mapping[str, Union[Content, Reference]]]
+        links=None,  # type: Optional[typing.Mapping[str, Union[Link, Reference]]]
     ):
         # type: (...) -> None
         self.description = description
@@ -1038,7 +1127,7 @@ class ExternalDocumentation(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         description=None,  # type: Optional[str]
         url=None,  # type: Optional[str]
     ):
@@ -1060,9 +1149,9 @@ class RequestBody(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         description=None,  # type: Optional[str]
-        content=None,  # type: Optional[Dict[str, MediaType]]
+        content=None,  # type: Optional[typing.Mapping[str, MediaType]]
         required=None,  # type: Optional[bool]
     ):
         self.description = description
@@ -1112,7 +1201,7 @@ class Operation(Object):
           `RFC7231 <https://tools.ietf.org/html/rfc7231#section-4.3.1>` has explicitly defined semantics for request
           bodies.
 
-        - responses (Dict[str, Response]):  A mapping of HTTP response codes to response schemas.
+        - responses (typing.Mapping[str, Response]):  A mapping of HTTP response codes to response schemas.
 
         - callbacks ({str:CallBack|Reference})
 
@@ -1129,7 +1218,7 @@ class Operation(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         tags=None,  # type: Optional[Sequence[str]]
         summary=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
@@ -1137,8 +1226,9 @@ class Operation(Object):
         operation_id=None,  # type: Optional[str]
         parameters=None,  # type: Optional[Sequence[Union[Parameter, Reference]]]
         request_body=None,  # type: Optional[RequestBody, Reference]
-        responses=None,  # type: Optional[Dict[str, Response]]
-        callbacks=None,  # type: Optional[Dict[str, Union[Callback, Refefence]]]
+        deprecated=None,  # type: Optional[bool]
+        responses=None,  # type: Optional[typing.Mapping[str, Response]]
+        callbacks=None,  # type: Optional[typing.Mapping[str, Union[Callback, Refefence]]]
         security=None,  # type: Optional[Sequence[[str]]]
         servers=None,  # type: Optional[Sequence[Server]]
         # Version 2x Compatibility
@@ -1157,6 +1247,7 @@ class Operation(Object):
         self.parameters = parameters
         self.request_body = request_body
         self.responses = responses
+        self.deprecated = deprecated
         self.callbacks = callbacks
         self.security = (
             security if (
@@ -1219,7 +1310,7 @@ class PathItem(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         ref=None,  # type: Optional[str]
         summary=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
@@ -1301,9 +1392,9 @@ class Discriminator(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         property_name=None,  # type: Optional[str]
-        mapping=None,  # type: Optional[Dict[str, str]]
+        mapping=None,  # type: Optional[typing.Mapping[str, str]]
     ):
         self.property_name = property_name
         self.mapping = mapping
@@ -1339,7 +1430,7 @@ class XML(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         name=None,  # type: Optional[str]
         name_space=None,  # type: Optional[str]
         prefix=None,  # type: Optional[str]
@@ -1373,11 +1464,11 @@ class OAuthFlow(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         authorization_url=None,  # type: Optional[str]
         token_url=None,  # type: Optional[str]
         refresh_url=None,  # type: Optional[str]
-        scopes=None,  # type: Optional[Dict[str, str]]
+        scopes=None,  # type: Optional[typing.Mapping[str, str]]
     ):
         self.authorization_url = authorization_url
         self.token_url = token_url
@@ -1404,7 +1495,7 @@ class OAuthFlows(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         implicit=None,  # type: Optional[OAuthFlow]
         password=None,  # type: Optional[OAuthFlow]
         client_credentials=None,  # type: Optional[OAuthFlow]
@@ -1453,7 +1544,7 @@ class SecurityScheme(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         security_scheme_type=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         name=None,  # type: Optional[str]
@@ -1493,16 +1584,16 @@ class Components(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
-        schemas=None,  # type: Union[Dict[str, Union[Schematic, Reference]]]
-        responses=None,  # type: Union[Dict[str, Union[Response, Reference]]]
-        parameters=None,  # type: Union[Dict[str, Union[Parameter, Reference]]]
-        examples=None,  # type: Union[Dict[str, Union[Example, Reference]]]
-        request_bodies=None,  # type: Union[Dict[str, Union[RequestBody, Reference]]]
-        headers=None,  # type: Union[Dict[str, Union[Header, Reference]]]
-        security_schemes=None,  # type: Union[Dict[str, Union[SecurityScheme, Reference]]]
-        links=None,  # type: Union[Dict[str, Union[LinkedOperation, Reference]]]
-        callbacks=None,  # type: Union[Dict[str, Union[Dict[str, PathItem], Reference]]]
+        _=None,  # type: Optional[typing.Mapping]
+        schemas=None,  # type: Union[typing.Mapping[str, Union[Schema, Reference]]]
+        responses=None,  # type: Union[typing.Mapping[str, Union[Response, Reference]]]
+        parameters=None,  # type: Union[typing.Mapping[str, Union[Parameter, Reference]]]
+        examples=None,  # type: Union[typing.Mapping[str, Union[Example, Reference]]]
+        request_bodies=None,  # type: Union[typing.Mapping[str, Union[RequestBody, Reference]]]
+        headers=None,  # type: Union[typing.Mapping[str, Union[Header, Reference]]]
+        security_schemes=None,  # type: Union[typing.Mapping[str, Union[SecurityScheme, Reference]]]
+        links=None,  # type: Union[typing.Mapping[str, Union[LinkedOperation, Reference]]]
+        callbacks=None,  # type: Union[typing.Mapping[str, Union[typing.Mapping[str, PathItem], Reference]]]
     ):
         self.schemas = schemas
         self.responses = responses
@@ -1519,7 +1610,7 @@ class Components(Object):
 define_properties(
     Components,
     [
-        ('schemas', properties.Object(value_types=(Schematic, Reference))),
+        ('schemas', properties.Object(value_types=(Schema, Reference))),
         ('responses', properties.Object(value_types=(Response, Reference))),
         ('parameters', properties.Object(value_types=(Parameter, Reference))),
         ('examples', properties.Object(value_types=(Example, Reference))),
@@ -1544,7 +1635,7 @@ class OpenAPI(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[Mapping]
+        _=None,  # type: Optional[typing.Mapping]
         open_api=None,  # type: Optional[str]
         info=None,  # type: Optional[Info]
         host=None,  # type: Optional[str]
@@ -1552,11 +1643,15 @@ class OpenAPI(Object):
         base_path=None,  # type: Optional[str]
         schemes=None,  # type: Optional[Sequence[str]]
         tags=None,  # type: Optional[Sequence[Tag]]
-        paths=None,  # type: Optional[Dict[str, PathItem]]
+        paths=None,  # type: Optional[typing.Mapping[str, PathItem]]
         components=None,  # type: Optional[Components]
         consumes=None,  # type: Any
         # 2.0 compatibility
         swagger=None,  # type: Optional[str]
+        definitions=None,  # type: Optional[typing.Mapping[str, Object]]
+        security_definitions=None,  # type: Optional[typing.Mapping[str, Union[Object, str]]]
+        produces=None,  # type: Optional[typing.Collection[str]]
+        external_docs=None,  # type: Optional[ExternalDocumentation]
     ):
         # type: (...) -> None
         self.open_api = open_api
@@ -1571,16 +1666,48 @@ class OpenAPI(Object):
         self.consumes = consumes
         # 2.0 compatibility
         self.swagger = swagger
+        self.definitions = definitions
+        self.security_definitions = security_definitions
+        self.produces = produces
+        self.external_docs = external_docs
         super().__init__(_)
+        version = self.open_api or self.swagger
+        if version is not None:
+            set_version(self, version)
 
 
 define_properties(
     OpenAPI,
     [
-        ('open_api', properties.String(key='openapi')),
+        ('open_api', properties.String(key='openapi', versions=('>=3.0',))),
         ('info', properties.Object(types=(Info,))),
         ('host', properties.String()),
-        ('servers', properties.String()),
-        ('swagger', properties.String()),
+        ('servers', properties.Array(item_types=(str,))),
+        ('base_path', properties.String(key='basePath')),
+        ('schemes', properties.Array(item_types=(str,))),
+        ('tags', properties.Array(item_types=(Tag,))),
+        ('paths', properties.Object(value_types=(PathItem,))),
+        ('components', properties.Object(types=(Components,))),
+        ('consumes', properties.Array(item_types=(str,))),
+        ('swagger', properties.String(versions=('<3.0',))),
+        (
+            'definitions',
+            properties.Object(
+                value_types=(
+                    Schema,
+                ),
+                versions=('<3.0',)
+            ),
+        ),
+        (
+            'security_definitions',
+            properties.Object(
+                value_types=(SecurityScheme, str),
+                key='securityDefinitions',
+                versions=('<3.0',)
+            )
+        ),
+        ('produces', properties.Array(item_types=(str,), versions=('<3.0',)),),
+        ('external_docs', properties.Object(types=(ExternalDocumentation,), key='externalDocs'))
     ]
 )
