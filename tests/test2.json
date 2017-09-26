@@ -1,0 +1,655 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Uber API",
+    "description": "Move your app forward with the Uber API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.uber.com/v1"
+    }
+  ],
+  "paths": {
+    "/products": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "summary": "Product Types",
+        "description": "The Products endpoint returns information about the Uber products offered at a given location. The response includes the display name and other details about each product, and lists the products in the proper display order.",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "description": "Latitude component of location.",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "description": "Longitude component of location.",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An array of products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "products": {
+                      "description": "Contains the list of products",
+                      "items": {
+                        "properties": {
+                          "capacity": {
+                            "description": "Capacity of product. For example, 4 people.",
+                            "type": "integer"
+                          },
+                          "description": {
+                            "description": "Description of product.",
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "description": "Display name of product.",
+                            "type": "string"
+                          },
+                          "image": {
+                            "description": "Image URL representing the product.",
+                            "type": "string"
+                          },
+                          "product_id": {
+                            "description": "Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles.",
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "type": "array"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apikey": []
+          }
+        ]
+      }
+    },
+    "/estimates/price": {
+      "get": {
+        "tags": [
+          "Estimates"
+        ],
+        "summary": "Price Estimates",
+        "description": "The Price Estimates endpoint returns an estimated price range for each product offered at a given location. The price estimate is provided as a formatted string with the full price range and the localized currency symbol.<br><br>The response also includes low and high estimates, and the [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217) currency code for situations requiring currency conversion. When surge is active for a particular product, its surge_multiplier will be greater than 1, but the price estimate already factors in this multiplier.",
+        "parameters": [
+          {
+            "name": "start_latitude",
+            "in": "query",
+            "description": "Latitude component of start location.",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "start_longitude",
+            "in": "query",
+            "description": "Longitude component of start location.",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "end_latitude",
+            "in": "query",
+            "description": "Latitude component of end location.",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "end_longitude",
+            "in": "query",
+            "description": "Longitude component of end location.",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An array of price estimates by product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "properties": {
+                      "currency_code": {
+                        "description": "[ISO 4217](http://en.wikipedia.org/wiki/ISO_4217) currency code.",
+                        "type": "string"
+                      },
+                      "display_name": {
+                        "description": "Display name of product.",
+                        "type": "string"
+                      },
+                      "estimate": {
+                        "description": "Formatted string of estimate in local currency of the start location. Estimate could be a range, a single number (flat rate) or \"Metered\" for TAXI.",
+                        "type": "string"
+                      },
+                      "high_estimate": {
+                        "description": "Upper bound of the estimated price.",
+                        "type": "number"
+                      },
+                      "low_estimate": {
+                        "description": "Lower bound of the estimated price.",
+                        "type": "number"
+                      },
+                      "product_id": {
+                        "description": "Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles",
+                        "type": "string"
+                      },
+                      "surge_multiplier": {
+                        "description": "Expected surge multiplier. Surge is active if surge_multiplier is greater than 1. Price estimate already factors in the surge multiplier.",
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/estimates/time": {
+      "get": {
+        "tags": [
+          "Estimates"
+        ],
+        "summary": "Time Estimates",
+        "description": "The Time Estimates endpoint returns ETAs for all products offered at a given location, with the responses expressed as integers in seconds. We recommend that this endpoint be called every minute to provide the most accurate, up-to-date ETAs.",
+        "parameters": [
+          {
+            "name": "start_latitude",
+            "in": "query",
+            "description": "Latitude component of start location.",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "start_longitude",
+            "in": "query",
+            "description": "Longitude component of start location.",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "customer_uuid",
+            "in": "query",
+            "description": "Unique customer identifier to be used for experience customization.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "product_id",
+            "in": "query",
+            "description": "Unique identifier representing a specific product for a given latitude & longitude.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An array of products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "properties": {
+                      "capacity": {
+                        "description": "Capacity of product. For example, 4 people.",
+                        "type": "integer"
+                      },
+                      "description": {
+                        "description": "Description of product.",
+                        "type": "string"
+                      },
+                      "display_name": {
+                        "description": "Display name of product.",
+                        "type": "string"
+                      },
+                      "image": {
+                        "description": "Image URL representing the product.",
+                        "type": "string"
+                      },
+                      "product_id": {
+                        "description": "Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles.",
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "User Profile",
+        "description": "The User Profile endpoint returns information about the Uber user that has authorized with the application.",
+        "responses": {
+          "200": {
+            "description": "Profile information for a user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "email": {
+                      "description": "Email address of the Uber user",
+                      "type": "string"
+                    },
+                    "first_name": {
+                      "description": "First name of the Uber user.",
+                      "type": "string"
+                    },
+                    "last_name": {
+                      "description": "Last name of the Uber user.",
+                      "type": "string"
+                    },
+                    "picture": {
+                      "description": "Image URL of the Uber user.",
+                      "type": "string"
+                    },
+                    "promo_code": {
+                      "description": "Promo code of the Uber user.",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/history": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "User Activity",
+        "description": "The User Activity endpoint returns data about a user's lifetime activity with Uber. The response will include pickup locations and times, dropoff locations and times, the distance of past requests, and information about which products were requested.<br><br>The history array in the response will have a maximum length based on the limit parameter. The response value count may exceed limit, therefore subsequent API requests may be necessary.",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Offset the list of returned results by this amount. Default is zero.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of items to retrieve. Default is 5, maximum is 100.",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History information for the given user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "count": {
+                      "description": "Total number of items available.",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "history": {
+                      "items": {
+                        "properties": {
+                          "uuid": {
+                            "description": "Unique identifier for the activity",
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "type": "array"
+                    },
+                    "limit": {
+                      "description": "Number of items to retrieve (100 max).",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "offset": {
+                      "description": "Position in pagination.",
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "fields": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apikey": {
+        "in": "query",
+        "name": "server_token",
+        "type": "apiKey"
+      }
+    },
+    "schemas": {
+      "Activities": {
+        "properties": {
+          "count": {
+            "description": "Total number of items available.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "history": {
+            "items": {
+              "properties": {
+                "uuid": {
+                  "description": "Unique identifier for the activity",
+                  "type": "string"
+                }
+              }
+            },
+            "type": "array"
+          },
+          "limit": {
+            "description": "Number of items to retrieve (100 max).",
+            "format": "int32",
+            "type": "integer"
+          },
+          "offset": {
+            "description": "Position in pagination.",
+            "format": "int32",
+            "type": "integer"
+          }
+        }
+      },
+      "Activity": {
+        "properties": {
+          "uuid": {
+            "description": "Unique identifier for the activity",
+            "type": "string"
+          }
+        }
+      },
+      "Error": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PriceEstimate": {
+        "properties": {
+          "currency_code": {
+            "description": "[ISO 4217](http://en.wikipedia.org/wiki/ISO_4217) currency code.",
+            "type": "string"
+          },
+          "display_name": {
+            "description": "Display name of product.",
+            "type": "string"
+          },
+          "estimate": {
+            "description": "Formatted string of estimate in local currency of the start location. Estimate could be a range, a single number (flat rate) or \"Metered\" for TAXI.",
+            "type": "string"
+          },
+          "high_estimate": {
+            "description": "Upper bound of the estimated price.",
+            "type": "number"
+          },
+          "low_estimate": {
+            "description": "Lower bound of the estimated price.",
+            "type": "number"
+          },
+          "product_id": {
+            "description": "Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles",
+            "type": "string"
+          },
+          "surge_multiplier": {
+            "description": "Expected surge multiplier. Surge is active if surge_multiplier is greater than 1. Price estimate already factors in the surge multiplier.",
+            "type": "number"
+          }
+        }
+      },
+      "Product": {
+        "properties": {
+          "capacity": {
+            "description": "Capacity of product. For example, 4 people.",
+            "type": "integer"
+          },
+          "description": {
+            "description": "Description of product.",
+            "type": "string"
+          },
+          "display_name": {
+            "description": "Display name of product.",
+            "type": "string"
+          },
+          "image": {
+            "description": "Image URL representing the product.",
+            "type": "string"
+          },
+          "product_id": {
+            "description": "Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles.",
+            "type": "string"
+          }
+        }
+      },
+      "ProductList": {
+        "properties": {
+          "products": {
+            "description": "Contains the list of products",
+            "items": {
+              "properties": {
+                "capacity": {
+                  "description": "Capacity of product. For example, 4 people.",
+                  "type": "integer"
+                },
+                "description": {
+                  "description": "Description of product.",
+                  "type": "string"
+                },
+                "display_name": {
+                  "description": "Display name of product.",
+                  "type": "string"
+                },
+                "image": {
+                  "description": "Image URL representing the product.",
+                  "type": "string"
+                },
+                "product_id": {
+                  "description": "Unique identifier representing a specific product for a given latitude & longitude. For example, uberX in San Francisco will have a different product_id than uberX in Los Angeles.",
+                  "type": "string"
+                }
+              }
+            },
+            "type": "array"
+          }
+        }
+      },
+      "Profile": {
+        "properties": {
+          "email": {
+            "description": "Email address of the Uber user",
+            "type": "string"
+          },
+          "first_name": {
+            "description": "First name of the Uber user.",
+            "type": "string"
+          },
+          "last_name": {
+            "description": "Last name of the Uber user.",
+            "type": "string"
+          },
+          "picture": {
+            "description": "Image URL of the Uber user.",
+            "type": "string"
+          },
+          "promo_code": {
+            "description": "Promo code of the Uber user.",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
