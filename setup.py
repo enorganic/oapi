@@ -65,7 +65,7 @@ setup(
     # See https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'future>=0.15.2',
-        'marshmallow>=2.13.6',
+        'jsonpointer>=1.12',
         'pyyaml>=3.12'
     ],
 

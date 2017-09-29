@@ -6,16 +6,19 @@ Version 3x: https://swagger.io/specification
 import json
 import typing
 from base64 import b64encode
-from collections import OrderedDict, Mapping, Sequence, Iterable, Callable, Reversible
+from collections import OrderedDict, Mapping, Sequence, Iterable, Callable, Reversible, Set
 from copy import deepcopy, copy
+from http.client import HTTPResponse
 from io import IOBase, UnsupportedOperation
 from itertools import chain
 from numbers import Number
 from typing import List, Union, Any, AnyStr
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
 from urllib.request import urlopen
-from warnings import warn
 
 import yaml
+from jsonpointer import JsonPointer, resolve_pointer, set_pointer
 
 from oapi import properties
 from oapi.errors import ValidationError
@@ -35,61 +38,68 @@ NULL = Null()
 
 def dump(data):
     # type: (Any) -> Union[Object, str, Number, bytes, typing.Collection]
-    if isinstance(data, Object):
-        return data._dump
+    if hasattr(data, '_dump'):
+        return data._dump()
     elif isinstance(data, Null):
         return None
     elif isinstance(data, (bytes, bytearray)):
         return b64encode(data)
-    elif isinstance(data, (str, Number, bool)):
-        return data
-    elif isinstance(data, Mapping):
-        if isinstance(data, Reversible):
-            return OrderedDict([
-                (k, dump(v)) for k, v in data.items()
-            ])
-        else:
-            return OrderedDict([
-                (k, dump(data[k])) for k in
-                sorted(
-                    k for k, v in data.items() if v is not None
-                )
-            ])
-    elif isinstance(data, Iterable):
-        return tuple(dump(i) for i in data)
+    # elif isinstance(data, (str, Number, bool)):
+    #     return data
+    # elif isinstance(data, dict):
+    #     if isinstance(data, Reversible):
+    #         return OrderedDict([
+    #             (k, dump(v)) for k, v in data.items()
+    #         ])
+    #     else:
+    #         return OrderedDict([
+    #             (k, dump(data[k])) for k in
+    #             sorted(
+    #                 k for k, v in data.items() if v is not None
+    #             )
+    #         ])
+    # elif isinstance(data, (Set, Sequence)) and not isinstance(data, (str, bytes)):
+    #     return tuple(dump(i) for i in data)
     elif hasattr(data, '__bytes__'):
         return b64encode(bytes(data))
     else:
         return data
 
 
-def dumps(data, format='json'):
+def dumps(data, data_format='json'):
     # type: (Any, str) -> str
-    if format not in ('json', 'yaml'):
-        format = format.lower()
-        if format not in ('json', 'yaml'):
+    if data_format not in ('json', 'yaml'):
+        data_format = data_format.lower()
+        if data_format not in ('json', 'yaml'):
             raise ValueError(
-                'Supported `oapi.model.dumps()` `format` values include "json" and "yaml" (not "%s").' % format
+                'Supported `oapi.model.dumps()` `data_format` values include "json" and "yaml" (not "%s").' % data_format
             )
-    if format == 'json':
+    if data_format == 'json':
         return json.dumps(dump(data))
-    elif format == 'yaml':
+    elif data_format == 'yaml':
         return yaml.dump(dump(data))
 
 
-def get_properties(o):
+def get_property_definitions(o):
     # type: (Object) -> typing.Sequence[properties.Property]
     return o._properties
 
 
-def define_properties(class_object, class_properties):
+def set_property_definitions(class_object, class_properties):
     # type: (type, Union[typing.Sequence[Tuple[str, Property]], typing.Mapping[str, Property]]) -> None
     if not isinstance(properties, dict):
         class_properties = OrderedDict(class_properties)
     class_object._properties = class_properties
 
 
-def define_property(class_or_instance, property_name, property):
+def get_property_definition(class_or_instance, property_name):
+    # type: (type, str, Property) -> None
+    if not isinstance(class_or_instance._properties, dict):
+        class_or_instance._properties = OrderedDict()
+    return class_or_instance._properties[property_name]
+
+
+def set_property_definition(class_or_instance, property_name, property):
     # type: (type, str, Property) -> None
     if not isinstance(class_or_instance._properties, dict):
         class_or_instance._properties = OrderedDict()
@@ -99,7 +109,7 @@ def define_property(class_or_instance, property_name, property):
 def set_version(data, specification, version):
     # type: (Any, str, typing.Hashable) -> Any
     if isinstance(data, Object):
-        old_properties = get_properties(data)
+        old_properties = get_property_definitions(data)
         new_properties = deepcopy(old_properties)
         for n, p in old_properties.items():
             if p.versions is not None:
@@ -114,99 +124,158 @@ def set_version(data, specification, version):
                                 new_properties[n].types = v.types
                             break
                 if specification_match and (not version_match):
-                    # print('Deleting %s, which is not applciable to version %s' % (n, version))
                     del new_properties[n]
-        define_properties(data, new_properties)
+        set_property_definitions(data, new_properties)
         for n, p in new_properties.items():
             set_version(getattr(data, n), specification, version)
-    elif isinstance(data, Iterable) and not isinstance(data, (str, bytes)):
+    elif isinstance(data, (Set, Sequence)) and not isinstance(data, (str, bytes)):
         for d in data:
             set_version(d, specification, version)
+    elif isinstance(data, dict):
+        for k, v in data.items():
+            set_version(v, specification, version)
+
+
+def _resolve_ref(
+    ref,  # type: str
+    root,  # type: Union[Object, Sequence]
+    url=None,  # type: Optional[str]
+    open_function=urlopen,  # type: Union[typing.Callable, Sequence[typing.Callable]]
+    references=None
+):
+    if references is None:
+        references = {}
+    if ref[0] == '#':
+        document = root
+        pointer = ref[1:]
+    else:
+        parts = ref.split('#')
+        ref_url = parts[0]
+        if url:
+            parse_result = urlparse(ref_url)
+            if parse_result.scheme:
+                url = ref_url
+            else:
+                url = '%s/%s' % (
+                    '/'.join(url.rstrip('/').split('/')[:-1]),
+                    ref_url.lstrip('/ ')
+                )
+        else:
+            url = ref_url
+        if len(parts) < 2:
+            pointer = None
+        else:
+            pointer = '#'.join(parts[1:])
+        try:
+            document = loads(open_function(url))
+        except HTTPError as e:
+            e.msg = e.msg + ': ' + url
+            raise e
+    if pointer is None:
+        data = document
+    else:
+        url_pointer = '%s#%s' % (url or '', pointer)
+        if url_pointer in references:
+            data = references[url_pointer]
+        else:
+            data = resolve_pointer(document, pointer)
+            references = copy(references)
+            references[url_pointer] = url_pointer
+    return data, document, url, references
 
 
 def resolve_references(
-    data, # type: Union[Object, typing.Mapping, typing.Sequence]
-    base_url=None,  # type: Optional[str]
-    open_function=(urlopen, open),  # type: Union[typing.Callable, Sequence[typing.Callable]]
+    data,  # type: Union[Object, typing.Mapping, typing.Sequence]
+    url=None,  # type: Optional[str]
+    open_function=urlopen,  # type: Union[typing.Callable, Sequence[typing.Callable]]
     root=None,  # type: Union[Object, Sequence]
+    references=None,  # type: Optional[Sequence[str]]
 ):
     # type: (...) -> Union[Object, Mapping, Sequence]
-    data = deepcopy(data)
+    if references is None:
+        references = {}
+    try:
+        data = deepcopy(data)
+    except TypeError as e:
+        e.args = tuple(
+            chain(
+                (
+                    '%s%s' % (
+                        e.args[0] + '\n' if e.args else '',
+                        dumps(data),
+                    ),
+                ),
+                e.args[1:] if e.args else []
+            )
+        )
+        raise e
     if root is None:
         root = data
-    if isinstance(open_function, Callable):
-        open_function = (open_function,)
     if isinstance(data, Object):
-        for pn, p in get_properties(data).items():
+        if (url is None) and data._url:
+            url = data._url
+        for pn, p in get_property_definitions(data).items():
             v = getattr(data, pn)
-            if isinstance(v, Reference) or (
-                isinstance(v, Object) and
-                hasattr(v, 'ref') and
-                get_properties(v)['ref'].name == '$ref'
-            ):
-                if v.ref[0] == '#':
-                    o = root
-                    for k in v.ref.lstrip('#/').split('/'):
-                        o = o[k]
-                    if o is not root:
-                        if p.types is not None:
-                            v = properties.polymorph(v, p.types)
-                            v = resolve_references(o, root=root)
-                        setattr(data, pn, v)
-                    else:
-                        raise ValueError(
-                            '"%s" could not be found in %s' % (
-                                v.ref,
-                                str(root)
-                            )
-                        )
-                else:
-                    pass
-                    # for of in open_function:
-                    #     response = None
-                    #     try:
-                    #         response = of(v.ref)
-                    #     except Exception as e:
-                    #         warn(*e.args)
-                    #     if response is not None:
-                    #         v = loads(response)
-                    #         if p.types is not None:
-                    #             v = properties.polymorph(
-                    #                 loads(response),
-                    #                 p.types
-                    #             )
-                    #             break
-                    # setattr(data, pn, resolve_references(v, root=v))
-            else:
-                setattr(data, pn, resolve_references(v, root=root))
-    elif isinstance(data, Mapping):
-        if '$ref' in data.keys():
-            ref = data['$ref']
-            if ref[0] == '#':
-                o = root
-                found = False
-                for k in ref.lstrip('#/').rstrip('/').split('/'):
-                    o = o[k]
-                    if o is None:
-                        break
-                    else:
-                        found = True
-                if found:
-                    data = o
-                else:
-                    raise ValueError(
-                        '"%s" could not be found in %s' % (
-                            ref,
-                            str(root)
-                        )
+            if isinstance(v, Reference):
+                v, document, reference_url, nreferences = _resolve_ref(
+                    v.ref,
+                    root=root,
+                    url=url,
+                    open_function=open_function,
+                    references=references
+                )
+                if nreferences != references:
+                    references = nreferences
+                    v = resolve_references(
+                        v,
+                        root=document,
+                        open_function=open_function,
+                        url=reference_url,
+                        references=references
                     )
+                    setattr(data, pn, v)
             else:
-                pass
+                v = resolve_references(
+                    v,
+                    root=root,
+                    open_function=open_function,
+                    url=url,
+                    references=references
+                )
+                setattr(data, pn, v)
+    elif isinstance(data, dict):
+        if ('$ref' in data.keys()) and (data is not root):
+            ref = data['$ref']
+            data, document, reference_url, nreferences = _resolve_ref(
+                ref,
+                root=root,
+                url=url,
+                open_function=open_function,
+                references=references
+            )
+            if nreferences != references:
+                references = nreferences
+                data = resolve_references(
+                    data,
+                    root=document,
+                    open_function=open_function,
+                    url=reference_url,
+                    references=references
+                )
         else:
             for k, v in data.items():
-                data[k] = resolve_references(v, root=root)
-    elif isinstance(data, Iterable) and not isinstance(data, (str, bytes)):
-        data = tuple(resolve_references(d, root=root) for d in data)
+                data[k] = resolve_references(
+                    v,
+                    root=root,
+                    open_function=open_function,
+                    url=url,
+                    references=references
+                )
+    elif isinstance(data, (Set, Sequence)) and not isinstance(data, (str, bytes)):
+        for i in range(len(data)):
+            data[i] = resolve_references(
+                data[i], root=root, open_function=open_function, url=url, references=references
+            )
     return data
 
 
@@ -230,32 +299,18 @@ def loads(data):
     return data
 
 
-def discrepancies(a, b):
-    # type: (Object, Object) -> dict
-    differences = {}
-    a_properties = set(get_properties(a).keys())
-    b_properties = set(get_properties(b).keys())
-    if a_properties != b_properties:
-        print(a_properties)
-        print(b_properties)
-        return False
-    for p in a_properties | b_properties:
-        av = getattr(a, p)
-        bv = getattr(b, p)
-        if av != bv:
-            differences[p] = (av, bv)
-    return differences
-
-
 class Object(object):
 
     _properties = None  # type: Optional[typing.Mapping[str, Property]]
+    _url = None  # type: Optional[str]
 
     def __init__(
         self,
         _=None,  # type: Optional[Union[AnyStr, typing.Mapping, typing.Sequence, typing.IO]]
     ):
         if _ is not None:
+            if isinstance(_, HTTPResponse):
+                self._url = _.url
             _ = loads(_)
             for k, v in _.items():
                 try:
@@ -263,65 +318,143 @@ class Object(object):
                 except KeyError as e:
                     if e.args and len(e.args) == 1:
                         e.args = (
-                            r'%s: %s' % (e.args[0], json.dumps(_)),
+                            r'%s.%s: %s' % (type(self).__name__, e.args[0], json.dumps(_)),
                         )
                     raise e
+
+    def __setattr__(self, property_name, value):
+        # type: (Object, str, Any) -> NoneType
+        if property_name[0] != '_':
+            property_definition = get_property_definition(self, property_name)
+            try:
+                value = property_definition.load(value)
+            except TypeError as e:
+                message = '%s.%s: ' % (
+                    self.__class__.__name__,
+                    property_name
+                )
+                if e.args:
+                    e.args = tuple(
+                        chain(
+                            (message + e.args[0],),
+                            e.args[1:]
+                        )
+                    )
+                else:
+                    e.args = (message + repr(value),)
+                raise e
+        super().__setattr__(property_name, value)
 
     def __setitem__(self, key, value):
         # type: (str, str) -> None
-        for property_name, property in get_properties(self).items():
-            if key == (property.name or property_name):
-                if (value is None) and property.required:
-                    raise ValidationError(
-                        'The property `%s` is required for `oapi.model.%s.%s`.' % (
-                            property_name,
-                            self.__class__.__name__
-                        )
+        try:
+            property_definition = get_property_definition(self, key)
+            property_name = key
+        except KeyError:
+            property_definition = None
+            property_name = None
+            for pn, pd in get_property_definitions(self).items():
+                if key == pd.name:
+                    property_name = pn
+                    property_definition = pd
+                    break
+            if property_name is None:
+                raise KeyError(
+                    '`%s` has no property mapped to the name "%s"' % (
+                        self.__class__.__name__,
+                        key
                     )
-                try:
-                    setattr(self, property_name, property.load(value))
-                except TypeError as e:
-                    e.args = tuple(chain(
-                        (
-                            '`%s.%s`: %s' % (
-                                self.__class__.__name__,
-                                property_name,
-                                e.args[0] if e else ''
-                            ),
-                        ),
-                        e.args[1:] if e.args else tuple()
-                    ))
-                    raise e
-                return None
-        raise KeyError(
-            '`%s` has no property mapped to the name "%s"' % (
-                self.__class__.__name__,
-                key
+                )
+        if (
+            (value is None) and
+            property_definition.required and
+            (
+                NoneType not in (
+                    property_definition.types(value)
+                    if isinstance(property_definition.types, Callable)
+                    else property_definition.types
+                )
             )
-        )
+        ):
+            raise ValidationError(
+                'The property `%s` is required for `oapi.model.%s.%s`.' % (
+                    property_name,
+                    self.__class__.__name__
+                )
+            )
+        try:
+            setattr(self, property_name, value)
+        except TypeError as e:
+            e.args = tuple(chain(
+                (
+                    '`%s.%s`: %s' % (
+                        self.__class__.__name__,
+                        property_name,
+                        e.args[0] if e else ''
+                    ),
+                ),
+                e.args[1:] if e.args else tuple()
+            ))
+            raise e
+        return None
 
     def __getitem__(self, key):
         # type: (str, str) -> None
-        for property_name, property in get_properties(self).items():
-            if key == (property.name or property_name):
-                return getattr(self, property_name)
-        raise KeyError(
-            '`%s` has no property mapped to the name "%s"' % (
-                self.__class__.__name__,
-                key
-            )
-        )
+        try:
+            property_definition = get_property_definition(self, key)
+            property_name = key
+        except KeyError as e:
+            property_definition = None
+            property_name = None
+            for pn, pd in get_property_definitions(self).items():
+                if key == pd.name:
+                    property_name = pn
+                    property_definition = pd
+                    break
+            if property_definition is None:
+                raise KeyError(
+                    '`%s` has no property mapped to the name "%s"' % (
+                        self.__class__.__name__,
+                        key
+                    )
+                )
+        return getattr(self, property_name)
 
     def __copy__(self):
-        return self.__class__(**{
-            k: getattr(self, k)
-            for k in get_properties(self).keys()
-        })
+        property_definitions = get_property_definitions(self)
+        new_instance = self.__class__()
+        set_property_definitions(
+            new_instance,
+            property_definitions
+        )
+        for k in property_definitions.keys():
+            try:
+                setattr(new_instance, k, getattr(self, k))
+            except TypeError as e:
+                label = '%s.%s: ' % (self.__class__.__name__, k)
+                if e.args:
+                    e.args = tuple(
+                        chain(
+                            (label + e.args[0],),
+                            e.args[1:]
+                        )
+                    )
+                else:
+                    e.args = (label + dumps(self),)
+                raise e
+        new_instance._url = self._url
+        return new_instance
 
-    @property
+    def __deepcopy__(self, memo):
+        # type: (dict) -> None
+        new_instance = copy(self)
+        for k in get_property_definitions(self).keys():
+            setattr(new_instance, k, deepcopy(getattr(self, k), memo))
+        return new_instance
+
     def _dump(self):
         data = OrderedDict()
-        for pn, p in get_properties(self).items():
+        for pn, p in get_property_definitions(self).items():
             v = getattr(self, pn)
             if v is None:
                 if p.required:
@@ -344,19 +477,17 @@ class Object(object):
     def __eq__(self, other):
         # type: (Any) -> bool
         if isinstance(other, self.__class__):
-            if discrepancies(
-                self, other
-            ):
-                return False
-            # # return str(self) == str(other)
-            self_properties = set(get_properties(self).keys())
-            other_properties = set(get_properties(other).keys())
+            # return str(self) == str(other)
+            self_properties = set(get_property_definitions(self).keys())
+            other_properties = set(get_property_definitions(other).keys())
             if self_properties != other_properties:
+                # print('%s != %s' % (repr(self_properties), repr(other_properties)))
                 return False
             for p in self_properties|other_properties:
                 sp = getattr(self, p)
                 op = getattr(other, p)
                 if sp != op:
+                    # print('%s(%s)\n!=\n%s(%s)\n\n' % (type(sp).__name__, dumps(sp), type(op).__name__, dumps(op)))
                     return False
             return True
         else:
@@ -367,7 +498,7 @@ class Object(object):
         return False if self == other else True
 
     def __iter__(self):
-        for k in get_properties(self).keys():
+        for k in get_property_definitions(self).keys():
             yield k
 
 
@@ -376,26 +507,99 @@ class Array(list):
     def __init__(
         self,
         items=None,  # type: Optional[Union[Sequence, Set]]
-        types=None,  # type: Optional[Union[Sequence[Union[type, properties.Property]], type, properties.Property]]
+        item_types=None,  # type: Optional[Union[Sequence[Union[type, properties.Property]], type, properties.Property]]
     ):
-        if isinstance(types, (type, properties.Property)):
-            types = (types,)
-        self.types = types
-        super().__init__(items)
+        if isinstance(items, (str, bytes)):
+            raise TypeError(
+                'Array items must be a set or sequence, not `%s`:\n%s' % (
+                    type(items).__name__,
+                    repr(items)
+                )
+            )
+        if isinstance(item_types, (type, properties.Property)):
+            item_types = (item_types,)
+        self.item_types = item_types
+        for item in items:
+            self.append(item)
+        if items:
+            super().__init__(
+                properties.polymorph(item, self.item_types)
+                for item in items
+            )
 
     def __setitem__(
         self,
         index,  # type: int
         value,  # type: Any
     ):
-        type_matched = False
-        for t in self.types:
-            if isinstance(t, type) and isinstance(value, t):
-                type_matched = True
-            elif isinstance(t, properties.Property):
-                
-                break
-        super().__setitem__(index, value)
+        super().__setitem__(index, properties.polymorph(value, self.item_types))
+
+    def append(self, value):
+        # type: (Any) -> None
+        super().append(properties.polymorph(value, self.item_types))
+
+    def __copy__(self):
+        # type: (Array) -> Array
+        return self.__class__(tuple(self[:]), item_types=self.item_types)
+
+    def __deepcopy__(self, memo):
+        # type: (dict) -> Array
+        return self.__class__(tuple(deepcopy(i, memo) for i in self[:]), item_types=self.item_types)
+
+    def _dump(self):
+        return tuple(
+            dump(i) for i in self
+        )
+
+
+
+
+class Dictionary(OrderedDict):
+
+    def __init__(
+        self,
+        items=None,  # type: Optional[typing.Mapping]
+        value_types=None,  # type: Optional[Union[Sequence[Union[type, properties.Property]], type, properties.Property]]
+    ):
+        if isinstance(value_types, (type, properties.Property)):
+            value_types = (value_types,)
+        self.value_types = value_types
+        if items is not None:
+            # if isinstance(items, Mapping):
+            #     items = tuple(items.items())
+            # for k, v in items:
+            #     self[k] = v
+            if items is None:
+                super().__init__()
+            else:
+                super().__init__(items)
+
+    def __setitem__(
+        self,
+        key,  # type: int
+        value,  # type: Any
+    ):
+        super().__setitem__(key, properties.polymorph(value, self.value_types))
+
+    def __copy__(self):
+        # type: (Dictionary) -> Dictionary
+        return self.__class__(self.items(), value_types=self.value_types)
+
+    def __deepcopy__(self, memo):
+        # type: (dict) -> Dictionary
+        return self.__class__(
+            [
+                (k, deepcopy(v, memo)) for k, v in self.items()
+            ],
+            value_types=self.value_types
+        )
+
+    def _dump(self):
+        return OrderedDict(
+            [
+                (k, dump(v)) for k, v in self.items()
+            ]
+        )
 
 
 class Reference(Object):
@@ -409,10 +613,65 @@ class Reference(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     Reference,
     [
         ('ref', properties.String(name='$ref'))
+    ]
+)
+
+
+class Contact(Object):
+    """
+    https://swagger.io/specification/#contactObject
+    """
+
+    def __init__(
+        self,
+        _=None,  # type: Optional[typing.Mapping]
+        name=None,  # type: Optional[str]
+        url=None,  # type: Optional[str]
+        email=None,  # type: Optional[str]
+    ):
+        # type: (...) -> None
+        self.name = name
+        self.url = url
+        self.email = email
+        super().__init__(_)
+
+
+set_property_definitions(
+    Contact,
+    [
+        ('name', properties.String()),
+        ('url', properties.String()),
+        ('email', properties.String()),
+    ]
+)
+
+
+class License(Object):
+    """
+    https://swagger.io/specification/#licenseObject
+    """
+
+    def __init__(
+        self,
+        _=None,  # type: Optional[typing.Mapping]
+        name=None,  # type: Optional[str]
+        url=None,  # type: Optional[str]
+    ):
+        # type: (...) -> None
+        self.name = name
+        self.url = url
+        super().__init__(_)
+
+
+set_property_definitions(
+    License,
+    [
+        ('name', properties.String()),
+        ('url', properties.String()),
     ]
 )
 
@@ -442,14 +701,14 @@ class Info(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     Info,
     [
         ('title', properties.String()),
         ('description', properties.String()),
         ('terms_of_service', properties.String(name='termsOfService')),
-        ('contact', properties.String()),
-        ('license', properties.String()),
+        ('contact', properties.Object(types=(Contact,))),
+        ('license', properties.Object(types=(License,))),
         ('version', properties.String()),
     ]
 )
@@ -472,66 +731,11 @@ class Tag(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     Tag,
     [
         ('name', properties.String()),
         ('description', properties.String()),
-    ]
-)
-
-
-class Contact(Object):
-    """
-    https://swagger.io/specification/#contactObject
-    """
-
-    def __init__(
-        self,
-        _=None,  # type: Optional[typing.Mapping]
-        name=None,  # type: Optional[str]
-        url=None,  # type: Optional[str]
-        email=None,  # type: Optional[str]
-    ):
-        # type: (...) -> None
-        self.name = name
-        self.url = url
-        self.email = email
-        super().__init__(_)
-
-
-define_properties(
-    Tag,
-    [
-        ('name', properties.String()),
-        ('url', properties.String()),
-        ('email', properties.String()),
-    ]
-)
-
-
-class License(Object):
-    """
-    https://swagger.io/specification/#licenseObject
-    """
-
-    def __init__(
-        self,
-        _=None,  # type: Optional[typing.Mapping]
-        name=None,  # type: Optional[str]
-        url=None,  # type: Optional[str]
-    ):
-        # type: (...) -> None
-        self.name = name
-        self.url = url
-        super().__init__(_)
-
-
-define_properties(
-    License,
-    [
-        ('name', properties.String()),
-        ('url', properties.String()),
     ]
 )
 
@@ -549,7 +753,7 @@ class Link(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     Link,
     [
         ('rel', properties.String()),
@@ -644,8 +848,8 @@ class Schema(Object):
 
         - enum ([Any]): The value/instance described by this schema should be among those in this sequence.
 
-        - data_type (str|[str]): The value/instance described by this schema should be of the types indicated
-          (if this is a string), or *one of* the types indicated (if this is a sequence).
+        - data_type (str|[str]): The value/instance described by this schema should be of the value_types indicated
+          (if this is a string), or *one of* the value_types indicated (if this is a sequence).
 
             - "null"
             - "boolean"
@@ -795,9 +999,7 @@ class Schema(Object):
         self.external_docs = external_docs
         self.example = example
         self.deprecated = deprecated
-        self.links = (
-            links if (links is None) or (links is None) else list(links)
-        )  # type: Optional[Sequence[LinkedOperation]]
+        self.links = links
         super().__init__(_)
         
 
@@ -824,7 +1026,7 @@ class Example(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     Example,
     [
         ('summary', properties.String()),
@@ -881,13 +1083,13 @@ class MediaType(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     MediaType,
     [
-        ('schema', properties.Object(types=(Schema, Reference))),
+        ('schema', properties.Object(types=(Reference, Schema))),
         ('example', properties.Property()),
-        ('examples', properties.Object(value_types=(Example, Reference))),
-        ('encoding', properties.Object(value_types=(Encoding, Reference))),
+        ('examples', properties.Object(value_types=(Reference, Example))),
+        ('encoding', properties.Object(value_types=(Reference, Encoding))),
     ]
 )
 
@@ -931,7 +1133,7 @@ class Header(Object):
            https://swagger.io/specification/#style-values-52
 
          - explode (bool): When this is ``True``, array or object parameter values generate separate parameters for
-           each value of the array or name-value pair of the map. For other types of parameters this property has no
+           each value of the array or name-value pair of the map. For other value_types of parameters this property has no
            effect. When ``style`` is "form", the default value is ``True``. For all other styles, the default value is
            ``False``.
 
@@ -945,13 +1147,13 @@ class Header(Object):
          - example (Any): Example of the media type. The example should match the specified schema and encoding
            properties if present. The ``example`` parameter should not be present if ``examples`` is present. If
            referencing a ``schema`` which contains an example—*this* example overrides the example provided by the
-           ``schema``. To represent examples of media types that cannot naturally be represented in JSON or YAML, a
+           ``schema``. To represent examples of media value_types that cannot naturally be represented in JSON or YAML, a
            string value can contain the example with escaping where necessary.
 
          - examples (typing.Mapping[str, Example]): Examples of the media type. Each example should contain a value in the correct
            format, as specified in the parameter encoding. The ``examples`` parameter should not be present if
            ``example`` is present. If referencing a ``schema`` which contains an example—*these* example override the
-           example provided by the ``schema``. To represent examples of media types that cannot naturally be represented
+           example provided by the ``schema``. To represent examples of media value_types that cannot naturally be represented
            in JSON or YAML, a string value can contain the example with escaping where necessary.
 
          - content ({str:MediaType}): A map containing the representations for the parameter. The name is the media type
@@ -987,11 +1189,11 @@ class Header(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     Encoding,
     [
         ('content_type', properties.String(name='contentType')),
-        ('headers', properties.Object(value_types=(Header, Reference))),
+        ('headers', properties.Object(value_types=(Reference, Header))),
         ('style', properties.String()),
         ('explode', properties.Boolean()),
         ('allow_reserved', properties.Boolean(name='allowReserved')),
@@ -999,7 +1201,7 @@ define_properties(
 )
 
 
-define_properties(
+set_property_definitions(
     Header,
     [
         ('description', properties.String()),
@@ -1065,7 +1267,7 @@ class Parameter(Object):
           https://swagger.io/specification/#style-values-52
 
         - explode (bool): When this is ``True``, array or object parameter values generate separate parameters for
-          each value of the array or name-value pair of the map. For other types of parameters this property has no
+          each value of the array or name-value pair of the map. For other value_types of parameters this property has no
           effect. When ``style`` is "form", the default value is ``True``. For all other styles, the default value is
           ``False``.
 
@@ -1079,13 +1281,13 @@ class Parameter(Object):
         - example (Any): Example of the media type. The example should match the specified schema and encoding
           properties if present. The ``example`` parameter should not be present if ``examples`` is present. If
           referencing a ``schema`` which contains an example—*this* example overrides the example provided by the
-          ``schema``. To represent examples of media types that cannot naturally be represented in JSON or YAML, a
+          ``schema``. To represent examples of media value_types that cannot naturally be represented in JSON or YAML, a
           string value can contain the example with escaping where necessary.
 
         - examples ({str:Example}): Examples of the media type. Each example should contain a value in the correct
           format, as specified in the parameter encoding. The ``examples`` parameter should not be present if
           ``example`` is present. If referencing a ``schema`` which contains an example—*these* example override the
-          example provided by the ``schema``. To represent examples of media types that cannot naturally be represented
+          example provided by the ``schema``. To represent examples of media value_types that cannot naturally be represented
           in JSON or YAML, a string value can contain the example with escaping where necessary.
 
         - content ({str:MediaType}): A map containing the representations for the parameter. The name is the media type
@@ -1133,11 +1335,11 @@ class Parameter(Object):
         self.content = content
         # 2x compatibility
         self.data_type = data_type
-        self.enum = enum if (enum is None or enum is None) else list(enum)  # type: Optional[Sequence[str]]
+        self.enum = enum
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     Parameter,
     [
         ('name', properties.String()),
@@ -1149,9 +1351,9 @@ define_properties(
         ('style', properties.String()),
         ('explode', properties.Boolean()),
         ('allow_reserved', properties.Boolean()),
-        ('schema', properties.Object(types=(Schema, Reference))),
+        ('schema', properties.Object(types=(Reference, Schema))),
         ('example', properties.Property()),
-        ('examples', properties.Object(types=(Schema, Reference))),
+        ('examples', properties.Object(types=(Reference, Schema))),
         ('content', properties.Object(types=(MediaType,))),
         # version 2x compatibility
         (
@@ -1180,13 +1382,13 @@ class ServerVariable(Object):
         default=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
     ):
-        self.enum = enum if enum is None else list(enum)  # type: Optional[Sequence[str]]
+        self.enum = enum
         self.default = default
         self.description = description
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     ServerVariable,
     [
         ('enum', properties.Array(item_types=(str,))),
@@ -1215,7 +1417,7 @@ class Server(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     Server,
     [
         ('url', properties.String()),
@@ -1249,7 +1451,7 @@ class LinkedOperation(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     LinkedOperation,
     [
         ('operation_ref', properties.String(name='operationRef')),
@@ -1273,7 +1475,7 @@ class Response(Object):
 
         - headers ({str:Header|Reference}): Maps a header name to its definition (mappings are case-insensitive).
 
-        - content ({str:Content|Reference}): A mapping of media types to ``MediaType`` instances describing potential
+        - content ({str:Content|Reference}): A mapping of media value_types to ``MediaType`` instances describing potential
           payloads.
 
         - links ({str:LinkedOperation|Reference}): A map of operations links that can be followed from the response.
@@ -1295,13 +1497,13 @@ class Response(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     Response,
     [
         ('description', properties.String()),
-        ('headers', properties.Object(value_types=(Header, Reference))),
-        ('content', properties.Object(value_types=(MediaType, Reference))),
-        ('links', properties.Object(value_types=(Link, Reference))),
+        ('headers', properties.Object(value_types=(Reference, Header))),
+        ('content', properties.Object(value_types=(Reference, MediaType))),
+        ('links', properties.Object(value_types=(Reference, Link))),
     ]
 )
 
@@ -1325,7 +1527,7 @@ class ExternalDocumentation(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     ExternalDocumentation,
     [
         ('description', properties.String()),
@@ -1349,10 +1551,10 @@ class RequestBody(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     RequestBody,
     [
-        ('descrition', properties.String()),
+        ('description', properties.String()),
         ('content', properties.Object(value_types=(MediaType,))),
         ('required', properties.Boolean()),
     ]
@@ -1424,11 +1626,7 @@ class Operation(Object):
         produces=None,  # type: Optional[Sequence[str]]
     ):
         # type: (...) -> None
-        self.tags = (
-            tags
-            if (tags is None or tags is None) else
-            list(tags)
-        )  # type: Optional[Sequence[str]]
+        self.tags = tags
         self.summary = summary
         self.description = description
         self.external_docs = external_docs
@@ -1438,58 +1636,14 @@ class Operation(Object):
         self.responses = responses
         self.deprecated = deprecated
         self.callbacks = callbacks
-        self.security = (
-            security if (
-                security is None or
-                security is None
-            ) else list(security)
-        )  # type: Optional[Sequence[[str]]]
-        self.servers = (
-            servers if (
-                servers is None or
-                servers is None
-            ) else list(servers)
-        )  # type: Optional[Sequence[Server]]
+        self.security = security
+        self.servers = servers
         # Version 2x Compatibility
-        self.produces = (
-            produces if (
-                produces is None or
-                produces is None
-            ) else list(produces)
-        )  # type: Optional[Sequence[str]]
+        self.produces = produces
         super().__init__(_)
 
 
-define_properties(
-    Operation,
-    [
-        ('tags', properties.Array(item_types=(Tag,))),
-        ('summary', properties.String()),
-        ('description', properties.String()),
-        ('external_docs', properties.Object(types=(ExternalDocumentation,), name='externalDocs')),
-        ('operation_id', properties.String(name='operationId')),
-        ('parameters', properties.Array(item_types=(Parameter, Reference))),
-        ('request_body', properties.Object(types=(RequestBody, Reference))),
-        ('responses', properties.Object(value_types=(Response,))),
-        ('deprecated', properties.Boolean()),
-        (
-            'security',
-            properties.Array(
-                item_types=(
-                    properties.Object(
-                        value_types=(
-                            properties.Array(
-                                item_types=(str,)
-                            ),
-                        )
-                    ),
-                )
-            )
-        ),
-        ('servers', properties.Array(item_types=(Server,))),
-        ('produces', properties.Array(item_types=(str,))),
-    ]
-)
+# Property definitions for `Operation` deferred until after `PathItem` is defined
 
 
 class PathItem(Object):
@@ -1526,20 +1680,12 @@ class PathItem(Object):
         self.head = head
         self.patch = patch
         self.trace = trace
-        self.servers = (
-            servers
-            if (servers is None or servers is None) else
-            list(servers)
-        )  # type: Optional[Sequence[Server]]
-        self.parameters = (
-            parameters
-            if (parameters is None or parameters is None) else
-            list(parameters)
-        )  # type: Optional[Sequence[Parameter]]
+        self.servers = servers
+        self.parameters = parameters
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     PathItem,
     [
         ('ref', properties.String(name='$ref')),
@@ -1559,11 +1705,53 @@ define_properties(
             properties.Array(
                 item_types=(
                     properties.Object(
-                        types=(Parameter, Reference)
+                        types=(Reference, Parameter)
                     ),
                 )
             )
         ),
+    ]
+)
+
+
+set_property_definitions(
+    Operation,
+    [
+        ('tags', properties.Array(item_types=(Tag,))),
+        ('summary', properties.String()),
+        ('description', properties.String()),
+        ('external_docs', properties.Object(types=(ExternalDocumentation,), name='externalDocs')),
+        ('operation_id', properties.String(name='operationId')),
+        ('parameters', properties.Array(item_types=(Reference, Parameter))),
+        ('request_body', properties.Object(types=(Reference, RequestBody), name='requestBody')),
+        ('responses', properties.Object(value_types=(Response,))),
+        ('deprecated', properties.Boolean()),
+        (
+            'security',
+            properties.Array(
+                item_types=(
+                    properties.Object(
+                        value_types=(
+                            properties.Array(
+                                item_types=(str,)
+                            ),
+                        )
+                    ),
+                )
+            )
+        ),
+        ('servers', properties.Array(item_types=(Server,))),
+        ('produces', properties.Array(item_types=(str,))),
+        (
+            'callbacks',
+            properties.Object(
+                value_types=(
+                    properties.Object(
+                        value_types=(PathItem,)
+                    )
+                )
+            )
+        )
     ]
 )
 
@@ -1590,7 +1778,7 @@ class Discriminator(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     Discriminator,
     [
         ('property_name', properties.String(name='propertyName')),
@@ -1634,7 +1822,7 @@ class XML(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     XML,
     [
         ('name', properties.String()),
@@ -1666,7 +1854,7 @@ class OAuthFlow(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     OAuthFlow,
     [
         ('authorization_url', properties.String()),
@@ -1697,7 +1885,7 @@ class OAuthFlows(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     OAuthFlows,
     [
         ('implicit', properties.Object(types=(OAuthFlow,))),
@@ -1754,7 +1942,7 @@ class SecurityScheme(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     SecurityScheme,
     [
         ('security_scheme_type', properties.String(name='type')),
@@ -1768,7 +1956,7 @@ define_properties(
     ]
 )
 
-define_properties(
+set_property_definitions(
     Schema,
     [
         ('schema', properties.String(name='$schema')),
@@ -1786,6 +1974,28 @@ define_properties(
         ('max_items', properties.Integer(name='maxItems')),
         ('min_items', properties.Integer(name='minItems')),
         ('unique_items', properties.String(name='uniqueItems')),
+        (
+            'items',
+            properties.Object(
+                types=(
+                    Schema,
+                    Reference,
+                    properties.Array(
+                        item_types=(Reference, Schema)
+                    )
+                )
+            )
+        ),
+        (
+            'additional_items',
+            properties.Object(
+                types=(
+                    Schema,
+                    bool
+                ),
+                name='additionalItems'
+            )
+        ),
         ('max_properties', properties.Integer(name='maxProperties')),
         ('min_properties', properties.Integer(name='minProperties')),
         ('properties', properties.Object(value_types=(Schema,))),
@@ -1807,10 +2017,10 @@ define_properties(
         ),
         ('format', properties.String()),
         ('required', properties.Array(item_types=(properties.String(),))),
-        ('all_of', properties.Array(item_types=(Schema,), name='allOf')),
-        ('any_of', properties.Array(item_types=(Schema,), name='anyOf')),
-        ('one_of', properties.Array(item_types=(Schema,), name='oneOf')),
-        ('is_not', properties.Object(types=(Schema,), name='isNot')),
+        ('all_of', properties.Array(item_types=(Reference, Schema), name='allOf')),
+        ('any_of', properties.Array(item_types=(Reference, Schema), name='anyOf')),
+        ('one_of', properties.Array(item_types=(Reference, Schema), name='oneOf')),
+        ('is_not', properties.Object(types=(Reference, Schema), name='isNot')),
         (
             'definitions',
             properties.Object(
@@ -1862,27 +2072,27 @@ class Components(Object):
         super().__init__(_)
 
 
-define_properties(
+set_property_definitions(
     Components,
     [
-        ('schemas', properties.Object(value_types=(Schema, Reference))),
-        ('responses', properties.Object(value_types=(Response, Reference))),
-        ('parameters', properties.Object(value_types=(Parameter, Reference))),
-        ('examples', properties.Object(value_types=(Example, Reference))),
-        ('request_bodies', properties.Object(value_types=(RequestBody, Reference))),
-        ('headers', properties.Object(value_types=(Header, Reference))),
-        ('security_schemes', properties.Object(value_types=(SecurityScheme, Reference))),
-        ('links', properties.Object(value_types=(LinkedOperation, Reference))),
+        ('schemas', properties.Object(value_types=(Reference, Schema))),
+        ('responses', properties.Object(value_types=(Reference, Response))),
+        ('parameters', properties.Object(value_types=(Reference, Parameter))),
+        ('examples', properties.Object(value_types=(Reference, Example))),
+        ('request_bodies', properties.Object(value_types=(Reference, RequestBody))),
+        ('headers', properties.Object(value_types=(Reference, Header))),
+        ('security_schemes', properties.Object(value_types=(Reference, SecurityScheme), name='securitySchemes')),
+        ('links', properties.Object(value_types=(Reference, LinkedOperation))),
         (
             'callbacks',
             properties.Object(
                 value_types=(
+                    Reference,
                     properties.Object(
                         value_types=(
                             PathItem,
                         )
-                    ),
-                    Reference
+                    )
                 )
             )
         ),
@@ -1916,10 +2126,10 @@ class OpenAPI(Object):
         self.openapi = openapi
         self.info = info
         self.host = host
-        self.servers = None if servers is None else list(servers)  # type: Optional[List[Server]]
+        self.servers = servers
         self.base_path = base_path
-        self.schemes = None if schemes is None else list(schemes)  # type: Optional[List[str]]
-        self.tags = None if tags is None else list(tags)  # type: Optional[Sequence[Tag]]
+        self.schemes = schemes
+        self.tags = tags
         self.paths = paths
         self.components = components
         self.consumes = consumes
@@ -1935,13 +2145,13 @@ class OpenAPI(Object):
             set_version(self, 'openapi', version)
 
 
-define_properties(
+set_property_definitions(
     OpenAPI,
     [
         ('openapi', properties.String(versions=('openapi>=3.0',))),
         ('info', properties.Object(types=(Info,), required=True)),
         ('host', properties.String()),
-        ('servers', properties.Array(item_types=(str,))),
+        ('servers', properties.Array(item_types=(Server,))),
         ('base_path', properties.String(name='basePath')),
         ('schemes', properties.Array(item_types=(str,))),
         ('tags', properties.Array(item_types=(Tag,))),

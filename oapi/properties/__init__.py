@@ -1,6 +1,6 @@
 import typing
 from base64 import b64decode, b64encode
-from collections import Mapping, Sequence, OrderedDict, Set, Reversible, Iterable
+from collections import Mapping, Sequence, OrderedDict, Set, Reversible, Iterable, Callable
 from copy import copy
 from numbers import Real
 
@@ -14,7 +14,7 @@ class Property(object):
 
     Properties
 
-        - types ([type|Property]): One or more expected types or `Property` instances. Values are checked,
+        - value_types ([type|Property]): One or more expected value_types or `Property` instances. Values are checked,
           sequentially, against each type or ``Property`` instance, and the first appropriate match is used.
 
         - required (bool): If ``True``—dumping the object will throw an error if this value is ``None``.
@@ -198,9 +198,9 @@ class Enum(Property):
 
     Properties:
 
-        - types ([type|Property])
+        - value_types ([type|Property])
 
-        - values ([Any]):  A list of possible values. If ``types`` are specified—typing is applied prior to validation.
+        - values ([Any]):  A list of possible values. If ``value_types`` are specified—typing is applied prior to validation.
 
         - name (str)
 
@@ -339,11 +339,17 @@ class Integer(Property):
 
     def load(self, data):
         # type: (typing.Any) -> typing.Any
-        return int(data)
+        if (data is None) and (not self.required):
+            return data
+        else:
+            return int(data)
 
     def dump(self, data):
         # type: (typing.Any) -> typing.Any
-        return int(data)
+        if (data is None) and (not self.required):
+            return data
+        else:
+            return int(data)
 
 
 class Boolean(Property):
@@ -398,7 +404,7 @@ class Array(Property):
     Properties:
 
         - item_types (type|Property|[type|Property]): The type(s) of values/objects contained in the array. Similar to
-          ``oapi.model.Property().types``, but applied to items in the array, not the array itself.
+          ``oapi.model.Property().value_types``, but applied to items in the array, not the array itself.
 
         - name (str)
 
@@ -422,7 +428,7 @@ class Array(Property):
         prefix=None,  # type: Optional[str]
     ):
         super().__init__(
-            types=(tuple, list),
+            types=(model.Array,),
             name=name,
             required=required,
             versions=versions,
@@ -436,7 +442,14 @@ class Array(Property):
 
     def load(self, data):
         # type: (typing.Any) -> typing.Any
-        return [polymorph(d, self.item_types) for d in data]
+        return (
+            data if data is None
+            else model.Array(
+                data,
+                item_types=self.item_types
+                # [polymorph(d, self.item_types) for d in data]
+            )
+        )
 
 
 def validate(data, types):
@@ -447,41 +460,80 @@ def validate(data, types):
 
 def polymorph(data, types):
     # type: (Any, typing.Sequence[Union[type, Property]]) -> type
-    if types is None:
+    if data is None:
         return data
+    elif types is None:
+        if isinstance(data, dict) and not isinstance(data, model.Dictionary):
+            data = model.Dictionary(data)
+        elif isinstance(data, (Set, Sequence)) and (not isinstance(data, (str, bytes, model.Array))):
+            data = model.Array(data)
+        return data
+    if isinstance(types, Callable):
+        types = types(data)
     closest_match = None
     data_keys = None
+    matched = False
     for t in types:
-        if (
-            closest_match is None
-        ) and isinstance(
+        if isinstance(
             t,
             Property
-        ) and (
-            (
-                t.types is None
-            ) or isinstance(
-                data,
-                tuple(tt for tt in t.types if isinstance(tt, type))
-            )
         ):
-            data = t.load(data)
-            break
-        elif isinstance(t, type) and issubclass(t, model.Object) and isinstance(data, Mapping):
-            data_keys = data_keys or set(data.keys())
-            type_keys = {
-                (v.name or k)
-                for k, v in model.get_properties(t).items()
-            }
-            if not (data_keys - type_keys):
-                unused = type_keys - data_keys
-                if (
-                    (closest_match is None) or
-                    len(unused) < len(closest_match[-1])
-                ):
-                    closest_match = (t, unused)
+            if closest_match is None:
+                # if (
+                #     (
+                #         t.value_types is None
+                #     ) or isinstance(
+                #         data,
+                #         tuple(tt for tt in t.value_types if isinstance(tt, type))
+                #     )
+                # ):
+                try:
+                    data = t.load(data)
+                    matched = True
+                    break
+                except TypeError:
+                    continue
+        elif isinstance(t, type):
+            if (
+                issubclass(t, model.Object) and
+                isinstance(data, Mapping)
+            ):
+                data_keys = data_keys or set(data.keys())
+                type_keys = {
+                    (v.name or k)
+                    for k, v in model.get_property_definitions(t).items()
+                }
+                if not (data_keys - type_keys):
+                    unused = type_keys - data_keys
+                    if (
+                        (closest_match is None) or
+                        len(unused) < len(closest_match[-1])
+                    ):
+                        closest_match = (t, unused)
+            elif isinstance(data, dict) and issubclass(t, (model.Dictionary, dict)):
+                data = model.Dictionary(data)
+                matched = True
+                break
+            elif (
+                isinstance(data, (Set, Sequence)) and
+                (not isinstance(data, (str, bytes))) and
+                issubclass(t, (Set, Sequence)) and
+                (not issubclass(t, (str, bytes, model.Array)))
+            ):
+                data = model.Array(data)
+                matched = True
+                break
+            elif isinstance(data, t):
+                matched = True
+                break
     if closest_match is not None:
         data = closest_match[0](data)
+    elif not matched:
+        raise TypeError(
+            'The data provided does not fit any of the types indicated.\n\n' +
+            ' - data: %s\n\n' % model.dumps(data) +
+            ' - types: %s' % repr(types)
+        )
     return data
 
 
@@ -492,7 +544,7 @@ class Object(Property):
     Properties:
 
         - value_types (type|Property|[type|Property]): The type(s) of values/objects comprising the mapped
-          values. Similar to ``oapi.model.Property().types``, but applies to *values* in the dictionary object,
+          values. Similar to ``oapi.model.Property().value_types``, but applies to *values* in the dictionary object,
           not the object itself.
 
         - name (str)
@@ -518,6 +570,8 @@ class Object(Property):
         prefix=None,  # type: Optional[str]
     ):
         # type: (...) -> None
+        if types is None:
+            types = (model.Dictionary,)
         super().__init__(
             types=types,
             name=name,
@@ -531,18 +585,3 @@ class Object(Property):
             if isinstance(value_types, (type, Property)):
                 value_types = (value_types,)
         self.value_types = value_types
-
-    def load(self, data):
-        # type: (typing.Mapping[str, Any]) -> typing.Mapping[str, Any]
-        data = super().load(data)
-        if isinstance(data, model.Object):
-            return data
-        else:
-            if not isinstance(data, Mapping):
-                raise TypeError(
-                    'Data must be a mapping, not a `%s`.' % type(data).__name__
-                )
-            mapping = OrderedDict()
-            for k, v in data.items():
-                mapping[k] = polymorph(v, self.value_types)
-            return mapping
