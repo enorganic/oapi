@@ -116,7 +116,7 @@ class Property(object):
             else:
                 raise TypeError(
                     '``Property.versions`` requires a sequence of version strings or ' +
-                    '``oapi.properties.metadata.Version`` instances, not ' +
+                    '``oapi.properties_.metadata.Version`` instances, not ' +
                     '``%s``.' % type(versions).__name__
                 )
         self._versions = versions
@@ -143,7 +143,7 @@ class String(Property):
 
     json = meta.JSON(
         types=('string',),
-        formats = (None,)
+        formats=(None,)
     )
     xml = meta.XML()
 
@@ -219,7 +219,8 @@ class Enum(Property):
 
         - value_types ([type|Property])
 
-        - values ([Any]):  A list of possible values. If ``value_types`` are specified—typing is applied prior to validation.
+        - values ([Any]):  A list of possible values. If ``value_types`` are specified—typing is applied prior to
+          validation.
 
         - name (str)
 
@@ -473,8 +474,9 @@ class Array(Property):
 
 def validate(data, types):
     # type: (Union[model.Object, model.Array], Seqeunce[Union[type, Property]]) -> None
+    # TODO: oapi.properties_.validate
     if types is not None:
-          pass
+        pass
 
 
 def polymorph(data, types):

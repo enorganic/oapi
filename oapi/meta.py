@@ -1,3 +1,4 @@
+
 import collections
 import operator
 import re
@@ -57,7 +58,7 @@ class Version(object):
             (equals is None) and
             (not_equals is None) and
             (less_than is None) and
-            (less_than_or_equal_to) is None and
+            (less_than_or_equal_to is None) and
             (greater_than is None) and
             (greater_than_or_equal_to is None)
         ):
@@ -118,9 +119,6 @@ class Version(object):
                         compare_values = tuple(chain(compare_values, [0] * (ld)))
                     if not compare_function(other_values, compare_values):
                         return False
-                    # for i in range(len(other_values)):
-                    #     if not compare_function(other_values[i], compare_values[i]):
-                    #         return False
         else:
             for compare_property, compare_function in compare_properties_functions:
                 compare_value = getattr(self, compare_property)
@@ -164,13 +162,15 @@ class Version(object):
         return new_instance
 
 
-
+# noinspection PyProtectedMember
 class Meta(object):
 
     def __init__(
         self,
         data=None,  # type: Optional[Object]
-        properties=UNDEFINED,  # Optional[Union[typing.Dict[str, properties.Property], Sequence[Tuple[str, properties.Property]]]]
+        properties=(
+            UNDEFINED
+        ),  # Optional[Union[typing.Dict[str, properties_.Property], Sequence[Tuple[str, properties_.Property]]]]
         url=UNDEFINED,  # type: Optional[str]
     ):
         self.data = data
@@ -179,12 +179,14 @@ class Meta(object):
             self.properties = properties
         self.url = None if url is UNDEFINED else url
 
+    # noinspection PyProtectedMember
     @property
     def properties(self):
         if isinstance(self.data, type):
             property_definitions = self._properties
         else:
             if self._properties is None:
+                # noinspection PyProtectedMember
                 property_definitions = deepcopy(
                     get(type(self.data))._properties
                 )
@@ -197,13 +199,9 @@ class Meta(object):
     @properties.setter
     def properties(
         self,
-        property_definitions  # type: Optional[Union[typing.Dict[str, properties.Property], Sequence[Tuple[str, properties.Property]]]]
+        property_definitions
+        # type: Optional[Union[typing.Dict[str, properties.Property], Sequence[Tuple[str, properties.Property]]]]
     ):
-        # if not isinstance(self.data, type):
-        #     raise AttributeError(
-        #         '`oapi.model.meta.py.Meta().properties` cannot be *set* on metadata describing *instances* of a class—' +
-        #         'only on metadata describing the class itself.'
-        #     )
         if isinstance(property_definitions, Properties):
             property_definitions.meta = self
         else:
@@ -236,7 +234,9 @@ class Properties(collections.OrderedDict):
 
     def __init__(
         self,
-        items=None,  # type: Optional[Union[typing.Dict[str, properties.Property], Sequence[Tuple[str, properties.Property]]]]
+        items=(
+            None
+        ),  # type: Optional[Union[typing.Dict[str, properties.Property], Sequence[Tuple[str, properties.Property]]]]
         meta=None  # type: Optional[Meta]Optional[
     ):
         self.meta = meta
@@ -267,11 +267,13 @@ class Properties(collections.OrderedDict):
         )
 
 
+# noinspection PyProtectedMember
 def get(
     o  # type: Union[type, model.Object]
 ):
     # type: (...) -> Union[Meta, typing.Mapping, str]
     if isinstance(o, type):
+        # noinspection PyProtectedMember
         if o._meta is None:
             o._meta = Meta(data=o)
         return o._meta
@@ -284,8 +286,8 @@ def get(
 def version(data, specification, version_number):
     # type: (Any, str, Union[str, int, typing.Sequence[int]]) -> Any
     """
-    Recursively alters instances of ``oapi.model.Object`` according to version_number metadata associated with that object's
-    properties.
+    Recursively alters instances of ``oapi.model.Object`` according to version_number metadata associated with that
+    object's properties_.
 
     Arguments:
 

@@ -1,8 +1,8 @@
 import sys
-import re
-from setuptools import setup, find_packages
 from codecs import open
 from os import path
+
+from setuptools import setup, find_packages
 
 d = path.abspath(path.dirname(__file__))
 sys.path.append(d)

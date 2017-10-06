@@ -63,6 +63,7 @@ def object_test(
         keys = set()
         for n, p in get(o).properties.items():
             keys.add(p.name or n)
+            object_test(getattr(o, n))
         for k in reloaded_json.keys():
             if k not in keys:
                 raise KeyError(
@@ -71,7 +72,6 @@ def object_test(
                         string
                     )
                 )
-            object_test(getattr(o, n))
     elif isinstance(o, (collections.Iterable, dict)) and not isinstance(o, (str, bytes)):
         if isinstance(o, dict):
             for k, v in o.items():
