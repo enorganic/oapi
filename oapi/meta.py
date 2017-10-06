@@ -116,7 +116,7 @@ class Version(object):
                     if ld < 0:
                         other_values = tuple(chain(other_values, [0] * (-ld)))
                     elif ld > 0:
-                        compare_values = tuple(chain(compare_values, [0] * (ld)))
+                        compare_values = tuple(chain(compare_values, [0] * ld))
                     if not compare_function(other_values, compare_values):
                         return False
         else:

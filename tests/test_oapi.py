@@ -51,9 +51,7 @@ def object_test(
                     a, b = v
                     print(k + ':')
                     print(repr(a))
-                    #print(model.serialize(a))
                     print(repr(b))
-                    #print(model.serialize(b))
                     print()
                 raise e
         except ValidationError as e:
@@ -94,9 +92,15 @@ def test_json_schemas():
 
 def test_openapi_schemas():
     for url in (
-        'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v2.0/json/petstore-separate/spec/swagger.json',
+        (
+            'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v2.0/json/' +
+            'petstore-separate/spec/swagger.json'
+        ),
         'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/link-example.yaml',
-        'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v2.0/json/petstore-with-external-docs.json',
+        (
+            'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v2.0/json/' +
+            'petstore-with-external-docs.json'
+        ),
         'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/api-with-examples.yaml',
         'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore-expanded.yaml',
         'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml',

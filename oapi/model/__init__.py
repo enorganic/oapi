@@ -63,7 +63,7 @@ def resolve_references(
     data,  # type: Union[Object, Dictionary, Array]
     url=None,  # type: Optional[str]
     urlopen=request.urlopen,  # type: Union[typing.Callable, Sequence[typing.Callable]]
-    root=None,  # type: Union[Object, Dictionary, Array]
+    root=None,  # type: Optional[Union[Object, Dictionary, Array]]
     _references=None,  # type: Optional[typing.Dict[str, Union[Object, Dictionary, Array]]]
 ):
     # type: (...) -> Union[Object, typing.Mapping, typing.Sequence]
