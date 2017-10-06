@@ -3,115 +3,80 @@ Version 2x: https://swagger.io/docs/specification/2-0/basic-structure/
 Version 3x: https://swagger.io/specification
 """
 
+import collections
 import json
 import typing
 from base64 import b64encode
-from collections import OrderedDict, Mapping, Sequence, Iterable, Callable, Reversible, Set
-from copy import deepcopy, copy
+from copy import deepcopy
 from http.client import HTTPResponse
 from io import IOBase, UnsupportedOperation
 from itertools import chain
 from numbers import Number
-from typing import List, Union, Any, AnyStr
-from urllib.error import HTTPError, URLError
+from typing import Union, Any, AnyStr
+from urllib.error import HTTPError
 from urllib.parse import urlparse
-from urllib.request import urlopen
+from urllib import request
 
 import yaml
-from jsonpointer import JsonPointer, resolve_pointer, set_pointer
+from jsonpointer import resolve_pointer
 
 from oapi import properties
 from oapi.errors import ValidationError
-
-NoneType = type(None)
-
-
-class Null(object):
-    """
-    This is a stand-in for explicit inclusion of a null value.
-    """
-    pass
+from oapi.meta import get_meta
 
 
-NULL = Null()
-
-
-def dump(data):
+def marshal(data):
     # type: (Any) -> Union[Object, str, Number, bytes, typing.Collection]
+    """
+    Recursively converts instances of ``oapi.model.Object`` into JSON/YAML serializable objects.
+    """
     if hasattr(data, '_dump'):
         return data._dump()
-    elif isinstance(data, Null):
+    elif isinstance(data, properties.Null):
         return None
     elif isinstance(data, (bytes, bytearray)):
         return b64encode(data)
-    # elif isinstance(data, (str, Number, bool)):
-    #     return data
-    # elif isinstance(data, dict):
-    #     if isinstance(data, Reversible):
-    #         return OrderedDict([
-    #             (k, dump(v)) for k, v in data.items()
-    #         ])
-    #     else:
-    #         return OrderedDict([
-    #             (k, dump(data[k])) for k in
-    #             sorted(
-    #                 k for k, v in data.items() if v is not None
-    #             )
-    #         ])
-    # elif isinstance(data, (Set, Sequence)) and not isinstance(data, (str, bytes)):
-    #     return tuple(dump(i) for i in data)
     elif hasattr(data, '__bytes__'):
         return b64encode(bytes(data))
     else:
         return data
 
 
-def dumps(data, data_format='json'):
+def serialize(data, data_format='json'):
     # type: (Any, str) -> str
+    """
+    Serializes instances of ``oapi.model.Object`` as JSON or YAML.
+    """
     if data_format not in ('json', 'yaml'):
         data_format = data_format.lower()
         if data_format not in ('json', 'yaml'):
             raise ValueError(
-                'Supported `oapi.model.dumps()` `data_format` values include "json" and "yaml" (not "%s").' % data_format
+                'Supported `oapi.model.serialize()` `data_format` values include "json" and "yaml" (not "%s").' % data_format
             )
     if data_format == 'json':
-        return json.dumps(dump(data))
+        return json.dumps(marshal(data))
     elif data_format == 'yaml':
-        return yaml.dump(dump(data))
-
-
-def get_property_definitions(o):
-    # type: (Object) -> typing.Sequence[properties.Property]
-    return o._properties
-
-
-def set_property_definitions(class_object, class_properties):
-    # type: (type, Union[typing.Sequence[Tuple[str, Property]], typing.Mapping[str, Property]]) -> None
-    if not isinstance(properties, dict):
-        class_properties = OrderedDict(class_properties)
-    class_object._properties = class_properties
-
-
-def get_property_definition(class_or_instance, property_name):
-    # type: (type, str, Property) -> None
-    if not isinstance(class_or_instance._properties, dict):
-        class_or_instance._properties = OrderedDict()
-    return class_or_instance._properties[property_name]
-
-
-def set_property_definition(class_or_instance, property_name, property):
-    # type: (type, str, Property) -> None
-    if not isinstance(class_or_instance._properties, dict):
-        class_or_instance._properties = OrderedDict()
-    class_or_instance._properties[property_name] = property
+        return yaml.dump(marshal(data))
 
 
 def set_version(data, specification, version):
-    # type: (Any, str, typing.Hashable) -> Any
+    # type: (Any, str, Union[str, int, typing.Sequence[int]]) -> Any
+    """
+    Recursively alters instances of ``oapi.model.Object`` according to version metadata associated with that object's
+    properties.
+
+    Arguments:
+
+        - data
+
+        - specification (str): The specification to which the ``version`` argument applies.
+
+        - version (str|int|[int]): A version number represented as text (in the form of integers separated by periods),
+          an integer, or a sequence of integers.
+    """
     if isinstance(data, Object):
-        old_properties = get_property_definitions(data)
-        new_properties = deepcopy(old_properties)
-        for n, p in old_properties.items():
+        m = get_meta(data)
+        for n, p in tuple(m.properties.items()):
             if p.versions is not None:
                 version_match = False
                 specification_match = False
@@ -121,14 +86,13 @@ def set_version(data, specification, version):
                         if v == version:
                             version_match = True
                             if v.types is not None:
-                                new_properties[n].types = v.types
+                                m.properties[n].types = v.types
                             break
                 if specification_match and (not version_match):
-                    del new_properties[n]
-        set_property_definitions(data, new_properties)
-        for n, p in new_properties.items():
+                    del m.properties[n]
+        for n, p in m.properties.items():
             set_version(getattr(data, n), specification, version)
-    elif isinstance(data, (Set, Sequence)) and not isinstance(data, (str, bytes)):
+    elif isinstance(data, (collections.Set, collections.Sequence)) and not isinstance(data, (str, bytes)):
         for d in data:
             set_version(d, specification, version)
     elif isinstance(data, dict):
@@ -136,64 +100,90 @@ def set_version(data, specification, version):
             set_version(v, specification, version)
 
 
-def _resolve_ref(
-    ref,  # type: str
-    root,  # type: Union[Object, Sequence]
-    url=None,  # type: Optional[str]
-    open_function=urlopen,  # type: Union[typing.Callable, Sequence[typing.Callable]]
-    references=None
-):
-    if references is None:
-        references = {}
-    if ref[0] == '#':
-        document = root
-        pointer = ref[1:]
-    else:
-        parts = ref.split('#')
-        ref_url = parts[0]
-        if url:
-            parse_result = urlparse(ref_url)
-            if parse_result.scheme:
-                url = ref_url
-            else:
-                url = '%s/%s' % (
-                    '/'.join(url.rstrip('/').split('/')[:-1]),
-                    ref_url.lstrip('/ ')
-                )
-        else:
-            url = ref_url
-        if len(parts) < 2:
-            pointer = None
-        else:
-            pointer = '#'.join(parts[1:])
-        try:
-            document = loads(open_function(url))
-        except HTTPError as e:
-            e.msg = e.msg + ': ' + url
-            raise e
-    if pointer is None:
-        data = document
-    else:
-        url_pointer = '%s#%s' % (url or '', pointer)
-        if url_pointer in references:
-            data = references[url_pointer]
-        else:
-            data = resolve_pointer(document, pointer)
-            references = copy(references)
-            references[url_pointer] = url_pointer
-    return data, document, url, references
-
-
 def resolve_references(
-    data,  # type: Union[Object, typing.Mapping, typing.Sequence]
+    data,  # type: Union[Object, Dictionary, Array]
     url=None,  # type: Optional[str]
-    open_function=urlopen,  # type: Union[typing.Callable, Sequence[typing.Callable]]
-    root=None,  # type: Union[Object, Sequence]
-    references=None,  # type: Optional[Sequence[str]]
+    urlopen=request.urlopen,  # type: Union[typing.Callable, Sequence[typing.Callable]]
+    root=None,  # type: Union[Object, Dictionary, Array]
+    references=None,  # type: Optional[typing.Dict[str, Union[Object, Dictionary, Array]]]
 ):
-    # type: (...) -> Union[Object, Mapping, Sequence]
+    # type: (...) -> Union[Object, typing.Mapping, typing.Sequence]
+    """
+    Returns a deep copy of the ``data`` provided after recursively replacing ``oapi.model.Reference`` instances with the
+    material referenced.
+
+    Arguments:
+
+        - data (Object|Dictionary|Array): A deserialized object or array.
+
+        - url (str): The URL from where ``data`` was retrieved. The base URL for relative paths will be the directory
+          above this URL, and this URL will be used to index references in order to prevent cyclic recursion when
+          mapping (external) bidirectional references between two (or more) documents. For ``Object`` instances, if the
+          URL is not provided, it will be inferred from the object's metadata where possible. Objects created from an
+          instance of ``http.client.HTTPResponse`` will have had the source URL stored with it's metadata when the
+          object was instantiated.
+
+        - urlopen (``collections.Callable``): If provided, this should be a function taking one argument (a ``str``),
+          which can be used in lieu of ``request.urlopen`` to retrieve a document and return an instance of a sub-class
+          of ``IOBase`` (such as ``http.client.HTTPResponse``). This should be used if authentication is needed in order
+          to retrieve external references in the document, or if local file paths will be referenced instead of web
+          URL's.
+
+        - root (Object|Dictionary|Array): The root document to be used for resolving inline references. This argument
+          is only needed if ``data`` is not a "root" object/element in a document (an object resulting from
+          deserializing a document, as opposed to one of the child objects of that deserialized root object).
+
+        - references ({str: Object|Dictionary|Array}): This argument is not needed for typical usage. This mapping
+          stores references indexed by URL + pointer in order to prevent cyclic recursion, similarly to the way that
+          the ``memo`` argument is used in python's built-in ``deepcopy`` function.
+    """
     if references is None:
         references = {}
+
+    def resolve_ref(
+        ref,  # type: str
+        ref_root,  # type: Union[Object, Sequence]
+        ref_document_url=None,  # type: Optional[str]
+    ):
+        ref_added = False
+        if ref[0] == '#':
+            ref_document = ref_root
+            ref_pointer = ref[1:]
+        else:
+            ref_parts = ref.split('#')
+            ref_parts_url = ref_parts[0]
+            if ref_document_url:
+                parse_result = urlparse(ref_parts_url)
+                if parse_result.scheme:
+                    ref_document_url = ref_parts_url
+                else:
+                    ref_document_url = '%s/%s' % (
+                        '/'.join(ref_document_url.rstrip('/').split('/')[:-1]),
+                        ref_parts_url.lstrip('/ ')
+                    )
+            else:
+                ref_document_url = ref_parts_url
+            if len(ref_parts) < 2:
+                ref_pointer = None
+            else:
+                ref_pointer = '#'.join(ref_parts[1:])
+            try:
+                ref_document = deserialize(urlopen(ref_document_url))
+            except HTTPError as e:
+                e.msg = e.msg + ': ' + ref_document_url
+                raise e
+        if ref_pointer is None:
+            ref_data = ref_document
+        else:
+            ref_url_pointer = '%s#%s' % (ref_document_url or '', ref_pointer)
+            if ref_url_pointer in references:
+                ref_data = references[ref_url_pointer]
+                ref_added = True
+            else:
+                ref_data = resolve_pointer(ref_document, ref_pointer)
+                references[ref_url_pointer] = ref_url_pointer
+        return ref_data, ref_document, ref_document_url, ref_added
+
     try:
         data = deepcopy(data)
     except TypeError as e:
@@ -202,7 +192,7 @@ def resolve_references(
                 (
                     '%s%s' % (
                         e.args[0] + '\n' if e.args else '',
-                        dumps(data),
+                        serialize(data),
                     ),
                 ),
                 e.args[1:] if e.args else []
@@ -212,53 +202,47 @@ def resolve_references(
     if root is None:
         root = data
     if isinstance(data, Object):
-        if (url is None) and data._url:
-            url = data._url
-        for pn, p in get_property_definitions(data).items():
+        m = get_meta(data)
+        if (url is None) and m.url:
+            url = m.url
+        for pn, p in m.properties.items():
             v = getattr(data, pn)
             if isinstance(v, Reference):
-                v, document, reference_url, nreferences = _resolve_ref(
+                v, document, reference_url, references_added = resolve_ref(
                     v.ref,
-                    root=root,
-                    url=url,
-                    open_function=open_function,
-                    references=references
+                    ref_root=root,
+                    ref_document_url=url,
                 )
-                if nreferences != references:
-                    references = nreferences
+                if references_added:
                     v = resolve_references(
                         v,
                         root=document,
-                        open_function=open_function,
+                        urlopen=urlopen,
                         url=reference_url,
                         references=references
                     )
-                    setattr(data, pn, v)
+                setattr(data, pn, v)
             else:
                 v = resolve_references(
                     v,
                     root=root,
-                    open_function=open_function,
+                    urlopen=urlopen,
                     url=url,
                     references=references
                 )
                 setattr(data, pn, v)
     elif isinstance(data, dict):
         if ('$ref' in data.keys()) and (data is not root):
-            ref = data['$ref']
-            data, document, reference_url, nreferences = _resolve_ref(
-                ref,
-                root=root,
-                url=url,
-                open_function=open_function,
-                references=references
+            data, document, reference_url, references_added = resolve_ref(
+                data['$ref'],
+                ref_root=root,
+                ref_document_url=url,
             )
-            if nreferences != references:
-                references = nreferences
+            if references_added:
                 data = resolve_references(
                     data,
                     root=document,
-                    open_function=open_function,
+                    urlopen=urlopen,
                     url=reference_url,
                     references=references
                 )
@@ -267,19 +251,19 @@ def resolve_references(
                 data[k] = resolve_references(
                     v,
                     root=root,
-                    open_function=open_function,
+                    urlopen=urlopen,
                     url=url,
                     references=references
                 )
-    elif isinstance(data, (Set, Sequence)) and not isinstance(data, (str, bytes)):
+    elif isinstance(data, (collections.Set, collections.Sequence)) and not isinstance(data, (str, bytes)):
         for i in range(len(data)):
             data[i] = resolve_references(
-                data[i], root=root, open_function=open_function, url=url, references=references
+                data[i], root=root, urlopen=urlopen, url=url, references=references
             )
     return data
 
 
-def loads(data):
+def deserialize(data):
     if isinstance(data, IOBase):
         try:
             data.seek(0)
@@ -293,7 +277,7 @@ def loads(data):
         data = str(data, encoding='utf-8')
     if isinstance(data, str):
         try:
-            data = json.loads(data, object_hook=OrderedDict)
+            data = json.loads(data, object_hook=collections.OrderedDict)
         except json.JSONDecodeError as e:
             data = yaml.load(data)
     return data
@@ -301,17 +285,17 @@ def loads(data):
 
 class Object(object):
 
-    _properties = None  # type: Optional[typing.Mapping[str, Property]]
-    _url = None  # type: Optional[str]
+    _meta = None  # type: Optional[meta.Meta]
 
     def __init__(
         self,
         _=None,  # type: Optional[Union[AnyStr, typing.Mapping, typing.Sequence, typing.IO]]
     ):
+        self._meta = None
         if _ is not None:
             if isinstance(_, HTTPResponse):
-                self._url = _.url
-            _ = loads(_)
+                get_meta(self).url = _.url
+            _ = deserialize(_)
             for k, v in _.items():
                 try:
                     self[k] = v
@@ -323,9 +307,9 @@ class Object(object):
                     raise e
 
     def __setattr__(self, property_name, value):
-        # type: (Object, str, Any) -> NoneType
+        # type: (Object, str, Any) -> properties.NoneType
         if property_name[0] != '_':
-            property_definition = get_property_definition(self, property_name)
+            property_definition = get_meta(self).properties[property_name]
             try:
                 value = property_definition.load(value)
             except TypeError as e:
@@ -348,12 +332,12 @@ class Object(object):
     def __setitem__(self, key, value):
         # type: (str, str) -> None
         try:
-            property_definition = get_property_definition(self, key)
+            property_definition = get_meta(self).properties[key]
             property_name = key
         except KeyError:
             property_definition = None
             property_name = None
-            for pn, pd in get_property_definitions(self).items():
+            for pn, pd in get_meta(self).properties.items():
                 if key == pd.name:
                     property_name = pn
                     property_definition = pd
@@ -369,9 +353,9 @@ class Object(object):
             (value is None) and
             property_definition.required and
             (
-                NoneType not in (
+                properties.NoneType not in (
                     property_definition.types(value)
-                    if isinstance(property_definition.types, Callable)
+                    if isinstance(property_definition.types, collections.Callable)
                     else property_definition.types
                 )
             )
@@ -401,12 +385,12 @@ class Object(object):
     def __getitem__(self, key):
         # type: (str, str) -> None
         try:
-            property_definition = get_property_definition(self, key)
+            property_definition = get_meta(self).properties[key]
             property_name = key
         except KeyError as e:
             property_definition = None
             property_name = None
-            for pn, pd in get_property_definitions(self).items():
+            for pn, pd in get_meta(self).properties.items():
                 if key == pd.name:
                     property_name = pn
                     property_definition = pd
@@ -421,13 +405,11 @@ class Object(object):
         return getattr(self, property_name)
 
     def __copy__(self):
-        property_definitions = get_property_definitions(self)
+        m = get_meta(self)
         new_instance = self.__class__()
-        set_property_definitions(
-            new_instance,
-            property_definitions
-        )
-        for k in property_definitions.keys():
+        new_instance._meta = deepcopy(m)
+        new_instance._meta.data = new_instance
+        for k in m.properties.keys():
             try:
                 setattr(new_instance, k, getattr(self, k))
             except TypeError as e:
@@ -440,21 +422,36 @@ class Object(object):
                         )
                     )
                 else:
-                    e.args = (label + dumps(self),)
+                    e.args = (label + serialize(self),)
                 raise e
-        new_instance._url = self._url
         return new_instance
 
-    def __deepcopy__(self, memo):
-        # type: (dict) -> None
-        new_instance = copy(self)
-        for k in get_property_definitions(self).keys():
-            setattr(new_instance, k, deepcopy(getattr(self, k), memo))
+    def __deepcopy__(self, memo=None):
+        # type: (Optional[dict]) -> None
+        m = get_meta(self)
+        new_instance = self.__class__()
+        new_instance._meta = deepcopy(m)  # type: meta.Meta
+        new_instance._meta.data = new_instance  # type: Object
+        for k in m.properties.keys():
+            try:
+                setattr(new_instance, k, deepcopy(getattr(self, k), memo=memo))
+            except TypeError as e:
+                label = '%s.%s: ' % (self.__class__.__name__, k)
+                if e.args:
+                    e.args = tuple(
+                        chain(
+                            (label + e.args[0],),
+                            e.args[1:]
+                        )
+                    )
+                else:
+                    e.args = (label + serialize(self),)
+                raise e
         return new_instance
 
     def _dump(self):
-        data = OrderedDict()
-        for pn, p in get_property_definitions(self).items():
+        data = collections.OrderedDict()
+        for pn, p in get_meta(self).properties.items():
             v = getattr(self, pn)
             if v is None:
                 if p.required:
@@ -462,9 +459,9 @@ class Object(object):
                         'The property `%s` is required for `oapi.model.%s`.' % (pn, self.__class__.__name__)
                     )
             else:
-                v = dump(v)
+                v = marshal(v)
                 k = p.name or pn
-                if (v is None) and (p.types is not None) and (Null not in p.types):
+                if (v is None) and (p.types is not None) and (properties.Null not in p.types):
                     raise TypeError(
                         'Null values are not allowed in `oapi.model.%s.%s`.' % (self.__class__.__name__, pn)
                     )
@@ -472,22 +469,22 @@ class Object(object):
         return data
 
     def __str__(self):
-        return json.dumps(dump(self))
+        return json.dumps(marshal(self))
 
     def __eq__(self, other):
         # type: (Any) -> bool
         if isinstance(other, self.__class__):
-            # return str(self) == str(other)
-            self_properties = set(get_property_definitions(self).keys())
-            other_properties = set(get_property_definitions(other).keys())
+            m = get_meta(self)
+            other_meta = get_meta(other)
+            self_properties = set(m.properties.keys())
+            other_properties = set(other_meta.properties.keys())
             if self_properties != other_properties:
-                # print('%s != %s' % (repr(self_properties), repr(other_properties)))
                 return False
             for p in self_properties|other_properties:
                 sp = getattr(self, p)
                 op = getattr(other, p)
                 if sp != op:
-                    # print('%s(%s)\n!=\n%s(%s)\n\n' % (type(sp).__name__, dumps(sp), type(op).__name__, dumps(op)))
+                    # print('%s(%s)\n!=\n%s(%s)\n\n' % (type(sp).__name__, serialize(sp), type(op).__name__, serialize(op)))
                     return False
             return True
         else:
@@ -498,7 +495,7 @@ class Object(object):
         return False if self == other else True
 
     def __iter__(self):
-        for k in get_property_definitions(self).keys():
+        for k in get_meta(self).properties.keys():
             yield k
 
 
@@ -548,13 +545,11 @@ class Array(list):
 
     def _dump(self):
         return tuple(
-            dump(i) for i in self
+            marshal(i) for i in self
         )
 
 
-
-
-class Dictionary(OrderedDict):
+class Dictionary(collections.OrderedDict):
 
     def __init__(
         self,
@@ -565,10 +560,6 @@ class Dictionary(OrderedDict):
             value_types = (value_types,)
         self.value_types = value_types
         if items is not None:
-            # if isinstance(items, Mapping):
-            #     items = tuple(items.items())
-            # for k, v in items:
-            #     self[k] = v
             if items is None:
                 super().__init__()
             else:
@@ -595,9 +586,9 @@ class Dictionary(OrderedDict):
         )
 
     def _dump(self):
-        return OrderedDict(
+        return collections.OrderedDict(
             [
-                (k, dump(v)) for k, v in self.items()
+                (k, marshal(v)) for k, v in self.items()
             ]
         )
 
@@ -613,12 +604,9 @@ class Reference(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    Reference,
-    [
-        ('ref', properties.String(name='$ref'))
-    ]
-)
+get_meta(Reference).properties = [
+    ('ref', properties.String(name='$ref'))
+]
 
 
 class Contact(Object):
@@ -640,14 +628,11 @@ class Contact(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    Contact,
-    [
-        ('name', properties.String()),
-        ('url', properties.String()),
-        ('email', properties.String()),
-    ]
-)
+get_meta(Contact).properties = [
+    ('name', properties.String()),
+    ('url', properties.String()),
+    ('email', properties.String()),
+]
 
 
 class License(Object):
@@ -667,13 +652,10 @@ class License(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    License,
-    [
-        ('name', properties.String()),
-        ('url', properties.String()),
-    ]
-)
+get_meta(License).properties = [
+    ('name', properties.String()),
+    ('url', properties.String()),
+]
 
 
 class Info(Object):
@@ -701,17 +683,14 @@ class Info(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    Info,
-    [
-        ('title', properties.String()),
-        ('description', properties.String()),
-        ('terms_of_service', properties.String(name='termsOfService')),
-        ('contact', properties.Object(types=(Contact,))),
-        ('license', properties.Object(types=(License,))),
-        ('version', properties.String()),
-    ]
-)
+get_meta(Info).properties = [
+    ('title', properties.String()),
+    ('description', properties.String()),
+    ('terms_of_service', properties.String(name='termsOfService')),
+    ('contact', properties.Object(types=(Contact,))),
+    ('license', properties.Object(types=(License,))),
+    ('version', properties.String()),
+]
 
 
 class Tag(Object):
@@ -731,13 +710,10 @@ class Tag(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    Tag,
-    [
-        ('name', properties.String()),
-        ('description', properties.String()),
-    ]
-)
+get_meta(Tag).properties = [
+    ('name', properties.String()),
+    ('description', properties.String()),
+]
 
 
 class Link(Object):
@@ -753,13 +729,10 @@ class Link(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    Link,
-    [
-        ('rel', properties.String()),
-        ('href', properties.String()),
-    ]
-)
+get_meta(Link).properties = [
+    ('rel', properties.String()),
+    ('href', properties.String()),
+]
 
 
 class Schema(Object):
@@ -1026,15 +999,12 @@ class Example(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    Example,
-    [
-        ('summary', properties.String()),
-        ('description', properties.String()),
-        ('value', properties.Property()),
-        ('external_value', properties.String(name='externalValue')),
-    ]
-)
+get_meta(Example).properties = [
+    ('summary', properties.String()),
+    ('description', properties.String()),
+    ('value', properties.Property()),
+    ('external_value', properties.String(name='externalValue')),
+]
 
 
 class Encoding(Object):
@@ -1083,15 +1053,12 @@ class MediaType(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    MediaType,
-    [
-        ('schema', properties.Object(types=(Reference, Schema))),
-        ('example', properties.Property()),
-        ('examples', properties.Object(value_types=(Reference, Example))),
-        ('encoding', properties.Object(value_types=(Reference, Encoding))),
-    ]
-)
+get_meta(MediaType).properties = [
+    ('schema', properties.Object(types=(Reference, Schema))),
+    ('example', properties.Property()),
+    ('examples', properties.Object(value_types=(Reference, Example))),
+    ('encoding', properties.Object(value_types=(Reference, Encoding))),
+]
 
 
 class Header(Object):
@@ -1189,34 +1156,28 @@ class Header(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    Encoding,
-    [
-        ('content_type', properties.String(name='contentType')),
-        ('headers', properties.Object(value_types=(Reference, Header))),
-        ('style', properties.String()),
-        ('explode', properties.Boolean()),
-        ('allow_reserved', properties.Boolean(name='allowReserved')),
-    ]
-)
+get_meta(Encoding).properties = [
+    ('content_type', properties.String(name='contentType')),
+    ('headers', properties.Object(value_types=(Reference, Header))),
+    ('style', properties.String()),
+    ('explode', properties.Boolean()),
+    ('allow_reserved', properties.Boolean(name='allowReserved')),
+]
 
 
-set_property_definitions(
-    Header,
-    [
-        ('description', properties.String()),
-        ('required', properties.Boolean()),
-        ('deprecated', properties.Boolean()),
-        ('allow_empty_value', properties.Boolean(name='allowEmptyValue')),
-        ('style', properties.String()),
-        ('explode', properties.Boolean()),
-        ('allow_reserved', properties.Boolean(name='allowReserved')),
-        ('schema', properties.Object(types=(Schema,))),
-        ('example', properties.Property()),
-        ('examples', properties.Object(value_types=(Example,))),
-        ('content', properties.Object(value_types=(MediaType,))),
-    ]
-)
+get_meta(Header).properties = [
+    ('description', properties.String()),
+    ('required', properties.Boolean()),
+    ('deprecated', properties.Boolean()),
+    ('allow_empty_value', properties.Boolean(name='allowEmptyValue')),
+    ('style', properties.String()),
+    ('explode', properties.Boolean()),
+    ('allow_reserved', properties.Boolean(name='allowReserved')),
+    ('schema', properties.Object(types=(Schema,))),
+    ('example', properties.Property()),
+    ('examples', properties.Object(value_types=(Example,))),
+    ('content', properties.Object(value_types=(MediaType,))),
+]
 
 
 class Parameter(Object):
@@ -1339,38 +1300,35 @@ class Parameter(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    Parameter,
-    [
-        ('name', properties.String()),
-        ('parameter_in', properties.String(name='in')),
-        ('description', properties.String()),
-        ('required', properties.Boolean()),
-        ('deprecated', properties.Boolean()),
-        ('allow_empty_value', properties.Boolean()),
-        ('style', properties.String()),
-        ('explode', properties.Boolean()),
-        ('allow_reserved', properties.Boolean()),
-        ('schema', properties.Object(types=(Reference, Schema))),
-        ('example', properties.Property()),
-        ('examples', properties.Object(types=(Reference, Schema))),
-        ('content', properties.Object(types=(MediaType,))),
-        # version 2x compatibility
-        (
-            'data_type',
-            properties.Property(
-                types=(
-                    properties.Array(
-                        item_types=(str,)
-                    ),
-                    str,
+get_meta(Parameter).properties = [
+    ('name', properties.String()),
+    ('parameter_in', properties.String(name='in')),
+    ('description', properties.String()),
+    ('required', properties.Boolean()),
+    ('deprecated', properties.Boolean()),
+    ('allow_empty_value', properties.Boolean()),
+    ('style', properties.String()),
+    ('explode', properties.Boolean()),
+    ('allow_reserved', properties.Boolean()),
+    ('schema', properties.Object(types=(Reference, Schema))),
+    ('example', properties.Property()),
+    ('examples', properties.Object(types=(Reference, Schema))),
+    ('content', properties.Object(types=(MediaType,))),
+    # version 2x compatibility
+    (
+        'data_type',
+        properties.Property(
+            types=(
+                properties.Array(
+                    item_types=(str,)
                 ),
-                name='type'
-            )
-        ),
-        ('enum', properties.Array()),
-    ]
-)
+                str,
+            ),
+            name='type'
+        )
+    ),
+    ('enum', properties.Array()),
+]
 
 
 class ServerVariable(Object):
@@ -1388,14 +1346,11 @@ class ServerVariable(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    ServerVariable,
-    [
-        ('enum', properties.Array(item_types=(str,))),
-        ('default', properties.String()),
-        ('description', properties.String()),
-    ]
-)
+get_meta(ServerVariable).properties = [
+    ('enum', properties.Array(item_types=(str,))),
+    ('default', properties.String()),
+    ('description', properties.String()),
+]
 
 
 class Server(Object):
@@ -1417,14 +1372,11 @@ class Server(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    Server,
-    [
-        ('url', properties.String()),
-        ('description', properties.String()),
-        ('variables', properties.Object(value_types=(ServerVariable,))),
-    ]
-)
+get_meta(Server).properties = [
+    ('url', properties.String()),
+    ('description', properties.String()),
+    ('variables', properties.Object(value_types=(ServerVariable,))),
+]
 
 
 class LinkedOperation(Object):
@@ -1451,17 +1403,14 @@ class LinkedOperation(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    LinkedOperation,
-    [
-        ('operation_ref', properties.String(name='operationRef')),
-        ('operation_id', properties.String(name='operationId')),
-        ('parameters', properties.Object(value_types=(str,))),
-        ('request_body', properties.Property(name='requestBody')),
-        ('description', properties.String()),
-        ('server', properties.Object(types=(Server,))),
-    ]
-)
+get_meta(LinkedOperation).properties = [
+    ('operation_ref', properties.String(name='operationRef')),
+    ('operation_id', properties.String(name='operationId')),
+    ('parameters', properties.Object(value_types=(str,))),
+    ('request_body', properties.Property(name='requestBody')),
+    ('description', properties.String()),
+    ('server', properties.Object(types=(Server,))),
+]
 
 
 class Response(Object):
@@ -1497,15 +1446,12 @@ class Response(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    Response,
-    [
-        ('description', properties.String()),
-        ('headers', properties.Object(value_types=(Reference, Header))),
-        ('content', properties.Object(value_types=(Reference, MediaType))),
-        ('links', properties.Object(value_types=(Reference, Link))),
-    ]
-)
+get_meta(Response).properties = [
+    ('description', properties.String()),
+    ('headers', properties.Object(value_types=(Reference, Header))),
+    ('content', properties.Object(value_types=(Reference, MediaType))),
+    ('links', properties.Object(value_types=(Reference, Link))),
+]
 
 
 class ExternalDocumentation(Object):
@@ -1527,13 +1473,10 @@ class ExternalDocumentation(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    ExternalDocumentation,
-    [
-        ('description', properties.String()),
-        ('url', properties.String()),
-    ]
-)
+get_meta(ExternalDocumentation).properties = [
+    ('description', properties.String()),
+    ('url', properties.String()),
+]
 
 
 class RequestBody(Object):
@@ -1551,14 +1494,11 @@ class RequestBody(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    RequestBody,
-    [
-        ('description', properties.String()),
-        ('content', properties.Object(value_types=(MediaType,))),
-        ('required', properties.Boolean()),
-    ]
-)
+get_meta(RequestBody).properties = [
+    ('description', properties.String()),
+    ('content', properties.Object(value_types=(MediaType,))),
+    ('required', properties.Boolean()),
+]
 
 
 class Operation(Object):
@@ -1685,75 +1625,69 @@ class PathItem(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    PathItem,
-    [
-        ('ref', properties.String(name='$ref')),
-        ('summary', properties.String()),
-        ('description', properties.String()),
-        ('get', properties.Object(types=(Operation,))),
-        ('put', properties.Object(types=(Operation,))),
-        ('post', properties.Object(types=(Operation,))),
-        ('delete', properties.Object(types=(Operation,))),
-        ('options', properties.Object(types=(Operation,))),
-        ('head', properties.Object(types=(Operation,))),
-        ('patch', properties.Object(types=(Operation,))),
-        ('trace', properties.Object(types=(Operation,))),
-        ('servers', properties.Array(item_types=(Server,))),
-        (
-            'parameters',
-            properties.Array(
-                item_types=(
-                    properties.Object(
-                        types=(Reference, Parameter)
-                    ),
-                )
+get_meta(PathItem).properties = [
+    ('ref', properties.String(name='$ref')),
+    ('summary', properties.String()),
+    ('description', properties.String()),
+    ('get', properties.Object(types=(Operation,))),
+    ('put', properties.Object(types=(Operation,))),
+    ('post', properties.Object(types=(Operation,))),
+    ('delete', properties.Object(types=(Operation,))),
+    ('options', properties.Object(types=(Operation,))),
+    ('head', properties.Object(types=(Operation,))),
+    ('patch', properties.Object(types=(Operation,))),
+    ('trace', properties.Object(types=(Operation,))),
+    ('servers', properties.Array(item_types=(Server,))),
+    (
+        'parameters',
+        properties.Array(
+            item_types=(
+                properties.Object(
+                    types=(Reference, Parameter)
+                ),
             )
-        ),
-    ]
-)
+        )
+    ),
+]
 
 
-set_property_definitions(
-    Operation,
-    [
-        ('tags', properties.Array(item_types=(Tag,))),
-        ('summary', properties.String()),
-        ('description', properties.String()),
-        ('external_docs', properties.Object(types=(ExternalDocumentation,), name='externalDocs')),
-        ('operation_id', properties.String(name='operationId')),
-        ('parameters', properties.Array(item_types=(Reference, Parameter))),
-        ('request_body', properties.Object(types=(Reference, RequestBody), name='requestBody')),
-        ('responses', properties.Object(value_types=(Response,))),
-        ('deprecated', properties.Boolean()),
-        (
-            'security',
-            properties.Array(
-                item_types=(
-                    properties.Object(
-                        value_types=(
-                            properties.Array(
-                                item_types=(str,)
-                            ),
-                        )
-                    ),
-                )
-            )
-        ),
-        ('servers', properties.Array(item_types=(Server,))),
-        ('produces', properties.Array(item_types=(str,))),
-        (
-            'callbacks',
-            properties.Object(
-                value_types=(
-                    properties.Object(
-                        value_types=(PathItem,)
+get_meta(Operation).properties = [
+    ('tags', properties.Array(item_types=(Tag,))),
+    ('summary', properties.String()),
+    ('description', properties.String()),
+    ('external_docs', properties.Object(types=(ExternalDocumentation,), name='externalDocs')),
+    ('operation_id', properties.String(name='operationId')),
+    ('parameters', properties.Array(item_types=(Reference, Parameter))),
+    ('request_body', properties.Object(types=(Reference, RequestBody), name='requestBody')),
+    ('responses', properties.Object(value_types=(Response,))),
+    ('deprecated', properties.Boolean()),
+    (
+        'security',
+        properties.Array(
+            item_types=(
+                properties.Object(
+                    value_types=(
+                        properties.Array(
+                            item_types=(str,)
+                        ),
                     )
+                ),
+            )
+        )
+    ),
+    ('servers', properties.Array(item_types=(Server,))),
+    ('produces', properties.Array(item_types=(str,))),
+    (
+        'callbacks',
+        properties.Object(
+            value_types=(
+                properties.Object(
+                    value_types=(PathItem,)
                 )
             )
         )
-    ]
-)
+    )
+]
 
 
 class Discriminator(Object):
@@ -1778,13 +1712,10 @@ class Discriminator(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    Discriminator,
-    [
-        ('property_name', properties.String(name='propertyName')),
-        ('mapping', properties.Object(value_types=(str,))),
-    ]
-)
+get_meta(Discriminator).properties = [
+    ('property_name', properties.String(name='propertyName')),
+    ('mapping', properties.Object(value_types=(str,))),
+]
 
 
 class XML(Object):
@@ -1822,16 +1753,13 @@ class XML(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    XML,
-    [
-        ('name', properties.String()),
-        ('name_space', properties.String(name='nameSpace')),
-        ('prefix', properties.String()),
-        ('attribute', properties.Boolean()),
-        ('wrapped', properties.Boolean()),
-    ]
-)
+get_meta(XML).properties = [
+    ('name', properties.String()),
+    ('name_space', properties.String(name='nameSpace')),
+    ('prefix', properties.String()),
+    ('attribute', properties.Boolean()),
+    ('wrapped', properties.Boolean()),
+]
 
 
 class OAuthFlow(Object):
@@ -1854,15 +1782,12 @@ class OAuthFlow(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    OAuthFlow,
-    [
-        ('authorization_url', properties.String()),
-        ('token_url', properties.String(name='tokenUrl')),
-        ('refresh_url', properties.String(name='refreshUrl')),
-        ('scopes', properties.Object(value_types=(str,))),
-    ]
-)
+get_meta(OAuthFlow).properties = [
+    ('authorization_url', properties.String()),
+    ('token_url', properties.String(name='tokenUrl')),
+    ('refresh_url', properties.String(name='refreshUrl')),
+    ('scopes', properties.Object(value_types=(str,))),
+]
 
 
 class OAuthFlows(Object):
@@ -1885,15 +1810,12 @@ class OAuthFlows(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    OAuthFlows,
-    [
-        ('implicit', properties.Object(types=(OAuthFlow,))),
-        ('password', properties.Object(types=(OAuthFlow,))),
-        ('client_credentials', properties.Object(types=(OAuthFlow,), name='clientCredentials')),
-        ('authorization_code', properties.Object(types=(OAuthFlow,), name='authorizationCode')),
-    ]
-)
+get_meta(OAuthFlows).properties = [
+    ('implicit', properties.Object(types=(OAuthFlow,))),
+    ('password', properties.Object(types=(OAuthFlow,))),
+    ('client_credentials', properties.Object(types=(OAuthFlow,), name='clientCredentials')),
+    ('authorization_code', properties.Object(types=(OAuthFlow,), name='authorizationCode')),
+]
 
 
 class SecurityScheme(Object):
@@ -1942,107 +1864,101 @@ class SecurityScheme(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    SecurityScheme,
-    [
-        ('security_scheme_type', properties.String(name='type')),
-        ('description', properties.String()),
-        ('name', properties.String()),
-        ('security_scheme_in', properties.String(name='in')),
-        ('scheme', properties.String()),
-        ('bearer_format', properties.String(name='bearerFormat')),
-        ('flows', properties.Object(types=(OAuthFlows,))),
-        ('open_id_connect_url', properties.String()),
-    ]
-)
+get_meta(SecurityScheme).properties = [
+    ('security_scheme_type', properties.String(name='type')),
+    ('description', properties.String()),
+    ('name', properties.String()),
+    ('security_scheme_in', properties.String(name='in')),
+    ('scheme', properties.String()),
+    ('bearer_format', properties.String(name='bearerFormat')),
+    ('flows', properties.Object(types=(OAuthFlows,))),
+    ('open_id_connect_url', properties.String()),
+]
 
-set_property_definitions(
-    Schema,
-    [
-        ('schema', properties.String(name='$schema')),
-        ('schema_id', properties.String(name='$id')),
-        ('title', properties.String()),
-        ('description', properties.String()),
-        ('multiple_of', properties.Number(name='multipleOf')),
-        ('maximum', properties.Number()),
-        ('exclusive_maximum', properties.Boolean(name='exclusiveMaximum')),
-        ('minimum', properties.Number()),
-        ('exclusive_minimum', properties.Boolean(name='exclusiveMinimum')),
-        ('max_length', properties.Integer(name='maxLength')),
-        ('min_length', properties.Integer(name='minLength')),
-        ('pattern', properties.String()),
-        ('max_items', properties.Integer(name='maxItems')),
-        ('min_items', properties.Integer(name='minItems')),
-        ('unique_items', properties.String(name='uniqueItems')),
-        (
-            'items',
-            properties.Object(
-                types=(
-                    Schema,
-                    Reference,
-                    properties.Array(
-                        item_types=(Reference, Schema)
-                    )
+get_meta(Schema).properties = [
+    ('schema', properties.String(name='$schema')),
+    ('schema_id', properties.String(name='$id')),
+    ('title', properties.String()),
+    ('description', properties.String()),
+    ('multiple_of', properties.Number(name='multipleOf')),
+    ('maximum', properties.Number()),
+    ('exclusive_maximum', properties.Boolean(name='exclusiveMaximum')),
+    ('minimum', properties.Number()),
+    ('exclusive_minimum', properties.Boolean(name='exclusiveMinimum')),
+    ('max_length', properties.Integer(name='maxLength')),
+    ('min_length', properties.Integer(name='minLength')),
+    ('pattern', properties.String()),
+    ('max_items', properties.Integer(name='maxItems')),
+    ('min_items', properties.Integer(name='minItems')),
+    ('unique_items', properties.String(name='uniqueItems')),
+    (
+        'items',
+        properties.Object(
+            types=(
+                Schema,
+                Reference,
+                properties.Array(
+                    item_types=(Reference, Schema)
                 )
             )
-        ),
-        (
-            'additional_items',
-            properties.Object(
-                types=(
-                    Schema,
-                    bool
+        )
+    ),
+    (
+        'additional_items',
+        properties.Object(
+            types=(
+                Schema,
+                bool
+            ),
+            name='additionalItems'
+        )
+    ),
+    ('max_properties', properties.Integer(name='maxProperties')),
+    ('min_properties', properties.Integer(name='minProperties')),
+    ('properties', properties.Object(value_types=(Schema,))),
+    ('pattern_properties', properties.Object(name='patternProperties')),
+    ('additional_properties', properties.Object(name='additionalProperties')),
+    ('dependencies', properties.Object(types=(Schema), versions=('openapi<0.0',))),
+    ('enum', properties.Array(item_types=(properties.String(),))),
+    (
+        'data_type',
+        properties.Property(
+            types=(
+                properties.Array(
+                    item_types=(str,)
                 ),
-                name='additionalItems'
+                str
+            ),
+            name='type'
+        )
+    ),
+    ('format', properties.String()),
+    ('required', properties.Array(item_types=(properties.String(),))),
+    ('all_of', properties.Array(item_types=(Reference, Schema), name='allOf')),
+    ('any_of', properties.Array(item_types=(Reference, Schema), name='anyOf')),
+    ('one_of', properties.Array(item_types=(Reference, Schema), name='oneOf')),
+    ('is_not', properties.Object(types=(Reference, Schema), name='isNot')),
+    (
+        'definitions',
+        properties.Object(
+            value_types=(
+                Schema, Response, Parameter, Example, RequestBody, Header,
+                SecurityScheme, LinkedOperation, properties.Object(value_types=PathItem)
             )
-        ),
-        ('max_properties', properties.Integer(name='maxProperties')),
-        ('min_properties', properties.Integer(name='minProperties')),
-        ('properties', properties.Object(value_types=(Schema,))),
-        ('pattern_properties', properties.Object(name='patternProperties')),
-        ('additional_properties', properties.Object(name='additionalProperties')),
-        ('dependencies', properties.Object(types=(Schema), versions=('openapi<0.0',))),
-        ('enum', properties.Array(item_types=(properties.String(),))),
-        (
-            'data_type',
-            properties.Property(
-                types=(
-                    properties.Array(
-                        item_types=(str,)
-                    ),
-                    str
-                ),
-                name='type'
-            )
-        ),
-        ('format', properties.String()),
-        ('required', properties.Array(item_types=(properties.String(),))),
-        ('all_of', properties.Array(item_types=(Reference, Schema), name='allOf')),
-        ('any_of', properties.Array(item_types=(Reference, Schema), name='anyOf')),
-        ('one_of', properties.Array(item_types=(Reference, Schema), name='oneOf')),
-        ('is_not', properties.Object(types=(Reference, Schema), name='isNot')),
-        (
-            'definitions',
-            properties.Object(
-                value_types=(
-                    Schema, Response, Parameter, Example, RequestBody, Header,
-                    SecurityScheme, LinkedOperation, properties.Object(value_types=PathItem)
-                )
-            )
-        ),
-        ('default', properties.Property()),
-        ('required', properties.Array(item_types=(str,))),
-        ('default', properties.Property()),
-        ('discriminator', properties.Object(types=(Discriminator,))),
-        ('read_only', properties.Boolean()),
-        ('write_only', properties.Boolean(name='writeOnly')),
-        ('xml', properties.Object(types=(XML,), name='xml')),
-        ('external_docs', properties.Object(types=(ExternalDocumentation,))),
-        ('example', properties.Property()),
-        ('deprecated', properties.Boolean()),
-        ('links', properties.Array(item_types=(Link,))),\
-    ]
-)
+        )
+    ),
+    ('default', properties.Property()),
+    ('required', properties.Array(item_types=(str,))),
+    ('default', properties.Property()),
+    ('discriminator', properties.Object(types=(Discriminator,))),
+    ('read_only', properties.Boolean()),
+    ('write_only', properties.Boolean(name='writeOnly')),
+    ('xml', properties.Object(types=(XML,), name='xml')),
+    ('external_docs', properties.Object(types=(ExternalDocumentation,))),
+    ('example', properties.Property()),
+    ('deprecated', properties.Boolean()),
+    ('links', properties.Array(item_types=(Link,))),\
+]
 
 
 class Components(Object):
@@ -2072,32 +1988,29 @@ class Components(Object):
         super().__init__(_)
 
 
-set_property_definitions(
-    Components,
-    [
-        ('schemas', properties.Object(value_types=(Reference, Schema))),
-        ('responses', properties.Object(value_types=(Reference, Response))),
-        ('parameters', properties.Object(value_types=(Reference, Parameter))),
-        ('examples', properties.Object(value_types=(Reference, Example))),
-        ('request_bodies', properties.Object(value_types=(Reference, RequestBody))),
-        ('headers', properties.Object(value_types=(Reference, Header))),
-        ('security_schemes', properties.Object(value_types=(Reference, SecurityScheme), name='securitySchemes')),
-        ('links', properties.Object(value_types=(Reference, LinkedOperation))),
-        (
-            'callbacks',
-            properties.Object(
-                value_types=(
-                    Reference,
-                    properties.Object(
-                        value_types=(
-                            PathItem,
-                        )
+get_meta(Components).properties = [
+    ('schemas', properties.Object(value_types=(Reference, Schema))),
+    ('responses', properties.Object(value_types=(Reference, Response))),
+    ('parameters', properties.Object(value_types=(Reference, Parameter))),
+    ('examples', properties.Object(value_types=(Reference, Example))),
+    ('request_bodies', properties.Object(value_types=(Reference, RequestBody))),
+    ('headers', properties.Object(value_types=(Reference, Header))),
+    ('security_schemes', properties.Object(value_types=(Reference, SecurityScheme), name='securitySchemes')),
+    ('links', properties.Object(value_types=(Reference, LinkedOperation))),
+    (
+        'callbacks',
+        properties.Object(
+            value_types=(
+                Reference,
+                properties.Object(
+                    value_types=(
+                        PathItem,
                     )
                 )
             )
-        ),
-    ]
-)
+        )
+    ),
+]
 
 
 class OpenAPI(Object):
@@ -2145,39 +2058,36 @@ class OpenAPI(Object):
             set_version(self, 'openapi', version)
 
 
-set_property_definitions(
-    OpenAPI,
-    [
-        ('openapi', properties.String(versions=('openapi>=3.0',))),
-        ('info', properties.Object(types=(Info,), required=True)),
-        ('host', properties.String()),
-        ('servers', properties.Array(item_types=(Server,))),
-        ('base_path', properties.String(name='basePath')),
-        ('schemes', properties.Array(item_types=(str,))),
-        ('tags', properties.Array(item_types=(Tag,))),
-        ('paths', properties.Object(value_types=(PathItem,))),
-        ('components', properties.Object(types=(Components,))),
-        ('consumes', properties.Array(item_types=(str,))),
-        ('swagger', properties.String(versions=('openapi<3.0',))),
-        (
-            'definitions',
-            properties.Object(
-                value_types=(
-                    Schema, Response, Parameter, Example, RequestBody, Header,
-                    SecurityScheme, LinkedOperation, properties.Object(value_types=PathItem)
-                ),
-                # versions=('openapi<3.0',)
+get_meta(OpenAPI).properties = [
+    ('openapi', properties.String(versions=('openapi>=3.0',))),
+    ('info', properties.Object(types=(Info,), required=True)),
+    ('host', properties.String()),
+    ('servers', properties.Array(item_types=(Server,))),
+    ('base_path', properties.String(name='basePath')),
+    ('schemes', properties.Array(item_types=(str,))),
+    ('tags', properties.Array(item_types=(Tag,))),
+    ('paths', properties.Object(value_types=(PathItem,))),
+    ('components', properties.Object(types=(Components,))),
+    ('consumes', properties.Array(item_types=(str,))),
+    ('swagger', properties.String(versions=('openapi<3.0',))),
+    (
+        'definitions',
+        properties.Object(
+            value_types=(
+                Schema, Response, Parameter, Example, RequestBody, Header,
+                SecurityScheme, LinkedOperation, properties.Object(value_types=PathItem)
             ),
+            # versions=('openapi<3.0',)
         ),
-        (
-            'security_definitions',
-            properties.Object(
-                value_types=(SecurityScheme, str),
-                name='securityDefinitions',
-                versions=('openapi<3.0',)
-            )
-        ),
-        ('produces', properties.Array(item_types=(str,), versions=('openapi<3.0',)),),
-        ('external_docs', properties.Object(types=(ExternalDocumentation,), name='externalDocs'))
-    ]
-)
+    ),
+    (
+        'security_definitions',
+        properties.Object(
+            value_types=(SecurityScheme, str),
+            name='securityDefinitions',
+            versions=('openapi<3.0',)
+        )
+    ),
+    ('produces', properties.Array(item_types=(str,), versions=('openapi<3.0',)),),
+    ('external_docs', properties.Object(types=(ExternalDocumentation,), name='externalDocs'))
+]

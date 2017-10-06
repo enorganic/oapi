@@ -1,24 +1,20 @@
 import collections
 import json
 from typing import Sequence
-
 from urllib.request import urlopen
 from warnings import warn
 
-import os
-
-import sys
 from marshmallow import ValidationError
 
-from oapi import model
-from oapi.model import Object, get_property_definitions, OpenAPI, Schema, resolve_references, dump
+from oapi.meta import get_meta
+from oapi.model import Object, OpenAPI, Schema, resolve_references
 
 
 def discrepancies(a, b):
     # type: (Object, Object) -> dict
     differences = {}
-    a_properties = set(get_property_definitions(a).keys())
-    b_properties = set(get_property_definitions(b).keys())
+    a_properties = set(get_meta(a).properties.keys())
+    b_properties = set(get_meta(b).properties.keys())
     for p in a_properties | b_properties:
         try:
             av = getattr(a, p)
@@ -55,9 +51,9 @@ def object_test(
                     a, b = v
                     print(k + ':')
                     print(repr(a))
-                    #print(model.dumps(a))
+                    #print(model.serialize(a))
                     print(repr(b))
-                    #print(model.dumps(b))
+                    #print(model.serialize(b))
                     print()
                 raise e
         except ValidationError as e:
@@ -65,7 +61,7 @@ def object_test(
             raise e
         reloaded_json = json.loads(string)
         keys = set()
-        for n, p in get_property_definitions(o).items():
+        for n, p in get_meta(o).properties.items():
             keys.add(p.name or n)
         for k in reloaded_json.keys():
             if k not in keys:
@@ -90,6 +86,7 @@ def test_json_schemas():
         'http://json-schema.org/schema',
         'http://json-schema.org/hyper-schema',
     ):
+        print(url)
         with urlopen(url) as response:
             oa = Schema(response)
             object_test(oa)
@@ -133,13 +130,10 @@ def test_openapi_schemas():
             oa = OpenAPI(response)
             object_test(oa)
             oa2 = resolve_references(oa)
-            # print(oa2)
             if oa2 != oa:
                 object_test(oa2)
-                with open('/Users/david/PycharmProjects/temp/temp.json', 'w') as f:
-                    f.write(str(oa2))
 
 
 if __name__ == '__main__':
-    # test_json_schemas()
+    test_json_schemas()
     test_openapi_schemas()

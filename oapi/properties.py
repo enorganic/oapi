@@ -1,11 +1,30 @@
 import typing
 from base64 import b64decode, b64encode
-from collections import Mapping, Sequence, OrderedDict, Set, Reversible, Iterable, Callable
+from collections import Mapping, Sequence, Set, Iterable, Callable
 from copy import copy
 from numbers import Real
 
-from oapi import model
-from oapi.properties import metadata
+from oapi import model, meta
+
+NoneType = type(None)
+
+
+class Null(object):
+
+    def __bool__(self):
+        return False
+
+    def __eq__(self, other):
+        return True if (other is None) or isinstance(other, self.__class__) else False
+
+    def __hash__(self):
+        return 0
+
+    def __str__(self):
+        return 'null'
+
+
+NULL = Null()
 
 
 class Property(object):
@@ -46,11 +65,11 @@ class Property(object):
 
     """
 
-    json = metadata.JSON(
+    json = meta.JSON(
         types=('array', 'object', 'integer', 'number', 'string', 'boolean'),
         formats=None
     )
-    xml = metadata.XML()
+    xml = meta.XML()
 
     def __init__(
         self,
@@ -87,11 +106,11 @@ class Property(object):
     ):
         # type: (...) -> Optional[Union[Mapping[str, Optional[Property]], Set[Union[str, Number]]]]
         if versions is not None:
-            if isinstance(versions, (str, Number, metadata.Version)):
+            if isinstance(versions, (str, Number, meta.Version)):
                 versions = (versions,)
             if isinstance(versions, Iterable):
                 versions = tuple(
-                    (v if isinstance(v, metadata.Version) else metadata.Version(v))
+                    (v if isinstance(v, meta.Version) else meta.Version(v))
                     for v in versions
                 )
             else:
@@ -108,7 +127,7 @@ class Property(object):
 
     def dump(self, data):
         # type: (typing.Any) -> typing.Any
-        return model.dump(data)
+        return model.marshal(data)
 
 
 class String(Property):
@@ -122,11 +141,11 @@ class String(Property):
         - versions ([str]|{str:Property})
     """
 
-    json = metadata.JSON(
+    json = meta.JSON(
         types=('string',),
         formats = (None,)
     )
-    xml = metadata.XML()
+    xml = meta.XML()
 
     def __init__(
         self,
@@ -158,11 +177,11 @@ class Bytes(Property):
         - required (bool)
         - versions ([str]|{str:Property})
     """
-    json = metadata.JSON(
+    json = meta.JSON(
         types=('string',),
         formats=('byte',)
     )
-    xml = metadata.XML()
+    xml = meta.XML()
 
     def __init__(
         self,
@@ -208,8 +227,8 @@ class Enum(Property):
 
         - versions ([str]|{str:Property})
     """
-    json = metadata.JSON()
-    xml = metadata.XML()
+    json = meta.JSON()
+    xml = meta.XML()
 
     def __init__(
         self,
@@ -275,11 +294,11 @@ class Number(Property):
         - required (bool)
         - versions ([str]|{str:Property})
     """
-    json = metadata.JSON(
+    json = meta.JSON(
         types=('number',),
         formats=None
     )
-    xml = metadata.XML()
+    xml = meta.XML()
 
     def __init__(
         self,
@@ -312,11 +331,11 @@ class Integer(Property):
         - required (bool)
         - versions ([str]|{str:Property})
     """
-    json = metadata.JSON(
+    json = meta.JSON(
         types=('integer',),
         formats=None
     )
-    xml = metadata.XML()
+    xml = meta.XML()
 
     def __init__(
         self,
@@ -362,11 +381,11 @@ class Boolean(Property):
         - required (bool)
         - versions ([str]|{str:Property})
     """
-    json = metadata.JSON(
+    json = meta.JSON(
         types=('boolean',),
         formats=None
     )
-    xml = metadata.XML()
+    xml = meta.XML()
 
     def __init__(
         self,
@@ -412,11 +431,11 @@ class Array(Property):
 
         - versions ([str]|{str:Property})
     """
-    json = metadata.JSON(
+    json = meta.JSON(
         types=('array',),
         formats=None
     )
-    xml = metadata.XML()
+    xml = meta.XML()
 
     def __init__(
         self,
@@ -499,9 +518,10 @@ def polymorph(data, types):
                 isinstance(data, Mapping)
             ):
                 data_keys = data_keys or set(data.keys())
+                property_definitions = meta.get_meta(t).properties
                 type_keys = {
                     (v.name or k)
-                    for k, v in model.get_property_definitions(t).items()
+                    for k, v in property_definitions.items()
                 }
                 if not (data_keys - type_keys):
                     unused = type_keys - data_keys
@@ -531,7 +551,7 @@ def polymorph(data, types):
     elif not matched:
         raise TypeError(
             'The data provided does not fit any of the types indicated.\n\n' +
-            ' - data: %s\n\n' % model.dumps(data) +
+            ' - data: %s\n\n' % model.serialize(data) +
             ' - types: %s' % repr(types)
         )
     return data
@@ -553,11 +573,11 @@ class Object(Property):
 
         - versions ([str]|{str:Property})
     """
-    json = metadata.JSON(
+    json = meta.JSON(
         types=('object',),
         formats=None
     )
-    xml = metadata.XML()
+    xml = meta.XML()
 
     def __init__(
         self,
