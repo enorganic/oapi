@@ -518,7 +518,7 @@ def polymorph(data, types):
                 isinstance(data, Mapping)
             ):
                 data_keys = data_keys or set(data.keys())
-                property_definitions = meta.get_meta(t).properties
+                property_definitions = meta.get(t).properties
                 type_keys = {
                     (v.name or k)
                     for k, v in property_definitions.items()

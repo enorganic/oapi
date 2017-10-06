@@ -14,28 +14,6 @@ from oapi import model
 UNDEFINED = object()
 
 
-class _Container(object):
-
-    def __copy__(self):
-        new_instance = self.__class__()
-        for a in dir(self):
-            if a[0] != '_':
-                v = getattr(self, a)
-                if not isinstance(v, collections.Callable):
-                    setattr(new_instance, a, v)
-        return new_instance
-
-    def __deepcopy__(self, memo=None):
-        # type: (dict) -> Memo
-        new_instance = self.__class__()
-        for a in dir(self):
-            if a[0] != '_':
-                v = getattr(self, a)
-                if not isinstance(v, collections.Callable):
-                    setattr(new_instance, a, deepcopy(v, memo=memo))
-        return new_instance
-
-
 class JSON(object):
 
     def __init__(
@@ -64,6 +42,7 @@ class Version(object):
 
     def __init__(
         self,
+        _=None,  # type: Optional[str]
         specification=None,  # type: Optional[Sequence[str]]
         equals=None,  # type: Optional[Sequence[Union[str, Number]]]
         not_equals=None,  # type: Optional[Sequence[Union[str, Number]]]
@@ -73,7 +52,8 @@ class Version(object):
         greater_than_or_equal_to=None,  # type: Optional[Sequence[Union[str, Number]]]
         types=None,  # type: typing.Sequence[Union[type, Property]]
     ):
-        if isinstance(specification, str) and (
+        if isinstance(_, str) and (
+            (specification is None) and
             (equals is None) and
             (not_equals is None) and
             (less_than is None) and
@@ -81,21 +61,31 @@ class Version(object):
             (greater_than is None) and
             (greater_than_or_equal_to is None)
         ):
-            if '==' in specification:
-                specification, equals = specification.split('==')
-            elif '<=' in specification:
-                specification, less_than_or_equal_to = specification.split('<=')
-            elif '>=' in specification:
-                specification, greater_than_or_equal_to = specification.split('>=')
-            elif '<' in specification:
-                specification, less_than = specification.split('<')
-            elif '>' in specification:
-                specification, greater_than = specification.split('>')
-            elif '!=' in specification:
-                specification, not_equals = specification.split('!=')
-            elif '=' in specification:
-                specification, equals = specification.split('=')
-        self.specification = specification
+            specification = None
+            for s in _.split('&'):
+                if '==' in s:
+                    s, equals = s.split('==')
+                elif '<=' in s:
+                    s, less_than_or_equal_to = s.split('<=')
+                elif '>=' in s:
+                    s, greater_than_or_equal_to = s.split('>=')
+                elif '<' in s:
+                    s, less_than = s.split('<')
+                elif '>' in s:
+                    s, greater_than = s.split('>')
+                elif '!=' in s:
+                    s, not_equals = s.split('!=')
+                elif '=' in s:
+                    s, equals = s.split('=')
+                if specification:
+                    if s != specification:
+                        raise ValueError(
+                            'Multiple specifications cannot be associated with an instance of ``oapi.meta.Version``: ' +
+                            repr(_)
+                        )
+                elif s:
+                    specification = s
+            self.specification = specification
         self.equals = equals
         self.not_equals = not_equals
         self.less_than = less_than
@@ -196,7 +186,7 @@ class Meta(object):
         else:
             if self._properties is None:
                 property_definitions = deepcopy(
-                    get_meta(type(self.data))._properties
+                    get(type(self.data))._properties
                 )
             else:
                 property_definitions = self._properties
@@ -261,30 +251,7 @@ class Properties(collections.OrderedDict):
                 else:
                     items = items.items()
             super().__init__(items)
-    #         for k, v in items:
-    #             super().__setitem__(k, v)
-    #
-    # def __setitem__(self, key, value):
-    #     # type: (str, properties.Property) -> None
-    #     raise NotImplementedError(
-    #         'Instances of `oapi.model.meta.py.Properties` are not mutable.'
-    #     )
-    #
-    # def __delitem__(self, key):
-    #     # type: (str) -> Any
-    #     raise NotImplementedError(
-    #         'Instances of `oapi.model.meta.py.Properties` are not mutable.'
-    #     )
-    #
-    # def update(
-    #     self,
-    #     **kwargs  # type: properties.Property
-    # ):
-    #     # type: (...) -> Any
-    #     raise NotImplementedError(
-    #         'Instances of `oapi.model.meta.py.Properties` are not mutable.'
-    #     )
-    #
+
     def __copy__(self):
         # type: () -> Properties
         return self.__class__(tuple(self.items()), meta=self.meta)
@@ -300,23 +267,7 @@ class Properties(collections.OrderedDict):
         )
 
 
-def set_meta(
-    o,  # type: Union[type, model.Object]
-    properties=(
-        UNDEFINED
-    ),  # type: Optional[Union[Sequence[Tuple[str, properties.Property]], typing.Mapping[str, properties.Property]]]
-    url=UNDEFINED,  # type: Optional[str]
-):
-    if (o._meta is None) or (o._meta.data is not o):
-        o._meta = Meta(o)
-    meta = o._meta
-    if properties is not UNDEFINED:
-        meta.properties = properties
-    if url is not UNDEFINED:
-        meta.url = url
-
-
-def get_meta(
+def get(
     o  # type: Union[type, model.Object]
 ):
     # type: (...) -> Union[Meta, typing.Mapping, str]
@@ -326,5 +277,46 @@ def get_meta(
         return o._meta
     else:
         if o._meta is None:
-            o._meta = deepcopy(get_meta(type(o)))
+            o._meta = deepcopy(get(type(o)))
     return o._meta
+
+
+def version(data, specification, version_number):
+    # type: (Any, str, Union[str, int, typing.Sequence[int]]) -> Any
+    """
+    Recursively alters instances of ``oapi.model.Object`` according to version_number metadata associated with that object's
+    properties.
+
+    Arguments:
+
+        - data
+
+        - specification (str): The specification to which the ``version_number`` argument applies.
+
+        - version_number (str|int|[int]): A version number represented as text (in the form of integers separated by
+          periods), an integer, or a sequence of integers.
+    """
+    if isinstance(data, model.Object):
+        m = get(data)
+        for n, p in tuple(m.properties.items()):
+            if p.versions is not None:
+                version_match = False
+                specification_match = False
+                for v in p.versions:
+                    if v.specification == specification:
+                        specification_match = True
+                        if v == version_number:
+                            version_match = True
+                            if v.types is not None:
+                                m.properties[n].types = v.types
+                            break
+                if specification_match and (not version_match):
+                    del m.properties[n]
+        for n, p in m.properties.items():
+            version(getattr(data, n), specification, version_number)
+    elif isinstance(data, (collections.Set, collections.Sequence)) and not isinstance(data, (str, bytes)):
+        for d in data:
+            version(d, specification, version_number)
+    elif isinstance(data, dict):
+        for k, v in data.items():
+            version(v, specification, version_number)

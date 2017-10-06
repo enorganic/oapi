@@ -22,7 +22,7 @@ from jsonpointer import resolve_pointer
 
 from oapi import properties
 from oapi.errors import ValidationError
-from oapi.meta import get_meta
+from oapi import meta
 
 
 def marshal(data):
@@ -30,8 +30,8 @@ def marshal(data):
     """
     Recursively converts instances of ``oapi.model.Object`` into JSON/YAML serializable objects.
     """
-    if hasattr(data, '_dump'):
-        return data._dump()
+    if hasattr(data, '_marshal'):
+        return data._marshal()
     elif isinstance(data, properties.Null):
         return None
     elif isinstance(data, (bytes, bytearray)):
@@ -57,47 +57,6 @@ def serialize(data, data_format='json'):
         return json.dumps(marshal(data))
     elif data_format == 'yaml':
         return yaml.dump(marshal(data))
-
-
-def set_version(data, specification, version):
-    # type: (Any, str, Union[str, int, typing.Sequence[int]]) -> Any
-    """
-    Recursively alters instances of ``oapi.model.Object`` according to version metadata associated with that object's
-    properties.
-
-    Arguments:
-
-        - data
-
-        - specification (str): The specification to which the ``version`` argument applies.
-
-        - version (str|int|[int]): A version number represented as text (in the form of integers separated by periods),
-          an integer, or a sequence of integers.
-    """
-    if isinstance(data, Object):
-        m = get_meta(data)
-        for n, p in tuple(m.properties.items()):
-            if p.versions is not None:
-                version_match = False
-                specification_match = False
-                for v in p.versions:
-                    if v.specification == specification:
-                        specification_match = True
-                        if v == version:
-                            version_match = True
-                            if v.types is not None:
-                                m.properties[n].types = v.types
-                            break
-                if specification_match and (not version_match):
-                    del m.properties[n]
-        for n, p in m.properties.items():
-            set_version(getattr(data, n), specification, version)
-    elif isinstance(data, (collections.Set, collections.Sequence)) and not isinstance(data, (str, bytes)):
-        for d in data:
-            set_version(d, specification, version)
-    elif isinstance(data, dict):
-        for k, v in data.items():
-            set_version(v, specification, version)
 
 
 def resolve_references(
@@ -202,7 +161,7 @@ def resolve_references(
     if root is None:
         root = data
     if isinstance(data, Object):
-        m = get_meta(data)
+        m = meta.get(data)
         if (url is None) and m.url:
             url = m.url
         for pn, p in m.properties.items():
@@ -294,7 +253,7 @@ class Object(object):
         self._meta = None
         if _ is not None:
             if isinstance(_, HTTPResponse):
-                get_meta(self).url = _.url
+                meta.get(self).url = _.url
             _ = deserialize(_)
             for k, v in _.items():
                 try:
@@ -309,7 +268,7 @@ class Object(object):
     def __setattr__(self, property_name, value):
         # type: (Object, str, Any) -> properties.NoneType
         if property_name[0] != '_':
-            property_definition = get_meta(self).properties[property_name]
+            property_definition = meta.get(self).properties[property_name]
             try:
                 value = property_definition.load(value)
             except TypeError as e:
@@ -332,12 +291,12 @@ class Object(object):
     def __setitem__(self, key, value):
         # type: (str, str) -> None
         try:
-            property_definition = get_meta(self).properties[key]
+            property_definition = meta.get(self).properties[key]
             property_name = key
         except KeyError:
             property_definition = None
             property_name = None
-            for pn, pd in get_meta(self).properties.items():
+            for pn, pd in meta.get(self).properties.items():
                 if key == pd.name:
                     property_name = pn
                     property_definition = pd
@@ -385,12 +344,12 @@ class Object(object):
     def __getitem__(self, key):
         # type: (str, str) -> None
         try:
-            property_definition = get_meta(self).properties[key]
+            property_definition = meta.get(self).properties[key]
             property_name = key
         except KeyError as e:
             property_definition = None
             property_name = None
-            for pn, pd in get_meta(self).properties.items():
+            for pn, pd in meta.get(self).properties.items():
                 if key == pd.name:
                     property_name = pn
                     property_definition = pd
@@ -405,7 +364,7 @@ class Object(object):
         return getattr(self, property_name)
 
     def __copy__(self):
-        m = get_meta(self)
+        m = meta.get(self)
         new_instance = self.__class__()
         new_instance._meta = deepcopy(m)
         new_instance._meta.data = new_instance
@@ -428,7 +387,7 @@ class Object(object):
 
     def __deepcopy__(self, memo=None):
         # type: (Optional[dict]) -> None
-        m = get_meta(self)
+        m = meta.get(self)
         new_instance = self.__class__()
         new_instance._meta = deepcopy(m)  # type: meta.Meta
         new_instance._meta.data = new_instance  # type: Object
@@ -449,9 +408,9 @@ class Object(object):
                 raise e
         return new_instance
 
-    def _dump(self):
+    def _marshal(self):
         data = collections.OrderedDict()
-        for pn, p in get_meta(self).properties.items():
+        for pn, p in meta.get(self).properties.items():
             v = getattr(self, pn)
             if v is None:
                 if p.required:
@@ -474,8 +433,8 @@ class Object(object):
     def __eq__(self, other):
         # type: (Any) -> bool
         if isinstance(other, self.__class__):
-            m = get_meta(self)
-            other_meta = get_meta(other)
+            m = meta.get(self)
+            other_meta = meta.get(other)
             self_properties = set(m.properties.keys())
             other_properties = set(other_meta.properties.keys())
             if self_properties != other_properties:
@@ -495,7 +454,7 @@ class Object(object):
         return False if self == other else True
 
     def __iter__(self):
-        for k in get_meta(self).properties.keys():
+        for k in meta.get(self).properties.keys():
             yield k
 
 
@@ -543,7 +502,7 @@ class Array(list):
         # type: (dict) -> Array
         return self.__class__(tuple(deepcopy(i, memo) for i in self[:]), item_types=self.item_types)
 
-    def _dump(self):
+    def _marshal(self):
         return tuple(
             marshal(i) for i in self
         )
@@ -585,7 +544,7 @@ class Dictionary(collections.OrderedDict):
             value_types=self.value_types
         )
 
-    def _dump(self):
+    def _marshal(self):
         return collections.OrderedDict(
             [
                 (k, marshal(v)) for k, v in self.items()
@@ -604,7 +563,7 @@ class Reference(Object):
         super().__init__(_)
 
 
-get_meta(Reference).properties = [
+meta.get(Reference).properties = [
     ('ref', properties.String(name='$ref'))
 ]
 
@@ -628,7 +587,7 @@ class Contact(Object):
         super().__init__(_)
 
 
-get_meta(Contact).properties = [
+meta.get(Contact).properties = [
     ('name', properties.String()),
     ('url', properties.String()),
     ('email', properties.String()),
@@ -652,7 +611,7 @@ class License(Object):
         super().__init__(_)
 
 
-get_meta(License).properties = [
+meta.get(License).properties = [
     ('name', properties.String()),
     ('url', properties.String()),
 ]
@@ -683,7 +642,7 @@ class Info(Object):
         super().__init__(_)
 
 
-get_meta(Info).properties = [
+meta.get(Info).properties = [
     ('title', properties.String()),
     ('description', properties.String()),
     ('terms_of_service', properties.String(name='termsOfService')),
@@ -710,7 +669,7 @@ class Tag(Object):
         super().__init__(_)
 
 
-get_meta(Tag).properties = [
+meta.get(Tag).properties = [
     ('name', properties.String()),
     ('description', properties.String()),
 ]
@@ -729,7 +688,7 @@ class Link(Object):
         super().__init__(_)
 
 
-get_meta(Link).properties = [
+meta.get(Link).properties = [
     ('rel', properties.String()),
     ('href', properties.String()),
 ]
@@ -999,7 +958,7 @@ class Example(Object):
         super().__init__(_)
 
 
-get_meta(Example).properties = [
+meta.get(Example).properties = [
     ('summary', properties.String()),
     ('description', properties.String()),
     ('value', properties.Property()),
@@ -1053,7 +1012,7 @@ class MediaType(Object):
         super().__init__(_)
 
 
-get_meta(MediaType).properties = [
+meta.get(MediaType).properties = [
     ('schema', properties.Object(types=(Reference, Schema))),
     ('example', properties.Property()),
     ('examples', properties.Object(value_types=(Reference, Example))),
@@ -1156,7 +1115,7 @@ class Header(Object):
         super().__init__(_)
 
 
-get_meta(Encoding).properties = [
+meta.get(Encoding).properties = [
     ('content_type', properties.String(name='contentType')),
     ('headers', properties.Object(value_types=(Reference, Header))),
     ('style', properties.String()),
@@ -1165,7 +1124,7 @@ get_meta(Encoding).properties = [
 ]
 
 
-get_meta(Header).properties = [
+meta.get(Header).properties = [
     ('description', properties.String()),
     ('required', properties.Boolean()),
     ('deprecated', properties.Boolean()),
@@ -1300,7 +1259,7 @@ class Parameter(Object):
         super().__init__(_)
 
 
-get_meta(Parameter).properties = [
+meta.get(Parameter).properties = [
     ('name', properties.String()),
     ('parameter_in', properties.String(name='in')),
     ('description', properties.String()),
@@ -1346,7 +1305,7 @@ class ServerVariable(Object):
         super().__init__(_)
 
 
-get_meta(ServerVariable).properties = [
+meta.get(ServerVariable).properties = [
     ('enum', properties.Array(item_types=(str,))),
     ('default', properties.String()),
     ('description', properties.String()),
@@ -1372,7 +1331,7 @@ class Server(Object):
         super().__init__(_)
 
 
-get_meta(Server).properties = [
+meta.get(Server).properties = [
     ('url', properties.String()),
     ('description', properties.String()),
     ('variables', properties.Object(value_types=(ServerVariable,))),
@@ -1403,7 +1362,7 @@ class LinkedOperation(Object):
         super().__init__(_)
 
 
-get_meta(LinkedOperation).properties = [
+meta.get(LinkedOperation).properties = [
     ('operation_ref', properties.String(name='operationRef')),
     ('operation_id', properties.String(name='operationId')),
     ('parameters', properties.Object(value_types=(str,))),
@@ -1446,7 +1405,7 @@ class Response(Object):
         super().__init__(_)
 
 
-get_meta(Response).properties = [
+meta.get(Response).properties = [
     ('description', properties.String()),
     ('headers', properties.Object(value_types=(Reference, Header))),
     ('content', properties.Object(value_types=(Reference, MediaType))),
@@ -1473,7 +1432,7 @@ class ExternalDocumentation(Object):
         super().__init__(_)
 
 
-get_meta(ExternalDocumentation).properties = [
+meta.get(ExternalDocumentation).properties = [
     ('description', properties.String()),
     ('url', properties.String()),
 ]
@@ -1494,7 +1453,7 @@ class RequestBody(Object):
         super().__init__(_)
 
 
-get_meta(RequestBody).properties = [
+meta.get(RequestBody).properties = [
     ('description', properties.String()),
     ('content', properties.Object(value_types=(MediaType,))),
     ('required', properties.Boolean()),
@@ -1625,7 +1584,7 @@ class PathItem(Object):
         super().__init__(_)
 
 
-get_meta(PathItem).properties = [
+meta.get(PathItem).properties = [
     ('ref', properties.String(name='$ref')),
     ('summary', properties.String()),
     ('description', properties.String()),
@@ -1651,7 +1610,7 @@ get_meta(PathItem).properties = [
 ]
 
 
-get_meta(Operation).properties = [
+meta.get(Operation).properties = [
     ('tags', properties.Array(item_types=(Tag,))),
     ('summary', properties.String()),
     ('description', properties.String()),
@@ -1712,7 +1671,7 @@ class Discriminator(Object):
         super().__init__(_)
 
 
-get_meta(Discriminator).properties = [
+meta.get(Discriminator).properties = [
     ('property_name', properties.String(name='propertyName')),
     ('mapping', properties.Object(value_types=(str,))),
 ]
@@ -1753,7 +1712,7 @@ class XML(Object):
         super().__init__(_)
 
 
-get_meta(XML).properties = [
+meta.get(XML).properties = [
     ('name', properties.String()),
     ('name_space', properties.String(name='nameSpace')),
     ('prefix', properties.String()),
@@ -1782,7 +1741,7 @@ class OAuthFlow(Object):
         super().__init__(_)
 
 
-get_meta(OAuthFlow).properties = [
+meta.get(OAuthFlow).properties = [
     ('authorization_url', properties.String()),
     ('token_url', properties.String(name='tokenUrl')),
     ('refresh_url', properties.String(name='refreshUrl')),
@@ -1810,7 +1769,7 @@ class OAuthFlows(Object):
         super().__init__(_)
 
 
-get_meta(OAuthFlows).properties = [
+meta.get(OAuthFlows).properties = [
     ('implicit', properties.Object(types=(OAuthFlow,))),
     ('password', properties.Object(types=(OAuthFlow,))),
     ('client_credentials', properties.Object(types=(OAuthFlow,), name='clientCredentials')),
@@ -1864,7 +1823,7 @@ class SecurityScheme(Object):
         super().__init__(_)
 
 
-get_meta(SecurityScheme).properties = [
+meta.get(SecurityScheme).properties = [
     ('security_scheme_type', properties.String(name='type')),
     ('description', properties.String()),
     ('name', properties.String()),
@@ -1875,7 +1834,7 @@ get_meta(SecurityScheme).properties = [
     ('open_id_connect_url', properties.String()),
 ]
 
-get_meta(Schema).properties = [
+meta.get(Schema).properties = [
     ('schema', properties.String(name='$schema')),
     ('schema_id', properties.String(name='$id')),
     ('title', properties.String()),
@@ -1988,7 +1947,7 @@ class Components(Object):
         super().__init__(_)
 
 
-get_meta(Components).properties = [
+meta.get(Components).properties = [
     ('schemas', properties.Object(value_types=(Reference, Schema))),
     ('responses', properties.Object(value_types=(Reference, Response))),
     ('parameters', properties.Object(value_types=(Reference, Parameter))),
@@ -2055,10 +2014,10 @@ class OpenAPI(Object):
         super().__init__(_)
         version = self.openapi or self.swagger
         if version is not None:
-            set_version(self, 'openapi', version)
+            meta.version(self, 'openapi', version)
 
 
-get_meta(OpenAPI).properties = [
+meta.get(OpenAPI).properties = [
     ('openapi', properties.String(versions=('openapi>=3.0',))),
     ('info', properties.Object(types=(Info,), required=True)),
     ('host', properties.String()),

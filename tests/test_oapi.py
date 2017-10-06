@@ -6,15 +6,15 @@ from warnings import warn
 
 from marshmallow import ValidationError
 
-from oapi.meta import get_meta
+from oapi.meta import get
 from oapi.model import Object, OpenAPI, Schema, resolve_references
 
 
 def discrepancies(a, b):
     # type: (Object, Object) -> dict
     differences = {}
-    a_properties = set(get_meta(a).properties.keys())
-    b_properties = set(get_meta(b).properties.keys())
+    a_properties = set(get(a).properties.keys())
+    b_properties = set(get(b).properties.keys())
     for p in a_properties | b_properties:
         try:
             av = getattr(a, p)
@@ -61,7 +61,7 @@ def object_test(
             raise e
         reloaded_json = json.loads(string)
         keys = set()
-        for n, p in get_meta(o).properties.items():
+        for n, p in get(o).properties.items():
             keys.add(p.name or n)
         for k in reloaded_json.keys():
             if k not in keys:
