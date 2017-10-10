@@ -1,3 +1,9 @@
+from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function,\
+    unicode_literals
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
+
 import collections
 import json
 from typing import Sequence
@@ -6,15 +12,16 @@ from warnings import warn
 
 from marshmallow import ValidationError
 
-from oapi.meta import get
-from oapi.model import Object, OpenAPI, Schema, resolve_references
+from serial import meta
+from serial.model import Object, validate
+from oapi.model import OpenAPI, Schema, resolve_references
 
 
 def discrepancies(a, b):
     # type: (Object, Object) -> dict
     differences = {}
-    a_properties = set(get(a).properties.keys())
-    b_properties = set(get(b).properties.keys())
+    a_properties = set(meta.get(a).properties.keys())
+    b_properties = set(meta.get(b).properties.keys())
     for p in a_properties | b_properties:
         try:
             av = getattr(a, p)
@@ -29,10 +36,10 @@ def discrepancies(a, b):
     return differences
 
 
-
 def object_test(
     o  # type: Union[Object, Sequence]
 ):
+    validate(o)
     if isinstance(o, Object):
         t = type(o)
         string = str(o)
@@ -59,7 +66,7 @@ def object_test(
             raise e
         reloaded_json = json.loads(string)
         keys = set()
-        for n, p in get(o).properties.items():
+        for n, p in meta.get(o).properties.items():
             keys.add(p.name or n)
             object_test(getattr(o, n))
         for k in reloaded_json.keys():

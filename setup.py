@@ -1,18 +1,13 @@
-import sys
+
 from codecs import open
 from os import path
 
 from setuptools import setup, find_packages
 
-d = path.abspath(path.dirname(__file__))
-sys.path.append(d)
-
-import oapi
-
 # Get a long description from the README file
 with open(
     path.join(
-        d,
+        path.dirname(path.abspath(__file__)),
         'README.rst'
     ),
     encoding='utf-8'
@@ -22,9 +17,9 @@ with open(
 setup(
     name='oapi',
 
-    version='0.0.0',
+    version='0.0.1',
 
-    description=help(oapi),
+    description='An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 JSON or YAML specifications.',
     long_description=long_description,
 
     # The project's main homepage.
@@ -64,6 +59,7 @@ setup(
     # dependencies
     # See https://packaging.python.org/en/latest/requirements.html
     install_requires=[
+        'serial>=0.0.1',
         'future>=0.15.2',
         'jsonpointer>=1.12',
         'pyyaml>=3.12'
