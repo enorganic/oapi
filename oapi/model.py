@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 
 from jsonpointer import resolve_pointer
 
+import serial.model
 from serial import meta
 from serial import properties as properties_
 from serial.model import deserialize, serialize, Object, Array, Dictionary
@@ -1641,7 +1642,7 @@ class OpenAPI(Object):
         super().__init__(_)
         version = self.openapi or self.swagger
         if version is not None:
-            meta.version(self, 'openapi', version)
+            serial.model.version(self, 'openapi', version)
 
 
 meta.get(OpenAPI).properties = [
