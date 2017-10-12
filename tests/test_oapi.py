@@ -78,6 +78,8 @@ def test_openapi_schemas():
             oa2 = resolve_references(oa)
             if oa2 != oa:
                 test.json_object(oa2)
+            else:
+                print(oa)
 
 
 if __name__ == '__main__':

@@ -5,7 +5,8 @@ Version 3x: https://swagger.io/specification
 
 import collections
 import typing
-from copy import deepcopy
+from copy import deepcopy, copy
+from http.client import HTTPResponse
 from itertools import chain
 from numbers import Number
 from typing import Union, Any
@@ -93,11 +94,11 @@ def resolve_references(
         else:
             ref_url_pointer = '%s#%s' % (ref_document_url or '', ref_pointer)
             if ref_url_pointer in _references:
-                ref_data = _references[ref_url_pointer]
-                ref_added = True
+                ref_data = deepcopy(_references[ref_url_pointer])
             else:
                 ref_data = resolve_pointer(ref_document, ref_pointer)
-                _references[ref_url_pointer] = ref_data
+                _references[ref_url_pointer] = deepcopy(ref_data)
+                ref_added = True
         return ref_data, ref_document, ref_document_url, ref_added
 
     try:
@@ -193,6 +194,15 @@ class Reference(Object):
         ref=None,  # type: Optional[str]
     ):
         self.ref = ref
+        if _ is not None:
+            if isinstance(_, HTTPResponse):
+                meta.get(self).url = _.url
+            if isinstance(_, (dict, str)):
+                _ = deserialize(_)
+                keys = set(_.keys())
+                if ('$ref' in keys) and (_['$ref'] is not None):
+                    for k in keys - {'$ref'}:
+                        del _[k]
         super().__init__(_)
 
 
@@ -1229,9 +1239,10 @@ class Operation(Object):
         deprecated=None,  # type: Optional[bool]
         responses=None,  # type: Optional[typing.Mapping[str, Response]]
         callbacks=None,  # type: Optional[typing.Mapping[str, Union[Callback, Refefence]]]
-        security=None,  # type: Optional[Sequence[[str]]]
+        security=None,  # type: Optional[Sequence[Dict[str, Sequence[str]]]]
         servers=None,  # type: Optional[Sequence[Server]]
         # Version 2x Compatibility
+        consumes=None,  # type: Optional[Sequence[str]]
         produces=None,  # type: Optional[Sequence[str]]
     ):
         # type: (...) -> None
@@ -1248,6 +1259,7 @@ class Operation(Object):
         self.security = security
         self.servers = servers
         # Version 2x Compatibility
+        self.consumes = consumes
         self.produces = produces
         super().__init__(_)
 
@@ -1263,7 +1275,6 @@ class PathItem(Object):
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
-        ref=None,  # type: Optional[str]
         summary=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         get=None,  # type: Optional[Operation]
@@ -1278,7 +1289,6 @@ class PathItem(Object):
         parameters=None,  # type: Optional[Sequence[Parameter]]
     ):
         # type: (...) -> None
-        self.ref = ref
         self.summary = summary
         self.description = description
         self.get = get
@@ -1295,7 +1305,7 @@ class PathItem(Object):
 
 
 meta.get(PathItem).properties = [
-    ('ref', serial.properties.String(name='$ref')),
+    #('ref', serial.properties.String(name='$ref')),
     ('summary', serial.properties.String()),
     ('description', serial.properties.String()),
     ('get', serial.properties.Object(types=(Operation,))),
@@ -1355,6 +1365,7 @@ meta.get(Operation).properties = [
         )
     ),
     ('servers', serial.properties.Array(item_types=(Server,))),
+    ('consumes', serial.properties.Array(item_types=(str,))),
     ('produces', serial.properties.Array(item_types=(str,))),
     (
         'callbacks',
@@ -1531,6 +1542,10 @@ class SecurityScheme(Object):
         bearer_format=None,  # type: Optional[str]
         flows=None,  # type: Optional[OAuthFlows]
         open_id_connect_url=None,  # type: Optional[str]
+        # 2.0 Compatibility
+        flow=None,  # type: Optional[str]
+        authorization_url=None,  # type: Optional[str]
+        scopes=None,  # type: Optional[str]
     ):
         self.type_ = type_
         self.description = description
@@ -1540,6 +1555,10 @@ class SecurityScheme(Object):
         self.bearer_format = bearer_format
         self.flows = flows
         self.open_id_connect_url = open_id_connect_url
+        # 2.0 Compatibility
+        self.flow = flow
+        self.authorization_url = authorization_url
+        self.scopes = scopes
         super().__init__(_)
 
 
@@ -1552,6 +1571,9 @@ meta.get(SecurityScheme).properties = [
     ('bearer_format', serial.properties.String(name='bearerFormat')),
     ('flows', serial.properties.Object(types=(OAuthFlows,))),
     ('open_id_connect_url', serial.properties.String()),
+    ('flow', serial.properties.String(versions='openapi<3.0')),
+    ('authorization_url', serial.properties.String(name='authorizationUrl', versions='openapi<3.0')),
+    ('scopes', serial.properties.Object(value_types=(str,), versions='openapi<3.0'))
 ]
 
 meta.get(Schema).properties = [
@@ -1598,7 +1620,7 @@ meta.get(Schema).properties = [
     ('pattern_properties', serial.properties.Object(name='patternProperties')),
     ('additional_properties', serial.properties.Object(name='additionalProperties')),
     ('dependencies', serial.properties.Object(types=(Schema,), versions=('openapi<0.0',))),
-    ('enum', serial.properties.Array(item_types=(serial.properties.String(),))),
+    ('enum', serial.properties.Array()),
     (
         'type_',
         serial.properties.Property(
