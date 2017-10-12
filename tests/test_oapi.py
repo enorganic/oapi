@@ -1,5 +1,10 @@
 from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function,\
     unicode_literals
+
+from itertools import chain
+
+import yaml
+from copy import deepcopy
 from future import standard_library
 standard_library.install_aliases()
 from builtins import *
@@ -12,78 +17,8 @@ from warnings import warn
 
 from marshmallow import ValidationError
 
-from serial import meta
-from serial.model import Object, validate
+from serial import meta, model, test
 from oapi.model import OpenAPI, Schema, resolve_references
-
-
-def discrepancies(a, b):
-    # type: (Object, Object) -> dict
-    differences = {}
-    a_properties = set(meta.get(a).properties.keys())
-    b_properties = set(meta.get(b).properties.keys())
-    for p in a_properties | b_properties:
-        try:
-            av = getattr(a, p)
-        except AttributeError:
-            av = None
-        try:
-            bv = getattr(b, p)
-        except AttributeError:
-            bv = None
-        if av != bv:
-            differences[p] = (av, bv)
-    return differences
-
-
-def object_test(
-    o  # type: Union[Object, Sequence]
-):
-    validate(o)
-    if isinstance(o, Object):
-        t = type(o)
-        string = str(o)
-        try:
-            assert string != ''
-            reloaded = t(string)
-            try:
-                assert o == reloaded
-                assert str(o) == str(reloaded)
-            except AssertionError as e:
-                print(string)
-                print(type(o))
-                print(type(reloaded))
-                print()
-                for k, v in discrepancies(o, reloaded).items():
-                    a, b = v
-                    print(k + ':')
-                    print(repr(a))
-                    print(repr(b))
-                    print()
-                raise e
-        except ValidationError as e:
-            warn(string)
-            raise e
-        reloaded_json = json.loads(string)
-        keys = set()
-        for n, p in meta.get(o).properties.items():
-            keys.add(p.name or n)
-            object_test(getattr(o, n))
-        for k in reloaded_json.keys():
-            if k not in keys:
-                raise KeyError(
-                    '"%s" not found in dumped JSON: %s' % (
-                        k,
-                        string
-                    )
-                )
-    elif isinstance(o, (collections.Iterable, dict)) and not isinstance(o, (str, bytes)):
-        if isinstance(o, dict):
-            for k, v in o.items():
-                object_test(v)
-        else:
-            for oo in o:
-                object_test(oo)
 
 
 def test_json_schemas():
@@ -94,7 +29,7 @@ def test_json_schemas():
         print(url)
         with urlopen(url) as response:
             oa = Schema(response)
-            object_test(oa)
+            test.json_object(oa)
 
 
 def test_openapi_schemas():
@@ -139,12 +74,12 @@ def test_openapi_schemas():
         print(url)
         with urlopen(url) as response:
             oa = OpenAPI(response)
-            object_test(oa)
+            test.json_object(oa)
             oa2 = resolve_references(oa)
             if oa2 != oa:
-                object_test(oa2)
+                test.json_object(oa2)
 
 
 if __name__ == '__main__':
-    test_json_schemas()
+    # test_json_schemas()
     test_openapi_schemas()

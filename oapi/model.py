@@ -15,9 +15,8 @@ from urllib.parse import urlparse
 
 from jsonpointer import resolve_pointer
 
-import serial.model
+import serial
 from serial import meta
-from serial import properties as properties_
 from serial.model import deserialize, serialize, Object, Array, Dictionary
 
 
@@ -98,7 +97,7 @@ def resolve_references(
                 ref_added = True
             else:
                 ref_data = resolve_pointer(ref_document, ref_pointer)
-                _references[ref_url_pointer] = ref_url_pointer
+                _references[ref_url_pointer] = ref_data
         return ref_data, ref_document, ref_document_url, ref_added
 
     try:
@@ -117,7 +116,7 @@ def resolve_references(
         )
         raise e
     if root is None:
-        root = data
+        root = serial.model.marshal(data)
     if isinstance(data, Object):
         m = meta.get(data)
         if (url is None) and m.url:
@@ -173,9 +172,15 @@ def resolve_references(
                     _references=_references
                 )
     elif isinstance(data, (collections.Set, collections.Sequence)) and not isinstance(data, (str, bytes)):
+        if not isinstance(data, collections.MutableSequence):
+            data = list(data)
         for i in range(len(data)):
             data[i] = resolve_references(
-                data[i], root=root, urlopen=urlopen, url=url, _references=_references
+                data[i],
+                root=root,
+                urlopen=urlopen,
+                url=url,
+                _references=_references
             )
     return data
 
@@ -192,7 +197,7 @@ class Reference(Object):
 
 
 meta.get(Reference).properties = [
-    ('ref', properties_.String(name='$ref'))
+    ('ref', serial.properties.String(name='$ref'))
 ]
 
 
@@ -216,9 +221,9 @@ class Contact(Object):
 
 
 meta.get(Contact).properties = [
-    ('name', properties_.String()),
-    ('url', properties_.String()),
-    ('email', properties_.String()),
+    ('name', serial.properties.String()),
+    ('url', serial.properties.String()),
+    ('email', serial.properties.String()),
 ]
 
 
@@ -240,8 +245,8 @@ class License(Object):
 
 
 meta.get(License).properties = [
-    ('name', properties_.String()),
-    ('url', properties_.String()),
+    ('name', serial.properties.String()),
+    ('url', serial.properties.String()),
 ]
 
 
@@ -257,7 +262,7 @@ class Info(Object):
         description=None,  # type: Optional[str]
         terms_of_service=None,  # type: Optional[str]
         contact=None,  # type: Optional[Contact]
-        license_info=None,  # type: Optional[License]
+        license_=None,  # type: Optional[License]
         version=None,  # type: Optional[str]
     ):
         # type: (...) -> None
@@ -265,18 +270,18 @@ class Info(Object):
         self.description = description
         self.terms_of_service = terms_of_service
         self.contact = contact
-        self.license_info = license_info
+        self.license_ = license_
         self.version = version
         super().__init__(_)
 
 
 meta.get(Info).properties = [
-    ('title', properties_.String()),
-    ('description', properties_.String()),
-    ('terms_of_service', properties_.String(name='termsOfService')),
-    ('contact', properties_.Object(types=(Contact,))),
-    ('license_info', properties_.Object(types=(License,), name='license')),
-    ('version', properties_.String()),
+    ('title', serial.properties.String()),
+    ('description', serial.properties.String()),
+    ('terms_of_service', serial.properties.String(name='termsOfService')),
+    ('contact', serial.properties.Object(types=(Contact,))),
+    ('license_', serial.properties.Object(types=(License,), name='license')),
+    ('version', serial.properties.String()),
 ]
 
 
@@ -298,8 +303,8 @@ class Tag(Object):
 
 
 meta.get(Tag).properties = [
-    ('name', properties_.String()),
-    ('description', properties_.String()),
+    ('name', serial.properties.String()),
+    ('description', serial.properties.String()),
 ]
 
 
@@ -317,8 +322,8 @@ class Link(Object):
 
 
 meta.get(Link).properties = [
-    ('rel', properties_.String()),
-    ('href', properties_.String()),
+    ('rel', serial.properties.String()),
+    ('href', serial.properties.String()),
 ]
 
 
@@ -381,34 +386,34 @@ class Schema(Object):
 
         - min_properties (int)
 
-        - properties_ ({str:Schema}): Any properties_ of the object instance described by this schema which
+        - serial.properties ({str:Schema}): Any serial.properties of the object instance described by this schema which
           correspond to a name in this mapping should be valid as described by the sub-schema corresponding to that name.
 
-        - pattern_properties (Schema): Any properties_ of the object instance described by this schema which
+        - pattern_properties (Schema): Any serial.properties of the object instance described by this schema which
           match a name in this mapping, when the name is evaluated as a regular expression, should be valid as described by
           the sub-schema corresponding to the matched name.
 
         - additional_properties (bool|Schema):
 
-            - If ``additional_properties`` is ``True``—properties_ may be present in the object described by
-              this schema with names which do not match those in either ``properties_`` or ``pattern_properties``.
+            - If ``additional_properties`` is ``True``—serial.properties may be present in the object described by
+              this schema with names which do not match those in either ``serial.properties`` or ``pattern_properties``.
 
-            - If ``additional_properties`` is ``False``—all properties_ present in the object described by this schema
-              must correspond to a property matched in either ``properties_`` or ``pattern_properties``.
+            - If ``additional_properties`` is ``False``—all serial.properties present in the object described by this schema
+              must correspond to a property matched in either ``serial.properties`` or ``pattern_properties``.
 
         - dependencies ({str:{str:Schema|[str]}}):
 
-            A dictionary mapping properties_ of the object instance described by this schema to a mapping other
-            properties_ and either:
+            A dictionary mapping serial.properties of the object instance described by this schema to a mapping other
+            serial.properties and either:
 
                 - A sub-schema for validation of the second property when the first property is present on
                   the object instance described by this schema.
-                - A list of properties_ which must *also* be present when the first and second properties_ are present on
+                - A list of serial.properties which must *also* be present when the first and second serial.properties are present on
                   the object instance described by this schema.
 
         - enum ([Any]): The value/instance described by this schema should be among those in this sequence.
 
-        - data_type (str|[str]): The value/instance described by this schema should be of the value_types indicated
+        - type_ (str|[str]): The value/instance described by this schema should be of the value_types indicated
           (if this is a string), or *one of* the value_types indicated (if this is a sequence).
 
             - "null"
@@ -418,7 +423,7 @@ class Schema(Object):
             - "number"
             - "string"
 
-        - data_format (str|[str]):
+        - format_ (str|[str]):
 
             - "date-time": A date and time in the format YYYY-MM-DDThh:mm:ss.sTZD (eg 1997-07-16T19:20:30.45+01:00),
               YYYY-MM-DDThh:mm:ssTZD (eg 1997-07-16T19:20:30+01:00), or YYYY-MM-DDThh:mmTZD (eg 1997-07-16T19:20+01:00).
@@ -449,7 +454,7 @@ class Schema(Object):
 
         - default (Any): The value presumed if the value/instance described by this schema is absent.
 
-        The following properties_ are specific to OpenAPI (not part of the core `JSON Schema <http://json-schema.org>`):
+        The following serial.properties are specific to OpenAPI (not part of the core `JSON Schema <http://json-schema.org>`):
 
         - nullable (bool): If ``True``, the value/instance described by this schema may be a null value (``None``).
 
@@ -478,7 +483,7 @@ class Schema(Object):
         self,
         _=None,  # type: Optional[typing.Mapping]
         schema=None,  # type: Optional[str]
-        schema_id=None,  # type: Optional[str]
+        id_=None,  # type: Optional[str]
         title=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         multiple_of=None,  # type: Optional[Number]
@@ -501,8 +506,8 @@ class Schema(Object):
         additional_properties=None,  # type: Optional[bool, Schema]
         dependencies=None,  # type: Optional[typing.Mapping[str, typing.Mapping[str, Union[Schema, Sequence[str]]]]]
         enum=None,  # type: Optional[Sequence]
-        data_type=None,  # type: Optional[str, Sequence]
-        data_format=None,  # type: Optional[str, Sequence]
+        type_=None,  # type: Optional[str, Sequence]
+        format_=None,  # type: Optional[str, Sequence]
         all_of=None,  # type: Optional[Sequence[Schema]]
         any_of=None,  # type: Optional[Sequence[Schema]]
         one_of=None,  # type: Optional[Sequence[Schema]]
@@ -520,7 +525,7 @@ class Schema(Object):
         links=None,  # type: Optional[Sequence[Link]]
     ):
         self.schema = schema
-        self.schema_id = schema_id
+        self.id_ = id_
         self.title = title
         self.description = description
         self.multiple_of = multiple_of
@@ -543,8 +548,8 @@ class Schema(Object):
         self.additional_properties = additional_properties
         self.dependencies = dependencies
         self.enum = enum
-        self.data_type = data_type
-        self.data_format = data_format
+        self.type_ = type_
+        self.format_ = format_
         self.all_of = all_of
         self.any_of = any_of
         self.one_of = one_of
@@ -587,10 +592,10 @@ class Example(Object):
 
 
 meta.get(Example).properties = [
-    ('summary', properties_.String()),
-    ('description', properties_.String()),
-    ('value', properties_.Property()),
-    ('external_value', properties_.String(name='externalValue')),
+    ('summary', serial.properties.String()),
+    ('description', serial.properties.String()),
+    ('value', serial.properties.Property()),
+    ('external_value', serial.properties.String(name='externalValue')),
 ]
 
 
@@ -641,10 +646,10 @@ class MediaType(Object):
 
 
 meta.get(MediaType).properties = [
-    ('schema', properties_.Object(types=(Reference, Schema))),
-    ('example', properties_.Property()),
-    ('examples', properties_.Object(value_types=(Reference, Example))),
-    ('encoding', properties_.Object(value_types=(Reference, Encoding))),
+    ('schema', serial.properties.Object(types=(Reference, Schema))),
+    ('example', serial.properties.Property()),
+    ('examples', serial.properties.Object(value_types=(Reference, Example))),
+    ('encoding', serial.properties.Object(value_types=(Reference, Encoding))),
 ]
 
 
@@ -699,7 +704,7 @@ class Header(Object):
          - schema (Schema): The schema defining the type used for the parameter.
 
          - example (Any): Example of the media type. The example should match the specified schema and encoding
-           properties_ if present. The ``example`` parameter should not be present if ``examples`` is present. If
+           serial.properties if present. The ``example`` parameter should not be present if ``examples`` is present. If
            referencing a ``schema`` which contains an example—*this* example overrides the example provided by the
            ``schema``. To represent examples of media value_types that cannot naturally be represented in JSON or YAML, a
            string value can contain the example with escaping where necessary.
@@ -728,6 +733,8 @@ class Header(Object):
         example=None,  # type: Any
         examples=None,  # type: Optional[typing.Mapping[str, Example]]
         content=None,  # type: Optional[typing.Mapping[str, MediaType]]
+        # 2.0 Compatibility
+        type_=None,  # type: Optional[str]
     ):
         self.description = description
         self.required = required
@@ -740,30 +747,32 @@ class Header(Object):
         self.example = example
         self.examples = examples
         self.content = content
+        self.type_ = type_
         super().__init__(_)
 
 
 meta.get(Encoding).properties = [
-    ('content_type', properties_.String(name='contentType')),
-    ('headers', properties_.Object(value_types=(Reference, Header))),
-    ('style', properties_.String()),
-    ('explode', properties_.Boolean()),
-    ('allow_reserved', properties_.Boolean(name='allowReserved')),
+    ('content_type', serial.properties.String(name='contentType')),
+    ('headers', serial.properties.Object(value_types=(Reference, Header))),
+    ('style', serial.properties.String()),
+    ('explode', serial.properties.Boolean()),
+    ('allow_reserved', serial.properties.Boolean(name='allowReserved')),
 ]
 
 
 meta.get(Header).properties = [
-    ('description', properties_.String()),
-    ('required', properties_.Boolean()),
-    ('deprecated', properties_.Boolean()),
-    ('allow_empty_value', properties_.Boolean(name='allowEmptyValue')),
-    ('style', properties_.String()),
-    ('explode', properties_.Boolean()),
-    ('allow_reserved', properties_.Boolean(name='allowReserved')),
-    ('schema', properties_.Object(types=(Schema,))),
-    ('example', properties_.Property()),
-    ('examples', properties_.Object(value_types=(Example,))),
-    ('content', properties_.Object(value_types=(MediaType,))),
+    ('description', serial.properties.String()),
+    ('required', serial.properties.Boolean()),
+    ('deprecated', serial.properties.Boolean()),
+    ('allow_empty_value', serial.properties.Boolean(name='allowEmptyValue')),
+    ('style', serial.properties.String()),
+    ('explode', serial.properties.Boolean()),
+    ('allow_reserved', serial.properties.Boolean(name='allowReserved')),
+    ('schema', serial.properties.Object(types=(Schema,))),
+    ('example', serial.properties.Property()),
+    ('examples', serial.properties.Object(value_types=(Example,))),
+    ('content', serial.properties.Object(value_types=(MediaType,))),
+    ('type_', serial.properties.String(name='type', versions=('openapi<3.0',))),
 ]
 
 
@@ -775,7 +784,7 @@ class Parameter(Object):
 
         - name (str)
 
-        - parameter_in (str):
+        - in_ (str):
 
             - "path"
             - "query"
@@ -827,7 +836,7 @@ class Parameter(Object):
         - schema (Schema): The schema defining the type used for the parameter.
 
         - example (Any): Example of the media type. The example should match the specified schema and encoding
-          properties_ if present. The ``example`` parameter should not be present if ``examples`` is present. If
+          serial.properties if present. The ``example`` parameter should not be present if ``examples`` is present. If
           referencing a ``schema`` which contains an example—*this* example overrides the example provided by the
           ``schema``. To represent examples of media value_types that cannot naturally be represented in JSON or YAML, a
           string value can contain the example with escaping where necessary.
@@ -843,7 +852,7 @@ class Parameter(Object):
 
     ...for version 2x compatibility:
 
-        - data_type (str)
+        - type_ (str)
 
         - enum ([Any])
     """
@@ -852,7 +861,7 @@ class Parameter(Object):
         self,
         _=None,  # type: Optional[typing.Mapping]
         name=None,  # type: Optional[str]
-        parameter_in=None,  # type: Optional[str]
+        in_=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         required=None,  # type: Optional[bool]
         deprecated=None,  # type: Optional[bool]
@@ -865,11 +874,14 @@ class Parameter(Object):
         examples=None, # type: Optional[typing.Mapping[str, Example]]
         content=None,  # type: Optional[typing.Mapping[str, MediaType]]
         # 2x compatibility
-        data_type=None,  # type: Optional[str]
+        type_=None,  # type: Optional[str]
+        format_=None,  # type: Optional[str]
         enum=None,  # type: Optional[Sequence[str]]
+        collection_format=None,  # type: Optional[str]
+        items=None,  # type: Optional[Schema]
     ):
         self.name = name
-        self.parameter_in = parameter_in
+        self.in_ = in_
         self.description = description
         self.required = required
         self.deprecated = deprecated
@@ -882,31 +894,34 @@ class Parameter(Object):
         self.examples = examples
         self.content = content
         # 2x compatibility
-        self.data_type = data_type
+        self.type_ = type_
         self.enum = enum
+        self.format_ = format_
+        self.collection_format = collection_format
+        self.items = items
         super().__init__(_)
 
 
 meta.get(Parameter).properties = [
-    ('name', properties_.String()),
-    ('parameter_in', properties_.String(name='in')),
-    ('description', properties_.String()),
-    ('required', properties_.Boolean()),
-    ('deprecated', properties_.Boolean()),
-    ('allow_empty_value', properties_.Boolean()),
-    ('style', properties_.String()),
-    ('explode', properties_.Boolean()),
-    ('allow_reserved', properties_.Boolean()),
-    ('schema', properties_.Object(types=(Reference, Schema))),
-    ('example', properties_.Property()),
-    ('examples', properties_.Object(types=(Reference, Schema))),
-    ('content', properties_.Object(types=(MediaType,))),
+    ('name', serial.properties.String()),
+    ('in_', serial.properties.String(name='in')),
+    ('description', serial.properties.String()),
+    ('required', serial.properties.Boolean()),
+    ('deprecated', serial.properties.Boolean()),
+    ('allow_empty_value', serial.properties.Boolean()),
+    ('style', serial.properties.String()),
+    ('explode', serial.properties.Boolean()),
+    ('allow_reserved', serial.properties.Boolean()),
+    ('schema', serial.properties.Object(types=(Reference, Schema))),
+    ('example', serial.properties.Property()),
+    ('examples', serial.properties.Object(types=(Reference, Schema))),
+    ('content', serial.properties.Object(types=(MediaType,))),
     # version 2x compatibility
     (
-        'data_type',
-        properties_.Property(
+        'type_',
+        serial.properties.Property(
             types=(
-                properties_.Array(
+                serial.properties.Array(
                     item_types=(str,)
                 ),
                 str,
@@ -914,7 +929,28 @@ meta.get(Parameter).properties = [
             name='type'
         )
     ),
-    ('enum', properties_.Array()),
+    (
+        'enum',
+        serial.properties.Array()
+    ),
+    (
+        'format_',
+        serial.properties.String(name='format')
+    ),
+    (
+        'collection_format',
+        serial.properties.Enum(
+            values=('csv', 'ssv', 'tsv', 'pipes', 'multi'),
+            name='collectionFormat'
+        )
+    ),
+    (
+        'items',
+        serial.properties.Object(
+            types=(Reference, Schema),
+            versions=('openapi<3.0',)
+        )
+    )
 ]
 
 
@@ -934,9 +970,9 @@ class ServerVariable(Object):
 
 
 meta.get(ServerVariable).properties = [
-    ('enum', properties_.Array(item_types=(str,))),
-    ('default', properties_.String()),
-    ('description', properties_.String()),
+    ('enum', serial.properties.Array(item_types=(str,))),
+    ('default', serial.properties.String()),
+    ('description', serial.properties.String()),
 ]
 
 
@@ -960,9 +996,9 @@ class Server(Object):
 
 
 meta.get(Server).properties = [
-    ('url', properties_.String()),
-    ('description', properties_.String()),
-    ('variables', properties_.Object(value_types=(ServerVariable,))),
+    ('url', serial.properties.String()),
+    ('description', serial.properties.String()),
+    ('variables', serial.properties.Object(value_types=(ServerVariable,))),
 ]
 
 
@@ -991,12 +1027,12 @@ class LinkedOperation(Object):
 
 
 meta.get(LinkedOperation).properties = [
-    ('operation_ref', properties_.String(name='operationRef')),
-    ('operation_id', properties_.String(name='operationId')),
-    ('parameters', properties_.Object(value_types=(str,))),
-    ('request_body', properties_.Property(name='requestBody')),
-    ('description', properties_.String()),
-    ('server', properties_.Object(types=(Server,))),
+    ('operation_ref', serial.properties.String(name='operationRef')),
+    ('operation_id', serial.properties.String(name='operationId')),
+    ('parameters', serial.properties.Object(value_types=(str,))),
+    ('request_body', serial.properties.Property(name='requestBody')),
+    ('description', serial.properties.String()),
+    ('server', serial.properties.Object(types=(Server,))),
 ]
 
 
@@ -1024,20 +1060,66 @@ class Response(Object):
         headers=None,  # type: Optional[typing.Mapping[str, Union[Header, Reference]]]
         content=None,  # type: Optional[typing.Mapping[str, Union[Content, Reference]]]
         links=None,  # type: Optional[typing.Mapping[str, Union[Link, Reference]]]
+        # 2.0 compatibility
+        schema=None,  # type: Optional[Schema]
+        examples=None,  # type: Optional[Dict[str, Any]]
+        example=None,  # type: Optional[Any]
     ):
         # type: (...) -> None
         self.description = description
         self.headers = headers
         self.content = content
         self.links = links
+        # 2.0 compatibility
+        self.schema = schema
+        self.examples = examples
+        self.example = example
         super().__init__(_)
 
 
 meta.get(Response).properties = [
-    ('description', properties_.String()),
-    ('headers', properties_.Object(value_types=(Reference, Header))),
-    ('content', properties_.Object(value_types=(Reference, MediaType))),
-    ('links', properties_.Object(value_types=(Reference, Link))),
+    (
+        'description',
+        serial.properties.String()
+    ),
+    (
+        'headers',
+        serial.properties.Object(
+            value_types=(Reference, Header)
+        )
+    ),
+    (
+        'content',
+        serial.properties.Object(
+            value_types=(Reference, MediaType),
+            versions=('openapi>=3.0',)
+        )
+    ),
+    (
+        'links',
+        serial.properties.Object(
+            value_types=(Reference, Link)
+        )
+    ),
+    (
+        'schema',
+        serial.properties.Object(
+            types=(Reference, Schema),
+            versions=('openapi<3.0',)
+        )
+    ),
+    (
+        'examples',
+        serial.properties.Object(
+            versions=('openapi<3.0',)
+        )
+    ),
+    (
+        'example',
+        serial.properties.Property(
+            versions=('openapi<3.0',)
+        )
+    ),
 ]
 
 
@@ -1061,8 +1143,8 @@ class ExternalDocumentation(Object):
 
 
 meta.get(ExternalDocumentation).properties = [
-    ('description', properties_.String()),
-    ('url', properties_.String()),
+    ('description', serial.properties.String()),
+    ('url', serial.properties.String()),
 ]
 
 
@@ -1082,9 +1164,9 @@ class RequestBody(Object):
 
 
 meta.get(RequestBody).properties = [
-    ('description', properties_.String()),
-    ('content', properties_.Object(value_types=(MediaType,))),
-    ('required', properties_.Boolean()),
+    ('description', serial.properties.String()),
+    ('content', serial.properties.Object(value_types=(MediaType,))),
+    ('required', serial.properties.Boolean()),
 ]
 
 
@@ -1096,7 +1178,7 @@ class Operation(Object):
 
     Properties:
 
-        - tags (Sequence[str]):  A list of tags for API documentation control. Tags can be used for logical grouping of
+        - tags ([str]):  A list of tags for API documentation control. Tags can be used for logical grouping of
           operations by resources or any other qualifier.
 
         - summary (str):  A short summary of what the operation does.
@@ -1213,48 +1295,58 @@ class PathItem(Object):
 
 
 meta.get(PathItem).properties = [
-    ('ref', properties_.String(name='$ref')),
-    ('summary', properties_.String()),
-    ('description', properties_.String()),
-    ('get', properties_.Object(types=(Operation,))),
-    ('put', properties_.Object(types=(Operation,))),
-    ('post', properties_.Object(types=(Operation,))),
-    ('delete', properties_.Object(types=(Operation,))),
-    ('options', properties_.Object(types=(Operation,))),
-    ('head', properties_.Object(types=(Operation,))),
-    ('patch', properties_.Object(types=(Operation,))),
-    ('trace', properties_.Object(types=(Operation,))),
-    ('servers', properties_.Array(item_types=(Server,))),
+    ('ref', serial.properties.String(name='$ref')),
+    ('summary', serial.properties.String()),
+    ('description', serial.properties.String()),
+    ('get', serial.properties.Object(types=(Operation,))),
+    ('put', serial.properties.Object(types=(Operation,))),
+    ('post', serial.properties.Object(types=(Operation,))),
+    ('delete', serial.properties.Object(types=(Operation,))),
+    ('options', serial.properties.Object(types=(Operation,))),
+    ('head', serial.properties.Object(types=(Operation,))),
+    ('patch', serial.properties.Object(types=(Operation,))),
+    ('trace', serial.properties.Object(types=(Operation,))),
+    ('servers', serial.properties.Array(item_types=(Server,))),
     (
         'parameters',
-        properties_.Array(
-            item_types=(
-                properties_.Object(
-                    types=(Reference, Parameter)
-                ),
-            )
+        serial.properties.Object(
+            types=(Reference, Parameter)
         )
     ),
 ]
 
 
 meta.get(Operation).properties = [
-    ('tags', properties_.Array(item_types=(Tag,))),
-    ('summary', properties_.String()),
-    ('description', properties_.String()),
-    ('external_docs', properties_.Object(types=(ExternalDocumentation,), name='externalDocs')),
-    ('operation_id', properties_.String(name='operationId')),
-    ('parameters', properties_.Array(item_types=(Reference, Parameter))),
-    ('request_body', properties_.Object(types=(Reference, RequestBody), name='requestBody')),
-    ('responses', properties_.Object(value_types=(Response,))),
-    ('deprecated', properties_.Boolean()),
+    ('tags', serial.properties.Array(item_types=(str,))),
+    ('summary', serial.properties.String()),
+    ('description', serial.properties.String()),
+    ('external_docs', serial.properties.Object(types=(ExternalDocumentation,), name='externalDocs')),
+    ('operation_id', serial.properties.String(name='operationId')),
+    (
+        'parameters',
+        serial.properties.Property(
+            types=(
+                serial.properties.Array(
+                    item_types=(Reference, Parameter),
+                    versions=('openapi>=3.0',)
+                ),
+                serial.properties.Object(
+                    types=(Reference, Parameter),
+                    versions=('openapi<3.0',)
+                )
+            )
+        )
+    ),
+    ('request_body', serial.properties.Object(types=(Reference, RequestBody), name='requestBody')),
+    ('responses', serial.properties.Object(value_types=(Response,))),
+    ('deprecated', serial.properties.Boolean()),
     (
         'security',
-        properties_.Array(
+        serial.properties.Array(
             item_types=(
-                properties_.Object(
+                serial.properties.Object(
                     value_types=(
-                        properties_.Array(
+                        serial.properties.Array(
                             item_types=(str,)
                         ),
                     )
@@ -1262,13 +1354,13 @@ meta.get(Operation).properties = [
             )
         )
     ),
-    ('servers', properties_.Array(item_types=(Server,))),
-    ('produces', properties_.Array(item_types=(str,))),
+    ('servers', serial.properties.Array(item_types=(Server,))),
+    ('produces', serial.properties.Array(item_types=(str,))),
     (
         'callbacks',
-        properties_.Object(
+        serial.properties.Object(
             value_types=(
-                properties_.Object(
+                serial.properties.Object(
                     value_types=(PathItem,)
                 )
             )
@@ -1300,8 +1392,8 @@ class Discriminator(Object):
 
 
 meta.get(Discriminator).properties = [
-    ('property_name', properties_.String(name='propertyName')),
-    ('mapping', properties_.Object(value_types=(str,))),
+    ('property_name', serial.properties.String(name='propertyName')),
+    ('mapping', serial.properties.Object(value_types=(str,))),
 ]
 
 
@@ -1341,11 +1433,11 @@ class XML(Object):
 
 
 meta.get(XML).properties = [
-    ('name', properties_.String()),
-    ('name_space', properties_.String(name='nameSpace')),
-    ('prefix', properties_.String()),
-    ('attribute', properties_.Boolean()),
-    ('wrapped', properties_.Boolean()),
+    ('name', serial.properties.String()),
+    ('name_space', serial.properties.String(name='nameSpace')),
+    ('prefix', serial.properties.String()),
+    ('attribute', serial.properties.Boolean()),
+    ('wrapped', serial.properties.Boolean()),
 ]
 
 
@@ -1370,10 +1462,10 @@ class OAuthFlow(Object):
 
 
 meta.get(OAuthFlow).properties = [
-    ('authorization_url', properties_.String()),
-    ('token_url', properties_.String(name='tokenUrl')),
-    ('refresh_url', properties_.String(name='refreshUrl')),
-    ('scopes', properties_.Object(value_types=(str,))),
+    ('authorization_url', serial.properties.String()),
+    ('token_url', serial.properties.String(name='tokenUrl')),
+    ('refresh_url', serial.properties.String(name='refreshUrl')),
+    ('scopes', serial.properties.Object(value_types=(str,))),
 ]
 
 
@@ -1398,10 +1490,10 @@ class OAuthFlows(Object):
 
 
 meta.get(OAuthFlows).properties = [
-    ('implicit', properties_.Object(types=(OAuthFlow,))),
-    ('password', properties_.Object(types=(OAuthFlow,))),
-    ('client_credentials', properties_.Object(types=(OAuthFlow,), name='clientCredentials')),
-    ('authorization_code', properties_.Object(types=(OAuthFlow,), name='authorizationCode')),
+    ('implicit', serial.properties.Object(types=(OAuthFlow,))),
+    ('password', serial.properties.Object(types=(OAuthFlow,))),
+    ('client_credentials', serial.properties.Object(types=(OAuthFlow,), name='clientCredentials')),
+    ('authorization_code', serial.properties.Object(types=(OAuthFlow,), name='authorizationCode')),
 ]
 
 
@@ -1411,13 +1503,13 @@ class SecurityScheme(Object):
 
     Properties:
 
-        - security_scheme_type (str): https://tools.ietf.org/html/rfc7235#section-4
+        - type_ (str): https://tools.ietf.org/html/rfc7235#section-4
 
         - description (str)
 
         - name (str)
 
-        - security_scheme_in (str)
+        - in_ (str)
 
         - scheme (str)
 
@@ -1431,19 +1523,19 @@ class SecurityScheme(Object):
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
-        security_scheme_type=None,  # type: Optional[str]
+        type_=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         name=None,  # type: Optional[str]
-        security_scheme_in=None,  # type: Optional[str]
+        in_=None,  # type: Optional[str]
         scheme=None,  # type: Optional[str]
         bearer_format=None,  # type: Optional[str]
         flows=None,  # type: Optional[OAuthFlows]
         open_id_connect_url=None,  # type: Optional[str]
     ):
-        self.security_scheme_type = security_scheme_type
+        self.type_ = type_
         self.description = description
         self.name = name
-        self.security_scheme_in = security_scheme_in
+        self.in_ = in_
         self.scheme = scheme
         self.bearer_format = bearer_format
         self.flows = flows
@@ -1452,39 +1544,39 @@ class SecurityScheme(Object):
 
 
 meta.get(SecurityScheme).properties = [
-    ('security_scheme_type', properties_.String(name='type')),
-    ('description', properties_.String()),
-    ('name', properties_.String()),
-    ('security_scheme_in', properties_.String(name='in')),
-    ('scheme', properties_.String()),
-    ('bearer_format', properties_.String(name='bearerFormat')),
-    ('flows', properties_.Object(types=(OAuthFlows,))),
-    ('open_id_connect_url', properties_.String()),
+    ('type_', serial.properties.String(name='type')),
+    ('description', serial.properties.String()),
+    ('name', serial.properties.String()),
+    ('in_', serial.properties.String(name='in')),
+    ('scheme', serial.properties.String()),
+    ('bearer_format', serial.properties.String(name='bearerFormat')),
+    ('flows', serial.properties.Object(types=(OAuthFlows,))),
+    ('open_id_connect_url', serial.properties.String()),
 ]
 
 meta.get(Schema).properties = [
-    ('schema', properties_.String(name='$schema')),
-    ('schema_id', properties_.String(name='$id')),
-    ('title', properties_.String()),
-    ('description', properties_.String()),
-    ('multiple_of', properties_.Number(name='multipleOf')),
-    ('maximum', properties_.Number()),
-    ('exclusive_maximum', properties_.Boolean(name='exclusiveMaximum')),
-    ('minimum', properties_.Number()),
-    ('exclusive_minimum', properties_.Boolean(name='exclusiveMinimum')),
-    ('max_length', properties_.Integer(name='maxLength')),
-    ('min_length', properties_.Integer(name='minLength')),
-    ('pattern', properties_.String()),
-    ('max_items', properties_.Integer(name='maxItems')),
-    ('min_items', properties_.Integer(name='minItems')),
-    ('unique_items', properties_.String(name='uniqueItems')),
+    ('schema', serial.properties.String(name='$schema')),
+    ('id_', serial.properties.String(name='$id')),
+    ('title', serial.properties.String()),
+    ('description', serial.properties.String()),
+    ('multiple_of', serial.properties.Number(name='multipleOf')),
+    ('maximum', serial.properties.Number()),
+    ('exclusive_maximum', serial.properties.Boolean(name='exclusiveMaximum')),
+    ('minimum', serial.properties.Number()),
+    ('exclusive_minimum', serial.properties.Boolean(name='exclusiveMinimum')),
+    ('max_length', serial.properties.Integer(name='maxLength')),
+    ('min_length', serial.properties.Integer(name='minLength')),
+    ('pattern', serial.properties.String()),
+    ('max_items', serial.properties.Integer(name='maxItems')),
+    ('min_items', serial.properties.Integer(name='minItems')),
+    ('unique_items', serial.properties.Boolean(name='uniqueItems')),
     (
         'items',
-        properties_.Object(
+        serial.properties.Object(
             types=(
-                Schema,
                 Reference,
-                properties_.Array(
+                Schema,
+                serial.properties.Array(
                     item_types=(Reference, Schema)
                 )
             )
@@ -1492,7 +1584,7 @@ meta.get(Schema).properties = [
     ),
     (
         'additional_items',
-        properties_.Object(
+        serial.properties.Object(
             types=(
                 Schema,
                 bool
@@ -1500,18 +1592,18 @@ meta.get(Schema).properties = [
             name='additionalItems'
         )
     ),
-    ('max_properties', properties_.Integer(name='maxProperties')),
-    ('min_properties', properties_.Integer(name='minProperties')),
-    ('properties', properties_.Object(value_types=(Schema,))),
-    ('pattern_properties', properties_.Object(name='patternProperties')),
-    ('additional_properties', properties_.Object(name='additionalProperties')),
-    ('dependencies', properties_.Object(types=(Schema,), versions=('openapi<0.0',))),
-    ('enum', properties_.Array(item_types=(properties_.String(),))),
+    ('max_properties', serial.properties.Integer(name='maxProperties')),
+    ('min_properties', serial.properties.Integer(name='minProperties')),
+    ('properties', serial.properties.Object(value_types=(Reference, Schema,))),
+    ('pattern_properties', serial.properties.Object(name='patternProperties')),
+    ('additional_properties', serial.properties.Object(name='additionalProperties')),
+    ('dependencies', serial.properties.Object(types=(Schema,), versions=('openapi<0.0',))),
+    ('enum', serial.properties.Array(item_types=(serial.properties.String(),))),
     (
-        'data_type',
-        properties_.Property(
+        'type_',
+        serial.properties.Property(
             types=(
-                properties_.Array(
+                serial.properties.Array(
                     item_types=(str,)
                 ),
                 str
@@ -1519,32 +1611,24 @@ meta.get(Schema).properties = [
             name='type'
         )
     ),
-    ('data_format', properties_.String(name='format')),
-    ('required', properties_.Array(item_types=(properties_.String(),))),
-    ('all_of', properties_.Array(item_types=(Reference, Schema), name='allOf')),
-    ('any_of', properties_.Array(item_types=(Reference, Schema), name='anyOf')),
-    ('one_of', properties_.Array(item_types=(Reference, Schema), name='oneOf')),
-    ('is_not', properties_.Object(types=(Reference, Schema), name='isNot')),
-    (
-        'definitions',
-        properties_.Object(
-            value_types=(
-                Schema, Response, Parameter, Example, RequestBody, Header,
-                SecurityScheme, LinkedOperation, properties_.Object(value_types=PathItem)
-            )
-        )
-    ),
-    ('default', properties_.Property()),
-    ('required', properties_.Array(item_types=(str,))),
-    ('default', properties_.Property()),
-    ('discriminator', properties_.Object(types=(Discriminator,))),
-    ('read_only', properties_.Boolean()),
-    ('write_only', properties_.Boolean(name='writeOnly')),
-    ('xml', properties_.Object(types=(XML,), name='xml')),
-    ('external_docs', properties_.Object(types=(ExternalDocumentation,))),
-    ('example', properties_.Property()),
-    ('deprecated', properties_.Boolean()),
-    ('links', properties_.Array(item_types=(Link,))),
+    ('format_', serial.properties.String(name='format')),
+    ('required', serial.properties.Array(item_types=(serial.properties.String(),))),
+    ('all_of', serial.properties.Array(item_types=(Reference, Schema), name='allOf')),
+    ('any_of', serial.properties.Array(item_types=(Reference, Schema), name='anyOf')),
+    ('one_of', serial.properties.Array(item_types=(Reference, Schema), name='oneOf')),
+    ('is_not', serial.properties.Object(types=(Reference, Schema), name='isNot')),
+    ('definitions', serial.properties.Object()),
+    ('default', serial.properties.Property()),
+    ('required', serial.properties.Array(item_types=(str,))),
+    ('default', serial.properties.Property()),
+    ('discriminator', serial.properties.Object(types=(Discriminator,))),
+    ('read_only', serial.properties.Boolean()),
+    ('write_only', serial.properties.Boolean(name='writeOnly')),
+    ('xml', serial.properties.Object(types=(XML,))),
+    ('external_docs', serial.properties.Object(types=(ExternalDocumentation,))),
+    ('example', serial.properties.Property()),
+    ('deprecated', serial.properties.Boolean()),
+    ('links', serial.properties.Array(item_types=(Link,))),
 ]
 
 
@@ -1576,20 +1660,20 @@ class Components(Object):
 
 
 meta.get(Components).properties = [
-    ('schemas', properties_.Object(value_types=(Reference, Schema))),
-    ('responses', properties_.Object(value_types=(Reference, Response))),
-    ('parameters', properties_.Object(value_types=(Reference, Parameter))),
-    ('examples', properties_.Object(value_types=(Reference, Example))),
-    ('request_bodies', properties_.Object(value_types=(Reference, RequestBody))),
-    ('headers', properties_.Object(value_types=(Reference, Header))),
-    ('security_schemes', properties_.Object(value_types=(Reference, SecurityScheme), name='securitySchemes')),
-    ('links', properties_.Object(value_types=(Reference, LinkedOperation))),
+    ('schemas', serial.properties.Object(value_types=(Reference, Schema))),
+    ('responses', serial.properties.Object(value_types=(Reference, Response))),
+    ('parameters', serial.properties.Object(value_types=(Reference, Parameter))),
+    ('examples', serial.properties.Object(value_types=(Reference, Example))),
+    ('request_bodies', serial.properties.Object(value_types=(Reference, RequestBody))),
+    ('headers', serial.properties.Object(value_types=(Reference, Header))),
+    ('security_schemes', serial.properties.Object(value_types=(Reference, SecurityScheme), name='securitySchemes')),
+    ('links', serial.properties.Object(value_types=(Reference, LinkedOperation))),
     (
         'callbacks',
-        properties_.Object(
+        serial.properties.Object(
             value_types=(
                 Reference,
-                properties_.Object(
+                serial.properties.Object(
                     value_types=(
                         PathItem,
                     )
@@ -1646,35 +1730,31 @@ class OpenAPI(Object):
 
 
 meta.get(OpenAPI).properties = [
-    ('openapi', properties_.String(versions=('openapi>=3.0',))),
-    ('info', properties_.Object(types=(Info,), required=True)),
-    ('host', properties_.String()),
-    ('servers', properties_.Array(item_types=(Server,))),
-    ('base_path', properties_.String(name='basePath')),
-    ('schemes', properties_.Array(item_types=(str,))),
-    ('tags', properties_.Array(item_types=(Tag,))),
-    ('paths', properties_.Object(value_types=(PathItem,))),
-    ('components', properties_.Object(types=(Components,))),
-    ('consumes', properties_.Array(item_types=(str,))),
-    ('swagger', properties_.String(versions=('openapi<3.0',))),
+    ('openapi', serial.properties.String(versions=('openapi>=3.0',))),
+    ('info', serial.properties.Object(types=(Info,), required=True)),
+    ('host', serial.properties.String()),
+    ('servers', serial.properties.Array(item_types=(Server,))),
+    ('base_path', serial.properties.String(name='basePath')),
+    ('schemes', serial.properties.Array(item_types=(str,))),
+    ('tags', serial.properties.Array(item_types=(Tag,))),
+    ('paths', serial.properties.Object(value_types=(PathItem,))),
+    ('components', serial.properties.Object(types=(Components,))),
+    ('consumes', serial.properties.Array(item_types=(str,))),
+    ('swagger', serial.properties.String(versions=('openapi<3.0',))),
     (
         'definitions',
-        properties_.Object(
-            value_types=(
-                Schema, Response, Parameter, Example, RequestBody, Header,
-                SecurityScheme, LinkedOperation, properties_.Object(value_types=PathItem)
-            ),
+        serial.properties.Object(
             # versions=('openapi<3.0',)
         ),
     ),
     (
         'security_definitions',
-        properties_.Object(
+        serial.properties.Object(
             value_types=(SecurityScheme, str),
             name='securityDefinitions',
             versions=('openapi<3.0',)
         )
     ),
-    ('produces', properties_.Array(item_types=(str,), versions=('openapi<3.0',)),),
-    ('external_docs', properties_.Object(types=(ExternalDocumentation,), name='externalDocs'))
+    ('produces', serial.properties.Array(item_types=(str,), versions=('openapi<3.0',)),),
+    ('external_docs', serial.properties.Object(types=(ExternalDocumentation,), name='externalDocs'))
 ]
