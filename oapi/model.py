@@ -3,18 +3,33 @@ Version 2x: https://swagger.io/docs/specification/2-0/basic-structure/
 Version 3x: https://swagger.io/specification
 """
 
+from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function, \
+    unicode_literals
+
+from future import standard_library
+
+standard_library.install_aliases()
+from builtins import *
+#
+
+from collections import OrderedDict
+
 import collections
-import typing
-from copy import deepcopy, copy
+from copy import deepcopy
 from http.client import HTTPResponse
 from itertools import chain
 from numbers import Number
-from typing import Union, Any
 from urllib import request
 from urllib.error import HTTPError
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 
 from jsonpointer import resolve_pointer
+
+try:
+    import typing
+    from typing import Union, Any
+except ImportError:
+    typing = Union = Any = None
 
 import serial
 from serial import meta
@@ -61,7 +76,11 @@ def resolve_references(
         ref,  # type: str
         ref_root,  # type: Union[Object, Sequence]
         ref_document_url=None,  # type: Optional[str]
+        exclude=None,  # type: Optional[Set[str]]
     ):
+        # print((ref, ref_document_url))
+        if exclude is None:
+            exclude = set()
         ref_added = False
         if ref[0] == '#':
             ref_document = ref_root
@@ -74,8 +93,8 @@ def resolve_references(
                 if parse_result.scheme:
                     ref_document_url = ref_parts_url
                 else:
-                    ref_document_url = '%s/%s' % (
-                        '/'.join(ref_document_url.rstrip('/').split('/')[:-1]),
+                    ref_document_url = urljoin(
+                        ref_document_url,
                         ref_parts_url.lstrip('/ ')
                     )
             else:
@@ -84,21 +103,57 @@ def resolve_references(
                 ref_pointer = None
             else:
                 ref_pointer = '#'.join(ref_parts[1:])
-            try:
-                ref_document = deserialize(urlopen(ref_document_url))
-            except HTTPError as http_error:
-                http_error.msg = http_error.msg + ': ' + ref_document_url
-                raise http_error
+            if ref_document_url in _references:
+                if _references[ref_document_url] is None:
+                    raise RecursionError()
+                ref_document = deepcopy(_references[ref_document_url])
+            else:
+                try:
+                    ref_document = deserialize(urlopen(ref_document_url))
+                except HTTPError as http_error:
+                    http_error.msg = http_error.msg + ': ' + ref_document_url
+                    raise http_error
         if ref_pointer is None:
-            ref_data = ref_document
+            ref_data = deepcopy(ref_document)
+            ref_url_pointer = ref_document_url
+            if ref_url_pointer not in _references:
+                _references[ref_url_pointer] = None
+                try:
+                    ref_data = resolve_references(
+                        ref_data,
+                        root=ref_document,
+                        urlopen=urlopen,
+                        url=ref_document_url,
+                        _references=_references
+                    )
+                    _references[ref_url_pointer] = ref_data
+                    ref_added = True
+                except RecursionError:
+                    pass
         else:
             ref_url_pointer = '%s#%s' % (ref_document_url or '', ref_pointer)
             if ref_url_pointer in _references:
-                ref_data = deepcopy(_references[ref_url_pointer])
+                if _references[ref_url_pointer] is None:
+                    raise RecursionError()
+                else:
+                    ref_data = deepcopy(_references[ref_url_pointer])
             else:
-                ref_data = resolve_pointer(ref_document, ref_pointer)
-                _references[ref_url_pointer] = deepcopy(ref_data)
-                ref_added = True
+                ref_data = deepcopy(resolve_pointer(ref_document, ref_pointer))
+                _references[ref_url_pointer] = None
+                try:
+                    ref_data = resolve_references(
+                        ref_data,
+                        root=ref_document,
+                        urlopen=urlopen,
+                        url=ref_document_url,
+                        _references=_references
+                    )
+                    _references[ref_url_pointer] = deepcopy(ref_data)
+                    ref_added = True
+                except RecursionError:
+                    pass
+        # print((ref_url_pointer, ref_added, serialize(ref_data)))
+        # print()
         return ref_data, ref_document, ref_document_url, ref_added
 
     try:
@@ -118,71 +173,103 @@ def resolve_references(
         raise e
     if root is None:
         root = serial.model.marshal(data)
-    if isinstance(data, Object):
+    if isinstance(data, Reference):
+        data, document, reference_url, references_added = resolve_ref(
+            data.ref,
+            ref_root=root,
+            ref_document_url=url,
+        )
+        # if references_added:
+        # data = resolve_references(
+        #     data,
+        #     root=document,
+        #     urlopen=urlopen,
+        #     url=reference_url,
+        #     _references=_references
+        # )
+    elif isinstance(data, Object):
         m = meta.get(data)
-        if (url is None) and m.url:
-            url = m.url
+        if url is None:
+            if m.url:
+                url = m.url
+            elif m.path:
+                url = m.path
+                urlopen = open
         for pn, p in m.properties.items():
             v = getattr(data, pn)
+            # print(v)
             if isinstance(v, Reference):
                 v, document, reference_url, references_added = resolve_ref(
                     v.ref,
                     ref_root=root,
                     ref_document_url=url,
                 )
-                if references_added:
-                    v = resolve_references(
-                        v,
-                        root=document,
-                        urlopen=urlopen,
-                        url=reference_url,
-                        _references=_references
-                    )
+                # if references_added:
+                # v = resolve_references(
+                #     v,
+                #     root=document,
+                #     urlopen=urlopen,
+                #     url=reference_url,
+                #     _references=_references
+                # )
                 setattr(data, pn, v)
             else:
-                v = resolve_references(
-                    v,
-                    root=root,
-                    urlopen=urlopen,
-                    url=url,
-                    _references=_references
-                )
-                setattr(data, pn, v)
-    elif isinstance(data, dict):
-        if ('$ref' in data.keys()) and (data is not root):
+                try:
+                    v = resolve_references(
+                        v,
+                        root=root,
+                        urlopen=urlopen,
+                        url=url,
+                        _references=_references
+                    )
+                except RecursionError:
+                    pass
+                setattr(data, pn, serial.model.marshal(v))
+    elif isinstance(data, (Dictionary, dict, OrderedDict)):
+        if data is root:
+            raise ValueError(data)
+        if '$ref' in data.keys():
+            # print(data['$ref'])
             data, document, reference_url, references_added = resolve_ref(
                 data['$ref'],
                 ref_root=root,
                 ref_document_url=url,
             )
-            if references_added:
-                data = resolve_references(
-                    data,
-                    root=document,
-                    urlopen=urlopen,
-                    url=reference_url,
-                    _references=_references
-                )
+            # if references_added:
+            # data = resolve_references(
+            #     data,
+            #     root=document,
+            #     urlopen=urlopen,
+            #     url=reference_url,
+            #     _references=_references
+            # )
         else:
             for k, v in data.items():
-                data[k] = resolve_references(
-                    v,
+                try:
+                    data[k] = resolve_references(
+                        v,
+                        root=root,
+                        urlopen=urlopen,
+                        url=url,
+                        _references=_references
+                    )
+                except RecursionError:
+                    pass
+    elif isinstance(data, (Array, collections.Sequence, collections.Set)) and not isinstance(data, (str, bytes)):
+        if not isinstance(data, collections.MutableSequence):
+            data = list(data)
+        for i in range(len(data)):
+            try:
+                data[i] = resolve_references(
+                    data[i],
                     root=root,
                     urlopen=urlopen,
                     url=url,
                     _references=_references
                 )
-    elif isinstance(data, (collections.Set, collections.Sequence)) and not isinstance(data, (str, bytes)):
-        if not isinstance(data, collections.MutableSequence):
-            data = list(data)
-        for i in range(len(data)):
-            data[i] = resolve_references(
-                data[i],
-                root=root,
-                urlopen=urlopen,
-                url=url,
-                _references=_references
-            )
+            except RecursionError:
+                pass
+        # print(repr(data))
     return data
 
 
@@ -658,8 +745,8 @@ class MediaType(Object):
 meta.get(MediaType).properties = [
     ('schema', serial.properties.Object(types=(Reference, Schema))),
     ('example', serial.properties.Property()),
-    ('examples', serial.properties.Object(value_types=(Reference, Example))),
-    ('encoding', serial.properties.Object(value_types=(Reference, Encoding))),
+    ('examples', serial.properties.Dictionary(value_types=(Reference, Example))),
+    ('encoding', serial.properties.Dictionary(value_types=(Reference, Encoding))),
 ]
 
 
@@ -763,7 +850,7 @@ class Header(Object):
 
 meta.get(Encoding).properties = [
     ('content_type', serial.properties.String(name='contentType')),
-    ('headers', serial.properties.Object(value_types=(Reference, Header))),
+    ('headers', serial.properties.Dictionary(value_types=(Reference, Header))),
     ('style', serial.properties.String()),
     ('explode', serial.properties.Boolean()),
     ('allow_reserved', serial.properties.Boolean(name='allowReserved')),
@@ -780,8 +867,8 @@ meta.get(Header).properties = [
     ('allow_reserved', serial.properties.Boolean(name='allowReserved')),
     ('schema', serial.properties.Object(types=(Schema,))),
     ('example', serial.properties.Property()),
-    ('examples', serial.properties.Object(value_types=(Example,))),
-    ('content', serial.properties.Object(value_types=(MediaType,))),
+    ('examples', serial.properties.Dictionary(value_types=(Example,))),
+    ('content', serial.properties.Dictionary(value_types=(MediaType,))),
     ('type_', serial.properties.String(name='type', versions=('openapi<3.0',))),
 ]
 
@@ -1008,11 +1095,11 @@ class Server(Object):
 meta.get(Server).properties = [
     ('url', serial.properties.String()),
     ('description', serial.properties.String()),
-    ('variables', serial.properties.Object(value_types=(ServerVariable,))),
+    ('variables', serial.properties.Dictionary(value_types=(ServerVariable,))),
 ]
 
 
-class LinkedOperation(Object):
+class Link_(Object):
     """
     https://swagger.io/specification/#linkObject
     """
@@ -1036,10 +1123,10 @@ class LinkedOperation(Object):
         super().__init__(_)
 
 
-meta.get(LinkedOperation).properties = [
+meta.get(Link_).properties = [
     ('operation_ref', serial.properties.String(name='operationRef')),
     ('operation_id', serial.properties.String(name='operationId')),
-    ('parameters', serial.properties.Object(value_types=(str,))),
+    ('parameters', serial.properties.Dictionary(value_types=(str,))),
     ('request_body', serial.properties.Property(name='requestBody')),
     ('description', serial.properties.String()),
     ('server', serial.properties.Object(types=(Server,))),
@@ -1060,7 +1147,7 @@ class Response(Object):
         - content ({str:Content|Reference}): A mapping of media value_types to ``MediaType`` instances describing potential
           payloads.
 
-        - links ({str:LinkedOperation|Reference}): A map of operations links that can be followed from the response.
+        - links ({str:Link_|Reference}): A map of operations links that can be followed from the response.
     """
 
     def __init__(
@@ -1094,23 +1181,24 @@ meta.get(Response).properties = [
     ),
     (
         'headers',
-        serial.properties.Object(
+        serial.properties.Dictionary(
             value_types=(Reference, Header)
         )
     ),
     (
         'content',
-        serial.properties.Object(
+        serial.properties.Dictionary(
             value_types=(Reference, MediaType),
             versions=('openapi>=3.0',)
         )
     ),
     (
         'links',
-        serial.properties.Object(
-            value_types=(Reference, Link)
+        serial.properties.Dictionary(
+            value_types=(Reference, Link_)
         )
     ),
+    # 2.0 Compatibility
     (
         'schema',
         serial.properties.Object(
@@ -1120,7 +1208,7 @@ meta.get(Response).properties = [
     ),
     (
         'examples',
-        serial.properties.Object(
+        serial.properties.Dictionary(
             versions=('openapi<3.0',)
         )
     ),
@@ -1175,7 +1263,7 @@ class RequestBody(Object):
 
 meta.get(RequestBody).properties = [
     ('description', serial.properties.String()),
-    ('content', serial.properties.Object(value_types=(MediaType,))),
+    ('content', serial.properties.Dictionary(value_types=(MediaType,))),
     ('required', serial.properties.Boolean()),
 ]
 
@@ -1305,7 +1393,6 @@ class PathItem(Object):
 
 
 meta.get(PathItem).properties = [
-    #('ref', serial.properties.String(name='$ref')),
     ('summary', serial.properties.String()),
     ('description', serial.properties.String()),
     ('get', serial.properties.Object(types=(Operation,))),
@@ -1348,13 +1435,13 @@ meta.get(Operation).properties = [
         )
     ),
     ('request_body', serial.properties.Object(types=(Reference, RequestBody), name='requestBody')),
-    ('responses', serial.properties.Object(value_types=(Response,))),
+    ('responses', serial.properties.Dictionary(value_types=(Response,))),
     ('deprecated', serial.properties.Boolean()),
     (
         'security',
         serial.properties.Array(
             item_types=(
-                serial.properties.Object(
+                serial.properties.Dictionary(
                     value_types=(
                         serial.properties.Array(
                             item_types=(str,)
@@ -1369,9 +1456,9 @@ meta.get(Operation).properties = [
     ('produces', serial.properties.Array(item_types=(str,))),
     (
         'callbacks',
-        serial.properties.Object(
+        serial.properties.Dictionary(
             value_types=(
-                serial.properties.Object(
+                serial.properties.Dictionary(
                     value_types=(PathItem,)
                 )
             )
@@ -1404,7 +1491,7 @@ class Discriminator(Object):
 
 meta.get(Discriminator).properties = [
     ('property_name', serial.properties.String(name='propertyName')),
-    ('mapping', serial.properties.Object(value_types=(str,))),
+    ('mapping', serial.properties.Dictionary(value_types=(str,))),
 ]
 
 
@@ -1476,7 +1563,7 @@ meta.get(OAuthFlow).properties = [
     ('authorization_url', serial.properties.String()),
     ('token_url', serial.properties.String(name='tokenUrl')),
     ('refresh_url', serial.properties.String(name='refreshUrl')),
-    ('scopes', serial.properties.Object(value_types=(str,))),
+    ('scopes', serial.properties.Dictionary(value_types=(str,))),
 ]
 
 
@@ -1573,7 +1660,7 @@ meta.get(SecurityScheme).properties = [
     ('open_id_connect_url', serial.properties.String()),
     ('flow', serial.properties.String(versions='openapi<3.0')),
     ('authorization_url', serial.properties.String(name='authorizationUrl', versions='openapi<3.0')),
-    ('scopes', serial.properties.Object(value_types=(str,), versions='openapi<3.0'))
+    ('scopes', serial.properties.Dictionary(value_types=(str,), versions='openapi<3.0'))
 ]
 
 meta.get(Schema).properties = [
@@ -1616,7 +1703,7 @@ meta.get(Schema).properties = [
     ),
     ('max_properties', serial.properties.Integer(name='maxProperties')),
     ('min_properties', serial.properties.Integer(name='minProperties')),
-    ('properties', serial.properties.Object(value_types=(Reference, Schema,))),
+    ('properties', serial.properties.Dictionary(value_types=(Reference, Schema,))),
     ('pattern_properties', serial.properties.Object(name='patternProperties')),
     ('additional_properties', serial.properties.Object(name='additionalProperties')),
     ('dependencies', serial.properties.Object(types=(Schema,), versions=('openapi<0.0',))),
@@ -1666,7 +1753,7 @@ class Components(Object):
         request_bodies=None,  # type: Union[typing.Mapping[str, Union[RequestBody, Reference]]]
         headers=None,  # type: Union[typing.Mapping[str, Union[Header, Reference]]]
         security_schemes=None,  # type: Union[typing.Mapping[str, Union[SecurityScheme, Reference]]]
-        links=None,  # type: Union[typing.Mapping[str, Union[LinkedOperation, Reference]]]
+        links=None,  # type: Union[typing.Mapping[str, Union[Link_, Reference]]]
         callbacks=None,  # type: Union[typing.Mapping[str, Union[typing.Mapping[str, PathItem], Reference]]]
     ):
         self.schemas = schemas
@@ -1682,20 +1769,20 @@ class Components(Object):
 
 
 meta.get(Components).properties = [
-    ('schemas', serial.properties.Object(value_types=(Reference, Schema))),
-    ('responses', serial.properties.Object(value_types=(Reference, Response))),
-    ('parameters', serial.properties.Object(value_types=(Reference, Parameter))),
-    ('examples', serial.properties.Object(value_types=(Reference, Example))),
-    ('request_bodies', serial.properties.Object(value_types=(Reference, RequestBody))),
-    ('headers', serial.properties.Object(value_types=(Reference, Header))),
-    ('security_schemes', serial.properties.Object(value_types=(Reference, SecurityScheme), name='securitySchemes')),
-    ('links', serial.properties.Object(value_types=(Reference, LinkedOperation))),
+    ('schemas', serial.properties.Dictionary(value_types=(Reference, Schema))),
+    ('responses', serial.properties.Dictionary(value_types=(Reference, Response))),
+    ('parameters', serial.properties.Dictionary(value_types=(Reference, Parameter))),
+    ('examples', serial.properties.Dictionary(value_types=(Reference, Example))),
+    ('request_bodies', serial.properties.Dictionary(value_types=(Reference, RequestBody))),
+    ('headers', serial.properties.Dictionary(value_types=(Reference, Header))),
+    ('security_schemes', serial.properties.Dictionary(value_types=(Reference, SecurityScheme), name='securitySchemes')),
+    ('links', serial.properties.Dictionary(value_types=(Reference, Link_))),
     (
         'callbacks',
-        serial.properties.Object(
+        serial.properties.Dictionary(
             value_types=(
                 Reference,
-                serial.properties.Object(
+                serial.properties.Dictionary(
                     value_types=(
                         PathItem,
                     )
@@ -1759,7 +1846,7 @@ meta.get(OpenAPI).properties = [
     ('base_path', serial.properties.String(name='basePath')),
     ('schemes', serial.properties.Array(item_types=(str,))),
     ('tags', serial.properties.Array(item_types=(Tag,))),
-    ('paths', serial.properties.Object(value_types=(PathItem,))),
+    ('paths', serial.properties.Dictionary(value_types=(PathItem,))),
     ('components', serial.properties.Object(types=(Components,))),
     ('consumes', serial.properties.Array(item_types=(str,))),
     ('swagger', serial.properties.String(versions=('openapi<3.0',))),
@@ -1771,7 +1858,7 @@ meta.get(OpenAPI).properties = [
     ),
     (
         'security_definitions',
-        serial.properties.Object(
+        serial.properties.Dictionary(
             value_types=(SecurityScheme, str),
             name='securityDefinitions',
             versions=('openapi<3.0',)

@@ -17,7 +17,7 @@ with open(
 setup(
     name='oapi',
 
-    version='0.0.1',
+    version='0.0.2',
 
     description='An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 JSON or YAML specifications.',
     long_description=long_description,
