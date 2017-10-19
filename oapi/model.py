@@ -35,6 +35,11 @@ import serial
 from serial import meta
 from serial.model import deserialize, serialize, Object, Array, Dictionary
 
+try:
+    from builtins import RecursionError
+except ImportError:
+    class RecursionError(RuntimeError): pass
+
 
 def resolve_references(
     data,  # type: Union[Object, Dictionary, Array]
@@ -461,14 +466,14 @@ class Schema(Object):
 
         - items (Schema|[Schema]):
 
-            - If ``items`` is a sub-schema—each item in the array instance described by this schema should be valid as
+            - If ``items`` is a sub-schema--each item in the array instance described by this schema should be valid as
               described by this sub-schema.
 
             - If ``items`` is a sequence of sub-schemas, the array instance described by this schema should be equal in
               length to this sequence, and each value should be valid as described by the sub-schema at the
               corresponding index within this sequence of sub-schemas.
 
-        - additional_items (Schema|bool): If ``additional_items`` is ``True``—the array instance described by
+        - additional_items (Schema|bool): If ``additional_items`` is ``True``--the array instance described by
           this schema may contain additional values beyond those defined in ``items``.
 
         - max_items (int): The array instance described by this schema should contain no more than this number of
@@ -492,10 +497,10 @@ class Schema(Object):
 
         - additional_properties (bool|Schema):
 
-            - If ``additional_properties`` is ``True``—serial.properties may be present in the object described by
+            - If ``additional_properties`` is ``True``--serial.properties may be present in the object described by
               this schema with names which do not match those in either ``serial.properties`` or ``pattern_properties``.
 
-            - If ``additional_properties`` is ``False``—all serial.properties present in the object described by this schema
+            - If ``additional_properties`` is ``False``--all serial.properties present in the object described by this schema
               must correspond to a property matched in either ``serial.properties`` or ``pattern_properties``.
 
         - dependencies ({str:{str:Schema|[str]}}):
@@ -802,13 +807,13 @@ class Header(Object):
 
          - example (Any): Example of the media type. The example should match the specified schema and encoding
            serial.properties if present. The ``example`` parameter should not be present if ``examples`` is present. If
-           referencing a ``schema`` which contains an example—*this* example overrides the example provided by the
+           referencing a ``schema`` which contains an example--*this* example overrides the example provided by the
            ``schema``. To represent examples of media value_types that cannot naturally be represented in JSON or YAML, a
            string value can contain the example with escaping where necessary.
 
          - examples (typing.Mapping[str, Example]): Examples of the media type. Each example should contain a value in the correct
            format, as specified in the parameter encoding. The ``examples`` parameter should not be present if
-           ``example`` is present. If referencing a ``schema`` which contains an example—*these* example override the
+           ``example`` is present. If referencing a ``schema`` which contains an example--*these* example override the
            example provided by the ``schema``. To represent examples of media value_types that cannot naturally be represented
            in JSON or YAML, a string value can contain the example with escaping where necessary.
 
@@ -934,13 +939,13 @@ class Parameter(Object):
 
         - example (Any): Example of the media type. The example should match the specified schema and encoding
           serial.properties if present. The ``example`` parameter should not be present if ``examples`` is present. If
-          referencing a ``schema`` which contains an example—*this* example overrides the example provided by the
+          referencing a ``schema`` which contains an example--*this* example overrides the example provided by the
           ``schema``. To represent examples of media value_types that cannot naturally be represented in JSON or YAML, a
           string value can contain the example with escaping where necessary.
 
         - examples ({str:Example}): Examples of the media type. Each example should contain a value in the correct
           format, as specified in the parameter encoding. The ``examples`` parameter should not be present if
-          ``example`` is present. If referencing a ``schema`` which contains an example—*these* example override the
+          ``example`` is present. If referencing a ``schema`` which contains an example--*these* example override the
           example provided by the ``schema``. To represent examples of media value_types that cannot naturally be represented
           in JSON or YAML, a string value can contain the example with escaping where necessary.
 

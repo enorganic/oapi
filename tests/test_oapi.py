@@ -1,20 +1,21 @@
 from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function,\
     unicode_literals
 from future import standard_library
+from future.utils import native_str
+
 standard_library.install_aliases()
 from builtins import *
+
 #
 
 import os
 from itertools import chain
 from urllib.parse import urljoin
 
-import serial
-
 from urllib.request import urlopen
 
-from serial import test, meta
-from oapi.model import OpenAPI, Schema, resolve_references
+import serial
+from oapi.model import OpenAPI, Schema, resolve_references, Info
 
 
 def test_json_schemas():
@@ -25,7 +26,7 @@ def test_json_schemas():
         print(url)
         with urlopen(url) as response:
             oa = Schema(response)
-            test.json_object(oa)
+            serial.test.json_object(oa)
 
 
 def test_openapi_schemas():
@@ -55,7 +56,7 @@ def test_openapi_schemas():
         print(url)
         with urlopen(url) as response:
             oa = OpenAPI(response)
-            test.json_object(oa)
+            serial.test.json_object(oa)
             oa2 = resolve_references(oa)
             try:
                 assert '$ref' not in serial.model.serialize(oa2)
@@ -69,7 +70,7 @@ def test_openapi_schemas():
                     e.args = (repr(oa2),)
                 raise e
             if oa2 != oa:
-                test.json_object(oa2)
+                serial.test.json_object(oa2)
     for rp in examples:
         p = os.path.join(
             os.path.dirname(__file__),
@@ -79,7 +80,7 @@ def test_openapi_schemas():
         print(p)
         with open(p) as f:
             oa = OpenAPI(f)
-            test.json_object(oa)
+            serial.test.json_object(oa)
             oa2 = resolve_references(oa)
             try:
                 assert '$ref' not in serial.model.serialize(oa2)
@@ -93,45 +94,46 @@ def test_openapi_schemas():
                     e.args = (repr(oa2),)
                 raise e
             if oa2 != oa:
-                test.json_object(oa2)
-    for rp in (
-        'latest-2.0.schema.json',
-        'latest-2.1.schema.json',
-        'latest-2.2.schema.json',
-    ):
-        url = urljoin('http://devdocs.magento.com/swagger/schemas/', rp)
-        print(url)
-        with urlopen(url) as response:
-            oa = OpenAPI(response)
-            test.json_object(oa)
-            oa2 = resolve_references(oa)
-            if oa2 != oa:
-                test.json_object(oa2)
-    for rp in (
-        'v1',
-        'v2',
-    ):
-        url = urljoin('https://stage.commerceapi.io/swagger/docs/', rp)
-        print(url)
-        with urlopen(url) as response:
-            oa = OpenAPI(response)
-            test.json_object(oa)
-            oa2 = resolve_references(oa)
-            try:
-                assert '$ref' not in serial.model.serialize(oa2)
-            except AssertionError as e:
-                if e.args:
-                    e.args = tuple(chain(
-                        (e.args[0] + '\n' + repr(oa2),),
-                        e.args[1:]
-                    ))
-                else:
-                    e.args = (repr(oa2),)
-                raise e
-            if oa2 != oa:
-                test.json_object(oa2)
+                serial.test.json_object(oa2)
+    # for rp in (
+    #     'latest-2.0.schema.json',
+    #     'latest-2.1.schema.json',
+    #     'latest-2.2.schema.json',
+    # ):
+    #     url = urljoin('http://devdocs.magento.com/swagger/schemas/', rp)
+    #     print(url)
+    #     with urlopen(url) as response:
+    #         oa = OpenAPI(response)
+    #         serial.test.json_object(oa)
+    #         oa2 = resolve_references(oa)
+    #         if oa2 != oa:
+    #             serial.test.json_object(oa2)
+    # for rp in (
+    #     'v1',
+    #     'v2',
+    # ):
+    #     url = urljoin('https://stage.commerceapi.io/swagger/docs/', rp)
+    #     print(url)
+    #     with urlopen(url) as response:
+    #         oa = OpenAPI(response)
+    #         serial.test.json_object(oa)
+    #         oa2 = resolve_references(oa)
+    #         try:
+    #             assert '$ref' not in serial.model.serialize(oa2)
+    #         except AssertionError as e:
+    #             if e.args:
+    #                 e.args = tuple(chain(
+    #                     (e.args[0] + '\n' + repr(oa2),),
+    #                     e.args[1:]
+    #                 ))
+    #             else:
+    #                 e.args = (repr(oa2),)
+    #             raise e
+    #         if oa2 != oa:
+    #             serial.test.json_object(oa2)
 
 
 if __name__ == '__main__':
     test_json_schemas()
     test_openapi_schemas()
+

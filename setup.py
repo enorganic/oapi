@@ -17,9 +17,9 @@ with open(
 setup(
     name='oapi',
 
-    version='0.0.2',
+    version='0.0.3',
 
-    description='An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 JSON or YAML specifications.',
+    description='An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications.',
     long_description=long_description,
 
     # The project's main homepage.
@@ -50,7 +50,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
 
-    keywords='openapi swagger',
+    keywords='openapi swagger json rest',
 
     packages=find_packages(),
     # packages=[], # explicitly set packages
@@ -59,10 +59,11 @@ setup(
     # dependencies
     # See https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'serial>=0.0.1',
-        'future>=0.15.2',
-        'jsonpointer>=1.12',
-        'pyyaml>=3.12'
+        'future>=0.16.0',
+        'pyyaml>=3.12',
+        'iso8601>=0.1.12',
+        'serial>=0.0.9',
+        'jsonpointer>=1.12'
     ],
 
     # pip install -e .[dev, test]
