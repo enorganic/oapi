@@ -1,26 +1,11 @@
-
-from codecs import open
-from os import path
-
 from setuptools import setup, find_packages
-
-# Get a long description from the README file
-with open(
-    path.join(
-        path.dirname(path.abspath(__file__)),
-        'README.rst'
-    ),
-    encoding='utf-8'
-) as f:
-    long_description = f.read()
 
 setup(
     name='oapi',
 
-    version='0.0.3',
+    version='0.0.4',
 
     description='An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications.',
-    long_description=long_description,
 
     # The project's main homepage.
     url='https://bitbucket.com/davebelais/oapi.git',
@@ -62,7 +47,7 @@ setup(
         'future>=0.16.0',
         'pyyaml>=3.12',
         'iso8601>=0.1.12',
-        'serial>=0.0.9',
+        'serial>=0.0.10',
         'jsonpointer>=1.12'
     ],
 
