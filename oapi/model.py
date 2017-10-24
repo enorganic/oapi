@@ -5,9 +5,7 @@ Version 3x: https://swagger.io/specification
 
 from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function, \
     unicode_literals
-
 from future import standard_library
-
 standard_library.install_aliases()
 from builtins import *
 #
@@ -32,13 +30,11 @@ except ImportError:
     typing = Union = Any = None
 
 import serial
-from serial import meta
+from serial import meta, hooks
 from serial.model import deserialize, serialize, Object, Array, Dictionary
 
-try:
-    from builtins import RecursionError
-except ImportError:
-    class RecursionError(RuntimeError): pass
+from oapi.errors import ReferenceLoopError
+from serial.utilities import qualified_name
 
 
 def resolve_references(
@@ -110,7 +106,7 @@ def resolve_references(
                 ref_pointer = '#'.join(ref_parts[1:])
             if ref_document_url in _references:
                 if _references[ref_document_url] is None:
-                    raise RecursionError()
+                    raise ReferenceLoopError()
                 ref_document = deepcopy(_references[ref_document_url])
             else:
                 try:
@@ -133,13 +129,13 @@ def resolve_references(
                     )
                     _references[ref_url_pointer] = ref_data
                     ref_added = True
-                except RecursionError:
+                except ReferenceLoopError:
                     pass
         else:
             ref_url_pointer = '%s#%s' % (ref_document_url or '', ref_pointer)
             if ref_url_pointer in _references:
                 if _references[ref_url_pointer] is None:
-                    raise RecursionError()
+                    raise ReferenceLoopError()
                 else:
                     ref_data = deepcopy(_references[ref_url_pointer])
             else:
@@ -155,13 +151,14 @@ def resolve_references(
                     )
                     _references[ref_url_pointer] = deepcopy(ref_data)
                     ref_added = True
-                except RecursionError:
+                except ReferenceLoopError:
                     pass
         # print((ref_url_pointer, ref_added, serialize(ref_data)))
         # print()
         return ref_data, ref_document, ref_document_url, ref_added
 
     try:
+        # print(repr(data))
         data = deepcopy(data)
     except TypeError as e:
         e.args = tuple(
@@ -176,6 +173,15 @@ def resolve_references(
             )
         )
         raise e
+    if url is None:
+        r = root or data
+        if isinstance(r, (serial.model.Object, serial.model.Array, serial.model.Dictionary)):
+            rm = meta.get(r)
+            if rm.url:
+                url = rm.url
+            elif rm.path:
+                url = rm.path
+                urlopen = open
     if root is None:
         root = serial.model.marshal(data)
     if isinstance(data, Reference):
@@ -184,22 +190,8 @@ def resolve_references(
             ref_root=root,
             ref_document_url=url,
         )
-        # if references_added:
-        # data = resolve_references(
-        #     data,
-        #     root=document,
-        #     urlopen=urlopen,
-        #     url=reference_url,
-        #     _references=_references
-        # )
     elif isinstance(data, Object):
         m = meta.get(data)
-        if url is None:
-            if m.url:
-                url = m.url
-            elif m.path:
-                url = m.path
-                urlopen = open
         for pn, p in m.properties.items():
             v = getattr(data, pn)
             # print(v)
@@ -209,14 +201,6 @@ def resolve_references(
                     ref_root=root,
                     ref_document_url=url,
                 )
-                # if references_added:
-                # v = resolve_references(
-                #     v,
-                #     root=document,
-                #     urlopen=urlopen,
-                #     url=reference_url,
-                #     _references=_references
-                # )
                 setattr(data, pn, v)
             else:
                 try:
@@ -227,7 +211,7 @@ def resolve_references(
                         url=url,
                         _references=_references
                     )
-                except RecursionError:
+                except ReferenceLoopError:
                     pass
                 setattr(data, pn, serial.model.marshal(v))
     elif isinstance(data, (Dictionary, dict, OrderedDict)):
@@ -240,14 +224,6 @@ def resolve_references(
                 ref_root=root,
                 ref_document_url=url,
             )
-            # if references_added:
-            # data = resolve_references(
-            #     data,
-            #     root=document,
-            #     urlopen=urlopen,
-            #     url=reference_url,
-            #     _references=_references
-            # )
         else:
             for k, v in data.items():
                 try:
@@ -258,7 +234,7 @@ def resolve_references(
                         url=url,
                         _references=_references
                     )
-                except RecursionError:
+                except ReferenceLoopError:
                     pass
     elif isinstance(data, (Array, collections.Sequence, collections.Set)) and not isinstance(data, (str, bytes)):
         if not isinstance(data, collections.MutableSequence):
@@ -272,7 +248,7 @@ def resolve_references(
                     url=url,
                     _references=_references
                 )
-            except RecursionError:
+            except ReferenceLoopError:
                 pass
         # print(repr(data))
     return data
@@ -347,7 +323,7 @@ class License(Object):
 
 
 meta.get(License).properties = [
-    ('name', serial.properties.String()),
+    ('name', serial.properties.String(required=True)),
     ('url', serial.properties.String()),
 ]
 
@@ -378,12 +354,12 @@ class Info(Object):
 
 
 meta.get(Info).properties = [
-    ('title', serial.properties.String()),
+    ('title', serial.properties.String(required=True)),
     ('description', serial.properties.String()),
     ('terms_of_service', serial.properties.String(name='termsOfService')),
     ('contact', serial.properties.Object(types=(Contact,))),
     ('license_', serial.properties.Object(types=(License,), name='license')),
-    ('version', serial.properties.String()),
+    ('version', serial.properties.String(required=True)),
 ]
 
 
@@ -397,17 +373,16 @@ class Tag(Object):
         _=None,  # type: Optional[typing.Mapping]
         name=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
+        external_docs=None,  # type: Optional[ExternalDocumentation]
     ):
         # type: (...) -> None
         self.name = name
         self.description = description
+        self.external_docs = external_docs
         super().__init__(_)
 
 
-meta.get(Tag).properties = [
-    ('name', serial.properties.String()),
-    ('description', serial.properties.String()),
-]
+# Metadata definitions for `Tag` postponed until after `ExternalDocumentation` has been defined
 
 
 class Link(Object):
@@ -617,7 +592,7 @@ class Schema(Object):
         definitions=None,  # type: Optional[typing.Mapping[Schema]]
         required=None,  # type: Optional[Sequence[str]]
         default=None,  # type: Optional[Any]
-        discriminator=None,  # type: Optional[Discriminator]
+        discriminator=None,  # type: Optional[Union[Discriminator, str]]
         read_only=None,  # type: Optional[bool]
         write_only=None,  # type: Optional[bool]
         xml=None,  # type: Optional[XML]
@@ -625,6 +600,7 @@ class Schema(Object):
         example=None,  # type: Any
         deprecated=None,  # type: Optional[bool]
         links=None,  # type: Optional[Sequence[Link]]
+        nullable=None,  # type: Optional[bool]
     ):
         self.schema = schema
         self.id_ = id_
@@ -667,6 +643,7 @@ class Schema(Object):
         self.example = example
         self.deprecated = deprecated
         self.links = links
+        self.nullable = nullable
         super().__init__(_)
         
 
@@ -694,10 +671,10 @@ class Example(Object):
 
 
 meta.get(Example).properties = [
-    ('summary', serial.properties.String()),
-    ('description', serial.properties.String()),
-    ('value', serial.properties.Property()),
-    ('external_value', serial.properties.String(name='externalValue')),
+    ('summary', serial.properties.String(versions=('openapi>=3.0',))),
+    ('description', serial.properties.String(versions=('openapi>=3.0',))),
+    ('value', serial.properties.Property(versions=('openapi>=3.0',))),
+    ('external_value', serial.properties.String(name='externalValue', versions=('openapi>=3.0',))),
 ]
 
 
@@ -748,133 +725,166 @@ class MediaType(Object):
 
 
 meta.get(MediaType).properties = [
-    ('schema', serial.properties.Object(types=(Reference, Schema))),
-    ('example', serial.properties.Property()),
-    ('examples', serial.properties.Dictionary(value_types=(Reference, Example))),
-    ('encoding', serial.properties.Dictionary(value_types=(Reference, Encoding))),
+    ('schema', serial.properties.Object(types=(Reference, Schema), versions=('openapi>=3.0',))),
+    ('example', serial.properties.Property(versions=('openapi>=3.0',))),
+    ('examples', serial.properties.Dictionary(value_types=(Reference, Example), versions=('openapi>=3.0',))),
+    ('encoding', serial.properties.Dictionary(value_types=(Reference, Encoding), versions=('openapi>=3.0',))),
 ]
 
 
-class Header(Object):
-    """
-    https://swagger.io/specification/#headerObject
-
-     Properties:
-
-         - description (str)
-
-         - required (bool)
-
-         - deprecated (bool)
-
-         - allow_empty_value (bool): Sets the ability to pass empty-valued parameters. This is valid only for query
-           parameters and allows sending a parameter with an empty value. The default value is ``False``. If ``style``
-           is used, and if ``behavior`` is inapplicable (cannot be serialized), the value of ``allow_empty_value`` will
-           be ignored.
-
-         - style (str): Describes how the parameter value will be serialized, depending on the type of the parameter
-           value.
-
-             - "matrix": Path-style parameters defined by `RFC6570 <https://tools.ietf.org/html/rfc6570#section-3.2.7>`.
-             - "label": Label-style parameters defined by `RFC6570 <https://tools.ietf.org/html/rfc6570#section-3.2.5>`.
-             - "form": Form style parameters defined by `RFC6570 <https://tools.ietf.org/html/rfc6570#section-3.2.8>`.
-             - "simple": Simple style parameters defined by
-               `RFC6570 <https://tools.ietf.org/html/rfc6570#section-3.2.2>`.
-             - "spaceDelimited": Space separated array values.
-             - "pipeDelimited": Pipe separated array values.
-             - "deepObject": Provides a simple way of rendering nested objects using form parameters.
-
-           Default values (based on value of ``location``):
-
-             - query: "form"
-             - path: "simple"
-             - header: "simple"
-             - cookie: "form"
-
-           https://swagger.io/specification/#style-values-52
-
-         - explode (bool): When this is ``True``, array or object parameter values generate separate parameters for
-           each value of the array or name-value pair of the map. For other value_types of parameters this property has no
-           effect. When ``style`` is "form", the default value is ``True``. For all other styles, the default value is
-           ``False``.
-
-         - allow_reserved (bool): Determines whether the parameter value SHOULD allow reserved characters
-           :/?#[]@!$&'()*+,;= (as defined by `RFC3986 <https://tools.ietf.org/html/rfc3986#section-2.2>`) to be included
-           without percent-encoding. This property only applies to parameters with a location value of "query". The
-           default value is ``False``.
-
-         - schema (Schema): The schema defining the type used for the parameter.
-
-         - example (Any): Example of the media type. The example should match the specified schema and encoding
-           serial.properties if present. The ``example`` parameter should not be present if ``examples`` is present. If
-           referencing a ``schema`` which contains an example--*this* example overrides the example provided by the
-           ``schema``. To represent examples of media value_types that cannot naturally be represented in JSON or YAML, a
-           string value can contain the example with escaping where necessary.
-
-         - examples (typing.Mapping[str, Example]): Examples of the media type. Each example should contain a value in the correct
-           format, as specified in the parameter encoding. The ``examples`` parameter should not be present if
-           ``example`` is present. If referencing a ``schema`` which contains an example--*these* example override the
-           example provided by the ``schema``. To represent examples of media value_types that cannot naturally be represented
-           in JSON or YAML, a string value can contain the example with escaping where necessary.
-
-         - content ({str:MediaType}): A map containing the representations for the parameter. The name is the media type
-           and the value describing it. The map must only contain one entry.
-     """
+class Items(Object):
 
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
-        description=None,  # type: Optional[str]
-        required=None,  # type: Optional[bool]
-        deprecated=None,  # type: Optional[bool]
-        allow_empty_value=None,  # type: Optional[bool]
-        style=None,  # type: Optional[str]
-        explode=None,  # type: Optional[bool]
-        allow_reserved=None,  # type: Optional[bool]
-        schema=None,  # type: Optional[Schema]
-        example=None,  # type: Any
-        examples=None,  # type: Optional[typing.Mapping[str, Example]]
-        content=None,  # type: Optional[typing.Mapping[str, MediaType]]
-        # 2.0 Compatibility
         type_=None,  # type: Optional[str]
+        format_=None,  # type: Optional[str, Sequence]
+        items=None,  # type: Optional[Items]
+        collection_format=None,  # type: Optional[str]
+        default=None,  # type: Optional[Any]
+        maximum=None,  # type: Optional[numbers.Number]
+        exclusive_maximum=None,  # type: Optional[bool]
+        minimum=None,  # type: Optional[numbers.Number]
+        exclusive_minimum=None,  # type: Optional[bool]
+        max_length=None,  # type: Optional[int]
+        min_length=None,  # type: Optional[int]
+        pattern=None,  # type: Optional[str]
+        max_items=None,  # type: Optional[str]
+        min_items=None,  # type: Optional[str]
+        unique_items=None,  # type: Optional[bool]
+        enum=None,  # type: Optional[Sequence[str]]
+        multiple_of=None,  # type: Optional[Number]
     ):
-        self.description = description
-        self.required = required
-        self.deprecated = deprecated
-        self.allow_empty_value = allow_empty_value
-        self.style = style
-        self.explode = explode
-        self.allow_reserved = allow_reserved
-        self.schema = schema
-        self.example = example
-        self.examples = examples
-        self.content = content
         self.type_ = type_
+        self.format_ = format_
+        self.items = items
+        self.collection_format = collection_format
+        self.default = default
+        self.maximum = maximum
+        self.exclusive_maximum = exclusive_maximum
+        self.minimum = minimum
+        self.exclusive_minimum = exclusive_minimum
+        self.max_length = max_length
+        self.min_length = min_length
+        self.pattern = pattern
+        self.max_items = max_items
+        self.min_items = min_items
+        self.unique_items = unique_items
+        self.enum = enum
+        self.multiple_of = multiple_of
         super().__init__(_)
 
 
-meta.get(Encoding).properties = [
-    ('content_type', serial.properties.String(name='contentType')),
-    ('headers', serial.properties.Dictionary(value_types=(Reference, Header))),
-    ('style', serial.properties.String()),
-    ('explode', serial.properties.Boolean()),
-    ('allow_reserved', serial.properties.Boolean(name='allowReserved')),
-]
-
-
-meta.get(Header).properties = [
-    ('description', serial.properties.String()),
-    ('required', serial.properties.Boolean()),
-    ('deprecated', serial.properties.Boolean()),
-    ('allow_empty_value', serial.properties.Boolean(name='allowEmptyValue')),
-    ('style', serial.properties.String()),
-    ('explode', serial.properties.Boolean()),
-    ('allow_reserved', serial.properties.Boolean(name='allowReserved')),
-    ('schema', serial.properties.Object(types=(Schema,))),
-    ('example', serial.properties.Property()),
-    ('examples', serial.properties.Dictionary(value_types=(Example,))),
-    ('content', serial.properties.Dictionary(value_types=(MediaType,))),
-    ('type_', serial.properties.String(name='type', versions=('openapi<3.0',))),
+meta.get(Items).properties = [
+    (
+        'type_',
+        serial.properties.Enum(
+            name='type',
+            values=(
+                'array',
+                'object',
+                'file',
+                'integer',
+                'number',
+                'string',
+                'boolean'
+            ),
+            versions=('openapi<3.0')
+        )
+    ),
+    (
+        'format_',
+        serial.properties.Enum(
+            values=lambda o: (
+                None
+                if o is None else
+                ('int32', 'int64')
+                if o.type_ == 'integer' else
+                ('float', 'double')
+                if o.type_ == 'number' else
+                ('byte', 'binary', 'date', 'date-time', 'password')
+                if o.type_ == 'string'
+                else tuple()
+            ),
+            name='format',
+            versions=('openapi<3.0')
+        )
+    ),
+    (
+        'items',
+        serial.properties.Object(types=(Items,), versions=('openapi<3.0'))
+    ),
+    (
+        'collection_format',
+        serial.properties.Enum(
+            values=('csv', 'ssv', 'tsv', 'pipes'),
+            name='collectionFormat',
+            versions=('openapi<3.0')
+        )
+    ),
+    (
+        'default',
+        serial.properties.Property()
+    ),(
+        'maximum',
+        serial.properties.Number(versions=('openapi<3.0',))
+    ),
+    (
+        'exclusive_maximum',
+        serial.properties.Boolean(
+            name='exclusiveMaximum',
+            versions=('openapi<3.0',)
+        )
+    ),
+    (
+        'minimum',
+        serial.properties.Number(versions=('openapi<3.0',))
+    ),
+    (
+        'exclusive_minimum',
+        serial.properties.Boolean(
+            name='exclusiveMinimum',
+            versions=('openapi<3.0',)
+        )
+    ),
+    (
+        'max_length',
+        serial.properties.Integer(name='maxLength', versions=('openapi<3.0',))
+    ),
+    (
+        'min_length',
+        serial.properties.Integer(name='minLength', versions=('openapi<3.0',))
+    ),
+    (
+        'pattern',
+        serial.properties.String(versions=('openapi<3.0',))
+    ),
+    (
+        'max_items',
+        serial.properties.Integer(name='maxItems', versions=('openapi<3.0',))
+    ),
+    (
+        'min_items',
+        serial.properties.Integer(name='minItems', versions=('openapi<3.0',))
+    ),
+    (
+        'unique_items',
+        serial.properties.Boolean(
+            name='uniqueItems',
+            versions=('openapi<3.0',)
+        )
+    ),
+    (
+        'enum',
+        serial.properties.Array(versions=('openapi<3.0',))
+    ),
+    (
+        'multiple_of',
+        serial.properties.Number(
+            name='multipleOf',
+            versions=('openapi<3.0',)
+        )
+    )
 ]
 
 
@@ -975,10 +985,21 @@ class Parameter(Object):
         example=None, # type: Any
         examples=None, # type: Optional[typing.Mapping[str, Example]]
         content=None,  # type: Optional[typing.Mapping[str, MediaType]]
-        # 2x compatibility
         type_=None,  # type: Optional[str]
+        default=None,  # type: Any
+        maximum=None,  # type: Optional[numbers.Number]
+        exclusive_maximum=None,  # type: Optional[bool]
+        minimum=None,  # type: Optional[numbers.Number]
+        exclusive_minimum=None,  # type: Optional[bool]
+        max_length=None,  # type: Optional[int]
+        min_length=None,  # type: Optional[int]
+        pattern=None,  # type: Optional[str]
+        max_items=None,  # type: Optional[str]
+        min_items=None,  # type: Optional[str]
+        unique_items=None,  # type: Optional[bool]
         format_=None,  # type: Optional[str]
         enum=None,  # type: Optional[Sequence[str]]
+        multiple_of=None,  # type: Optional[Number]
         collection_format=None,  # type: Optional[str]
         items=None,  # type: Optional[Schema]
     ):
@@ -995,9 +1016,20 @@ class Parameter(Object):
         self.example = example
         self.examples = examples
         self.content = content
-        # 2x compatibility
         self.type_ = type_
+        self.default = default
+        self.maximum = maximum
+        self.exclusive_maximum = exclusive_maximum
+        self.minimum = minimum
+        self.exclusive_minimum = exclusive_minimum
+        self.max_length = max_length
+        self.min_length = min_length
+        self.pattern = pattern
+        self.max_items = max_items
+        self.min_items = min_items
+        self.unique_items = unique_items
         self.enum = enum
+        self.multiple_of = multiple_of
         self.format_ = format_
         self.collection_format = collection_format
         self.items = items
@@ -1005,54 +1037,205 @@ class Parameter(Object):
 
 
 meta.get(Parameter).properties = [
-    ('name', serial.properties.String()),
-    ('in_', serial.properties.String(name='in')),
+    ('name', serial.properties.String(required=True)),
+    (
+        'in_',
+        serial.properties.Enum(
+            values=('query', 'header', 'path', 'formData', 'body'),
+            name='in',
+            required=True
+        )
+    ),
     ('description', serial.properties.String()),
     ('required', serial.properties.Boolean()),
     ('deprecated', serial.properties.Boolean()),
-    ('allow_empty_value', serial.properties.Boolean()),
-    ('style', serial.properties.String()),
-    ('explode', serial.properties.Boolean()),
-    ('allow_reserved', serial.properties.Boolean()),
-    ('schema', serial.properties.Object(types=(Reference, Schema))),
-    ('example', serial.properties.Property()),
-    ('examples', serial.properties.Object(types=(Reference, Schema))),
-    ('content', serial.properties.Object(types=(MediaType,))),
-    # version 2x compatibility
+    ('allow_empty_value', serial.properties.Boolean(name='allowEmptyValue')),
+    ('style', serial.properties.String(versions=('openapi>=3.0',))),
+    ('explode', serial.properties.Boolean(versions=('openapi>=3.0',))),
+    ('allow_reserved', serial.properties.Boolean(name='allowReserved', versions=('openapi>=3.0',))),
+    (
+        'schema',
+        serial.properties.Object(
+            types=(Reference, Schema),
+        )
+    ),
+    ('example', serial.properties.Property(versions=('openapi>=3.0',))),
+    (
+        'examples',
+        serial.properties.Dictionary(
+            value_types=(Reference, Example),
+            versions=('openapi>=3.0',)
+        )
+    ),
+    (
+        'content',
+        serial.properties.Dictionary(
+            value_types=(MediaType,),
+            versions=('openapi>=3.0')
+        ),
+    ),
     (
         'type_',
-        serial.properties.Property(
-            types=(
-                serial.properties.Array(
-                    item_types=(str,)
-                ),
-                str,
+        serial.properties.Enum(
+            values=(
+                'array',
+                'object',
+                'file',
+                'integer',
+                'number',
+                'string',
+                'boolean'
             ),
-            name='type'
+            name='type',
+            versions=('openapi<3.0',)
+        )
+    ),
+    (
+        'default',
+        serial.properties.Property(
+            versions=('openapi<3.0',)
+        )
+    ),
+    (
+        'maximum',
+        serial.properties.Number(versions=('openapi<3.0',))
+    ),
+    (
+        'exclusive_maximum',
+        serial.properties.Boolean(
+            name='exclusiveMaximum',
+            versions=('openapi<3.0',)
+        )
+    ),
+    (
+        'minimum',
+        serial.properties.Number(versions=('openapi<3.0',))
+    ),
+    (
+        'exclusive_minimum',
+        serial.properties.Boolean(
+            name='exclusiveMinimum',
+            versions=('openapi<3.0',)
+        )
+    ),
+    (
+        'max_length',
+        serial.properties.Integer(name='maxLength', versions=('openapi<3.0',))
+    ),
+    (
+        'min_length',
+        serial.properties.Integer(name='minLength', versions=('openapi<3.0',))
+    ),
+    (
+        'pattern',
+        serial.properties.String(versions=('openapi<3.0',))
+    ),
+    (
+        'max_items',
+        serial.properties.Integer(name='maxItems', versions=('openapi<3.0',))
+    ),
+    (
+        'min_items',
+        serial.properties.Integer(name='minItems', versions=('openapi<3.0',))
+    ),
+    (
+        'unique_items',
+        serial.properties.Boolean(
+            name='uniqueItems',
+            versions=('openapi<3.0',)
         )
     ),
     (
         'enum',
-        serial.properties.Array()
+        serial.properties.Array(versions=('openapi<3.0',))
     ),
     (
         'format_',
-        serial.properties.String(name='format')
+        serial.properties.Enum(
+            values=lambda o: (
+                None
+                if o is None else
+                ('int32', 'int64')
+                if o.type_ == 'integer' else
+                ('float', 'double')
+                if o.type_ == 'number' else
+                ('byte', 'binary', 'date', 'date-time', 'password')
+                if o.type_ == 'string'
+                else tuple()
+            ),
+            name='format',
+            versions=('openapi<3.0')
+        )
     ),
     (
         'collection_format',
         serial.properties.Enum(
             values=('csv', 'ssv', 'tsv', 'pipes', 'multi'),
-            name='collectionFormat'
+            name='collectionFormat',
+            versions=('openapi<3.0',)
         )
     ),
     (
         'items',
         serial.properties.Object(
-            types=(Reference, Schema),
+            types=(Items,),
+            versions=('openapi<3.0',)
+        )
+    ),
+    (
+        'multiple_of',
+        serial.properties.Number(
+            name='multipleOf',
             versions=('openapi<3.0',)
         )
     )
+]
+
+
+def _parameter_after_validate(o):
+    # type: (Parameter) -> Parameter
+    if (o.content is not None) and len(tuple(o.content.keys())) > 1:
+        raise serial.errors.ValidationError(
+            '`oapi.model.%s().content` may have only one mapped value.:\n%s' % (qualified_name(type(o)), repr(o))
+        )
+    if (o.content is not None) and (o.schema is not None):
+        raise serial.errors.ValidationError(
+            'An instance of `oapi.model.%s` may have a `schema` property or a `content` ' % qualified_name(type(o))+
+            'property, but not *both*:\n' + repr(o)
+        )
+
+
+hooks.get(Parameter).after_validate = _parameter_after_validate
+
+
+class Header(Parameter):
+
+    pass
+
+
+_header_meta = meta.get(Header)
+del _header_meta.properties['name']
+del _header_meta.properties['in_']
+_header_meta.properties['schema'].versions = ('openapi>=3.0',)
+_header_meta.properties['type_'].values = (
+    'array',
+    'integer',
+    'number',
+    'string',
+    'boolean'
+)
+_header_meta.properties['items'].required = lambda o: True if o.type_ == 'array' else False
+_header_meta.properties['required'].versions = ('openapi>=3.0',)
+_header_meta.properties['deprecated'].versions = ('openapi>=3.0',)
+_header_meta.properties['allow_empty_value'].versions = ('openapi>=3.0',)
+
+
+meta.get(Encoding).properties = [
+    ('content_type', serial.properties.String(name='contentType')),
+    ('headers', serial.properties.Dictionary(value_types=(Reference, Header))),
+    ('style', serial.properties.String()),
+    ('explode', serial.properties.Boolean()),
+    ('allow_reserved', serial.properties.Boolean(name='allowReserved')),
 ]
 
 
@@ -1073,7 +1256,7 @@ class ServerVariable(Object):
 
 meta.get(ServerVariable).properties = [
     ('enum', serial.properties.Array(item_types=(str,))),
-    ('default', serial.properties.String()),
+    ('default', serial.properties.String(required=True)),
     ('description', serial.properties.String()),
 ]
 
@@ -1098,7 +1281,7 @@ class Server(Object):
 
 
 meta.get(Server).properties = [
-    ('url', serial.properties.String()),
+    ('url', serial.properties.String(required=True)),
     ('description', serial.properties.String()),
     ('variables', serial.properties.Dictionary(value_types=(ServerVariable,))),
 ]
@@ -1129,12 +1312,12 @@ class Link_(Object):
 
 
 meta.get(Link_).properties = [
-    ('operation_ref', serial.properties.String(name='operationRef')),
-    ('operation_id', serial.properties.String(name='operationId')),
-    ('parameters', serial.properties.Dictionary(value_types=(str,))),
-    ('request_body', serial.properties.Property(name='requestBody')),
-    ('description', serial.properties.String()),
-    ('server', serial.properties.Object(types=(Server,))),
+    ('operation_ref', serial.properties.String(name='operationRef', versions=('openapi>=3.0',))),
+    ('operation_id', serial.properties.String(name='operationId', versions=('openapi>=3.0',))),
+    ('parameters', serial.properties.Dictionary(versions=('openapi>=3.0',))),
+    ('request_body', serial.properties.Property(name='requestBody', versions=('openapi>=3.0',))),
+    ('description', serial.properties.String(versions=('openapi>=3.0',))),
+    ('server', serial.properties.Object(types=(Server,), versions=('openapi>=3.0',))),
 ]
 
 
@@ -1159,23 +1342,21 @@ class Response(Object):
         self,
         _=None,  # type: Optional[typing.Mapping]
         description=None,  # type: Optional[str]
+        schema=None,  # type: Optional[Schema]
         headers=None,  # type: Optional[typing.Mapping[str, Union[Header, Reference]]]
+        examples=None,  # type: Optional[Dict[str, Any]]
+        # example=None,  # type: Optional[Any]
         content=None,  # type: Optional[typing.Mapping[str, Union[Content, Reference]]]
         links=None,  # type: Optional[typing.Mapping[str, Union[Link, Reference]]]
-        # 2.0 compatibility
-        schema=None,  # type: Optional[Schema]
-        examples=None,  # type: Optional[Dict[str, Any]]
-        example=None,  # type: Optional[Any]
     ):
         # type: (...) -> None
         self.description = description
+        self.schema = schema
         self.headers = headers
+        self.examples = examples
+        # self.example = example
         self.content = content
         self.links = links
-        # 2.0 compatibility
-        self.schema = schema
-        self.examples = examples
-        self.example = example
         super().__init__(_)
 
 
@@ -1185,9 +1366,22 @@ meta.get(Response).properties = [
         serial.properties.String()
     ),
     (
+        'schema',
+        serial.properties.Object(
+            types=(Reference, Schema),
+            versions=('openapi<3.0',)
+        )
+    ),
+    (
         'headers',
         serial.properties.Dictionary(
             value_types=(Reference, Header)
+        )
+    ),
+    (
+        'examples',
+        serial.properties.Dictionary(
+            versions=('openapi<3.0',)
         )
     ),
     (
@@ -1200,27 +1394,8 @@ meta.get(Response).properties = [
     (
         'links',
         serial.properties.Dictionary(
-            value_types=(Reference, Link_)
-        )
-    ),
-    # 2.0 Compatibility
-    (
-        'schema',
-        serial.properties.Object(
-            types=(Reference, Schema),
-            versions=('openapi<3.0',)
-        )
-    ),
-    (
-        'examples',
-        serial.properties.Dictionary(
-            versions=('openapi<3.0',)
-        )
-    ),
-    (
-        'example',
-        serial.properties.Property(
-            versions=('openapi<3.0',)
+            value_types=(Reference, Link_),
+            versions=('openapi>=3.0',)
         )
     ),
 ]
@@ -1247,7 +1422,14 @@ class ExternalDocumentation(Object):
 
 meta.get(ExternalDocumentation).properties = [
     ('description', serial.properties.String()),
-    ('url', serial.properties.String()),
+    ('url', serial.properties.String(required=True)),
+]
+
+
+meta.get(Tag).properties = [
+    ('name', serial.properties.String(required=True)),
+    ('description', serial.properties.String()),
+    ('external_docs', serial.properties.Object(types=(ExternalDocumentation,))),
 ]
 
 
@@ -1267,9 +1449,9 @@ class RequestBody(Object):
 
 
 meta.get(RequestBody).properties = [
-    ('description', serial.properties.String()),
-    ('content', serial.properties.Dictionary(value_types=(MediaType,))),
-    ('required', serial.properties.Boolean()),
+    ('description', serial.properties.String(versions=('openapi>=3.0',))),
+    ('content', serial.properties.Dictionary(value_types=(MediaType,), versions=('openapi>=3.0',))),
+    ('required', serial.properties.Boolean(versions=('openapi>=3.0',))),
 ]
 
 
@@ -1329,12 +1511,12 @@ class Operation(Object):
         operation_id=None,  # type: Optional[str]
         parameters=None,  # type: Optional[Sequence[Union[Parameter, Reference]]]
         request_body=None,  # type: Optional[RequestBody, Reference]
+        schemes=None,  # type: Optional[typing.Sequence[str]]
         deprecated=None,  # type: Optional[bool]
         responses=None,  # type: Optional[typing.Mapping[str, Response]]
         callbacks=None,  # type: Optional[typing.Mapping[str, Union[Callback, Refefence]]]
         security=None,  # type: Optional[Sequence[Dict[str, Sequence[str]]]]
         servers=None,  # type: Optional[Sequence[Server]]
-        # Version 2x Compatibility
         consumes=None,  # type: Optional[Sequence[str]]
         produces=None,  # type: Optional[Sequence[str]]
     ):
@@ -1347,11 +1529,11 @@ class Operation(Object):
         self.parameters = parameters
         self.request_body = request_body
         self.responses = responses
+        self.schemes = schemes
         self.deprecated = deprecated
         self.callbacks = callbacks
         self.security = security
         self.servers = servers
-        # Version 2x Compatibility
         self.consumes = consumes
         self.produces = produces
         super().__init__(_)
@@ -1398,8 +1580,8 @@ class PathItem(Object):
 
 
 meta.get(PathItem).properties = [
-    ('summary', serial.properties.String()),
-    ('description', serial.properties.String()),
+    ('summary', serial.properties.String(versions=('openapi>=3.0',))),
+    ('description', serial.properties.String(versions=('openapi>=3.0',))),
     ('get', serial.properties.Object(types=(Operation,))),
     ('put', serial.properties.Object(types=(Operation,))),
     ('post', serial.properties.Object(types=(Operation,))),
@@ -1407,15 +1589,27 @@ meta.get(PathItem).properties = [
     ('options', serial.properties.Object(types=(Operation,))),
     ('head', serial.properties.Object(types=(Operation,))),
     ('patch', serial.properties.Object(types=(Operation,))),
-    ('trace', serial.properties.Object(types=(Operation,))),
-    ('servers', serial.properties.Array(item_types=(Server,))),
+    ('trace', serial.properties.Object(types=(Operation,), versions=('openapi>=3.0',))),
+    ('servers', serial.properties.Array(item_types=(Server,), versions=('openapi>=3.0',))),
     (
         'parameters',
-        serial.properties.Object(
-            types=(Reference, Parameter)
+        serial.properties.Array(
+            item_types=(Reference, Parameter)
         )
     ),
 ]
+
+
+class Callback(serial.model.Dictionary):
+
+    pass
+
+
+meta.get(Callback).value_types = (
+    serial.properties.Dictionary(
+        value_types=(PathItem,)
+    )
+)
 
 
 meta.get(Operation).properties = [
@@ -1424,23 +1618,39 @@ meta.get(Operation).properties = [
     ('description', serial.properties.String()),
     ('external_docs', serial.properties.Object(types=(ExternalDocumentation,), name='externalDocs')),
     ('operation_id', serial.properties.String(name='operationId')),
+    ('consumes', serial.properties.Array(item_types=(str,),versions=('openapi<3.0',))),
+    ('produces', serial.properties.Array(item_types=(str,),versions=('openapi<3.0',))),
     (
         'parameters',
-        serial.properties.Property(
-            types=(
-                serial.properties.Array(
-                    item_types=(Reference, Parameter),
-                    versions=('openapi>=3.0',)
-                ),
-                serial.properties.Object(
-                    types=(Reference, Parameter),
-                    versions=('openapi<3.0',)
-                )
-            )
+        serial.properties.Array(
+            item_types=(Reference, Parameter)
         )
     ),
-    ('request_body', serial.properties.Object(types=(Reference, RequestBody), name='requestBody')),
-    ('responses', serial.properties.Dictionary(value_types=(Response,))),
+    (
+        'request_body',
+        serial.properties.Object(
+            types=(Reference, RequestBody),
+            name='requestBody',
+            versions=('openapi>=3.0',)
+        )
+    ),
+    (
+        'responses',
+        serial.properties.Dictionary(
+            value_types=(Response,),
+            required=True
+        )
+    ),
+    (
+        'callbacks',
+        serial.properties.Dictionary(
+            value_types=(
+                Callback,
+            ),
+            versions=('openapi>=3.0',)
+        )
+    ),
+    ('schemes', serial.properties.Array(item_types=(str,), versions=('openapi>=3.0',))),
     ('deprecated', serial.properties.Boolean()),
     (
         'security',
@@ -1456,19 +1666,7 @@ meta.get(Operation).properties = [
             )
         )
     ),
-    ('servers', serial.properties.Array(item_types=(Server,))),
-    ('consumes', serial.properties.Array(item_types=(str,))),
-    ('produces', serial.properties.Array(item_types=(str,))),
-    (
-        'callbacks',
-        serial.properties.Dictionary(
-            value_types=(
-                serial.properties.Dictionary(
-                    value_types=(PathItem,)
-                )
-            )
-        )
-    )
+    ('servers', serial.properties.Array(item_types=(Server,), versions=('openapi>=3.0',)))
 ]
 
 
@@ -1495,8 +1693,8 @@ class Discriminator(Object):
 
 
 meta.get(Discriminator).properties = [
-    ('property_name', serial.properties.String(name='propertyName')),
-    ('mapping', serial.properties.Dictionary(value_types=(str,))),
+    ('property_name', serial.properties.String(name='propertyName', versions=('openapi>=3.0',))),
+    ('mapping', serial.properties.Dictionary(value_types=(str,), versions=('openapi>=3.0',))),
 ]
 
 
@@ -1593,10 +1791,24 @@ class OAuthFlows(Object):
 
 
 meta.get(OAuthFlows).properties = [
-    ('implicit', serial.properties.Object(types=(OAuthFlow,))),
-    ('password', serial.properties.Object(types=(OAuthFlow,))),
-    ('client_credentials', serial.properties.Object(types=(OAuthFlow,), name='clientCredentials')),
-    ('authorization_code', serial.properties.Object(types=(OAuthFlow,), name='authorizationCode')),
+    ('implicit', serial.properties.Object(types=(OAuthFlow,), versions=('openapi>=3.0',))),
+    ('password', serial.properties.Object(types=(OAuthFlow,), versions=('openapi>=3.0',))),
+    (
+        'client_credentials',
+        serial.properties.Object(
+            types=(OAuthFlow,),
+            name='clientCredentials',
+            versions=('openapi>=3.0',),
+        )
+    ),
+    (
+        'authorization_code',
+        serial.properties.Object(
+            types=(OAuthFlow,),
+            name='authorizationCode',
+            versions=('openapi>=3.0',)
+        )
+    ),
 ]
 
 
@@ -1634,10 +1846,10 @@ class SecurityScheme(Object):
         bearer_format=None,  # type: Optional[str]
         flows=None,  # type: Optional[OAuthFlows]
         open_id_connect_url=None,  # type: Optional[str]
-        # 2.0 Compatibility
         flow=None,  # type: Optional[str]
         authorization_url=None,  # type: Optional[str]
         scopes=None,  # type: Optional[str]
+        token_url=None,  # type: Optional[str]
     ):
         self.type_ = type_
         self.description = description
@@ -1647,25 +1859,108 @@ class SecurityScheme(Object):
         self.bearer_format = bearer_format
         self.flows = flows
         self.open_id_connect_url = open_id_connect_url
-        # 2.0 Compatibility
         self.flow = flow
         self.authorization_url = authorization_url
         self.scopes = scopes
+        self.token_url = token_url
         super().__init__(_)
 
 
 meta.get(SecurityScheme).properties = [
-    ('type_', serial.properties.String(name='type')),
+    (
+        'type_',
+        serial.properties.Enum(
+            values=('apiKey', 'http', 'oauth2', 'openIdConnect'),
+            name='type',
+            required=True
+        )
+    ),
     ('description', serial.properties.String()),
-    ('name', serial.properties.String()),
-    ('in_', serial.properties.String(name='in')),
-    ('scheme', serial.properties.String()),
+    (
+        'name',
+        serial.properties.String(
+            required=lambda o: True if o.type_ == 'apiKey' else False
+        )
+    ),
+    (
+        'in_',
+        serial.properties.Property(
+            types=(
+                serial.properties.Enum(
+                    values=('query', 'header', 'cookie'),
+                    versions=('openapi>=3.0',)
+                ),
+                serial.properties.Enum(
+                    values=('query', 'header'),
+                    versions=('openapi<3.0',)
+                ),
+            ),
+            name='in',
+            required=lambda o: True if o.type_ == 'apiKey' else False
+        )
+    ),
+    (
+        'scheme',
+        serial.properties.String(
+            required=lambda o: True if o.type_ == 'http' else False,
+            versions='openapi>=3.0'
+        )
+    ),
     ('bearer_format', serial.properties.String(name='bearerFormat')),
-    ('flows', serial.properties.Object(types=(OAuthFlows,))),
-    ('open_id_connect_url', serial.properties.String()),
-    ('flow', serial.properties.String(versions='openapi<3.0')),
-    ('authorization_url', serial.properties.String(name='authorizationUrl', versions='openapi<3.0')),
-    ('scopes', serial.properties.Dictionary(value_types=(str,), versions='openapi<3.0'))
+    (
+        'flows',
+        serial.properties.Object(
+            types=(OAuthFlows,),
+            required=lambda o: True if o.type_ == 'oauth2' else False,
+            versions=('openapi>=3.0',)
+        )
+    ),
+    (
+        'open_id_connect_url',
+        serial.properties.String(
+            name='openIdConnectUrl',
+            required=lambda o: True if o.type_ == 'openIdConnect' else False
+        )
+    ),
+    (
+        'flow',
+        serial.properties.String(
+            versions='openapi<3.0',
+            required=lambda o: True if o.type_ == 'oauth2' else False
+        )
+    ),
+    (
+        'authorization_url',
+        serial.properties.String(
+            name='authorizationUrl',
+            versions='openapi<3.0',
+            required=lambda o: (
+                True
+                if o.type_ == 'oauth2' and o.flow in ('implicit', 'accessCode') else
+                False
+            )
+        )
+    ),
+    (
+        'token_url',
+        serial.properties.String(
+            name='tokenUrl',
+            versions='openapi<3.0',
+            required=lambda o: (
+                True
+                if o.type_ == 'oauth2' and o.flow in ('password', 'application', 'accessCode') else
+                False
+            )
+        )
+    ),
+    (
+        'scopes',
+        serial.properties.Dictionary(
+            value_types=(str,),
+            versions='openapi<3.0',
+            required=lambda o: True if o.type_ == 'oauth2' else False
+        )
+    )
 ]
 
 meta.get(Schema).properties = [
@@ -1718,14 +2013,52 @@ meta.get(Schema).properties = [
         serial.properties.Property(
             types=(
                 serial.properties.Array(
-                    item_types=(str,)
+                    item_types=(
+                        serial.properties.Enum(
+                            values=(
+                                'array',
+                                'object',
+                                'file',
+                                'integer',
+                                'number',
+                                'string',
+                                'boolean'
+                            )
+                        ),
+                    )
                 ),
-                str
+                serial.properties.Enum(
+                    values=(
+                        'array',
+                        'object',
+                        'file',
+                        'integer',
+                        'number',
+                        'string',
+                        'boolean'
+                    )
+                )
             ),
             name='type'
         )
     ),
-    ('format_', serial.properties.String(name='format')),
+    (
+        'format_',
+        serial.properties.Enum(
+            values=lambda o: (
+                None
+                if o is None else
+                ('int32', 'int64')
+                if o.type_ == 'integer' else
+                ('float', 'double')
+                if o.type_ == 'number' else
+                ('byte', 'binary', 'date', 'date-time', 'password')
+                if o.type_ == 'string'
+                else tuple()
+            ),
+            name='format'
+        )
+    ),
     ('required', serial.properties.Array(item_types=(serial.properties.String(),))),
     ('all_of', serial.properties.Array(item_types=(Reference, Schema), name='allOf')),
     ('any_of', serial.properties.Array(item_types=(Reference, Schema), name='anyOf')),
@@ -1735,14 +2068,29 @@ meta.get(Schema).properties = [
     ('default', serial.properties.Property()),
     ('required', serial.properties.Array(item_types=(str,))),
     ('default', serial.properties.Property()),
-    ('discriminator', serial.properties.Object(types=(Discriminator,))),
+    (
+        'discriminator',
+        serial.properties.Object(
+            types=(
+                serial.properties.Object(
+                    types=(Discriminator,),
+                    versions=('openapi>=3.0',),
+                ),
+                serial.properties.Object(
+                    types=(str,),
+                    versions=('openapi<3.0',)
+                )
+            )
+        )
+    ),
     ('read_only', serial.properties.Boolean()),
-    ('write_only', serial.properties.Boolean(name='writeOnly')),
+    ('write_only', serial.properties.Boolean(name='writeOnly', versions=('openapi>=3.0',))),
     ('xml', serial.properties.Object(types=(XML,))),
     ('external_docs', serial.properties.Object(types=(ExternalDocumentation,))),
     ('example', serial.properties.Property()),
-    ('deprecated', serial.properties.Boolean()),
+    ('deprecated', serial.properties.Boolean(versions=('openapi>=3.0',))),
     ('links', serial.properties.Array(item_types=(Link,))),
+    ('nullable', serial.properties.Boolean(versions=('openapi>=3.0',)))
 ]
 
 
@@ -1776,9 +2124,12 @@ class Components(Object):
 meta.get(Components).properties = [
     ('schemas', serial.properties.Dictionary(value_types=(Reference, Schema))),
     ('responses', serial.properties.Dictionary(value_types=(Reference, Response))),
-    ('parameters', serial.properties.Dictionary(value_types=(Reference, Parameter))),
+    (
+        'parameters',
+        serial.properties.Dictionary(value_types=(Reference, Parameter))
+    ),
     ('examples', serial.properties.Dictionary(value_types=(Reference, Example))),
-    ('request_bodies', serial.properties.Dictionary(value_types=(Reference, RequestBody))),
+    ('request_bodies', serial.properties.Dictionary(value_types=(Reference, RequestBody), name='requestBodies')),
     ('headers', serial.properties.Dictionary(value_types=(Reference, Header))),
     ('security_schemes', serial.properties.Dictionary(value_types=(Reference, SecurityScheme), name='securitySchemes')),
     ('links', serial.properties.Dictionary(value_types=(Reference, Link_))),
@@ -1819,6 +2170,9 @@ class OpenAPI(Object):
         security_definitions=None,  # type: Optional[typing.Mapping[str, Union[Object, str]]]
         produces=None,  # type: Optional[typing.Collection[str]]
         external_docs=None,  # type: Optional[ExternalDocumentation]
+        parameters=None,  # type: Optional[Dict[str, Parameter]]
+        responses=None,  # type: Optional[Dict[str, Response]]
+        security=None,  # type: Optional[Dict[str, typing.Sequence[str]]]
     ):
         # type: (...) -> None
         self.openapi = openapi
@@ -1837,6 +2191,9 @@ class OpenAPI(Object):
         self.security_definitions = security_definitions
         self.produces = produces
         self.external_docs = external_docs
+        self.parameters = parameters
+        self.responses = responses
+        self.security = security
         super().__init__(_)
         version = self.openapi or self.swagger
         if version is not None:
@@ -1844,31 +2201,56 @@ class OpenAPI(Object):
 
 
 meta.get(OpenAPI).properties = [
-    ('openapi', serial.properties.String(versions=('openapi>=3.0',))),
+    ('openapi', serial.properties.String(versions=('openapi>=3.0',), required=True)),
     ('info', serial.properties.Object(types=(Info,), required=True)),
-    ('host', serial.properties.String()),
-    ('servers', serial.properties.Array(item_types=(Server,))),
-    ('base_path', serial.properties.String(name='basePath')),
-    ('schemes', serial.properties.Array(item_types=(str,))),
+    ('host', serial.properties.String(versions=('openapi<3.0',))),
+    ('servers', serial.properties.Array(item_types=(Server,), versions=('openapi>=3.0',))),
+    ('base_path', serial.properties.String(name='basePath', versions=('openapi<3.0',))),
+    ('schemes', serial.properties.Array(item_types=(str,), versions=('openapi<3.0',))),
     ('tags', serial.properties.Array(item_types=(Tag,))),
-    ('paths', serial.properties.Dictionary(value_types=(PathItem,))),
-    ('components', serial.properties.Object(types=(Components,))),
-    ('consumes', serial.properties.Array(item_types=(str,))),
-    ('swagger', serial.properties.String(versions=('openapi<3.0',))),
+    ('paths', serial.properties.Dictionary(value_types=(PathItem,), required=True)),
+    ('components', serial.properties.Object(types=(Components,), versions=('openapi>=3.0',))),
+    ('consumes', serial.properties.Array(item_types=(str,), versions=('openapi<3.0',))),
+    ('swagger', serial.properties.String(versions=('openapi<3.0',), required=True)),
     (
         'definitions',
         serial.properties.Object(
-            # versions=('openapi<3.0',)
+            versions=('openapi<3.0',)
         ),
     ),
     (
         'security_definitions',
-        serial.properties.Dictionary(
-            value_types=(SecurityScheme, str),
+        serial.properties.Property(
+            types=(
+                serial.properties.Dictionary(
+                    value_types=(SecurityScheme,),
+                    versions=('openapi<3.0',)
+                ),
+                serial.properties.Dictionary(
+                    value_types=(Reference, SecurityScheme),
+                    versions=('openapi>=3.0',)
+                ),
+            ),
             name='securityDefinitions',
-            versions=('openapi<3.0',)
         )
     ),
     ('produces', serial.properties.Array(item_types=(str,), versions=('openapi<3.0',)),),
-    ('external_docs', serial.properties.Object(types=(ExternalDocumentation,), name='externalDocs'))
+    ('external_docs', serial.properties.Object(types=(ExternalDocumentation,), name='externalDocs')),
+    (
+        'parameters',
+        serial.properties.Dictionary(
+            value_types=(Parameter,),
+            versions=('openapi<3.0',)
+        )
+    ),
+    ('responses', serial.properties.Dictionary(value_types=(Response,), versions=('openapi<3.0',))),
+    (
+        'security',
+        serial.properties.Dictionary(
+            value_types=(
+                serial.properties.Array(item_types=(str,)),
+            ),
+            versions=('openapi<3.0',)
+        )
+    ),
 ]
