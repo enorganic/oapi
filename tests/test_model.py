@@ -18,17 +18,6 @@ import serial
 from oapi.model import OpenAPI, Schema, resolve_references, Info
 
 
-def test_json_schemas():
-    for url in (
-        'http://json-schema.org/schema',
-        'http://json-schema.org/hyper-schema',
-    ):
-        print(url)
-        with urlopen(url) as response:
-            oa = Schema(response)
-            serial.test.json_object(oa)
-
-
 def test_openapi_examples():
     examples = (
         'v2.0/json/petstore-separate/spec/swagger.json',
@@ -38,6 +27,7 @@ def test_openapi_examples():
         'v3.0/petstore-expanded.yaml',
         'v3.0/petstore.yaml',
         'v3.0/uber.yaml',
+        'v3.0/callback-example.yaml',
         'v2.0/json/api-with-examples.json',
         'v2.0/json/petstore-expanded.json',
         'v2.0/json/petstore-minimal.json',
@@ -140,8 +130,7 @@ def test_logic_broker_schemas():
 
 
 if __name__ == '__main__':
-    test_json_schemas()
-    test_openapi_examples()
-    # test_magento_schemas()
-    # test_logic_broker_schemas()
+    # test_openapi_examples()
+    test_magento_schemas()
+    test_logic_broker_schemas()
 

@@ -41,13 +41,14 @@ def resolve_references(
     data,  # type: Union[Object, Dictionary, Array]
     url=None,  # type: Optional[str]
     urlopen=request.urlopen,  # type: Union[typing.Callable, Sequence[typing.Callable]]
+    recursive=True, # type: False
     root=None,  # type: Optional[Union[Object, Dictionary, Array]]
     _references=None,  # type: Optional[typing.Dict[str, Union[Object, Dictionary, Array]]]
+    _recurrence=False  # type: bool
 ):
     # type: (...) -> Union[Object, typing.Mapping, typing.Sequence]
     """
-    Returns a deep copy of the ``data`` provided after recursively replacing ``oapi.model.Reference`` instances with the
-    material referenced.
+    Replaces ``oapi.model.Reference`` instances with the material referenced.
 
     Arguments:
 
@@ -75,14 +76,11 @@ def resolve_references(
 
     def resolve_ref(
         ref,  # type: str
-        ref_root,  # type: Union[Object, Sequence]
-        ref_document_url=None,  # type: Optional[str]
-        exclude=None,  # type: Optional[Set[str]]
+        types=None  # type: tuple
     ):
-        # print((ref, ref_document_url))
-        if exclude is None:
-            exclude = set()
-        ref_added = False
+        # type: (...) -> typing.Any
+        ref_root = root
+        ref_document_url = url
         if ref[0] == '#':
             ref_document = ref_root
             ref_pointer = ref[1:]
@@ -107,7 +105,7 @@ def resolve_references(
             if ref_document_url in _references:
                 if _references[ref_document_url] is None:
                     raise ReferenceLoopError()
-                ref_document = deepcopy(_references[ref_document_url])
+                ref_document = _references[ref_document_url]
             else:
                 try:
                     ref_document = deserialize(urlopen(ref_document_url))
@@ -115,127 +113,109 @@ def resolve_references(
                     http_error.msg = http_error.msg + ': ' + ref_document_url
                     raise http_error
         if ref_pointer is None:
-            ref_data = deepcopy(ref_document)
+            # ref_data = deepcopy(ref_document)
+            ref_data = ref_document
+            if types:
+                ref_data = serial.model.unmarshal(ref_data, types=types)
             ref_url_pointer = ref_document_url
-            if ref_url_pointer not in _references:
-                _references[ref_url_pointer] = None
-                try:
-                    ref_data = resolve_references(
-                        ref_data,
-                        root=ref_document,
-                        urlopen=urlopen,
-                        url=ref_document_url,
-                        _references=_references
-                    )
-                    _references[ref_url_pointer] = ref_data
-                    ref_added = True
-                except ReferenceLoopError:
-                    pass
+            if recursive:
+                if ref_url_pointer not in _references:
+                    _references[ref_url_pointer] = None
+                    try:
+                        ref_data = resolve_references(
+                            ref_data,
+                            root=ref_document,
+                            urlopen=urlopen,
+                            url=ref_document_url,
+                            recursive=recursive,
+                            _references=_references,
+                            _recurrence=True
+                        )
+                        _references[ref_url_pointer] = ref_data
+                    except ReferenceLoopError:
+                        pass
         else:
             ref_url_pointer = '%s#%s' % (ref_document_url or '', ref_pointer)
             if ref_url_pointer in _references:
                 if _references[ref_url_pointer] is None:
                     raise ReferenceLoopError()
                 else:
-                    ref_data = deepcopy(_references[ref_url_pointer])
+                    # ref_data = deepcopy(_references[ref_url_pointer])
+                    ref_data = _references[ref_url_pointer]
             else:
-                ref_data = deepcopy(resolve_pointer(ref_document, ref_pointer))
-                _references[ref_url_pointer] = None
-                try:
-                    ref_data = resolve_references(
-                        ref_data,
-                        root=ref_document,
-                        urlopen=urlopen,
-                        url=ref_document_url,
-                        _references=_references
-                    )
-                    _references[ref_url_pointer] = deepcopy(ref_data)
-                    ref_added = True
-                except ReferenceLoopError:
-                    pass
-        # print((ref_url_pointer, ref_added, serialize(ref_data)))
-        # print()
-        return ref_data, ref_document, ref_document_url, ref_added
-
-    try:
-        # print(repr(data))
-        data = deepcopy(data)
-    except TypeError as e:
-        e.args = tuple(
-            chain(
-                (
-                    '%s%s' % (
-                        e.args[0] + '\n' if e.args else '',
-                        serialize(data),
-                    ),
-                ),
-                e.args[1:] if e.args else []
-            )
-        )
-        raise e
+                # ref_data = deepcopy(resolve_pointer(ref_document, ref_pointer))
+                ref_data = resolve_pointer(ref_document, ref_pointer)
+                if types:
+                    ref_data = serial.model.unmarshal(ref_data, types)
+                if recursive:
+                    _references[ref_url_pointer] = None
+                    try:
+                        ref_data = resolve_references(
+                            ref_data,
+                            root=ref_document,
+                            urlopen=urlopen,
+                            url=ref_document_url,
+                            recursive=recursive,
+                            _references=_references,
+                            _recurrence=True
+                        )
+                        # _references[ref_url_pointer] = deepcopy(ref_data)
+                        _references[ref_url_pointer] = ref_data
+                    except ReferenceLoopError:
+                        pass
+        return ref_data
     if url is None:
         r = root or data
         if isinstance(r, (serial.model.Object, serial.model.Array, serial.model.Dictionary)):
-            rm = meta.get(r)
+            rm = meta.read(r)
             if rm.url:
                 url = rm.url
             elif rm.path:
                 url = rm.path
                 urlopen = open
+    if not _recurrence:
+        data = deepcopy(data)
+        # if root is not None:
+        #     root = deepcopy(root)
     if root is None:
-        root = serial.model.marshal(data)
+        root = deepcopy(data)
     if isinstance(data, Reference):
-        data, document, reference_url, references_added = resolve_ref(
-            data.ref,
-            ref_root=root,
-            ref_document_url=url,
-        )
+        data = resolve_ref(data.ref)
     elif isinstance(data, Object):
-        m = meta.get(data)
+        m = meta.read(data)
         for pn, p in m.properties.items():
             v = getattr(data, pn)
-            # print(v)
             if isinstance(v, Reference):
-                v, document, reference_url, references_added = resolve_ref(
-                    v.ref,
-                    ref_root=root,
-                    ref_document_url=url,
-                )
+                v = resolve_ref(v.ref, types=(p,))
                 setattr(data, pn, v)
-            else:
+            elif recursive:
                 try:
                     v = resolve_references(
                         v,
                         root=root,
                         urlopen=urlopen,
                         url=url,
-                        _references=_references
+                        recursive=recursive,
+                        _references=_references,
+                        _recurrence=True
                     )
                 except ReferenceLoopError:
                     pass
-                setattr(data, pn, serial.model.marshal(v))
+                setattr(data, pn, v)  # serial.model.marshal(v)
     elif isinstance(data, (Dictionary, dict, OrderedDict)):
-        if data is root:
-            raise ValueError(data)
-        if '$ref' in data.keys():
-            # print(data['$ref'])
-            data, document, reference_url, references_added = resolve_ref(
-                data['$ref'],
-                ref_root=root,
-                ref_document_url=url,
-            )
-        else:
-            for k, v in data.items():
-                try:
-                    data[k] = resolve_references(
-                        v,
-                        root=root,
-                        urlopen=urlopen,
-                        url=url,
-                        _references=_references
-                    )
-                except ReferenceLoopError:
-                    pass
+        for k, v in data.items():
+            try:
+                data[k] = resolve_references(
+                    v,
+                    root=root,
+                    urlopen=urlopen,
+                    url=url,
+                    recursive=recursive,
+                    _references=_references,
+                    _recurrence=True
+                )
+            except ReferenceLoopError:
+                pass
     elif isinstance(data, (Array, collections.Sequence, collections.Set)) and not isinstance(data, (str, bytes)):
         if not isinstance(data, collections.MutableSequence):
             data = list(data)
@@ -246,11 +226,12 @@ def resolve_references(
                     root=root,
                     urlopen=urlopen,
                     url=url,
-                    _references=_references
+                    recursive=recursive,
+                    _references=_references,
+                    _recurrence=True
                 )
             except ReferenceLoopError:
                 pass
-        # print(repr(data))
     return data
 
 
@@ -264,7 +245,7 @@ class Reference(Object):
         self.ref = ref
         if _ is not None:
             if isinstance(_, HTTPResponse):
-                meta.get(self).url = _.url
+                meta.writable(self).url = _.url
             if isinstance(_, (dict, str)):
                 _ = deserialize(_)
                 keys = set(_.keys())
@@ -274,7 +255,7 @@ class Reference(Object):
         super().__init__(_)
 
 
-meta.get(Reference).properties = [
+meta.writable(Reference).properties = [
     ('ref', serial.properties.String(name='$ref'))
 ]
 
@@ -298,7 +279,7 @@ class Contact(Object):
         super().__init__(_)
 
 
-meta.get(Contact).properties = [
+meta.writable(Contact).properties = [
     ('name', serial.properties.String()),
     ('url', serial.properties.String()),
     ('email', serial.properties.String()),
@@ -322,7 +303,7 @@ class License(Object):
         super().__init__(_)
 
 
-meta.get(License).properties = [
+meta.writable(License).properties = [
     ('name', serial.properties.String(required=True)),
     ('url', serial.properties.String()),
 ]
@@ -353,7 +334,7 @@ class Info(Object):
         super().__init__(_)
 
 
-meta.get(Info).properties = [
+meta.writable(Info).properties = [
     ('title', serial.properties.String(required=True)),
     ('description', serial.properties.String()),
     ('terms_of_service', serial.properties.String(name='termsOfService')),
@@ -398,7 +379,7 @@ class Link(Object):
         super().__init__(_)
 
 
-meta.get(Link).properties = [
+meta.writable(Link).properties = [
     ('rel', serial.properties.String()),
     ('href', serial.properties.String()),
 ]
@@ -439,7 +420,7 @@ class Schema(Object):
 
         - pattern (str): The string instance described by this schema should match this regular expression (ECMA 262).
 
-        - items (Schema|[Schema]):
+        - items (Reference|Schema|[Schema]):
 
             - If ``items`` is a sub-schema--each item in the array instance described by this schema should be valid as
               described by this sub-schema.
@@ -447,9 +428,6 @@ class Schema(Object):
             - If ``items`` is a sequence of sub-schemas, the array instance described by this schema should be equal in
               length to this sequence, and each value should be valid as described by the sub-schema at the
               corresponding index within this sequence of sub-schemas.
-
-        - additional_items (Schema|bool): If ``additional_items`` is ``True``--the array instance described by
-          this schema may contain additional values beyond those defined in ``items``.
 
         - max_items (int): The array instance described by this schema should contain no more than this number of
           items.
@@ -477,16 +455,6 @@ class Schema(Object):
 
             - If ``additional_properties`` is ``False``--all serial.properties present in the object described by this schema
               must correspond to a property matched in either ``serial.properties`` or ``pattern_properties``.
-
-        - dependencies ({str:{str:Schema|[str]}}):
-
-            A dictionary mapping serial.properties of the object instance described by this schema to a mapping other
-            serial.properties and either:
-
-                - A sub-schema for validation of the second property when the first property is present on
-                  the object instance described by this schema.
-                - A list of serial.properties which must *also* be present when the first and second serial.properties are present on
-                  the object instance described by this schema.
 
         - enum ([Any]): The value/instance described by this schema should be among those in this sequence.
 
@@ -559,8 +527,6 @@ class Schema(Object):
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
-        schema=None,  # type: Optional[str]
-        id_=None,  # type: Optional[str]
         title=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         multiple_of=None,  # type: Optional[Number]
@@ -572,7 +538,6 @@ class Schema(Object):
         min_length=None,  # type: Optional[int]
         pattern=None,  # type: Optional[str]
         items=None,  # type: Optional[Schema, Sequence[Schema]]
-        additional_items=None,  # type: Optional[Schema, bool]
         max_items=None,  # type: Optional[int]
         min_items=None,  # type: Optional[int]
         unique_items=None,  # type: Optional[bool]
@@ -581,7 +546,6 @@ class Schema(Object):
         properties=None,  # type: Optional[typing.Mapping[str, Schema]]
         pattern_properties=None,  # type: Optional[Schema]
         additional_properties=None,  # type: Optional[bool, Schema]
-        dependencies=None,  # type: Optional[typing.Mapping[str, typing.Mapping[str, Union[Schema, Sequence[str]]]]]
         enum=None,  # type: Optional[Sequence]
         type_=None,  # type: Optional[str, Sequence]
         format_=None,  # type: Optional[str, Sequence]
@@ -602,8 +566,6 @@ class Schema(Object):
         links=None,  # type: Optional[Sequence[Link]]
         nullable=None,  # type: Optional[bool]
     ):
-        self.schema = schema
-        self.id_ = id_
         self.title = title
         self.description = description
         self.multiple_of = multiple_of
@@ -615,7 +577,6 @@ class Schema(Object):
         self.min_length = min_length
         self.pattern = pattern
         self.items = items
-        self.additional_items = additional_items
         self.max_items = max_items
         self.min_items = min_items
         self.unique_items = unique_items
@@ -624,7 +585,6 @@ class Schema(Object):
         self.properties = properties
         self.pattern_properties = pattern_properties
         self.additional_properties = additional_properties
-        self.dependencies = dependencies
         self.enum = enum
         self.type_ = type_
         self.format_ = format_
@@ -670,7 +630,7 @@ class Example(Object):
         super().__init__(_)
 
 
-meta.get(Example).properties = [
+meta.writable(Example).properties = [
     ('summary', serial.properties.String(versions=('openapi>=3.0',))),
     ('description', serial.properties.String(versions=('openapi>=3.0',))),
     ('value', serial.properties.Property(versions=('openapi>=3.0',))),
@@ -724,7 +684,7 @@ class MediaType(Object):
         super().__init__(_)
 
 
-meta.get(MediaType).properties = [
+meta.writable(MediaType).properties = [
     ('schema', serial.properties.Object(types=(Reference, Schema), versions=('openapi>=3.0',))),
     ('example', serial.properties.Property(versions=('openapi>=3.0',))),
     ('examples', serial.properties.Dictionary(value_types=(Reference, Example), versions=('openapi>=3.0',))),
@@ -775,7 +735,7 @@ class Items(Object):
         super().__init__(_)
 
 
-meta.get(Items).properties = [
+meta.writable(Items).properties = [
     (
         'type_',
         serial.properties.Enum(
@@ -1036,7 +996,7 @@ class Parameter(Object):
         super().__init__(_)
 
 
-meta.get(Parameter).properties = [
+meta.writable(Parameter).properties = [
     ('name', serial.properties.String(required=True)),
     (
         'in_',
@@ -1205,7 +1165,7 @@ def _parameter_after_validate(o):
         )
 
 
-hooks.get(Parameter).after_validate = _parameter_after_validate
+hooks.writable(Parameter).after_validate = _parameter_after_validate
 
 
 class Header(Parameter):
@@ -1213,7 +1173,7 @@ class Header(Parameter):
     pass
 
 
-_header_meta = meta.get(Header)
+_header_meta = meta.writable(Header)
 del _header_meta.properties['name']
 del _header_meta.properties['in_']
 _header_meta.properties['schema'].versions = ('openapi>=3.0',)
@@ -1230,7 +1190,7 @@ _header_meta.properties['deprecated'].versions = ('openapi>=3.0',)
 _header_meta.properties['allow_empty_value'].versions = ('openapi>=3.0',)
 
 
-meta.get(Encoding).properties = [
+meta.writable(Encoding).properties = [
     ('content_type', serial.properties.String(name='contentType')),
     ('headers', serial.properties.Dictionary(value_types=(Reference, Header))),
     ('style', serial.properties.String()),
@@ -1254,7 +1214,7 @@ class ServerVariable(Object):
         super().__init__(_)
 
 
-meta.get(ServerVariable).properties = [
+meta.writable(ServerVariable).properties = [
     ('enum', serial.properties.Array(item_types=(str,))),
     ('default', serial.properties.String(required=True)),
     ('description', serial.properties.String()),
@@ -1280,7 +1240,7 @@ class Server(Object):
         super().__init__(_)
 
 
-meta.get(Server).properties = [
+meta.writable(Server).properties = [
     ('url', serial.properties.String(required=True)),
     ('description', serial.properties.String()),
     ('variables', serial.properties.Dictionary(value_types=(ServerVariable,))),
@@ -1311,7 +1271,7 @@ class Link_(Object):
         super().__init__(_)
 
 
-meta.get(Link_).properties = [
+meta.writable(Link_).properties = [
     ('operation_ref', serial.properties.String(name='operationRef', versions=('openapi>=3.0',))),
     ('operation_id', serial.properties.String(name='operationId', versions=('openapi>=3.0',))),
     ('parameters', serial.properties.Dictionary(versions=('openapi>=3.0',))),
@@ -1360,7 +1320,7 @@ class Response(Object):
         super().__init__(_)
 
 
-meta.get(Response).properties = [
+meta.writable(Response).properties = [
     (
         'description',
         serial.properties.String()
@@ -1420,13 +1380,13 @@ class ExternalDocumentation(Object):
         super().__init__(_)
 
 
-meta.get(ExternalDocumentation).properties = [
+meta.writable(ExternalDocumentation).properties = [
     ('description', serial.properties.String()),
     ('url', serial.properties.String(required=True)),
 ]
 
 
-meta.get(Tag).properties = [
+meta.writable(Tag).properties = [
     ('name', serial.properties.String(required=True)),
     ('description', serial.properties.String()),
     ('external_docs', serial.properties.Object(types=(ExternalDocumentation,))),
@@ -1448,7 +1408,7 @@ class RequestBody(Object):
         super().__init__(_)
 
 
-meta.get(RequestBody).properties = [
+meta.writable(RequestBody).properties = [
     ('description', serial.properties.String(versions=('openapi>=3.0',))),
     ('content', serial.properties.Dictionary(value_types=(MediaType,), versions=('openapi>=3.0',))),
     ('required', serial.properties.Boolean(versions=('openapi>=3.0',))),
@@ -1579,7 +1539,7 @@ class PathItem(Object):
         super().__init__(_)
 
 
-meta.get(PathItem).properties = [
+meta.writable(PathItem).properties = [
     ('summary', serial.properties.String(versions=('openapi>=3.0',))),
     ('description', serial.properties.String(versions=('openapi>=3.0',))),
     ('get', serial.properties.Object(types=(Operation,))),
@@ -1605,14 +1565,35 @@ class Callback(serial.model.Dictionary):
     pass
 
 
-meta.get(Callback).value_types = (
-    serial.properties.Dictionary(
-        value_types=(PathItem,)
+meta.writable(Callback).value_types = (PathItem,)
+
+
+class Callbacks(serial.model.Dictionary):
+
+    pass
+
+
+meta.writable(Callbacks).value_types = (Reference, Callback)
+
+
+class Responses(serial.model.Dictionary):
+
+    pass
+
+
+meta.writable(Responses).value_types = (
+    serial.properties.Property(
+        types=(Reference, Response),
+        versions=('openapi>=3.0',)
+    ),
+    serial.properties.Property(
+        types=(Response,),
+        versions=('openapi<3.0',)
     )
 )
 
 
-meta.get(Operation).properties = [
+meta.writable(Operation).properties = [
     ('tags', serial.properties.Array(item_types=(str,))),
     ('summary', serial.properties.String()),
     ('description', serial.properties.String()),
@@ -1636,16 +1617,16 @@ meta.get(Operation).properties = [
     ),
     (
         'responses',
-        serial.properties.Dictionary(
-            value_types=(Response,),
+        serial.properties.Property(
+            types=(Responses,),
             required=True
         )
     ),
     (
         'callbacks',
-        serial.properties.Dictionary(
-            value_types=(
-                Callback,
+        serial.properties.Property(
+            types=(
+                Callbacks,
             ),
             versions=('openapi>=3.0',)
         )
@@ -1692,7 +1673,7 @@ class Discriminator(Object):
         super().__init__(_)
 
 
-meta.get(Discriminator).properties = [
+meta.writable(Discriminator).properties = [
     ('property_name', serial.properties.String(name='propertyName', versions=('openapi>=3.0',))),
     ('mapping', serial.properties.Dictionary(value_types=(str,), versions=('openapi>=3.0',))),
 ]
@@ -1733,7 +1714,7 @@ class XML(Object):
         super().__init__(_)
 
 
-meta.get(XML).properties = [
+meta.writable(XML).properties = [
     ('name', serial.properties.String()),
     ('name_space', serial.properties.String(name='nameSpace')),
     ('prefix', serial.properties.String()),
@@ -1762,7 +1743,7 @@ class OAuthFlow(Object):
         super().__init__(_)
 
 
-meta.get(OAuthFlow).properties = [
+meta.writable(OAuthFlow).properties = [
     ('authorization_url', serial.properties.String()),
     ('token_url', serial.properties.String(name='tokenUrl')),
     ('refresh_url', serial.properties.String(name='refreshUrl')),
@@ -1790,7 +1771,7 @@ class OAuthFlows(Object):
         super().__init__(_)
 
 
-meta.get(OAuthFlows).properties = [
+meta.writable(OAuthFlows).properties = [
     ('implicit', serial.properties.Object(types=(OAuthFlow,), versions=('openapi>=3.0',))),
     ('password', serial.properties.Object(types=(OAuthFlow,), versions=('openapi>=3.0',))),
     (
@@ -1810,6 +1791,14 @@ meta.get(OAuthFlows).properties = [
         )
     ),
 ]
+
+
+class Properties(serial.model.Dictionary):
+
+    pass
+
+
+meta.writable(Properties).value_types = (Reference, Schema)
 
 
 class SecurityScheme(Object):
@@ -1866,7 +1855,7 @@ class SecurityScheme(Object):
         super().__init__(_)
 
 
-meta.get(SecurityScheme).properties = [
+meta.writable(SecurityScheme).properties = [
     (
         'type_',
         serial.properties.Enum(
@@ -1963,9 +1952,7 @@ meta.get(SecurityScheme).properties = [
     )
 ]
 
-meta.get(Schema).properties = [
-    ('schema', serial.properties.String(name='$schema')),
-    ('id_', serial.properties.String(name='$id')),
+meta.writable(Schema).properties = [
     ('title', serial.properties.String()),
     ('description', serial.properties.String()),
     ('multiple_of', serial.properties.Number(name='multipleOf')),
@@ -1981,7 +1968,7 @@ meta.get(Schema).properties = [
     ('unique_items', serial.properties.Boolean(name='uniqueItems')),
     (
         'items',
-        serial.properties.Object(
+        serial.properties.Property(
             types=(
                 Reference,
                 Schema,
@@ -1991,22 +1978,10 @@ meta.get(Schema).properties = [
             )
         )
     ),
-    (
-        'additional_items',
-        serial.properties.Object(
-            types=(
-                Schema,
-                bool
-            ),
-            name='additionalItems'
-        )
-    ),
     ('max_properties', serial.properties.Integer(name='maxProperties')),
     ('min_properties', serial.properties.Integer(name='minProperties')),
-    ('properties', serial.properties.Dictionary(value_types=(Reference, Schema,))),
-    ('pattern_properties', serial.properties.Object(name='patternProperties')),
+    ('properties', serial.properties.Property(types=(Properties,))),
     ('additional_properties', serial.properties.Object(name='additionalProperties')),
-    ('dependencies', serial.properties.Object(types=(Schema,), versions=('openapi<0.0',))),
     ('enum', serial.properties.Array()),
     (
         'type_',
@@ -2094,20 +2069,76 @@ meta.get(Schema).properties = [
 ]
 
 
+class Schemas(serial.model.Dictionary):
+
+    pass
+
+
+meta.writable(Schemas).value_types = (Reference, Schema)
+
+
+class Headers(serial.model.Dictionary):
+
+    pass
+
+
+meta.writable(Headers).value_types = (Reference, Header)
+
+
+class Parameters(serial.model.Dictionary):
+
+    pass
+
+
+meta.writable(Parameters).value_types = (Reference, Parameter)
+
+
+class Examples(serial.model.Dictionary):
+
+    pass
+
+
+meta.writable(Examples).value_types = (Reference, Example)
+
+
+class RequestBodies(serial.model.Dictionary):
+
+    pass
+
+
+meta.writable(RequestBodies).value_types = (Reference, RequestBody)
+
+
+class SecuritySchemes(serial.model.Dictionary):
+
+    pass
+
+
+meta.writable(SecuritySchemes).value_types = (Reference, SecurityScheme)
+
+
+class Links(serial.model.Dictionary):
+
+    pass
+
+
+meta.writable(Links).value_types = (Reference, Link_)
+
+
 class Components(Object):
 
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
-        schemas=None,  # type: Union[typing.Mapping[str, Union[Schema, Reference]]]
-        responses=None,  # type: Union[typing.Mapping[str, Union[Response, Reference]]]
-        parameters=None,  # type: Union[typing.Mapping[str, Union[Parameter, Reference]]]
-        examples=None,  # type: Union[typing.Mapping[str, Union[Example, Reference]]]
-        request_bodies=None,  # type: Union[typing.Mapping[str, Union[RequestBody, Reference]]]
-        headers=None,  # type: Union[typing.Mapping[str, Union[Header, Reference]]]
-        security_schemes=None,  # type: Union[typing.Mapping[str, Union[SecurityScheme, Reference]]]
-        links=None,  # type: Union[typing.Mapping[str, Union[Link_, Reference]]]
-        callbacks=None,  # type: Union[typing.Mapping[str, Union[typing.Mapping[str, PathItem], Reference]]]
+        schemas=None,  # type: Optional[Schemas]
+        responses=None,  # type: Optional[Responses]
+        parameters=None,  # type: Optional[Parameters]
+        examples=None,  # type: Optional[References]
+        request_bodies=None,  # type: Optional[RequestBodies]
+        headers=None,  # type: Optional[Headers]
+        security_schemes=None,  # type: Optional[SecuritySchemes]
+        links=None,  # type: Optional[Links]
+        callbacks=None,  # type: Union[typing.Mapping[str, Union[typing.Dict[str, PathItem], Reference]]]
     ):
         self.schemas = schemas
         self.responses = responses
@@ -2121,32 +2152,41 @@ class Components(Object):
         super().__init__(_)
 
 
-meta.get(Components).properties = [
-    ('schemas', serial.properties.Dictionary(value_types=(Reference, Schema))),
-    ('responses', serial.properties.Dictionary(value_types=(Reference, Response))),
+meta.writable(Components).properties = [
+    ('schemas', serial.properties.Property(types=(Schemas,))),
+    ('responses', serial.properties.Property(types=(Responses,))),
     (
         'parameters',
-        serial.properties.Dictionary(value_types=(Reference, Parameter))
+        serial.properties.Property(types=(Parameters,))
     ),
-    ('examples', serial.properties.Dictionary(value_types=(Reference, Example))),
-    ('request_bodies', serial.properties.Dictionary(value_types=(Reference, RequestBody), name='requestBodies')),
-    ('headers', serial.properties.Dictionary(value_types=(Reference, Header))),
-    ('security_schemes', serial.properties.Dictionary(value_types=(Reference, SecurityScheme), name='securitySchemes')),
-    ('links', serial.properties.Dictionary(value_types=(Reference, Link_))),
+    ('examples', serial.properties.Property(types=(Examples,))),
+    ('request_bodies', serial.properties.Property(types=(RequestBodies,), name='requestBodies')),
+    ('headers', serial.properties.Property(types=(Headers,))),
+    ('security_schemes', serial.properties.Property(types=(SecuritySchemes,), name='securitySchemes')),
+    ('links', serial.properties.Property(types=(Links,))),
     (
         'callbacks',
-        serial.properties.Dictionary(
-            value_types=(
-                Reference,
-                serial.properties.Dictionary(
-                    value_types=(
-                        PathItem,
-                    )
-                )
-            )
+        serial.properties.Property(
+            types=(Callbacks,)
         )
     ),
 ]
+
+
+class Definitions(serial.model.Dictionary):
+
+    pass
+
+
+meta.writable(Definitions).value_types = (Schema,)
+
+
+class Paths(serial.model.Dictionary):
+
+    pass
+
+
+meta.writable(Paths).value_types = (PathItem,)
 
 
 class OpenAPI(Object):
@@ -2200,7 +2240,7 @@ class OpenAPI(Object):
             serial.model.version(self, 'openapi', version)
 
 
-meta.get(OpenAPI).properties = [
+meta.writable(OpenAPI).properties = [
     ('openapi', serial.properties.String(versions=('openapi>=3.0',), required=True)),
     ('info', serial.properties.Object(types=(Info,), required=True)),
     ('host', serial.properties.String(versions=('openapi<3.0',))),
@@ -2208,13 +2248,14 @@ meta.get(OpenAPI).properties = [
     ('base_path', serial.properties.String(name='basePath', versions=('openapi<3.0',))),
     ('schemes', serial.properties.Array(item_types=(str,), versions=('openapi<3.0',))),
     ('tags', serial.properties.Array(item_types=(Tag,))),
-    ('paths', serial.properties.Dictionary(value_types=(PathItem,), required=True)),
+    ('paths', serial.properties.Property(types=(Paths,), required=True)),
     ('components', serial.properties.Object(types=(Components,), versions=('openapi>=3.0',))),
     ('consumes', serial.properties.Array(item_types=(str,), versions=('openapi<3.0',))),
     ('swagger', serial.properties.String(versions=('openapi<3.0',), required=True)),
     (
         'definitions',
-        serial.properties.Object(
+        serial.properties.Property(
+            types=(Definitions,),
             versions=('openapi<3.0',)
         ),
     ),
