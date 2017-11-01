@@ -1,23 +1,20 @@
 from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function,\
     unicode_literals
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
+#
 
 import re
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 from copy import copy
 from urllib.parse import urljoin
-from urllib.request import urlopen
-
-from future import standard_library
 
 import serial
 from oapi.model import resolve_references
 from serial import meta
-from serial.model import from_meta
-from serial.utilities import class_name, get_source
+from serial.utilities import class_name, get_source, camel_split, property_name, properties_values
 
-standard_library.install_aliases()
-from builtins import *
-#
 
 from io import IOBase
 
@@ -27,75 +24,326 @@ from oapi import model, errors
 class Model(object):
 
 
-    def __init__(self, openapi, url=None):
-        # type: (Union[IOBase, str], str) -> None
-        if not isinstance(openapi, model.OpenAPI):
-            openapi = model.OpenAPI(openapi)
-        m = meta.read(openapi)
-        if url is not None:
-            m.url = url
-        self._root = openapi
+    def __init__(self, root, rename=None):
+        # type: (Union[IOBase, str], Optional[str], Optional[str], Callable) -> None
+        if not isinstance(root, model.OpenAPI):
+            root = model.OpenAPI(root)
+        self._root = root
+        self._rename = (lambda k: k) if rename is None else rename
         self._references = OrderedDict()
         self._schemas = OrderedDict()
         self._names = set()
-        self._get_schemas(self._root, (m.url or '') + '#')
+        self._models = OrderedDict()
+        self._metadata = OrderedDict()
+        self._get_models()
+
+    def _get_property(self, schema, pointer, name=None):
+        # type: (str, model.Schema, serial.model.Object) -> None
+        property = None
+        if isinstance(schema, model.Reference):
+            pointer = urljoin(pointer, schema.ref)
+            schema = self._references[pointer]
+        if (schema.any_of is not None) or (schema.one_of is not None):
+            property = serial.properties.Property()
+            types = []
+            i = 0
+            for s in schema.any_of:
+                p = self._get_property(
+                    s,
+                    pointer='%s/anyOf[%s]' % (pointer, str(i))
+                )
+                types.append(p)
+                i += 1
+            i = 0
+            for s in schema.one_of:
+                p = self._get_property(
+                    s,
+                    pointer='%s/oneOf[%s]' % (pointer, str(i))
+                )
+                types.append(p)
+                i += 1
+            property.types = tuple(types)
+        elif schema.all_of is not None:
+            property = serial.properties.Dictionary()
+            # TODO: schema.all_of
+            # i = 0
+            # for s in schema.all_of:
+            #     p = self._get_property(
+            #         s,
+            #         pointer='%s/allOf[%s]' % (pointer, str(i))
+            #     )
+            #     i += 1
+        elif schema.type_ == 'object' or schema.properties or schema.additional_properties:
+            if schema.properties:
+                # properties = schema.properties
+                # if properties:
+                #     properties_pointer = pointer + '/properties'
+                #     if isinstance(properties, model.Reference):
+                #         properties_pointer = urljoin(properties_pointer, properties.ref)
+                #         properties = self._references[properties_pointer]
+                property = serial.properties.Object()
+                if pointer in self._models:
+                    property.types = (self._models[pointer],)
+                # else:
+                #     property.types = (self._get_model(
+                #         pointer,
+                #         *self._schemas[pointer]
+                #     ))
+            elif schema.additional_properties:
+                additional_properties = schema.additional_properties
+                if additional_properties:
+                    additional_properties = schema.additional_properties
+                    additional_properties_pointer = pointer + '/additionalProperties'
+                    property = serial.properties.Dictionary()
+                    if not isinstance(additional_properties, bool):
+                        property.value_types = (
+                            self._get_property(
+                                additional_properties,
+                                pointer=additional_properties_pointer
+                            ),
+                        )
+            else:
+                property = serial.properties.Dictionary()
+        elif schema.type_ == 'array' or schema.items:
+            property = serial.properties.Array()
+            items = schema.items
+            if items:
+                item_types = []
+                if isinstance(items, serial.model.Object):
+                    item_type_property = self._get_property(
+                        items,
+                        pointer=pointer + '/items'
+                    )
+                    if (
+                        len(item_type_property.types) == 1 and
+                        not isinstance(
+                            item_type_property,
+                            (
+                                serial.properties.Date,
+                                serial.properties.DateTime,
+                                serial.properties.Array,
+                                serial.properties.Dictionary
+                            )
+                        )
+                    ):
+                        item_types = item_type_property.types
+                    else:
+                        item_types = (item_type_property,)
+                else:
+                    i = 0
+                    item_types = []
+                    for item in items:
+                        item_type_property = self._get_property(
+                            item,
+                            pointer=pointer + '/items[%s]' % str(i)
+                        )
+                        if (
+                            len(item_type_property.types) == 1 and
+                            not isinstance(
+                                item_type_property,
+                                (
+                                    serial.meta.Date,
+                                    serial.meta.DateTime,
+                                    serial.meta.Array,
+                                    serial.meta.Dictionary
+                                )
+                            )
+                        ):
+                            item_types.append(item_type_property.types[0])
+                        else:
+                            item_types.append(item_type_property)
+                property.item_types = tuple(item_types)
+        elif schema.type_ == 'number':
+            property = serial.properties.Number()
+        elif schema.type_ == 'integer':
+            property = serial.properties.Integer()
+        elif schema.type_ == 'string':
+            if schema.format_ == 'date-time':
+                property = serial.properties.DateTime()
+            elif schema.format_ == 'date':
+                property = serial.properties.Date()
+            elif schema.format_ == 'byte':
+                property = serial.properties.Bytes()
+            else:
+                property = serial.properties.String()
+        elif schema.type_ == 'boolean':
+            property = serial.properties.Boolean()
+        elif schema.type_ == 'file':
+            property = serial.properties.Bytes()
+        else:
+            raise ValueError(schema.type_)
+        if schema.enum:
+            property = serial.properties.Enum(
+                values=tuple(schema.enum),
+                types=(property,)
+            )
+        if name is not None:
+            property.name = name
+        return property
+
+    def _get_models(self):
+        # type: (int) -> None
+        root_meta = meta.read(self._root)
+        for i in range(2):
+            for pointer, name_schema in self._get_schemas(
+                self._root,
+                pointer=(root_meta.url or root_meta.path or '') + '#',
+                root=self._root
+            ).items():
+                name, schema = name_schema  # type: typing.Tuple[str, model.Schema, serial.model.Object]
+                self._get_model(pointer, name, schema)
+
+    def _get_model(self, pointer, name, schema):
+        # type: (str, model.Schema, serial.model.Object) -> None
+        if (not schema.properties) or schema.additional_properties:
+            return
+        m = serial.meta.Object()
+        for n, p in schema.properties.items():
+            pn = property_name(n)
+            if pn == 'serial':
+                pn = 'serial_'
+            property_pointer = '%s/%s' % (pointer, n)
+            m.properties[pn] = self._get_property(
+                p,
+                pointer=property_pointer,
+                name=None if pn == n else n
+            )
+            if schema.required and (n in schema.required):
+                m.properties[pn].required = True
+        self._metadata[pointer] = m
+        if len(pointer) > 116:
+            pointer_split = pointer.split('#')
+            ds = [
+                pointer_split[0] +
+                '\n#' + '#'.join(pointer_split[1:])
+            ]
+        else:
+            ds = [pointer]
+        if schema.description:
+            ds.append(schema.description)
+        self._models[pointer] = serial.model.from_meta(
+            name,
+            m,
+            docstring='\n\n'.join(ds),
+            module='__main__'
+        )
+        return self._models[pointer]
 
     def _get_schemas(
         self,
         o,  # type: Union[serial.model.Model]
         pointer,  # type: str
-        operation_id=None,  # type: Optional[str]
-        keys=None,  # type: Optional[str]
+        root,  # type: serial.model.Model
+        path_phrase=None,  # type: Optional[typing.Sequence[str]]
+        path_operation_phrase=None,  # type: Optional[typing.Sequence[str]]
+        operation_phrase=None,  # type: Optional[typing.Sequence[str]]
         types=None  # Optional[Union[type, serial.properties.Property]]
     ):
-        # type: (...) -> dict
+        # type: (...) -> typing.Dict[str, typing.Tuple[str, oapi.model.Schema]]
+        pre = re.compile(r'{(?:[^{}]+)}')
         if pointer in self._references:
             return self._schemas
-        if keys is None:
-            keys = []
+        path_phrase = path_phrase or []
+        path_operation_phrase = path_operation_phrase or []
+        operation_phrase = operation_phrase or []
         if isinstance(o, model.Reference):
-            operation_id = None
-            keys = [o.ref.split('/')[-1]]
+            path_phrase = []
+            path_operation_phrase = []
+            operation_phrase = []
+            reference_parts = pre.split(o.ref.split('/')[-1])
+            before_arguments = '/'.join(reference_parts[:-1])
+            after_arguments = reference_parts[-1]
+            if before_arguments:
+                for p in re.split(r'[/\-]', before_arguments):
+                    if p[-1] == 's':
+                        if p[-3:] == 'ies':
+                            p = p[:-3] + 'y'
+                        else:
+                            p = p[:-1]
+                    for w in camel_split(p):
+                        path_phrase.append(w)
+                        path_operation_phrase.append(w)
+            for p in re.split(r'[/\-]', after_arguments):
+                for w in camel_split(p):
+                    path_phrase.append(w)
+                    path_operation_phrase.append(w)
             pointer = urljoin(pointer, o.ref)
             if pointer in self._references:
                 return self._schemas
-            o = model.resolve_references(o, root=self._root, recursive=False)
+            o = model.resolve_references(o, root=root, recursive=False)
+            m = serial.meta.read(o)
+            if m.url or m.path:
+                root = o
+                pointer = (m.url or m.path) + '#'
             if types:
                 o = serial.model.unmarshal(o, types=types)
-            self._references[pointer] = o
+        self._references[pointer] = o
         if hasattr(o, 'operation_id') and (o.operation_id is not None):
-            operation_id = o.operation_id
+            operation_phrase = []
+            path_operation_phrase = []
+            for w in camel_split(o.operation_id):
+                operation_phrase.append(w)
+                path_operation_phrase.append(w)
         if isinstance(o, model.Schema):
             if pointer in self._schemas:
                 return self._schemas
-            if o.type_ == 'object':
-                if keys:
-                    key = '/'.join(keys)
-                    pre = re.compile(r'{([^{}]+)}')
-                    if pre.search(key):
-                        key = pre.sub('', key)
-                        if key[-3:].lower() == 'ies':
-                            key = key[:-3] + 'y'
-                        elif key[-1].lower() == 's':
-                            key = key[:-1]
-                    cn = class_name(key)
-                    if cn in self._names:
-                        oid_cn = class_name(operation_id)
-                        if oid_cn in self._names:
-                            ucn = cn
-                            i = 1
-                            while ucn in self._names:
-                                ucn = cn + str(i)
-                                i += 1
-                            cn = ucn
-                        else:
-                            cn = class_name(oid_cn)
-                    self._names.add(cn)
+            if o.type_ == 'object' or o.properties:
+                if path_phrase:
+                    name = None
+                    phrases = []
+                    if path_phrase:
+                        phrases.append(path_phrase)
+                    if operation_phrase:
+                        phrases.append(operation_phrase)
+                    if path_operation_phrase:
+                        phrases.append(path_operation_phrase)
+                    for redundant_placement in (1, 2, 3):
+                        for phrase in phrases:
+                            title = []
+                            for word in phrase:
+                                word = word.casefold()
+                                if redundant_placement == 3:
+                                    title.append(word)
+                                else:
+                                    sk = word
+                                    ks = None
+                                    if word[-3:] == 'ies':
+                                        sk = word[:-3] + 'y'
+                                        ks = word
+                                    elif word[-1] == 'y':
+                                        ks = sk = word[:-1] + 'ies'
+                                    elif word[-1] == 's':
+                                        sk = word[:-1]
+                                        ks = word
+                                    if word in title:
+                                        if redundant_placement == 2:
+                                            title.remove(word)
+                                            title.append(word)
+                                    elif (word not in title) and (sk not in title):
+                                        title.append(word)
+                                    elif (ks is not None) and ks == word and (ks not in title) and (sk in title):
+                                        if redundant_placement == 1:
+                                            title[title.index(sk)] = ks
+                                        else:
+                                            title.remove(sk)
+                                            title.append(ks)
+                            name = self._rename(class_name('/'.join(title)), self._names)
+                            if name and (name not in self._names):
+                                break
+                        if name and (name not in self._names):
+                            break
+                    unique_name = name
+                    i = 1
+                    while unique_name in self._names:
+                        unique_name = name + str(i)
+                        i += 1
+                        name = unique_name
+                    self._names.add(name)
                 else:
-                    cn = None
-                self._schemas[pointer] = (cn, o)
-            # else:
-            #    return self._schemas
+                    name = None
+                self._schemas[pointer] = (name, o)
+            else:
+               return self._schemas
         if not isinstance(o, serial.model.Model):
             return self._schemas
         m = meta.read(o)
@@ -108,22 +356,49 @@ class Model(object):
                     self._get_schemas(
                         v,
                         p,
+                        root=root,
                         types=m.value_types,
-                        operation_id=operation_id,
-                        keys=copy(keys)
+                        path_phrase=copy(path_phrase),
+                        path_operation_phrase=copy(path_operation_phrase),
+                        operation_phrase=copy(operation_phrase),
                     )
                 elif isinstance(v, (serial.model.Dictionary, serial.model.Array, serial.model.Object)):
-                    value_keys = copy(keys)
-                    if isinstance(o, model.Paths):
-                        value_keys = [k]
-                    elif not isinstance(o, model.Responses):
-                        value_keys.append(k)
+                    item_path_operation_phrase = copy(path_operation_phrase)
+                    item_path_phrase = copy(path_phrase)
+                    item_operation_phrase = copy(operation_phrase)
+                    if isinstance(o, model.Paths) or (not isinstance(o, model.Responses)):
+                        epilogue = []
+                        phrase = k
+                        phrase_parts = pre.split(phrase)
+                        before_arguments = '/'.join(phrase_parts[:-1])
+                        after_arguments = phrase_parts[-1]
+                        if before_arguments:
+                            for phrase_part in re.split(r'[/\-]', before_arguments):
+                                for word in camel_split(phrase_part):
+                                    if len(word) > 0 and word[-1] == 's':
+                                        if word[-3:] == 'ies':
+                                            word = word[:-3] + 'y'
+                                        else:
+                                            word = word[:-1]
+                                    epilogue.append(word)
+                        for phrase_part in re.split(r'[/\-]', after_arguments):
+                            for word in camel_split(phrase_part):
+                                epilogue.append(word)
+                        if isinstance(o, model.Paths):
+                            item_path_phrase = epilogue
+                            item_path_operation_phrase = copy(epilogue)
+                            item_operation_phrase = []
+                        elif not isinstance(o, model.Responses):
+                            item_path_phrase += epilogue
+                            item_path_operation_phrase += epilogue
                     self._get_schemas(
                         v,
                         p,
+                        root=root,
                         types=m.value_types,
-                        operation_id=operation_id,
-                        keys=value_keys
+                        path_phrase=item_path_phrase,
+                        path_operation_phrase=item_path_operation_phrase,
+                        operation_phrase=item_operation_phrase,
                     )
         elif isinstance(o, serial.model.Array):
             for i in range(len(o)):
@@ -135,9 +410,11 @@ class Model(object):
                     self._get_schemas(
                         v,
                         p,
+                        root=root,
                         types=m.item_types,
-                        operation_id=operation_id,
-                        keys=copy(keys)
+                        path_phrase=copy(path_phrase),
+                        path_operation_phrase=copy(path_operation_phrase),
+                        operation_phrase=copy(operation_phrase),
                     )
         elif isinstance(o, serial.model.Object):
             object_properties = tuple(m.properties.items())
@@ -153,43 +430,73 @@ class Model(object):
                     p = '%s/%s' % (pointer, n.replace('~', '~0').replace('/', '~1'))
                     if p in self._references:
                         return self._schemas
-                    property_keys = copy(keys)
-                    # if isinstance(v, model.Operation):
-                    #     property_keys.append(n)
                     if isinstance(v, (serial.model.Dictionary, serial.model.Array, serial.model.Object)):
                         self._get_schemas(
                             v,
                             p,
+                            root=root,
                             types=(property,),
-                            operation_id=operation_id,
-                            keys=property_keys
+                            path_phrase=(
+                                [name]
+                                if isinstance(v, model.Operation) and isinstance(o, model.PathItem) else
+                                []
+                            ) + copy(path_phrase),
+                            path_operation_phrase=copy(path_operation_phrase),
+                            operation_phrase=copy(operation_phrase),
                         )
+        else:
+            raise TypeError(o)
         return self._schemas
 
     def __str__(self):
         lines = [
             'from __future__ import nested_scopes, generators, division, absolute_import, with_statement,\\',
             'print_function, unicode_literals',
-            'from urllib.request import urlopen',
             'from future import standard_library',
             '',
             'standard_library.install_aliases()',
             '',
             'from builtins import *',
-            '#',
-            'from serial import model, meta, properties'
+            '',
+            'import serial',
+            '',
+            'try:',
+            '    import typing',
+            '    from typing import Union, Dict, Any',
+            'except ImportError:',
+            '    typing = Union = Any = None',
             '',
             ''
         ]
-        return ''.join(lines)
+        for p, m in self._models.items():
+            # if len(p) > 118:
+            #     pointer_split = p.split('#')
+            #     lines.append('# ' + pointer_split[0])
+            #     lines.append('# #' + '#'.join(pointer_split[1:]))
+            # else:
+            #     lines.append('# ' + p)
+            lines.append(get_source(m))
+        for pointer, metadata in self._metadata.items():
+            cn = self._schemas[pointer][0]
+            if len(pointer) > 118:
+                pointer_split = pointer.split('#')
+                lines.append('# ' + pointer_split[0])
+                lines.append('# #' + '#'.join(pointer_split[1:]))
+            else:
+                lines.append('# ' + pointer)
+            for p, v in properties_values(metadata):
+                if v is not None:
+                    v = repr(v)
+                    if v[:23] == 'serial.meta.Properties(':
+                        v = v[23:-1]
+                    lines.append(
+                        'serial.meta.writable(%s).%s = %s' % (
+                            cn, p, v
+                        )
+                    )
+            lines.append('')
+        return '\n'.join(lines)
 
 
 if __name__ == '__main__':
-    # print(urljoin('http://www.google.com/tacos#/so/bad', '#/so/good'))
-    # print(get_source(from_meta('OpenAPI2', meta.read(model.OpenAPI))))
-    with urlopen('http://devdocs.magento.com/swagger/schemas/latest-2.2.schema.json') as response:
-        m = Model(response)
-        for k, v in m._schemas.items():
-            print(repr(k))
-            print(repr(v[0]))
-            print()
+    pass

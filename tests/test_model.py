@@ -130,7 +130,7 @@ def test_logic_broker_schemas():
 
 
 if __name__ == '__main__':
-    # test_openapi_examples()
+    test_openapi_examples()
     test_magento_schemas()
     test_logic_broker_schemas()
 

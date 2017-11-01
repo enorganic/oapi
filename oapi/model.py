@@ -1184,6 +1184,7 @@ _header_meta.properties['type_'].values = (
     'string',
     'boolean'
 )
+_header_meta.properties['items'].types = (Items,)
 _header_meta.properties['items'].required = lambda o: True if o.type_ == 'array' else False
 _header_meta.properties['required'].versions = ('openapi>=3.0',)
 _header_meta.properties['deprecated'].versions = ('openapi>=3.0',)
@@ -1898,7 +1899,7 @@ meta.writable(SecurityScheme).properties = [
     ('bearer_format', serial.properties.String(name='bearerFormat')),
     (
         'flows',
-        serial.properties.Object(
+        serial.properties.Property(
             types=(OAuthFlows,),
             required=lambda o: True if o.type_ == 'oauth2' else False,
             versions=('openapi>=3.0',)
@@ -1952,7 +1953,7 @@ meta.writable(SecurityScheme).properties = [
     )
 ]
 
-meta.writable(Schema).properties = [
+meta.writable(Schema).properties = [    
     ('title', serial.properties.String()),
     ('description', serial.properties.String()),
     ('multiple_of', serial.properties.Number(name='multipleOf')),
@@ -1981,7 +1982,13 @@ meta.writable(Schema).properties = [
     ('max_properties', serial.properties.Integer(name='maxProperties')),
     ('min_properties', serial.properties.Integer(name='minProperties')),
     ('properties', serial.properties.Property(types=(Properties,))),
-    ('additional_properties', serial.properties.Object(name='additionalProperties')),
+    (
+        'additional_properties',
+        serial.properties.Property(
+            types=(Reference, Schema, bool),
+            name='additionalProperties'
+        )
+    ),
     ('enum', serial.properties.Array()),
     (
         'type_',
@@ -2051,7 +2058,7 @@ meta.writable(Schema).properties = [
                     types=(Discriminator,),
                     versions=('openapi>=3.0',),
                 ),
-                serial.properties.Object(
+                serial.properties.Property(
                     types=(str,),
                     versions=('openapi<3.0',)
                 )
