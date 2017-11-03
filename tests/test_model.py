@@ -1,13 +1,13 @@
-from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function,\
-    unicode_literals
+# region Backwards Compatibility
+from __future__ import absolute_import, division, generators, nested_scopes, print_function, unicode_literals, \
+    with_statement
+
 from future import standard_library
-from future.utils import native_str
 
 standard_library.install_aliases()
 from builtins import *
-
-#
-
+from future.utils import native_str
+# endregion
 import os
 from itertools import chain
 from urllib.parse import urljoin

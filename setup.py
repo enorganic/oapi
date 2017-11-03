@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='oapi',
 
-    version='0.0.5',
+    version='0.0.6',
 
     description='An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications.',
 

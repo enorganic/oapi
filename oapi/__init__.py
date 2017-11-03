@@ -1,9 +1,10 @@
+# Backwards Compatibility ->
 from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function,\
     unicode_literals
 from future import standard_library
 standard_library.install_aliases()
 from builtins import *
-#
+# <- Backwards Compatibility
 
 import re
 from collections import OrderedDict
@@ -15,7 +16,7 @@ from oapi.model import resolve_references
 from serial import meta
 from serial.utilities import class_name, get_source, camel_split, property_name, properties_values
 
-
+from itertools import chain
 from io import IOBase
 
 from oapi import model, errors
@@ -31,11 +32,23 @@ class Model(object):
         self._root = root
         self._rename = (lambda k: k) if rename is None else rename
         self._references = OrderedDict()
-        self._schemas = OrderedDict()
+        self._pointers_schemas = OrderedDict()
+        self._names_models = OrderedDict()
         self._names = set()
-        self._models = OrderedDict()
-        self._metadata = OrderedDict()
+        self._pointers_models = OrderedDict()
+        self._pointers_meta = OrderedDict()
         self._get_models()
+
+    def __getattr__(self, name):
+        # type: (str) -> type
+        return self._names_models[name]
+
+    @property
+    def __all__(self):
+        return tuple(self._names_models.keys())
+
+    def __dir__(self):
+        return self.__all__
 
     def _get_property(self, schema, pointer, name=None):
         # type: (str, model.Schema, serial.model.Object) -> None
@@ -75,20 +88,9 @@ class Model(object):
             #     i += 1
         elif schema.type_ == 'object' or schema.properties or schema.additional_properties:
             if schema.properties:
-                # properties = schema.properties
-                # if properties:
-                #     properties_pointer = pointer + '/properties'
-                #     if isinstance(properties, model.Reference):
-                #         properties_pointer = urljoin(properties_pointer, properties.ref)
-                #         properties = self._references[properties_pointer]
                 property = serial.properties.Object()
-                if pointer in self._models:
-                    property.types = (self._models[pointer],)
-                # else:
-                #     property.types = (self._get_model(
-                #         pointer,
-                #         *self._schemas[pointer]
-                #     ))
+                if pointer in self._pointers_models:
+                    property.types = (self._pointers_models[pointer],)
             elif schema.additional_properties:
                 additional_properties = schema.additional_properties
                 if additional_properties:
@@ -179,6 +181,8 @@ class Model(object):
             )
         if name is not None:
             property.name = name
+        if schema.nullable:
+            property.types = tuple(chain(property.types, (serial.properties.Null,)))
         return property
 
     def _get_models(self):
@@ -191,7 +195,7 @@ class Model(object):
                 root=self._root
             ).items():
                 name, schema = name_schema  # type: typing.Tuple[str, model.Schema, serial.model.Object]
-                self._get_model(pointer, name, schema)
+                self._names_models[name] = self._get_model(pointer, name, schema)
 
     def _get_model(self, pointer, name, schema):
         # type: (str, model.Schema, serial.model.Object) -> None
@@ -210,7 +214,7 @@ class Model(object):
             )
             if schema.required and (n in schema.required):
                 m.properties[pn].required = True
-        self._metadata[pointer] = m
+        self._pointers_meta[pointer] = m
         if len(pointer) > 116:
             pointer_split = pointer.split('#')
             ds = [
@@ -221,13 +225,13 @@ class Model(object):
             ds = [pointer]
         if schema.description:
             ds.append(schema.description)
-        self._models[pointer] = serial.model.from_meta(
+        self._pointers_models[pointer] = serial.model.from_meta(
             name,
             m,
             docstring='\n\n'.join(ds),
             module='__main__'
         )
-        return self._models[pointer]
+        return self._pointers_models[pointer]
 
     def _get_schemas(
         self,
@@ -242,7 +246,7 @@ class Model(object):
         # type: (...) -> typing.Dict[str, typing.Tuple[str, oapi.model.Schema]]
         pre = re.compile(r'{(?:[^{}]+)}')
         if pointer in self._references:
-            return self._schemas
+            return self._pointers_schemas
         path_phrase = path_phrase or []
         path_operation_phrase = path_operation_phrase or []
         operation_phrase = operation_phrase or []
@@ -269,7 +273,7 @@ class Model(object):
                     path_operation_phrase.append(w)
             pointer = urljoin(pointer, o.ref)
             if pointer in self._references:
-                return self._schemas
+                return self._pointers_schemas
             o = model.resolve_references(o, root=root, recursive=False)
             m = serial.meta.read(o)
             if m.url or m.path:
@@ -285,8 +289,8 @@ class Model(object):
                 operation_phrase.append(w)
                 path_operation_phrase.append(w)
         if isinstance(o, model.Schema):
-            if pointer in self._schemas:
-                return self._schemas
+            if pointer in self._pointers_schemas:
+                return self._pointers_schemas
             if o.type_ == 'object' or o.properties:
                 if path_phrase:
                     name = None
@@ -301,7 +305,7 @@ class Model(object):
                         for phrase in phrases:
                             title = []
                             for word in phrase:
-                                word = word.casefold()
+                                word = word.lower()
                                 if redundant_placement == 3:
                                     title.append(word)
                                 else:
@@ -341,14 +345,17 @@ class Model(object):
                     self._names.add(name)
                 else:
                     name = None
-                self._schemas[pointer] = (name, o)
+                self._pointers_schemas[pointer] = (name, o)
             else:
-               return self._schemas
+               return self._pointers_schemas
         if not isinstance(o, serial.model.Model):
-            return self._schemas
+            return self._pointers_schemas
         m = meta.read(o)
         if isinstance(o, serial.model.Dictionary):
-            for k, v in o.items():
+            items = o.items()
+            if isinstance(o, model.Paths):
+                items = sorted(items, key=lambda kv: len(kv[0]))
+            for k, v in items:
                 p = '%s/%s' % (pointer, k.replace('~', '~0').replace('/', '~1'))
                 if p in self._references:
                     continue
@@ -405,7 +412,7 @@ class Model(object):
                 v = o[i]
                 p = '%s[%s]' % (pointer, str(i))
                 if p in self._references:
-                    return self._schemas
+                    return self._pointers_schemas
                 if isinstance(v, (serial.model.Dictionary, serial.model.Array, serial.model.Object)):
                     self._get_schemas(
                         v,
@@ -421,7 +428,7 @@ class Model(object):
             if isinstance(o, model.OpenAPI):
                 object_properties = sorted(
                     object_properties,
-                    key=lambda kv: 1 if kv[0] in ('components', 'definitions') else 0
+                    key=lambda kv: 0 if kv[0] in ('components', 'definitions') else 0
                 )
             for name, property in object_properties:
                 v = getattr(o, name)
@@ -429,7 +436,7 @@ class Model(object):
                     n = property.name or name
                     p = '%s/%s' % (pointer, n.replace('~', '~0').replace('/', '~1'))
                     if p in self._references:
-                        return self._schemas
+                        return self._pointers_schemas
                     if isinstance(v, (serial.model.Dictionary, serial.model.Array, serial.model.Object)):
                         self._get_schemas(
                             v,
@@ -446,17 +453,17 @@ class Model(object):
                         )
         else:
             raise TypeError(o)
-        return self._schemas
+        return self._pointers_schemas
 
     def __str__(self):
         lines = [
+            '# region Backwards Compatibility',
             'from __future__ import nested_scopes, generators, division, absolute_import, with_statement,\\',
             'print_function, unicode_literals',
             'from future import standard_library',
-            '',
             'standard_library.install_aliases()',
-            '',
             'from builtins import *',
+            '# endregion',
             '',
             'import serial',
             '',
@@ -468,16 +475,10 @@ class Model(object):
             '',
             ''
         ]
-        for p, m in self._models.items():
-            # if len(p) > 118:
-            #     pointer_split = p.split('#')
-            #     lines.append('# ' + pointer_split[0])
-            #     lines.append('# #' + '#'.join(pointer_split[1:]))
-            # else:
-            #     lines.append('# ' + p)
+        for p, m in self._pointers_models.items():
             lines.append(get_source(m))
-        for pointer, metadata in self._metadata.items():
-            cn = self._schemas[pointer][0]
+        for pointer, metadata in self._pointers_meta.items():
+            cn = self._pointers_schemas[pointer][0]
             if len(pointer) > 118:
                 pointer_split = pointer.split('#')
                 lines.append('# ' + pointer_split[0])
