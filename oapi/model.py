@@ -1953,7 +1953,7 @@ meta.writable(SecurityScheme).properties = [
     )
 ]
 
-meta.writable(Schema).properties = [    
+meta.writable(Schema).properties = [
     ('title', serial.properties.String()),
     ('description', serial.properties.String()),
     ('multiple_of', serial.properties.Number(name='multipleOf')),

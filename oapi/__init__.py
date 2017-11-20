@@ -51,7 +51,7 @@ class Model(object):
         return self.__all__
 
     def _get_property(self, schema, pointer, name=None):
-        # type: (str, model.Schema, serial.model.Object) -> None
+        # type: (str, model.Schema, serial.model.Object) -> serial.properties.Property
         property = None
         if isinstance(schema, model.Reference):
             pointer = urljoin(pointer, schema.ref)
@@ -59,22 +59,24 @@ class Model(object):
         if (schema.any_of is not None) or (schema.one_of is not None):
             property = serial.properties.Property()
             types = []
-            i = 0
-            for s in schema.any_of:
-                p = self._get_property(
-                    s,
-                    pointer='%s/anyOf[%s]' % (pointer, str(i))
-                )
-                types.append(p)
-                i += 1
-            i = 0
-            for s in schema.one_of:
-                p = self._get_property(
-                    s,
-                    pointer='%s/oneOf[%s]' % (pointer, str(i))
-                )
-                types.append(p)
-                i += 1
+            if schema.any_of is not None:
+                i = 0
+                for s in schema.any_of:
+                    p = self._get_property(
+                        s,
+                        pointer='%s/anyOf[%s]' % (pointer, str(i))
+                    )
+                    types.append(p)
+                    i += 1
+            if schema.one_of is not None:
+                i = 0
+                for s in schema.one_of:
+                    p = self._get_property(
+                        s,
+                        pointer='%s/oneOf[%s]' % (pointer, str(i))
+                    )
+                    types.append(p)
+                    i += 1
             property.types = tuple(types)
         elif schema.all_of is not None:
             property = serial.properties.Dictionary()
