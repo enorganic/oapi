@@ -29,6 +29,7 @@ class Model(object):
         # type: (Union[IOBase, str], Optional[str], Optional[str], Callable) -> None
         if not isinstance(root, model.OpenAPI):
             root = model.OpenAPI(root)
+        self._major_version = int((root.swagger or root.openapi).split('.')[0].strip())
         self._root = root
         self._rename = (lambda k: k) if rename is None else rename
         self._references = OrderedDict()
@@ -50,8 +51,8 @@ class Model(object):
     def __dir__(self):
         return self.__all__
 
-    def _get_property(self, schema, pointer, name=None):
-        # type: (str, model.Schema, serial.model.Object) -> serial.properties.Property
+    def _get_property(self, schema, pointer, name=None, required=None):
+        # type: (str, model.Schema, serial.model.Object, Optional[bool]) -> serial.properties.Property
         property = None
         if isinstance(schema, model.Reference):
             pointer = urljoin(pointer, schema.ref)
@@ -183,8 +184,19 @@ class Model(object):
             )
         if name is not None:
             property.name = name
-        if schema.nullable:
-            property.types = tuple(chain(property.types, (serial.properties.Null,)))
+        if (
+            schema.nullable or
+            # Swagger/OpenAPI versions prior to 3.0 do not support `nullable`, so it must be assumed that
+            # null values are acceptable for required attributes
+            ((self._major_version < 3) and (required is True))
+        ):
+            if schema.nullable is not False:
+                property = serial.properties.Property(
+                    types=(property, serial.properties.Null)
+                )
+            # property.types = tuple(chain(property.types, (serial.properties.Null,)))
+        if required is not None:
+            property.required = required
         return property
 
     def _get_models(self):
@@ -212,10 +224,25 @@ class Model(object):
             m.properties[pn] = self._get_property(
                 p,
                 pointer=property_pointer,
-                name=None if pn == n else n
+                name=None if pn == n else n,
+                required=True if (schema.required and (n in schema.required)) else False
             )
-            if schema.required and (n in schema.required):
-                m.properties[pn].required = True
+            # if schema.required and (n in schema.required):
+            #     m.properties[pn].required = True
+            # elif (
+            #     self._major_version < 3 and
+            #     (serial.properties.Null in m.properties[pn].types)
+            # ):
+            #     types = tuple(
+            #         t for t in m.properties[pn].types
+            #         if t is not serial.properties.Null
+            #     )
+            #     if len(types) > 1 or (
+            #         type(m.properties[pn]) is not serial.properties.Property
+            #     ):
+            #         m.properties[pn].types = types
+            #     elif len(types) == 1:
+            #         m.properties[pn] = types[0]
         self._pointers_meta[pointer] = m
         if len(pointer) > 116:
             pointer_split = pointer.split('#')
