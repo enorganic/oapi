@@ -191,8 +191,13 @@ class Model(object):
             ((self._major_version < 3) and (required is True))
         ):
             if schema.nullable is not False:
+                name, required, versions = property.name, property.required, property.versions
+                property.name = property.required = property.versions = None
                 property = serial.properties.Property(
-                    types=(property, serial.properties.Null)
+                    types=(property, serial.properties.Null),
+                    name=name,
+                    required=required,
+                    versions=versions
                 )
             # property.types = tuple(chain(property.types, (serial.properties.Null,)))
         if required is not None:
