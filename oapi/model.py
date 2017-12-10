@@ -42,7 +42,7 @@ def resolve_references(
     url=None,  # type: Optional[str]
     urlopen=request.urlopen,  # type: Union[typing.Callable, Sequence[typing.Callable]]
     recursive=True, # type: False
-    root=None,  # type: Optional[Union[Object, Dictionary, Array]]
+    root=None,  # type: Optional[Union[serial.model.Model, dict, Sequence]]
     _references=None,  # type: Optional[typing.Dict[str, Union[Object, Dictionary, Array]]]
     _recurrence=False  # type: bool
 ):
@@ -143,7 +143,6 @@ def resolve_references(
                     # ref_data = deepcopy(_references[ref_url_pointer])
                     ref_data = _references[ref_url_pointer]
             else:
-                # ref_data = deepcopy(resolve_pointer(ref_document, ref_pointer))
                 ref_data = resolve_pointer(ref_document, ref_pointer)
                 if types:
                     ref_data = serial.model.unmarshal(ref_data, types)
@@ -167,12 +166,7 @@ def resolve_references(
     if url is None:
         r = root or data
         if isinstance(r, (serial.model.Object, serial.model.Array, serial.model.Dictionary)):
-            rm = meta.read(r)
-            if rm.url:
-                url = rm.url
-            elif rm.path:
-                url = rm.path
-                urlopen = open
+            url = meta.url(r)
     if not _recurrence:
         data = deepcopy(data)
         # if root is not None:
@@ -245,7 +239,7 @@ class Reference(Object):
         self.ref = ref
         if _ is not None:
             if isinstance(_, HTTPResponse):
-                meta.writable(self).url = _.url
+                meta.url(self, _.url)
             if isinstance(_, (dict, str)):
                 _ = deserialize(_)
                 keys = set(_.keys())

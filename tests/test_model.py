@@ -41,26 +41,26 @@ def test_openapi_examples():
         'v2.0/yaml/petstore.yaml',
         'v2.0/yaml/uber.yaml',
     )
-    for rp in examples:
-        url = urljoin('https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/', rp)
-        print(url)
-        with urlopen(url) as response:
-            oa = OpenAPI(response)
-            serial.test.json_object(oa)
-            oa2 = resolve_references(oa)
-            try:
-                assert '$ref' not in serial.model.serialize(oa2)
-            except AssertionError as e:
-                if e.args:
-                    e.args = tuple(chain(
-                        (e.args[0] + '\n' + repr(oa2),),
-                        e.args[1:]
-                    ))
-                else:
-                    e.args = (repr(oa2),)
-                raise e
-            if oa2 != oa:
-                serial.test.json_object(oa2)
+    # for rp in examples:
+    #     url = urljoin('https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/', rp)
+    #     print(url)
+    #     with urlopen(url) as response:
+    #         oa = OpenAPI(response)
+    #         serial.test.json_object(oa)
+    #         oa2 = resolve_references(oa)
+    #         try:
+    #             assert '$ref' not in serial.model.serialize(oa2)
+    #         except AssertionError as e:
+    #             if e.args:
+    #                 e.args = tuple(chain(
+    #                     (e.args[0] + '\n' + repr(oa2),),
+    #                     e.args[1:]
+    #                 ))
+    #             else:
+    #                 e.args = (repr(oa2),)
+    #             raise e
+    #         if oa2 != oa:
+    #             serial.test.json_object(oa2)
     for rp in examples:
         p = os.path.join(
             os.path.dirname(__file__),

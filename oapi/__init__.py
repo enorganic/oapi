@@ -309,10 +309,11 @@ class Model(object):
             if pointer in self._references:
                 return self._pointers_schemas
             o = model.resolve_references(o, root=root, recursive=False)
-            m = serial.meta.read(o)
-            if m.url or m.path:
+            u = serial.meta.url(o)
+            # m = serial.meta.read(o)
+            if u:
                 root = o
-                pointer = (m.url or m.path) + '#'
+                pointer = u + '#'
             if types:
                 o = serial.model.unmarshal(o, types=types)
         self._references[pointer] = o
