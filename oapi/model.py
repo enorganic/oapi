@@ -31,7 +31,7 @@ except ImportError:
 
 import serial
 from serial import meta, hooks
-from serial.model import deserialize, serialize, Object, Array, Dictionary
+from serial.model import deserialize, serialize, Object, Array, Dictionary, detect_format
 
 from oapi.errors import ReferenceLoopError
 from serial.utilities import qualified_name
@@ -108,7 +108,7 @@ def resolve_references(
                 ref_document = _references[ref_document_url]
             else:
                 try:
-                    ref_document = deserialize(urlopen(ref_document_url))
+                    ref_document, f = detect_format(urlopen(ref_document_url))
                 except HTTPError as http_error:
                     http_error.msg = http_error.msg + ': ' + ref_document_url
                     raise http_error
@@ -241,7 +241,7 @@ class Reference(Object):
             if isinstance(_, HTTPResponse):
                 meta.url(self, _.url)
             if isinstance(_, (dict, str)):
-                _ = deserialize(_)
+                _, f = detect_format(_)
                 keys = set(_.keys())
                 if ('$ref' in keys) and (_['$ref'] is not None):
                     for k in keys - {'$ref'}:
