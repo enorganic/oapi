@@ -207,10 +207,11 @@ class Model(object):
     def _get_models(self):
         # type: (int) -> None
         root_meta = meta.read(self._root)
+        url = meta.url(self._root)
         for i in range(2):
             for pointer, name_schema in self._get_schemas(
                 self._root,
-                pointer=(root_meta.url or root_meta.path or '') + '#',
+                pointer=(url or '') + '#',
                 root=self._root
             ).items():
                 name, schema = name_schema  # type: typing.Tuple[str, model.Schema, serial.model.Object]
