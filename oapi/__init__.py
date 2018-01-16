@@ -31,7 +31,7 @@ class Model(object):
             root = model.OpenAPI(root)
         self._major_version = int((root.swagger or root.openapi).split('.')[0].strip())
         self._root = root
-        self._rename = (lambda k: k) if rename is None else rename
+        self._rename = rename
         self._references = OrderedDict()
         self._pointers_schemas = OrderedDict()
         self._names_models = OrderedDict()
@@ -341,7 +341,8 @@ class Model(object):
                         for phrase in phrases:
                             title = []
                             for word in phrase:
-                                word = word.lower()
+                                if len(word) == 1 or word.upper() != word:
+                                    word = word.lower()
                                 if redundant_placement == 3:
                                     title.append(word)
                                 else:
@@ -367,7 +368,9 @@ class Model(object):
                                         else:
                                             title.remove(sk)
                                             title.append(ks)
-                            name = self._rename(class_name('/'.join(title)), self._names)
+                            name = class_name('/'.join(title))
+                            if self._rename is not None:
+                                name = self._rename(name, self._names)
                             if name and (name not in self._names):
                                 break
                         if name and (name not in self._names):

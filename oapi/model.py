@@ -1106,16 +1106,22 @@ meta.writable(Parameter).properties = [
     (
         'format_',
         serial.properties.Enum(
-            values=lambda o: (
-                None
-                if o is None else
-                ('int32', 'int64')
-                if o.type_ == 'integer' else
-                ('float', 'double')
-                if o.type_ == 'number' else
-                ('byte', 'binary', 'date', 'date-time', 'password')
-                if o.type_ == 'string'
-                else tuple()
+            types=(str,),
+            # values=lambda o: (
+            #     None
+            #     if o is None else
+            #     ('int32', 'int64')
+            #     if o.type_ == 'integer' else
+            #     ('float', 'double')
+            #     if o.type_ == 'number' else
+            #     ('byte', 'binary', 'date', 'date-time', 'password')
+            #     if o.type_ == 'string'
+            #     else tuple()
+            # ),
+            values=(
+                'int32', 'int64',  # type_ == 'integer'
+                'float', 'double',  # type_ == 'number'
+                'byte', 'binary', 'date', 'date-time', 'password',  # type_ == 'string'
             ),
             name='format',
             versions=('openapi<3.0')
@@ -1154,9 +1160,37 @@ def _parameter_after_validate(o):
         )
     if (o.content is not None) and (o.schema is not None):
         raise serial.errors.ValidationError(
-            'An instance of `oapi.model.%s` may have a `schema` property or a `content` ' % qualified_name(type(o))+
+            'An instance of `oapi.model.%s` may have a `schema` property or a `content` ' % qualified_name(type(o)) +
             'property, but not *both*:\n' + repr(o)
         )
+    if o.type_ == 'integer' and (
+        o.format_ not in ('int32', 'int64', None)
+    ):
+        qn = qualified_name(type(o))
+        raise serial.errors.ValidationError(
+            '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
+            '`oapi.model.%s.format_` may be "int32" or "int64" when ' % qn +
+            '`oapi.model.%s.type_` is "integer".' % (qn, )
+        )
+    elif o.type_ == 'number' and (
+        o.format_ not in ('float', 'double', None)
+    ):
+        qn = qualified_name(type(o))
+        raise serial.errors.ValidationError(
+            '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
+            '`oapi.model.%s.format_` may be "float" or "double" when ' % qn +
+            '`oapi.model.%s.type_` is "number".' % (qn, )
+        )
+    elif o.type_ == 'string' and (
+        o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
+    ):
+        qn = qualified_name(type(o))
+        raise serial.errors.ValidationError(
+            '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
+            '`oapi.model.%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
+            '`oapi.model.%s.type_` is "string".' % (qn, )
+        )
+    return o
 
 
 hooks.writable(Parameter).after_validate = _parameter_after_validate
@@ -2021,17 +2055,23 @@ meta.writable(Schema).properties = [
     (
         'format_',
         serial.properties.Enum(
-            values=lambda o: (
-                None
-                if o is None else
-                ('int32', 'int64')
-                if o.type_ == 'integer' else
-                ('float', 'double')
-                if o.type_ == 'number' else
-                ('byte', 'binary', 'date', 'date-time', 'password')
-                if o.type_ == 'string'
-                else tuple()
+            types=(str,),
+            values=(
+                'int32', 'int64',
+                'float', 'double',
+                'byte', 'binary', 'date', 'date-time', 'password'
             ),
+            # values=lambda o: (
+            #     None
+            #     if o is None else
+            #     ('int32', 'int64')
+            #     if o.type_ == 'integer' else
+            #     ('float', 'double')
+            #     if o.type_ == 'number' else
+            #     ('byte', 'binary', 'date', 'date-time', 'password')
+            #     if o.type_ == 'string'
+            #     else tuple()
+            # ),
             name='format'
         )
     ),
@@ -2068,6 +2108,41 @@ meta.writable(Schema).properties = [
     ('links', serial.properties.Array(item_types=(Link,))),
     ('nullable', serial.properties.Boolean(versions=('openapi>=3.0',)))
 ]
+
+
+def _schema_after_validate(o):
+    # type: (Schema) -> Schema
+    if o.type_ == 'integer' and (
+        o.format_ not in ('int32', 'int64', None)
+    ):
+        qn = qualified_name(type(o))
+        raise serial.errors.ValidationError(
+            '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
+            '`oapi.model.%s.format_` may be "int32" or "int64" when ' % qn +
+            '`oapi.model.%s.type_` is "integer".' % (qn, )
+        )
+    elif o.type_ == 'number' and (
+        o.format_ not in ('float', 'double', None)
+    ):
+        qn = qualified_name(type(o))
+        raise serial.errors.ValidationError(
+            '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
+            '`oapi.model.%s.format_` may be "float" or "double" when ' % qn +
+            '`oapi.model.%s.type_` is "number".' % (qn, )
+        )
+    elif o.type_ == 'string' and (
+        o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
+    ):
+        qn = qualified_name(type(o))
+        raise serial.errors.ValidationError(
+            '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
+            '`oapi.model.%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
+            '`oapi.model.%s.type_` is "string".' % (qn, )
+        )
+    return o
+
+
+hooks.writable(Schema).after_validate = _schema_after_validate
 
 
 class Schemas(serial.model.Dictionary):
