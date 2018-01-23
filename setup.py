@@ -49,7 +49,7 @@ setup(
         'future>=0.16.0',
         'pyyaml>=3.12',
         'iso8601>=0.1.12',
-        'serial>=0.0.26',
+        'serial>=0.0.36',
         'jsonpointer>=1.12'
     ],
 
