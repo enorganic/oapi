@@ -297,6 +297,8 @@ class Model(object):
                     if p[-1] == 's':
                         if p[-3:] == 'ies':
                             p = p[:-3] + 'y'
+                        elif p[-2:] == 'es':
+                            p = p[:-2]
                         else:
                             p = p[:-1]
                     for w in camel_split(p):
@@ -350,6 +352,9 @@ class Model(object):
                                     ks = None
                                     if word[-3:] == 'ies':
                                         sk = word[:-3] + 'y'
+                                        ks = word
+                                    elif word[-2:] == 'es':
+                                        sk = word[:-2]
                                         ks = word
                                     elif word[-1] == 'y':
                                         ks = sk = word[:-1] + 'ies'
@@ -424,6 +429,8 @@ class Model(object):
                                     if len(word) > 0 and word[-1] == 's':
                                         if word[-3:] == 'ies':
                                             word = word[:-3] + 'y'
+                                        elif word[-2:] == 'es':
+                                            word = word[:-2]
                                         else:
                                             word = word[:-1]
                                     epilogue.append(word)
