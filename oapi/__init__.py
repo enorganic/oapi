@@ -294,13 +294,6 @@ class Model(object):
             after_arguments = reference_parts[-1]
             if before_arguments:
                 for p in re.split(r'[/\-]', before_arguments):
-                    if p[-1] == 's':
-                        if p[-3:] == 'ies':
-                            p = p[:-3] + 'y'
-                        elif p[-2:] == 'es':
-                            p = p[:-2]
-                        else:
-                            p = p[:-1]
                     for w in camel_split(p):
                         path_phrase.append(w)
                         path_operation_phrase.append(w)
@@ -350,17 +343,6 @@ class Model(object):
                                 else:
                                     sk = word
                                     ks = None
-                                    if word[-3:] == 'ies':
-                                        sk = word[:-3] + 'y'
-                                        ks = word
-                                    elif word[-2:] == 'es':
-                                        sk = word[:-2]
-                                        ks = word
-                                    elif word[-1] == 'y':
-                                        ks = sk = word[:-1] + 'ies'
-                                    elif word[-1] == 's':
-                                        sk = word[:-1]
-                                        ks = word
                                     if word in title:
                                         if redundant_placement == 2:
                                             title.remove(word)
@@ -426,13 +408,6 @@ class Model(object):
                         if before_arguments:
                             for phrase_part in re.split(r'[/\-]', before_arguments):
                                 for word in camel_split(phrase_part):
-                                    if len(word) > 0 and word[-1] == 's':
-                                        if word[-3:] == 'ies':
-                                            word = word[:-3] + 'y'
-                                        elif word[-2:] == 'es':
-                                            word = word[:-2]
-                                        else:
-                                            word = word[:-1]
                                     epilogue.append(word)
                         for phrase_part in re.split(r'[/\-]', after_arguments):
                             for word in camel_split(phrase_part):
