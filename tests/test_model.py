@@ -70,7 +70,7 @@ def test_openapi_examples():
         print(p)
         with open(p) as f:
             oa = OpenAPI(f)
-            serial.test.json_object(oa)
+            serial.test.json(oa)
             oa2 = resolve_references(oa)
             try:
                 assert '$ref' not in serial.model.serialize(oa2)
@@ -84,7 +84,7 @@ def test_openapi_examples():
                     e.args = (repr(oa2),)
                 raise e
             if oa2 != oa:
-                serial.test.json_object(oa2)
+                serial.test.json(oa2)
 
 
 def test_magento_schemas():
@@ -97,10 +97,10 @@ def test_magento_schemas():
         print(url)
         with urlopen(url) as response:
             oa = OpenAPI(response)
-            serial.test.json_object(oa)
+            serial.test.json(oa)
             oa2 = resolve_references(oa)
             if oa2 != oa:
-                serial.test.json_object(oa2)
+                serial.test.json(oa2)
 
 
 def test_logic_broker_schemas():
@@ -112,7 +112,7 @@ def test_logic_broker_schemas():
         print(url)
         with urlopen(url) as response:
             oa = OpenAPI(response)
-            serial.test.json_object(oa)
+            serial.test.json(oa)
             oa2 = resolve_references(oa)
             try:
                 assert '$ref' not in serial.model.serialize(oa2)
@@ -126,7 +126,7 @@ def test_logic_broker_schemas():
                     e.args = (repr(oa2),)
                 raise e
             if oa2 != oa:
-                serial.test.json_object(oa2)
+                serial.test.json(oa2)
 
 
 if __name__ == '__main__':
