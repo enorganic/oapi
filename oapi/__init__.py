@@ -25,10 +25,12 @@ from oapi import model, errors
 class Model(object):
 
 
-    def __init__(self, root, rename=None):
-        # type: (Union[IOBase, str], Optional[str], Optional[str], Callable) -> None
+    def __init__(self, root, format_='json', rename=None):
+        # type: (Union[IOBase, str], str, Callable) -> None
         if not isinstance(root, model.OpenAPI):
             root = model.OpenAPI(root)
+        serial.meta.format_(root, format_)
+        self._format = format_
         self._major_version = int((root.swagger or root.openapi).split('.')[0].strip())
         self._root = root
         self._rename = rename
@@ -233,22 +235,6 @@ class Model(object):
                 name=None if pn == n else n,
                 required=True if (schema.required and (n in schema.required)) else False
             )
-            # if schema.required and (n in schema.required):
-            #     m.properties[pn].required = True
-            # elif (
-            #     self._major_version < 3 and
-            #     (serial.properties.Null in m.properties[pn].types)
-            # ):
-            #     types = tuple(
-            #         t for t in m.properties[pn].types
-            #         if t is not serial.properties.Null
-            #     )
-            #     if len(types) > 1 or (
-            #         type(m.properties[pn]) is not serial.properties.Property
-            #     ):
-            #         m.properties[pn].types = types
-            #     elif len(types) == 1:
-            #         m.properties[pn] = types[0]
         self._pointers_meta[pointer] = m
         if len(pointer) > 116:
             pointer_split = pointer.split('#')
