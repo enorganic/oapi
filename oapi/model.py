@@ -240,7 +240,7 @@ class Reference(Object):
         if _ is not None:
             if isinstance(_, HTTPResponse):
                 meta.url(self, _.url)
-            if isinstance(_, (dict, str)):
+            if isinstance(_, (dict, str)) and not isinstance(_, serial.model.Model):
                 _, f = detect_format(_)
                 keys = set(_.keys())
                 if ('$ref' in keys) and (_['$ref'] is not None):
@@ -438,17 +438,13 @@ class Schema(Object):
         - serial.properties ({str:Schema}): Any serial.properties of the object instance described by this schema which
           correspond to a name in this mapping should be valid as described by the sub-schema corresponding to that name.
 
-        - pattern_properties (Schema): Any serial.properties of the object instance described by this schema which
-          match a name in this mapping, when the name is evaluated as a regular expression, should be valid as described by
-          the sub-schema corresponding to the matched name.
-
         - additional_properties (bool|Schema):
 
             - If `additional_properties` is `True`--serial.properties may be present in the object described by
-              this schema with names which do not match those in either `serial.properties` or `pattern_properties`.
+              this schema with names which do not match those in `serial.properties`.
 
             - If `additional_properties` is `False`--all serial.properties present in the object described by this schema
-              must correspond to a property matched in either `serial.properties` or `pattern_properties`.
+              must correspond to a property matched in either `serial.properties`.
 
         - enum ([Any]): The value/instance described by this schema should be among those in this sequence.
 
@@ -531,14 +527,13 @@ class Schema(Object):
         max_length=None,  # type: Optional[int]
         min_length=None,  # type: Optional[int]
         pattern=None,  # type: Optional[str]
-        items=None,  # type: Optional[Schema, Sequence[Schema]]
+        items=None,  # type: Optional[Reference, Schema, Sequence[Schema]]
         max_items=None,  # type: Optional[int]
         min_items=None,  # type: Optional[int]
         unique_items=None,  # type: Optional[bool]
         max_properties=None,  # type: Optional[int]
         min_properties=None,  # type: Optional[int]
         properties=None,  # type: Optional[typing.Mapping[str, Schema]]
-        pattern_properties=None,  # type: Optional[Schema]
         additional_properties=None,  # type: Optional[bool, Schema]
         enum=None,  # type: Optional[Sequence]
         type_=None,  # type: Optional[str, Sequence]
@@ -577,7 +572,6 @@ class Schema(Object):
         self.max_properties = max_properties
         self.min_properties = min_properties
         self.properties = properties
-        self.pattern_properties = pattern_properties
         self.additional_properties = additional_properties
         self.enum = enum
         self.type_ = type_
@@ -1612,7 +1606,7 @@ class Responses(serial.model.Dictionary):
 
 meta.writable(Responses).value_types = (
     serial.properties.Property(
-        types=(Reference, Response),
+        types=(Reference,),
         versions=('openapi>=3.0',)
     ),
     serial.properties.Property(
