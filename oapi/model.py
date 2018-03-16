@@ -48,27 +48,27 @@ def resolve_references(
 ):
     # type: (...) -> Union[Object, typing.Mapping, typing.Sequence]
     """
-    Replaces ``oapi.model.Reference`` instances with the material referenced.
+    Replaces `oapi.model.Reference` instances with the material referenced.
 
     Arguments:
 
         - data (Object|Dictionary|Array): A deserialized object or array.
 
-        - url (str): The URL from where ``data`` was retrieved. The base URL for relative paths will be the directory
+        - url (str): The URL from where `data` was retrieved. The base URL for relative paths will be the directory
           above this URL, and this URL will be used to index _references in order to prevent cyclic recursion when
-          mapping (external) bidirectional _references between two (or more) documents. For ``Object`` instances, if the
+          mapping (external) bidirectional _references between two (or more) documents. For `Object` instances, if the
           URL is not provided, it will be inferred from the object's metadata where possible. Objects created from an
-          instance of ``http.client.HTTPResponse`` will have had the source URL stored with it's metadata when the
+          instance of `http.client.HTTPResponse` will have had the source URL stored with it's metadata when the
           object was instantiated.
 
-        - urlopen (``collections.Callable``): If provided, this should be a function taking one argument (a ``str``),
-          which can be used in lieu of ``request.urlopen`` to retrieve a document and return an instance of a sub-class
-          of ``IOBase`` (such as ``http.client.HTTPResponse``). This should be used if authentication is needed in order
+        - urlopen (`collections.Callable`): If provided, this should be a function taking one argument (a `str`),
+          which can be used in lieu of `request.urlopen` to retrieve a document and return an instance of a sub-class
+          of `IOBase` (such as `http.client.HTTPResponse`). This should be used if authentication is needed in order
           to retrieve external _references in the document, or if local file paths will be referenced instead of web
           URL's.
 
         - root (Object|Dictionary|Array): The root document to be used for resolving inline references. This argument
-          is only needed if ``data`` is not a "root" object/element in a document (an object resulting from
+          is only needed if `data` is not a "root" object/element in a document (an object resulting from
           deserializing a document, as opposed to one of the child objects of that deserialized root object).
     """
     if _references is None:
@@ -393,18 +393,18 @@ class Schema(Object):
         - multiple_of (Number): The numeric value this schema describes should be divisible by this number.
 
         - maximum (Number): The number this schema describes should be less than or equal to this value, or less than
-          this value, depending on the value of ``exclusive_maximum``.
+          this value, depending on the value of `exclusive_maximum`.
 
-        - exclusive_maximum (bool): If ``True``, the numeric instance described by this schema must be *less than*
-          ``maximum``. If ``False``, the numeric instance described by this schema can be less than or *equal to*
-          ``maximum``.
+        - exclusive_maximum (bool): If `True`, the numeric instance described by this schema must be *less than*
+          `maximum`. If `False`, the numeric instance described by this schema can be less than or *equal to*
+          `maximum`.
 
         - minimum (Number): The number this schema describes should be greater than or equal to this value, or greater
-          than this value, depending on the value of ``exclusive_minimum``.
+          than this value, depending on the value of `exclusive_minimum`.
 
-        - exclusive_minimum (bool): If ``True``, the numeric instance described by this schema must be *greater than*
-          ``minimum``. If ``False``, the numeric instance described by this schema can be greater than or *equal to*
-          ``minimum``.
+        - exclusive_minimum (bool): If `True`, the numeric instance described by this schema must be *greater than*
+          `minimum`. If `False`, the numeric instance described by this schema can be greater than or *equal to*
+          `minimum`.
 
         - max_length (int): The number of characters in the string instance described by this schema must be less than,
           or equal to, the value of this property.
@@ -416,10 +416,10 @@ class Schema(Object):
 
         - items (Reference|Schema|[Schema]):
 
-            - If ``items`` is a sub-schema--each item in the array instance described by this schema should be valid as
+            - If `items` is a sub-schema--each item in the array instance described by this schema should be valid as
               described by this sub-schema.
 
-            - If ``items`` is a sequence of sub-schemas, the array instance described by this schema should be equal in
+            - If `items` is a sequence of sub-schemas, the array instance described by this schema should be equal in
               length to this sequence, and each value should be valid as described by the sub-schema at the
               corresponding index within this sequence of sub-schemas.
 
@@ -444,11 +444,11 @@ class Schema(Object):
 
         - additional_properties (bool|Schema):
 
-            - If ``additional_properties`` is ``True``--serial.properties may be present in the object described by
-              this schema with names which do not match those in either ``serial.properties`` or ``pattern_properties``.
+            - If `additional_properties` is `True`--serial.properties may be present in the object described by
+              this schema with names which do not match those in either `serial.properties` or `pattern_properties`.
 
-            - If ``additional_properties`` is ``False``--all serial.properties present in the object described by this schema
-              must correspond to a property matched in either ``serial.properties`` or ``pattern_properties``.
+            - If `additional_properties` is `False`--all serial.properties present in the object described by this schema
+              must correspond to a property matched in either `serial.properties` or `pattern_properties`.
 
         - enum ([Any]): The value/instance described by this schema should be among those in this sequence.
 
@@ -495,14 +495,14 @@ class Schema(Object):
 
         The following serial.properties are specific to OpenAPI (not part of the core `JSON Schema <http://json-schema.org>`):
 
-        - nullable (bool): If ``True``, the value/instance described by this schema may be a null value (``None``).
+        - nullable (bool): If `True`, the value/instance described by this schema may be a null value (`None`).
 
         - discriminator (Discriminator): Adds support for polymorphism.
 
-        - read_only (bool): If ``True``, the property described may be returned as part of a response, but should not
+        - read_only (bool): If `True`, the property described may be returned as part of a response, but should not
           be part of a request.
 
-        - write_only (bool): If ``True``, the property described may be sent as part of a request, but should not
+        - write_only (bool): If `True`, the property described may be sent as part of a request, but should not
           be returned as part of a response.
 
         - xml (XML): Provides additional information describing XML representation of the property described by this
@@ -514,7 +514,7 @@ class Schema(Object):
 
         - definitions (Any)
 
-        - depracated (bool): If ``True``, the property or instance described by this schema should be phased out, as
+        - depracated (bool): If `True`, the property or instance described by this schema should be phased out, as
           if will no longer be supported in future versions.
     """
 
@@ -864,8 +864,8 @@ class Parameter(Object):
         - deprecated (bool)
 
         - allow_empty_value (bool): Sets the ability to pass empty-valued parameters. This is valid only for query
-          parameters and allows sending a parameter with an empty value. The default value is ``False``. If ``style``
-          is used, and if ``behavior`` is inapplicable (cannot be serialized), the value of ``allow_empty_value`` will
+          parameters and allows sending a parameter with an empty value. The default value is `False`. If `style`
+          is used, and if `behavior` is inapplicable (cannot be serialized), the value of `allow_empty_value` will
           be ignored.
 
         - style (str): Describes how the parameter value will be serialized, depending on the type of the parameter
@@ -880,7 +880,7 @@ class Parameter(Object):
             - "pipeDelimited": Pipe separated array values.
             - "deepObject": Provides a simple way of rendering nested objects using form parameters.
 
-          Default values (based on value of ``location``):
+          Default values (based on value of `location`):
 
             - query: "form"
             - path: "simple"
@@ -889,28 +889,28 @@ class Parameter(Object):
 
           https://swagger.io/specification/#style-values-52
 
-        - explode (bool): When this is ``True``, array or object parameter values generate separate parameters for
+        - explode (bool): When this is `True`, array or object parameter values generate separate parameters for
           each value of the array or name-value pair of the map. For other value_types of parameters this property has no
-          effect. When ``style`` is "form", the default value is ``True``. For all other styles, the default value is
-          ``False``.
+          effect. When `style` is "form", the default value is `True`. For all other styles, the default value is
+          `False`.
 
         - allow_reserved (bool): Determines whether the parameter value SHOULD allow reserved characters
           :/?#[]@!$&'()*+,;= (as defined by `RFC3986 <https://tools.ietf.org/html/rfc3986#section-2.2>`) to be included
           without percent-encoding. This property only applies to parameters with a location value of "query". The
-          default value is ``False``.
+          default value is `False`.
 
         - schema (Schema): The schema defining the type used for the parameter.
 
         - example (Any): Example of the media type. The example should match the specified schema and encoding
-          serial.properties if present. The ``example`` parameter should not be present if ``examples`` is present. If
-          referencing a ``schema`` which contains an example--*this* example overrides the example provided by the
-          ``schema``. To represent examples of media value_types that cannot naturally be represented in JSON or YAML, a
+          serial.properties if present. The `example` parameter should not be present if `examples` is present. If
+          referencing a `schema` which contains an example--*this* example overrides the example provided by the
+          `schema`. To represent examples of media value_types that cannot naturally be represented in JSON or YAML, a
           string value can contain the example with escaping where necessary.
 
         - examples ({str:Example}): Examples of the media type. Each example should contain a value in the correct
-          format, as specified in the parameter encoding. The ``examples`` parameter should not be present if
-          ``example`` is present. If referencing a ``schema`` which contains an example--*these* example override the
-          example provided by the ``schema``. To represent examples of media value_types that cannot naturally be represented
+          format, as specified in the parameter encoding. The `examples` parameter should not be present if
+          `example` is present. If referencing a `schema` which contains an example--*these* example override the
+          example provided by the `schema`. To represent examples of media value_types that cannot naturally be represented
           in JSON or YAML, a string value can contain the example with escaping where necessary.
 
         - content ({str:MediaType}): A map containing the representations for the parameter. The name is the media type
@@ -1321,7 +1321,7 @@ class Response(Object):
 
         - headers ({str:Header|Reference}): Maps a header name to its definition (mappings are case-insensitive).
 
-        - content ({str:Content|Reference}): A mapping of media value_types to ``MediaType`` instances describing potential
+        - content ({str:Content|Reference}): A mapping of media value_types to `MediaType` instances describing potential
           payloads.
 
         - links ({str:Link_|Reference}): A map of operations links that can be followed from the response.
@@ -1463,11 +1463,11 @@ class Operation(Object):
         - external_docs (ExternalDocumentation):  Additional external documentation for this operation.
 
         - operation_id (str):  Unique string used to identify the operation. The ID must be unique among all operations
-          described in the API. Tools and libraries may use the ``operation_id`` to uniquely identify an operation,
+          described in the API. Tools and libraries may use the `operation_id` to uniquely identify an operation,
           therefore, it is recommended to follow common programming naming conventions.
 
         - parameters ([Parameter|Reference]):  A list of parameters that are applicable for this operation. If a
-          parameter is already defined at the ``PathItem``, the new definition will override it, but can never remove
+          parameter is already defined at the `PathItem`, the new definition will override it, but can never remove
           it.
 
         - request_body (RequestBody|Reference):  The request body applicable for this operation. The requestBody is only
@@ -1720,10 +1720,10 @@ class XML(Object):
 
         - prefix (str): The prefix to be used with the name to reference the name-space.
 
-        - attribute (bool): If ``True``, the property described is an attribute rather than a sub-element.
+        - attribute (bool): If `True`, the property described is an attribute rather than a sub-element.
 
-        - wrapped (bool): If ``True``, an array instance described by the schema will be wrapped by a tag (named
-          according to the parent element's property, while ``name`` refers to the child element name).
+        - wrapped (bool): If `True`, an array instance described by the schema will be wrapped by a tag (named
+          according to the parent element's property, while `name` refers to the child element name).
     """
 
     def __init__(
