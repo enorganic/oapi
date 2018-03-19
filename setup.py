@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.0.16'
+version = '0.0.18'
 
 setup(
     name='oapi',
@@ -49,7 +49,7 @@ setup(
         'future>=0.16.0',
         'pyyaml>=3.12',
         'iso8601>=0.1.12',
-        'serial>=0.0.36',
+        'serial>=0.0.50',
         'jsonpointer>=1.12'
     ],
 

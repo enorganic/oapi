@@ -256,7 +256,7 @@ meta.writable(Reference).properties = [
 
 class Contact(Object):
     """
-    https://swagger.io/specification/#contactObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#contactObject
     """
 
     def __init__(
@@ -282,7 +282,7 @@ meta.writable(Contact).properties = [
 
 class License(Object):
     """
-    https://swagger.io/specification/#licenseObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#licenseObject
     """
 
     def __init__(
@@ -305,7 +305,7 @@ meta.writable(License).properties = [
 
 class Info(Object):
     """
-    https://swagger.io/specification/#infoObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#infoObject
     """
 
     def __init__(
@@ -332,15 +332,15 @@ meta.writable(Info).properties = [
     ('title', serial.properties.String(required=True)),
     ('description', serial.properties.String()),
     ('terms_of_service', serial.properties.String(name='termsOfService')),
-    ('contact', serial.properties.Object(types=(Contact,))),
-    ('license_', serial.properties.Object(types=(License,), name='license')),
+    ('contact', serial.properties.Property(types=(Contact,))),
+    ('license_', serial.properties.Property(types=(License,), name='license')),
     ('version', serial.properties.String(required=True)),
 ]
 
 
 class Tag(Object):
     """
-    https://swagger.io/specification/#tagObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#tagObject
     """
 
     def __init__(
@@ -381,7 +381,7 @@ meta.writable(Link).properties = [
 
 class Schema(Object):
     """
-    https://swagger.io/specification/#schemaObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schemaObject
     http://json-schema.org
 
     Properties:
@@ -600,7 +600,7 @@ class Schema(Object):
 
 class Example(Object):
     """
-    https://swagger.io/specification/#exampleObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#exampleObject
     """
 
     def __init__(
@@ -629,7 +629,7 @@ meta.writable(Example).properties = [
 class Encoding(Object):
 
     """
-    https://swagger.io/specification/#encodingObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#encodingObject
     """
 
     def __init__(
@@ -654,7 +654,7 @@ class Encoding(Object):
 
 class MediaType(Object):
     """
-    https://swagger.io/specification/#mediaTypeObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#mediaTypeObject
     """
 
     def __init__(
@@ -673,7 +673,7 @@ class MediaType(Object):
 
 
 meta.writable(MediaType).properties = [
-    ('schema', serial.properties.Object(types=(Reference, Schema), versions=('openapi>=3.0',))),
+    ('schema', serial.properties.Property(types=(Reference, Schema), versions=('openapi>=3.0',))),
     ('example', serial.properties.Property(versions=('openapi>=3.0',))),
     ('examples', serial.properties.Dictionary(value_types=(Reference, Example), versions=('openapi>=3.0',))),
     ('encoding', serial.properties.Dictionary(value_types=(Reference, Encoding), versions=('openapi>=3.0',))),
@@ -742,25 +742,25 @@ meta.writable(Items).properties = [
     ),
     (
         'format_',
-        serial.properties.Enum(
-            values=lambda o: (
-                None
-                if o is None else
-                ('int32', 'int64')
-                if o.type_ == 'integer' else
-                ('float', 'double')
-                if o.type_ == 'number' else
-                ('byte', 'binary', 'date', 'date-time', 'password')
-                if o.type_ == 'string'
-                else tuple()
-            ),
+        serial.properties.String(
+            # values=lambda o: (
+            #     None
+            #     if o is None else
+            #     ('int32', 'int64')
+            #     if o.type_ == 'integer' else
+            #     ('float', 'double')
+            #     if o.type_ == 'number' else
+            #     ('byte', 'binary', 'date', 'date-time', 'password')
+            #     if o.type_ == 'string'
+            #     else tuple()
+            # ),
             name='format',
             versions=('openapi<3.0')
         )
     ),
     (
         'items',
-        serial.properties.Object(types=(Items,), versions=('openapi<3.0'))
+        serial.properties.Property(types=(Items,), versions=('openapi<3.0'))
     ),
     (
         'collection_format',
@@ -838,7 +838,7 @@ meta.writable(Items).properties = [
 
 class Parameter(Object):
     """
-    https://swagger.io/specification/#parameterObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#parameterObject
 
     Properties:
 
@@ -881,7 +881,7 @@ class Parameter(Object):
             - header: "simple"
             - cookie: "form"
 
-          https://swagger.io/specification/#style-values-52
+          https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#style-values-52
 
         - explode (bool): When this is `True`, array or object parameter values generate separate parameters for
           each value of the array or name-value pair of the map. For other value_types of parameters this property has no
@@ -906,6 +906,8 @@ class Parameter(Object):
           `example` is present. If referencing a `schema` which contains an example--*these* example override the
           example provided by the `schema`. To represent examples of media value_types that cannot naturally be represented
           in JSON or YAML, a string value can contain the example with escaping where necessary.
+
+          https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#format
 
         - content ({str:MediaType}): A map containing the representations for the parameter. The name is the media type
           and the value describing it. The map must only contain one entry.
@@ -1003,7 +1005,7 @@ meta.writable(Parameter).properties = [
     ('allow_reserved', serial.properties.Boolean(name='allowReserved', versions=('openapi>=3.0',))),
     (
         'schema',
-        serial.properties.Object(
+        serial.properties.Property(
             types=(Reference, Schema),
         )
     ),
@@ -1099,24 +1101,12 @@ meta.writable(Parameter).properties = [
     ),
     (
         'format_',
-        serial.properties.Enum(
-            types=(str,),
-            # values=lambda o: (
-            #     None
-            #     if o is None else
-            #     ('int32', 'int64')
-            #     if o.type_ == 'integer' else
-            #     ('float', 'double')
-            #     if o.type_ == 'number' else
-            #     ('byte', 'binary', 'date', 'date-time', 'password')
-            #     if o.type_ == 'string'
-            #     else tuple()
+        serial.properties.String(
+            # values=(
+            #     'int32', 'int64',  # type_ == 'integer'
+            #     'float', 'double',  # type_ == 'number'
+            #     'byte', 'binary', 'date', 'date-time', 'password',  # type_ == 'string'
             # ),
-            values=(
-                'int32', 'int64',  # type_ == 'integer'
-                'float', 'double',  # type_ == 'number'
-                'byte', 'binary', 'date', 'date-time', 'password',  # type_ == 'string'
-            ),
             name='format',
             versions=('openapi<3.0')
         )
@@ -1131,7 +1121,7 @@ meta.writable(Parameter).properties = [
     ),
     (
         'items',
-        serial.properties.Object(
+        serial.properties.Property(
             types=(Items,),
             versions=('openapi<3.0',)
         )
@@ -1157,45 +1147,110 @@ def _parameter_after_validate(o):
             'An instance of `oapi.model.%s` may have a `schema` property or a `content` ' % qualified_name(type(o)) +
             'property, but not *both*:\n' + repr(o)
         )
-    if o.type_ == 'integer' and (
-        o.format_ not in ('int32', 'int64', None)
+    if o.format_ in (
+        'int32', 'int64',  # type_ == 'integer'
+        'float', 'double',  # type_ == 'number'
+        'byte', 'binary', 'date', 'date-time', 'password',  # type_ == 'string'
     ):
-        qn = qualified_name(type(o))
-        raise serial.errors.ValidationError(
-            '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
-            '`oapi.model.%s.format_` may be "int32" or "int64" when ' % qn +
-            '`oapi.model.%s.type_` is "integer".' % (qn, )
-        )
-    elif o.type_ == 'number' and (
-        o.format_ not in ('float', 'double', None)
-    ):
-        qn = qualified_name(type(o))
-        raise serial.errors.ValidationError(
-            '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
-            '`oapi.model.%s.format_` may be "float" or "double" when ' % qn +
-            '`oapi.model.%s.type_` is "number".' % (qn, )
-        )
-    elif o.type_ == 'string' and (
-        o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
-    ):
-        qn = qualified_name(type(o))
-        raise serial.errors.ValidationError(
-            '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
-            '`oapi.model.%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
-            '`oapi.model.%s.type_` is "string".' % (qn, )
-        )
+        if o.type_ == 'integer' and (
+            o.format_ not in ('int32', 'int64', None)
+        ):
+            qn = qualified_name(type(o))
+            raise serial.errors.ValidationError(
+                '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
+                '`oapi.model.%s.format_` may be "int32" or "int64" when ' % qn +
+                '`oapi.model.%s.type_` is "integer".' % (qn, )
+            )
+        elif o.type_ == 'number' and (
+            o.format_ not in ('float', 'double', None)
+        ):
+            qn = qualified_name(type(o))
+            raise serial.errors.ValidationError(
+                '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
+                '`oapi.model.%s.format_` may be "float" or "double" when ' % qn +
+                '`oapi.model.%s.type_` is "number".' % (qn, )
+            )
+        elif o.type_ == 'string' and (
+            o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
+        ):
+            qn = qualified_name(type(o))
+            raise serial.errors.ValidationError(
+                '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
+                '`oapi.model.%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
+                '`oapi.model.%s.type_` is "string".' % (qn, )
+            )
     return o
 
 
 hooks.writable(Parameter).after_validate = _parameter_after_validate
 
 
-class Header(Parameter):
+class Header(serial.model.Object):
 
-    pass
-
+    def __init__(
+        self,
+        _=None,  # type: Optional[typing.Mapping]
+        description=None,  # type: Optional[str]
+        required=None,  # type: Optional[bool]
+        deprecated=None,  # type: Optional[bool]
+        allow_empty_value=None, # type: Optional[bool]
+        style=None,  # type: Optional[str]
+        explode=None, # type: Optional[bool]
+        allow_reserved=None, # type: Optional[bool]
+        schema=None, # type: Optional[Schema]
+        example=None, # type: Any
+        examples=None, # type: Optional[typing.Mapping[str, Example]]
+        content=None,  # type: Optional[typing.Mapping[str, MediaType]]
+        type_=None,  # type: Optional[str]
+        default=None,  # type: Any
+        maximum=None,  # type: Optional[numbers.Number]
+        exclusive_maximum=None,  # type: Optional[bool]
+        minimum=None,  # type: Optional[numbers.Number]
+        exclusive_minimum=None,  # type: Optional[bool]
+        max_length=None,  # type: Optional[int]
+        min_length=None,  # type: Optional[int]
+        pattern=None,  # type: Optional[str]
+        max_items=None,  # type: Optional[str]
+        min_items=None,  # type: Optional[str]
+        unique_items=None,  # type: Optional[bool]
+        format_=None,  # type: Optional[str]
+        enum=None,  # type: Optional[Sequence[str]]
+        multiple_of=None,  # type: Optional[Number]
+        collection_format=None,  # type: Optional[str]
+        items=None,  # type: Optional[Schema]
+    ):
+        self.description = description
+        self.required = required
+        self.deprecated = deprecated
+        self.allow_empty_value = allow_empty_value
+        self.style = style
+        self.explode = explode
+        self.allow_reserved = allow_reserved
+        self.schema = schema
+        self.example = example
+        self.examples = examples
+        self.content = content
+        self.type_ = type_
+        self.default = default
+        self.maximum = maximum
+        self.exclusive_maximum = exclusive_maximum
+        self.minimum = minimum
+        self.exclusive_minimum = exclusive_minimum
+        self.max_length = max_length
+        self.min_length = min_length
+        self.pattern = pattern
+        self.max_items = max_items
+        self.min_items = min_items
+        self.unique_items = unique_items
+        self.enum = enum
+        self.multiple_of = multiple_of
+        self.format_ = format_
+        self.collection_format = collection_format
+        self.items = items
+        super().__init__(_)
 
 _header_meta = meta.writable(Header)
+_header_meta.properties = deepcopy(meta.read(Parameter).properties)
 del _header_meta.properties['name']
 del _header_meta.properties['in_']
 _header_meta.properties['schema'].versions = ('openapi>=3.0',)
@@ -1246,7 +1301,7 @@ meta.writable(ServerVariable).properties = [
 
 class Server(Object):
     """
-    https://swagger.io/specification/#serverObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#serverObject
     """
 
     def __init__(
@@ -1272,7 +1327,7 @@ meta.writable(Server).properties = [
 
 class Link_(Object):
     """
-    https://swagger.io/specification/#linkObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#linkObject
     """
 
     def __init__(
@@ -1300,13 +1355,13 @@ meta.writable(Link_).properties = [
     ('parameters', serial.properties.Dictionary(versions=('openapi>=3.0',))),
     ('request_body', serial.properties.Property(name='requestBody', versions=('openapi>=3.0',))),
     ('description', serial.properties.String(versions=('openapi>=3.0',))),
-    ('server', serial.properties.Object(types=(Server,), versions=('openapi>=3.0',))),
+    ('server', serial.properties.Property(types=(Server,), versions=('openapi>=3.0',))),
 ]
 
 
 class Response(Object):
     """
-    https://swagger.io/specification/#responseObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#responseObject
 
     Properties:
 
@@ -1350,7 +1405,7 @@ meta.writable(Response).properties = [
     ),
     (
         'schema',
-        serial.properties.Object(
+        serial.properties.Property(
             types=(Reference, Schema),
             versions=('openapi<3.0',)
         )
@@ -1412,7 +1467,7 @@ meta.writable(ExternalDocumentation).properties = [
 meta.writable(Tag).properties = [
     ('name', serial.properties.String(required=True)),
     ('description', serial.properties.String()),
-    ('external_docs', serial.properties.Object(types=(ExternalDocumentation,))),
+    ('external_docs', serial.properties.Property(types=(ExternalDocumentation,))),
 ]
 
 
@@ -1440,7 +1495,7 @@ meta.writable(RequestBody).properties = [
 
 class Operation(Object):
     """
-    https://swagger.io/specification/#operationObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#operationObject
 
     Describes a single API operation on a path.
 
@@ -1527,7 +1582,7 @@ class Operation(Object):
 
 class PathItem(Object):
     """
-    https://swagger.io/specification/#pathItemObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#pathItemObject
     """
 
     def __init__(
@@ -1565,14 +1620,14 @@ class PathItem(Object):
 meta.writable(PathItem).properties = [
     ('summary', serial.properties.String(versions=('openapi>=3.0',))),
     ('description', serial.properties.String(versions=('openapi>=3.0',))),
-    ('get', serial.properties.Object(types=(Operation,))),
-    ('put', serial.properties.Object(types=(Operation,))),
-    ('post', serial.properties.Object(types=(Operation,))),
-    ('delete', serial.properties.Object(types=(Operation,))),
-    ('options', serial.properties.Object(types=(Operation,))),
-    ('head', serial.properties.Object(types=(Operation,))),
-    ('patch', serial.properties.Object(types=(Operation,))),
-    ('trace', serial.properties.Object(types=(Operation,), versions=('openapi>=3.0',))),
+    ('get', serial.properties.Property(types=(Operation,))),
+    ('put', serial.properties.Property(types=(Operation,))),
+    ('post', serial.properties.Property(types=(Operation,))),
+    ('delete', serial.properties.Property(types=(Operation,))),
+    ('options', serial.properties.Property(types=(Operation,))),
+    ('head', serial.properties.Property(types=(Operation,))),
+    ('patch', serial.properties.Property(types=(Operation,))),
+    ('trace', serial.properties.Property(types=(Operation,), versions=('openapi>=3.0',))),
     ('servers', serial.properties.Array(item_types=(Server,), versions=('openapi>=3.0',))),
     (
         'parameters',
@@ -1606,7 +1661,7 @@ class Responses(serial.model.Dictionary):
 
 meta.writable(Responses).value_types = (
     serial.properties.Property(
-        types=(Reference,),
+        types=(Reference, Response),
         versions=('openapi>=3.0',)
     ),
     serial.properties.Property(
@@ -1620,7 +1675,7 @@ meta.writable(Operation).properties = [
     ('tags', serial.properties.Array(item_types=(str,))),
     ('summary', serial.properties.String()),
     ('description', serial.properties.String()),
-    ('external_docs', serial.properties.Object(types=(ExternalDocumentation,), name='externalDocs')),
+    ('external_docs', serial.properties.Property(types=(ExternalDocumentation,), name='externalDocs')),
     ('operation_id', serial.properties.String(name='operationId')),
     ('consumes', serial.properties.Array(item_types=(str,),versions=('openapi<3.0',))),
     ('produces', serial.properties.Array(item_types=(str,),versions=('openapi<3.0',))),
@@ -1632,7 +1687,7 @@ meta.writable(Operation).properties = [
     ),
     (
         'request_body',
-        serial.properties.Object(
+        serial.properties.Property(
             types=(Reference, RequestBody),
             name='requestBody',
             versions=('openapi>=3.0',)
@@ -1676,7 +1731,7 @@ meta.writable(Operation).properties = [
 
 class Discriminator(Object):
     """
-    https://swagger.io/specification/#discriminatorObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#discriminatorObject
 
     Properties:
 
@@ -1704,7 +1759,7 @@ meta.writable(Discriminator).properties = [
 
 class XML(Object):
     """
-    https://swagger.io/specification/#xmlObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#xmlObject
 
     Properties:
 
@@ -1748,7 +1803,7 @@ meta.writable(XML).properties = [
 
 class OAuthFlow(Object):
     """
-    https://swagger.io/specification/#oauthFlowObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#oauthFlowObject
     """
 
     def __init__(
@@ -1776,7 +1831,7 @@ meta.writable(OAuthFlow).properties = [
 
 class OAuthFlows(Object):
     """
-    https://swagger.io/specification/#oauthFlowsObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#oauthFlowsObject
     """
 
     def __init__(
@@ -1795,11 +1850,11 @@ class OAuthFlows(Object):
 
 
 meta.writable(OAuthFlows).properties = [
-    ('implicit', serial.properties.Object(types=(OAuthFlow,), versions=('openapi>=3.0',))),
-    ('password', serial.properties.Object(types=(OAuthFlow,), versions=('openapi>=3.0',))),
+    ('implicit', serial.properties.Property(types=(OAuthFlow,), versions=('openapi>=3.0',))),
+    ('password', serial.properties.Property(types=(OAuthFlow,), versions=('openapi>=3.0',))),
     (
         'client_credentials',
-        serial.properties.Object(
+        serial.properties.Property(
             types=(OAuthFlow,),
             name='clientCredentials',
             versions=('openapi>=3.0',),
@@ -1807,7 +1862,7 @@ meta.writable(OAuthFlows).properties = [
     ),
     (
         'authorization_code',
-        serial.properties.Object(
+        serial.properties.Property(
             types=(OAuthFlow,),
             name='authorizationCode',
             versions=('openapi>=3.0',)
@@ -1826,7 +1881,7 @@ meta.writable(Properties).value_types = (Reference, Schema)
 
 class SecurityScheme(Object):
     """
-    https://swagger.io/specification/#requestBodyObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#requestBodyObject
 
     Properties:
 
@@ -2048,23 +2103,11 @@ meta.writable(Schema).properties = [
     ),
     (
         'format_',
-        serial.properties.Enum(
-            types=(str,),
-            values=(
-                'int32', 'int64',
-                'float', 'double',
-                'byte', 'binary', 'date', 'date-time', 'password'
-            ),
-            # values=lambda o: (
-            #     None
-            #     if o is None else
-            #     ('int32', 'int64')
-            #     if o.type_ == 'integer' else
-            #     ('float', 'double')
-            #     if o.type_ == 'number' else
-            #     ('byte', 'binary', 'date', 'date-time', 'password')
-            #     if o.type_ == 'string'
-            #     else tuple()
+        serial.properties.String(
+            # values=(
+            #     'int32', 'int64',
+            #     'float', 'double',
+            #     'byte', 'binary', 'date', 'date-time', 'password'
             # ),
             name='format'
         )
@@ -2073,16 +2116,16 @@ meta.writable(Schema).properties = [
     ('all_of', serial.properties.Array(item_types=(Reference, Schema), name='allOf')),
     ('any_of', serial.properties.Array(item_types=(Reference, Schema), name='anyOf')),
     ('one_of', serial.properties.Array(item_types=(Reference, Schema), name='oneOf')),
-    ('is_not', serial.properties.Object(types=(Reference, Schema), name='isNot')),
-    ('definitions', serial.properties.Object()),
+    ('is_not', serial.properties.Property(types=(Reference, Schema), name='isNot')),
+    ('definitions', serial.properties.Property()),
     ('default', serial.properties.Property()),
     ('required', serial.properties.Array(item_types=(str,))),
     ('default', serial.properties.Property()),
     (
         'discriminator',
-        serial.properties.Object(
+        serial.properties.Property(
             types=(
-                serial.properties.Object(
+                serial.properties.Property(
                     types=(Discriminator,),
                     versions=('openapi>=3.0',),
                 ),
@@ -2095,8 +2138,8 @@ meta.writable(Schema).properties = [
     ),
     ('read_only', serial.properties.Boolean()),
     ('write_only', serial.properties.Boolean(name='writeOnly', versions=('openapi>=3.0',))),
-    ('xml', serial.properties.Object(types=(XML,))),
-    ('external_docs', serial.properties.Object(types=(ExternalDocumentation,))),
+    ('xml', serial.properties.Property(types=(XML,))),
+    ('external_docs', serial.properties.Property(types=(ExternalDocumentation,))),
     ('example', serial.properties.Property()),
     ('deprecated', serial.properties.Boolean(versions=('openapi>=3.0',))),
     ('links', serial.properties.Array(item_types=(Link,))),
@@ -2106,33 +2149,38 @@ meta.writable(Schema).properties = [
 
 def _schema_after_validate(o):
     # type: (Schema) -> Schema
-    if o.type_ == 'integer' and (
-        o.format_ not in ('int32', 'int64', None)
+    if o.format_ in (
+        'int32', 'int64',  # type_ == 'integer'
+        'float', 'double',  # type_ == 'number'
+        'byte', 'binary', 'date', 'date-time', 'password',  # type_ == 'string'
     ):
-        qn = qualified_name(type(o))
-        raise serial.errors.ValidationError(
-            '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
-            '`oapi.model.%s.format_` may be "int32" or "int64" when ' % qn +
-            '`oapi.model.%s.type_` is "integer".' % (qn, )
-        )
-    elif o.type_ == 'number' and (
-        o.format_ not in ('float', 'double', None)
-    ):
-        qn = qualified_name(type(o))
-        raise serial.errors.ValidationError(
-            '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
-            '`oapi.model.%s.format_` may be "float" or "double" when ' % qn +
-            '`oapi.model.%s.type_` is "number".' % (qn, )
-        )
-    elif o.type_ == 'string' and (
-        o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
-    ):
-        qn = qualified_name(type(o))
-        raise serial.errors.ValidationError(
-            '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
-            '`oapi.model.%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
-            '`oapi.model.%s.type_` is "string".' % (qn, )
-        )
+        if o.type_ == 'integer' and (
+            o.format_ not in ('int32', 'int64', None)
+        ):
+            qn = qualified_name(type(o))
+            raise serial.errors.ValidationError(
+                '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
+                '`oapi.model.%s.format_` may be "int32" or "int64" when ' % qn +
+                '`oapi.model.%s.type_` is "integer".' % (qn, )
+            )
+        elif o.type_ == 'number' and (
+            o.format_ not in ('float', 'double', None)
+        ):
+            qn = qualified_name(type(o))
+            raise serial.errors.ValidationError(
+                '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
+                '`oapi.model.%s.format_` may be "float" or "double" when ' % qn +
+                '`oapi.model.%s.type_` is "number".' % (qn, )
+            )
+        elif o.type_ == 'string' and (
+            o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
+        ):
+            qn = qualified_name(type(o))
+            raise serial.errors.ValidationError(
+                '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
+                '`oapi.model.%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
+                '`oapi.model.%s.type_` is "string".' % (qn, )
+            )
     return o
 
 
@@ -2312,14 +2360,14 @@ class OpenAPI(Object):
 
 meta.writable(OpenAPI).properties = [
     ('openapi', serial.properties.String(versions=('openapi>=3.0',), required=True)),
-    ('info', serial.properties.Object(types=(Info,), required=True)),
+    ('info', serial.properties.Property(types=(Info,), required=True)),
     ('host', serial.properties.String(versions=('openapi<3.0',))),
     ('servers', serial.properties.Array(item_types=(Server,), versions=('openapi>=3.0',))),
     ('base_path', serial.properties.String(name='basePath', versions=('openapi<3.0',))),
     ('schemes', serial.properties.Array(item_types=(str,), versions=('openapi<3.0',))),
     ('tags', serial.properties.Array(item_types=(Tag,))),
     ('paths', serial.properties.Property(types=(Paths,), required=True)),
-    ('components', serial.properties.Object(types=(Components,), versions=('openapi>=3.0',))),
+    ('components', serial.properties.Property(types=(Components,), versions=('openapi>=3.0',))),
     ('consumes', serial.properties.Array(item_types=(str,), versions=('openapi<3.0',))),
     ('swagger', serial.properties.String(versions=('openapi<3.0',), required=True)),
     (
@@ -2346,7 +2394,7 @@ meta.writable(OpenAPI).properties = [
         )
     ),
     ('produces', serial.properties.Array(item_types=(str,), versions=('openapi<3.0',)),),
-    ('external_docs', serial.properties.Object(types=(ExternalDocumentation,), name='externalDocs')),
+    ('external_docs', serial.properties.Property(types=(ExternalDocumentation,), name='externalDocs')),
     (
         'parameters',
         serial.properties.Dictionary(

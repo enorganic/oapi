@@ -93,7 +93,7 @@ class Model(object):
             #     i += 1
         elif schema.type_ == 'object' or schema.properties or schema.additional_properties:
             if schema.properties:
-                property = serial.properties.Object()
+                property = serial.properties.Property()
                 if pointer in self._pointers_models:
                     property.types = (self._pointers_models[pointer],)
             elif schema.additional_properties:
