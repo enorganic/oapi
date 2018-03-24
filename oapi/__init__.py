@@ -24,7 +24,6 @@ from oapi import model, errors
 
 class Model(object):
 
-
     def __init__(self, root, format_='json', rename=None):
         # type: (Union[IOBase, str], str, Callable) -> None
         if not isinstance(root, model.OpenAPI):
@@ -56,6 +55,8 @@ class Model(object):
     def _get_property(self, schema, pointer, name=None, required=None):
         # type: (str, model.Schema, serial.model.Object, Optional[bool]) -> serial.properties.Property
         property = None
+        print(serial.meta.pointer(schema))
+        print(serial.meta.url(schema))
         if isinstance(schema, model.Reference):
             pointer = urljoin(pointer, schema.ref)
             schema = self._references[pointer]
@@ -116,12 +117,13 @@ class Model(object):
             items = schema.items
             if items:
                 item_types = []
-                if isinstance(items, serial.model.Object):
+                if isinstance(items, model.Schema):
                     item_type_property = self._get_property(
                         items,
                         pointer=pointer + '/items'
                     )
                     if (
+                        item_type_property.types and
                         len(item_type_property.types) == 1 and
                         not isinstance(
                             item_type_property,
@@ -137,6 +139,7 @@ class Model(object):
                     else:
                         item_types = (item_type_property,)
                 else:
+                # if not isinstance(items, serial.model.Object):
                     i = 0
                     item_types = []
                     for item in items:
@@ -159,7 +162,7 @@ class Model(object):
                             item_types.append(item_type_property.types[0])
                         else:
                             item_types.append(item_type_property)
-                property.item_types = tuple(item_types)
+                property.item_types = tuple(item_types) if item_types else None
         elif schema.type_ == 'number':
             property = serial.properties.Number()
         elif schema.type_ == 'integer':

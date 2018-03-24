@@ -4,6 +4,8 @@ from __future__ import absolute_import, division, generators, nested_scopes, pri
 
 from future import standard_library
 
+from oapi import Model
+
 standard_library.install_aliases()
 from builtins import *
 from future.utils import native_str
@@ -19,12 +21,26 @@ from oapi.model import OpenAPI, Schema, resolve_references, Info
 
 
 def test_languagetool():
-    with urlopen('https://languagetool.org/http-api/languagetool-swagger.json') as response:
+    url = 'https://languagetool.org/http-api/languagetool-swagger.json'
+    print(url)
+    with urlopen(url) as response:
         oa = OpenAPI(response)
         serial.test.json(oa)
+        model = Model(oa)
+        model_path = os.path.abspath('./data/languagetool.py')
+        # if os.path.exists(model_path):
+        #     with open(model_path, 'r') as model_file:
+        #         model_file_data = model_file.read()
+        #         if not isinstance(model_file_data, str):
+        #             model_file_data = str(model_file_data, encoding='utf-8')
+        #         assert model == model_file_data
+        # else:
+        with open(model_path, 'w') as model_file:
+            model_file.write(str(model))
 
 
 def test_openapi_examples():
+    # https://github.com/OAI/OpenAPI-Specification/tree/master/examples
     examples = (
         'v2.0/json/petstore-separate/spec/swagger.json',
         'v3.0/link-example.yaml',
@@ -32,7 +48,7 @@ def test_openapi_examples():
         'v3.0/api-with-examples.yaml',
         'v3.0/petstore-expanded.yaml',
         'v3.0/petstore.yaml',
-        'v3.0/uber.yaml',
+        'v3.0/uspto.yaml',
         'v3.0/callback-example.yaml',
         'v2.0/json/api-with-examples.json',
         'v2.0/json/petstore-expanded.json',
@@ -52,7 +68,7 @@ def test_openapi_examples():
         print(url)
         with urlopen(url) as response:
             oa = OpenAPI(response)
-            serial.test.json_object(oa)
+            serial.test.json(oa)
             oa2 = resolve_references(oa)
             try:
                 assert '$ref' not in serial.model.serialize(oa2)
@@ -67,31 +83,6 @@ def test_openapi_examples():
                 raise e
             if oa2 != oa:
                 serial.test.json(oa2)
-    # for rp in examples:
-    #     p = os.path.join(
-    #         os.path.dirname(__file__),
-    #         'data',
-    #         rp
-    #     )
-    #     print(p)
-    #     with open(p) as f:
-    #         oa = OpenAPI(f)
-    #         serial.model.validate(oa)
-    #         serial.test.json(oa)
-    #         oa2 = resolve_references(oa)
-    #         try:
-    #             assert '$ref' not in serial.model.serialize(oa2)
-    #         except AssertionError as e:
-    #             if e.args:
-    #                 e.args = tuple(chain(
-    #                     (e.args[0] + '\n' + repr(oa2),),
-    #                     e.args[1:]
-    #                 ))
-    #             else:
-    #                 e.args = (repr(oa2),)
-    #             raise e
-    #         if oa2 != oa:
-    #             serial.test.json(oa2)
 
 
 def test_magento_schemas():
@@ -138,7 +129,7 @@ def test_logic_broker_schemas():
 
 if __name__ == '__main__':
     test_languagetool()
-    test_openapi_examples()
-    test_magento_schemas()
-    test_logic_broker_schemas()
+    # test_openapi_examples()
+    # test_magento_schemas()
+    # test_logic_broker_schemas()
 
