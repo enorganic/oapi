@@ -18,6 +18,12 @@ import serial
 from oapi.model import OpenAPI, Schema, resolve_references, Info
 
 
+def test_languagetool():
+    with urlopen('https://languagetool.org/http-api/languagetool-swagger.json') as response:
+        oa = OpenAPI(response)
+        serial.test.json(oa)
+
+
 def test_openapi_examples():
     examples = (
         'v2.0/json/petstore-separate/spec/swagger.json',
@@ -131,6 +137,7 @@ def test_logic_broker_schemas():
 
 
 if __name__ == '__main__':
+    test_languagetool()
     test_openapi_examples()
     test_magento_schemas()
     test_logic_broker_schemas()
