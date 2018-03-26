@@ -241,7 +241,8 @@ class Model(object):
     ):
         # type: (...) -> typing.Dict[str, typing.Tuple[str, oapi.model.Schema]]
         pre = re.compile(r'{(?:[^{}]+)}')
-        pointer = serial.meta.url(o) + serial.meta.pointer(o)
+        url = serial.meta.url(o)
+        pointer = url + serial.meta.pointer(o)
         if pointer in self._references:
             return self._pointers_schemas
         path_phrase = path_phrase or []
@@ -267,10 +268,10 @@ class Model(object):
             if pointer in self._references:
                 return self._pointers_schemas
             o = model.resolve_references(o, root=root, recursive=False)
-            u = serial.meta.url(o)
-            if u:
+            reference_url = serial.meta.url(o)
+            if reference_url != url:
                 root = o
-                pointer = u + '#'
+                pointer = reference_url + '#'
             if types:
                 o = serial.model.unmarshal(o, types=types)
         self._references[pointer] = o

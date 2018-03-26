@@ -1,11 +1,9 @@
 from setuptools import setup, find_packages
 
-version = '0.0.18'
-
 setup(
     name='oapi',
 
-    version=version,
+    version='0.0.20',
 
     description='An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications.',
 

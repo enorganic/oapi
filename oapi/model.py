@@ -113,7 +113,6 @@ def resolve_references(
                     http_error.msg = http_error.msg + ': ' + ref_document_url
                     raise http_error
         if ref_pointer is None:
-            # ref_data = deepcopy(ref_document)
             ref_data = ref_document
             if types:
                 ref_data = serial.model.unmarshal(ref_data, types=types)
@@ -140,7 +139,6 @@ def resolve_references(
                 if _references[ref_url_pointer] is None:
                     raise ReferenceLoopError()
                 else:
-                    # ref_data = deepcopy(_references[ref_url_pointer])
                     ref_data = _references[ref_url_pointer]
             else:
                 ref_data = resolve_pointer(ref_document, ref_pointer)
@@ -158,7 +156,6 @@ def resolve_references(
                             _references=_references,
                             _recurrence=True
                         )
-                        #_references[ref_url_pointer] = deepcopy(ref_data)
                         _references[ref_url_pointer] = ref_data
                     except ReferenceLoopError:
                         pass
@@ -169,8 +166,6 @@ def resolve_references(
             url = meta.url(r)
     if not _recurrence:
         data = deepcopy(data)
-        # if root is not None:
-        #     root = deepcopy(root)
     if root is None:
         root = deepcopy(data)
     if isinstance(data, Reference):
