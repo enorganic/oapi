@@ -13,10 +13,8 @@ from urllib.parse import urljoin
 
 import serial
 from oapi.model import resolve_references
-from serial import meta
 from serial.utilities import class_name, get_source, camel_split, property_name, properties_values
 
-from itertools import chain
 from io import IOBase
 
 from oapi import model, errors
@@ -52,11 +50,9 @@ class Model(object):
     def __dir__(self):
         return self.__all__
 
-    def _get_property(self, schema, pointer, name=None, required=None):
+    def _get_property(self, schema, name=None, required=None):
         # type: (str, model.Schema, serial.model.Object, Optional[bool]) -> serial.properties.Property
-        property = None
-        print(serial.meta.pointer(schema))
-        print(serial.meta.url(schema))
+        pointer = serial.meta.url(schema) + serial.meta.pointer(schema)
         if isinstance(schema, model.Reference):
             pointer = urljoin(pointer, schema.ref)
             schema = self._references[pointer]
@@ -66,19 +62,13 @@ class Model(object):
             if schema.any_of is not None:
                 i = 0
                 for s in schema.any_of:
-                    p = self._get_property(
-                        s,
-                        pointer='%s/anyOf[%s]' % (pointer, str(i))
-                    )
+                    p = self._get_property(s)
                     types.append(p)
                     i += 1
             if schema.one_of is not None:
                 i = 0
                 for s in schema.one_of:
-                    p = self._get_property(
-                        s,
-                        pointer='%s/oneOf[%s]' % (pointer, str(i))
-                    )
+                    p = self._get_property(s)
                     types.append(p)
                     i += 1
             property.types = tuple(types)
@@ -87,29 +77,23 @@ class Model(object):
             # TODO: schema.all_of
             # i = 0
             # for s in schema.all_of:
-            #     p = self._get_property(
-            #         s,
-            #         pointer='%s/allOf[%s]' % (pointer, str(i))
-            #     )
+            #     p = self._get_property(s)
             #     i += 1
         elif schema.type_ == 'object' or schema.properties or schema.additional_properties:
-            if schema.properties:
+            if schema.additional_properties:
+                additional_properties = schema.additional_properties
+                property = serial.properties.Dictionary()
+                if not isinstance(additional_properties, bool):
+                    property_value_types = []
+                    property_value_types.append(self._get_property(additional_properties))
+                    if schema.properties:
+                        for schema_property in schema.properties.values():
+                            property_value_types.append(self._get_property(schema_property))
+                    property.value_types = property_value_types
+            elif schema.properties:
                 property = serial.properties.Property()
                 if pointer in self._pointers_models:
                     property.types = (self._pointers_models[pointer],)
-            elif schema.additional_properties:
-                additional_properties = schema.additional_properties
-                if additional_properties:
-                    additional_properties = schema.additional_properties
-                    additional_properties_pointer = pointer + '/additionalProperties'
-                    property = serial.properties.Dictionary()
-                    if not isinstance(additional_properties, bool):
-                        property.value_types = (
-                            self._get_property(
-                                additional_properties,
-                                pointer=additional_properties_pointer
-                            ),
-                        )
             else:
                 property = serial.properties.Dictionary()
         elif schema.type_ == 'array' or schema.items:
@@ -118,10 +102,7 @@ class Model(object):
             if items:
                 item_types = []
                 if isinstance(items, model.Schema):
-                    item_type_property = self._get_property(
-                        items,
-                        pointer=pointer + '/items'
-                    )
+                    item_type_property = self._get_property(items)
                     if (
                         item_type_property.types and
                         len(item_type_property.types) == 1 and
@@ -136,18 +117,13 @@ class Model(object):
                         )
                     ):
                         item_types = item_type_property.types
-                    else:
+                    elif item_type_property.types:
                         item_types = (item_type_property,)
                 else:
-                # if not isinstance(items, serial.model.Object):
-                    i = 0
-                    item_types = []
                     for item in items:
-                        item_type_property = self._get_property(
-                            item,
-                            pointer=pointer + '/items[%s]' % str(i)
-                        )
+                        item_type_property = self._get_property(item)
                         if (
+                            item_type_property.types and
                             len(item_type_property.types) == 1 and
                             not isinstance(
                                 item_type_property,
@@ -160,9 +136,10 @@ class Model(object):
                             )
                         ):
                             item_types.append(item_type_property.types[0])
-                        else:
+                        elif item_type_property.types:
                             item_types.append(item_type_property)
-                property.item_types = tuple(item_types) if item_types else None
+                if item_types:
+                    property.item_types = item_types
         elif schema.type_ == 'number':
             property = serial.properties.Number()
         elif schema.type_ == 'integer':
@@ -204,19 +181,17 @@ class Model(object):
                     required=required,
                     versions=versions
                 )
-            # property.types = tuple(chain(property.types, (serial.properties.Null,)))
         if required is not None:
             property.required = required
         return property
 
     def _get_models(self):
         # type: (int) -> None
-        root_meta = meta.read(self._root)
-        url = meta.url(self._root)
+        root_meta = serial.meta.read(self._root)
+        url = serial.meta.url(self._root)
         for i in range(2):
             for pointer, name_schema in self._get_schemas(
                 self._root,
-                pointer=(url or '') + '#',
                 root=self._root
             ).items():
                 name, schema = name_schema  # type: typing.Tuple[str, model.Schema, serial.model.Object]
@@ -231,10 +206,8 @@ class Model(object):
             pn = property_name(n)
             if pn == 'serial':
                 pn = 'serial_'
-            property_pointer = '%s/%s' % (pointer, n)
             m.properties[pn] = self._get_property(
                 p,
-                pointer=property_pointer,
                 name=None if pn == n else n,
                 required=True if (schema.required and (n in schema.required)) else False
             )
@@ -260,7 +233,6 @@ class Model(object):
     def _get_schemas(
         self,
         o,  # type: Union[serial.model.Model]
-        pointer,  # type: str
         root,  # type: serial.model.Model
         path_phrase=None,  # type: Optional[typing.Sequence[str]]
         path_operation_phrase=None,  # type: Optional[typing.Sequence[str]]
@@ -269,6 +241,7 @@ class Model(object):
     ):
         # type: (...) -> typing.Dict[str, typing.Tuple[str, oapi.model.Schema]]
         pre = re.compile(r'{(?:[^{}]+)}')
+        pointer = serial.meta.url(o) + serial.meta.pointer(o)
         if pointer in self._references:
             return self._pointers_schemas
         path_phrase = path_phrase or []
@@ -282,12 +255,12 @@ class Model(object):
             before_arguments = '/'.join(reference_parts[:-1])
             after_arguments = reference_parts[-1]
             if before_arguments:
-                for p in re.split(r'[/\-]', before_arguments):
-                    for w in camel_split(p):
+                for property_pointer in re.split(r'[/\-]', before_arguments):
+                    for w in camel_split(property_pointer):
                         path_phrase.append(w)
                         path_operation_phrase.append(w)
-            for p in re.split(r'[/\-]', after_arguments):
-                for w in camel_split(p):
+            for property_pointer in re.split(r'[/\-]', after_arguments):
+                for w in camel_split(property_pointer):
                     path_phrase.append(w)
                     path_operation_phrase.append(w)
             pointer = urljoin(pointer, o.ref)
@@ -295,7 +268,6 @@ class Model(object):
                 return self._pointers_schemas
             o = model.resolve_references(o, root=root, recursive=False)
             u = serial.meta.url(o)
-            # m = serial.meta.read(o)
             if u:
                 root = o
                 pointer = u + '#'
@@ -311,7 +283,7 @@ class Model(object):
         if isinstance(o, model.Schema):
             if pointer in self._pointers_schemas:
                 return self._pointers_schemas
-            if o.type_ == 'object' or o.properties:
+            if o.type_ == 'object' or o.properties or o.type_ == 'array' or o.items:
                 if path_phrase:
                     name = None
                     phrases = []
@@ -365,68 +337,66 @@ class Model(object):
                return self._pointers_schemas
         if not isinstance(o, serial.model.Model):
             return self._pointers_schemas
-        m = meta.read(o)
+        m = serial.meta.read(o)
         if isinstance(o, serial.model.Dictionary):
             items = o.items()
             if isinstance(o, model.Paths):
                 items = sorted(items, key=lambda kv: len(kv[0]))
-            for k, v in items:
-                p = '%s/%s' % (pointer, k.replace('~', '~0').replace('/', '~1'))
-                if p in self._references:
-                    continue
-                if isinstance(v, model.Reference):
-                    self._get_schemas(
-                        v,
-                        p,
-                        root=root,
-                        types=m.value_types,
-                        path_phrase=copy(path_phrase),
-                        path_operation_phrase=copy(path_operation_phrase),
-                        operation_phrase=copy(operation_phrase),
-                    )
-                elif isinstance(v, (serial.model.Dictionary, serial.model.Array, serial.model.Object)):
-                    item_path_operation_phrase = copy(path_operation_phrase)
-                    item_path_phrase = copy(path_phrase)
-                    item_operation_phrase = copy(operation_phrase)
-                    if isinstance(o, model.Paths) or (not isinstance(o, model.Responses)):
-                        epilogue = []
-                        phrase = k
-                        phrase_parts = pre.split(phrase)
-                        before_arguments = '/'.join(phrase_parts[:-1])
-                        after_arguments = phrase_parts[-1]
-                        if before_arguments:
-                            for phrase_part in re.split(r'[/\-]', before_arguments):
+            for k, property_value in items:
+                if isinstance(property_value, serial.model.Model):
+                    property_pointer = serial.meta.url(property_value) + serial.meta.pointer(property_value)
+                    if property_pointer in self._references:
+                        continue
+                    if isinstance(property_value, model.Reference):
+                        self._get_schemas(
+                            property_value,
+                            root=root,
+                            types=m.value_types,
+                            path_phrase=copy(path_phrase),
+                            path_operation_phrase=copy(path_operation_phrase),
+                            operation_phrase=copy(operation_phrase),
+                        )
+                    else:
+                        item_path_operation_phrase = copy(path_operation_phrase)
+                        item_path_phrase = copy(path_phrase)
+                        item_operation_phrase = copy(operation_phrase)
+                        if isinstance(o, model.Paths) or (not isinstance(o, model.Responses)):
+                            epilogue = []
+                            phrase = k
+                            phrase_parts = pre.split(phrase)
+                            before_arguments = '/'.join(phrase_parts[:-1])
+                            after_arguments = phrase_parts[-1]
+                            if before_arguments:
+                                for phrase_part in re.split(r'[/\-]', before_arguments):
+                                    for word in camel_split(phrase_part):
+                                        epilogue.append(word)
+                            for phrase_part in re.split(r'[/\-]', after_arguments):
                                 for word in camel_split(phrase_part):
                                     epilogue.append(word)
-                        for phrase_part in re.split(r'[/\-]', after_arguments):
-                            for word in camel_split(phrase_part):
-                                epilogue.append(word)
-                        if isinstance(o, model.Paths):
-                            item_path_phrase = epilogue
-                            item_path_operation_phrase = copy(epilogue)
-                            item_operation_phrase = []
-                        elif not isinstance(o, model.Responses):
-                            item_path_phrase += epilogue
-                            item_path_operation_phrase += epilogue
-                    self._get_schemas(
-                        v,
-                        p,
-                        root=root,
-                        types=m.value_types,
-                        path_phrase=item_path_phrase,
-                        path_operation_phrase=item_path_operation_phrase,
-                        operation_phrase=item_operation_phrase,
-                    )
+                            if isinstance(o, model.Paths):
+                                item_path_phrase = epilogue
+                                item_path_operation_phrase = copy(epilogue)
+                                item_operation_phrase = []
+                            elif not isinstance(o, model.Responses):
+                                item_path_phrase += epilogue
+                                item_path_operation_phrase += epilogue
+                        self._get_schemas(
+                            property_value,
+                            root=root,
+                            types=m.value_types,
+                            path_phrase=item_path_phrase,
+                            path_operation_phrase=item_path_operation_phrase,
+                            operation_phrase=item_operation_phrase,
+                        )
         elif isinstance(o, serial.model.Array):
             for i in range(len(o)):
-                v = o[i]
-                p = '%s[%s]' % (pointer, str(i))
-                if p in self._references:
-                    return self._pointers_schemas
-                if isinstance(v, (serial.model.Dictionary, serial.model.Array, serial.model.Object)):
+                property_value = o[i]
+                if isinstance(property_value, serial.model.Model):
+                    property_pointer = serial.meta.url(property_value) + serial.meta.pointer(property_value)
+                    if property_pointer in self._references:
+                        return self._pointers_schemas
                     self._get_schemas(
-                        v,
-                        p,
+                        property_value,
                         root=root,
                         types=m.item_types,
                         path_phrase=copy(path_phrase),
@@ -441,21 +411,19 @@ class Model(object):
                     key=lambda kv: 0 if kv[0] in ('components', 'definitions') else 0
                 )
             for name, property in object_properties:
-                v = getattr(o, name)
-                if v is not None:
-                    n = property.name or name
-                    p = '%s/%s' % (pointer, n.replace('~', '~0').replace('/', '~1'))
-                    if p in self._references:
-                        return self._pointers_schemas
-                    if isinstance(v, (serial.model.Dictionary, serial.model.Array, serial.model.Object)):
+                property_value = getattr(o, name)
+                if property_value is not None:
+                    if isinstance(property_value, serial.model.Model):
+                        property_pointer = serial.meta.url(property_value) + serial.meta.pointer(property_value)
+                        if property_pointer in self._references:
+                            return self._pointers_schemas
                         self._get_schemas(
-                            v,
-                            p,
+                            property_value,
                             root=root,
                             types=(property,),
                             path_phrase=(
                                 [name]
-                                if isinstance(v, model.Operation) and isinstance(o, model.PathItem) else
+                                if isinstance(property_value, model.Operation) and isinstance(o, model.PathItem) else
                                 []
                             ) + copy(path_phrase),
                             path_operation_phrase=copy(path_operation_phrase),
@@ -507,7 +475,3 @@ class Model(object):
                     )
             lines.append('')
         return '\n'.join(lines)
-
-
-if __name__ == '__main__':
-    pass

@@ -2,6 +2,8 @@
 from __future__ import absolute_import, division, generators, nested_scopes, print_function, unicode_literals, \
     with_statement
 
+from time import sleep
+
 from future import standard_library
 
 from oapi import Model
@@ -28,15 +30,15 @@ def test_languagetool():
         serial.test.json(oa)
         model = Model(oa)
         model_path = os.path.abspath('./data/languagetool.py')
-        # if os.path.exists(model_path):
-        #     with open(model_path, 'r') as model_file:
-        #         model_file_data = model_file.read()
-        #         if not isinstance(model_file_data, str):
-        #             model_file_data = str(model_file_data, encoding='utf-8')
-        #         assert model == model_file_data
-        # else:
-        with open(model_path, 'w') as model_file:
-            model_file.write(str(model))
+        if os.path.exists(model_path):
+            with open(model_path, 'r') as model_file:
+                model_file_data = model_file.read()
+                if not isinstance(model_file_data, str):
+                    model_file_data = str(model_file_data, encoding='utf-8')
+                assert str(model) == model_file_data
+        else:
+            with open(model_path, 'w') as model_file:
+                model_file.write(str(model))
 
 
 def test_openapi_examples():
@@ -129,7 +131,7 @@ def test_logic_broker_schemas():
 
 if __name__ == '__main__':
     test_languagetool()
-    # test_openapi_examples()
-    # test_magento_schemas()
-    # test_logic_broker_schemas()
+    test_openapi_examples()
+    test_magento_schemas()
+    test_logic_broker_schemas()
 

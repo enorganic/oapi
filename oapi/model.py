@@ -158,7 +158,7 @@ def resolve_references(
                             _references=_references,
                             _recurrence=True
                         )
-                        # _references[ref_url_pointer] = deepcopy(ref_data)
+                        #_references[ref_url_pointer] = deepcopy(ref_data)
                         _references[ref_url_pointer] = ref_data
                     except ReferenceLoopError:
                         pass
