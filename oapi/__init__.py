@@ -13,7 +13,7 @@ from urllib.parse import urljoin
 
 import serial
 from oapi.model import resolve_references
-from serial.utilities import class_name, get_source, camel_split, property_name, properties_values
+from serial.utilities import class_name, get_source, camel_split, property_name, properties_values, qualified_name
 
 from io import IOBase
 
@@ -51,7 +51,15 @@ class Model(object):
         return self.__all__
 
     def _get_property(self, schema, name=None, required=None):
-        # type: (str, model.Schema, serial.model.Object, Optional[bool]) -> serial.properties.Property
+        # type: (Union[model.Schema, model.Reference], Optional[str], Optional[bool]) -> serial.properties.Property
+        if not isinstance(schema, (model.Schema, model.Reference)):
+            raise TypeError(
+                'The parameter `schema` must be of type `%s` or `%s`, not %s.' % (
+                    qualified_name(model.Schema),
+                    qualified_name(model.Reference),
+                    repr(schema)
+                )
+            )
         pointer = serial.meta.url(schema) + serial.meta.pointer(schema)
         if isinstance(schema, model.Reference):
             pointer = urljoin(pointer, schema.ref)
@@ -101,7 +109,7 @@ class Model(object):
             items = schema.items
             if items:
                 item_types = []
-                if isinstance(items, model.Schema):
+                if isinstance(items, (model.Schema, model.Reference)):
                     item_type_property = self._get_property(items)
                     if (
                         item_type_property.types and
@@ -187,8 +195,6 @@ class Model(object):
 
     def _get_models(self):
         # type: (int) -> None
-        root_meta = serial.meta.read(self._root)
-        url = serial.meta.url(self._root)
         for i in range(2):
             for pointer, name_schema in self._get_schemas(
                 self._root,

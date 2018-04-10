@@ -38,10 +38,10 @@ from serial.utilities import qualified_name
 
 
 def resolve_references(
-    data,  # type: Union[Object, Dictionary, Array]
+    data,  # type: serial.model.Model
     url=None,  # type: Optional[str]
     urlopen=request.urlopen,  # type: Union[typing.Callable, Sequence[typing.Callable]]
-    recursive=True, # type: False
+    recursive=True, # type: bool
     root=None,  # type: Optional[Union[serial.model.Model, dict, Sequence]]
     _references=None,  # type: Optional[typing.Dict[str, Union[Object, Dictionary, Array]]]
     _recurrence=False  # type: bool
@@ -71,6 +71,13 @@ def resolve_references(
           is only needed if `data` is not a "root" object/element in a document (an object resulting from
           deserializing a document, as opposed to one of the child objects of that deserialized root object).
     """
+    if not isinstance(data, serial.model.Model):
+        raise TypeError(
+            'The parameter `data` must be an instance of `%s`, not %s.' % (
+                qualified_name(serial.model.Model),
+                repr(data)
+            )
+        )
     if _references is None:
         _references = {}
 
@@ -177,7 +184,7 @@ def resolve_references(
             if isinstance(v, Reference):
                 v = resolve_ref(v.ref, types=(p,))
                 setattr(data, pn, v)
-            elif recursive:
+            elif recursive and isinstance(v, serial.model.Model):
                 try:
                     v = resolve_references(
                         v,
@@ -209,18 +216,19 @@ def resolve_references(
         if not isinstance(data, collections.MutableSequence):
             data = list(data)
         for i in range(len(data)):
-            try:
-                data[i] = resolve_references(
-                    data[i],
-                    root=root,
-                    urlopen=urlopen,
-                    url=url,
-                    recursive=recursive,
-                    _references=_references,
-                    _recurrence=True
-                )
-            except ReferenceLoopError:
-                pass
+            if isinstance(data[i], serial.model.Model):
+                try:
+                    data[i] = resolve_references(
+                        data[i],
+                        root=root,
+                        urlopen=urlopen,
+                        url=url,
+                        recursive=recursive,
+                        _references=_references,
+                        _recurrence=True
+                    )
+                except ReferenceLoopError:
+                    pass
     return data
 
 
