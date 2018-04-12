@@ -30,19 +30,42 @@ except ImportError:
     typing = Union = Any = None
 
 import serial
-from serial import meta, hooks
-from serial.model import deserialize, serialize, Object, Array, Dictionary, detect_format
+from serial import meta, hooks, model
 
 from oapi.errors import ReferenceLoopError
 from serial.utilities import qualified_name
 
 
+class Object(model.Object):
+
+    pass
+
+
+object_hooks = hooks.writable(Object)  # type: hooks.Object
+
+
+class Array(model.Array):
+
+    pass
+
+
+array_hooks = hooks.writable(Array)
+
+
+class Dictionary(model.Dictionary):
+
+    pass
+
+
+dictionary_hooks = hooks.writable(Dictionary)
+
+
 def resolve_references(
-    data,  # type: serial.model.Model
+    data,  # type: model.Model
     url=None,  # type: Optional[str]
     urlopen=request.urlopen,  # type: Union[typing.Callable, Sequence[typing.Callable]]
     recursive=True, # type: bool
-    root=None,  # type: Optional[Union[serial.model.Model, dict, Sequence]]
+    root=None,  # type: Optional[Union[model.Model, dict, Sequence]]
     _references=None,  # type: Optional[typing.Dict[str, Union[Object, Dictionary, Array]]]
     _recurrence=False  # type: bool
 ):
@@ -71,10 +94,10 @@ def resolve_references(
           is only needed if `data` is not a "root" object/element in a document (an object resulting from
           deserializing a document, as opposed to one of the child objects of that deserialized root object).
     """
-    if not isinstance(data, serial.model.Model):
+    if not isinstance(data, model.Model):
         raise TypeError(
             'The parameter `data` must be an instance of `%s`, not %s.' % (
-                qualified_name(serial.model.Model),
+                qualified_name(model.Model),
                 repr(data)
             )
         )
@@ -115,14 +138,14 @@ def resolve_references(
                 ref_document = _references[ref_document_url]
             else:
                 try:
-                    ref_document, f = detect_format(urlopen(ref_document_url))
+                    ref_document, f = model.detect_format(urlopen(ref_document_url))
                 except HTTPError as http_error:
                     http_error.msg = http_error.msg + ': ' + ref_document_url
                     raise http_error
         if ref_pointer is None:
             ref_data = ref_document
-            if types:
-                ref_data = serial.model.unmarshal(ref_data, types=types)
+            #if types:
+            ref_data = model.unmarshal(ref_data, types=types)
             ref_url_pointer = ref_document_url
             if recursive:
                 if ref_url_pointer not in _references:
@@ -149,8 +172,8 @@ def resolve_references(
                     ref_data = _references[ref_url_pointer]
             else:
                 ref_data = resolve_pointer(ref_document, ref_pointer)
-                if types:
-                    ref_data = serial.model.unmarshal(ref_data, types)
+                # if types:
+                ref_data = model.unmarshal(ref_data, types)
                 if recursive:
                     _references[ref_url_pointer] = None
                     try:
@@ -169,7 +192,7 @@ def resolve_references(
         return ref_data
     if url is None:
         r = root or data
-        if isinstance(r, (serial.model.Object, serial.model.Array, serial.model.Dictionary)):
+        if isinstance(r, model.Model):
             url = meta.url(r)
     if not _recurrence:
         data = deepcopy(data)
@@ -184,7 +207,7 @@ def resolve_references(
             if isinstance(v, Reference):
                 v = resolve_ref(v.ref, types=(p,))
                 setattr(data, pn, v)
-            elif recursive and isinstance(v, serial.model.Model):
+            elif recursive and isinstance(v, model.Model):
                 try:
                     v = resolve_references(
                         v,
@@ -197,26 +220,27 @@ def resolve_references(
                     )
                 except ReferenceLoopError:
                     pass
-                setattr(data, pn, v)  # serial.model.marshal(v)
+                setattr(data, pn, v)
     elif isinstance(data, (Dictionary, dict, OrderedDict)):
         for k, v in data.items():
-            try:
-                data[k] = resolve_references(
-                    v,
-                    root=root,
-                    urlopen=urlopen,
-                    url=url,
-                    recursive=recursive,
-                    _references=_references,
-                    _recurrence=True
-                )
-            except ReferenceLoopError:
-                pass
+            if isinstance(v, model.Model):
+                try:
+                    data[k] = resolve_references(
+                        v,
+                        root=root,
+                        urlopen=urlopen,
+                        url=url,
+                        recursive=recursive,
+                        _references=_references,
+                        _recurrence=True
+                    )
+                except ReferenceLoopError:
+                    pass
     elif isinstance(data, (Array, collections.Sequence, collections.Set)) and not isinstance(data, (str, bytes)):
         if not isinstance(data, collections.MutableSequence):
             data = list(data)
         for i in range(len(data)):
-            if isinstance(data[i], serial.model.Model):
+            if isinstance(data[i], model.Model):
                 try:
                     data[i] = resolve_references(
                         data[i],
@@ -243,8 +267,8 @@ class Reference(Object):
         if _ is not None:
             if isinstance(_, HTTPResponse):
                 meta.url(self, _.url)
-            if isinstance(_, (dict, str)) and not isinstance(_, serial.model.Model):
-                _, f = detect_format(_)
+            if isinstance(_, (dict, str)) and not isinstance(_, model.Model):
+                _, f = model.detect_format(_)
                 keys = set(_.keys())
                 if ('$ref' in keys) and (_['$ref'] is not None):
                     for k in keys - {'$ref'}:
@@ -1143,11 +1167,13 @@ def _parameter_after_validate(o):
     # type: (Parameter) -> Parameter
     if (o.content is not None) and len(tuple(o.content.keys())) > 1:
         raise serial.errors.ValidationError(
-            '`oapi.model.%s().content` may have only one mapped value.:\n%s' % (qualified_name(type(o)), repr(o))
+            '`%s.content` may have only one mapped value.:\n%s' % (
+                qualified_name(type(o)), repr(o)
+            )
         )
     if (o.content is not None) and (o.schema is not None):
         raise serial.errors.ValidationError(
-            'An instance of `oapi.model.%s` may have a `schema` property or a `content` ' % qualified_name(type(o)) +
+            'An instance of `%s` may have a `schema` property or a `content` ' % qualified_name(type(o)) +
             'property, but not *both*:\n' + repr(o)
         )
     if o.format_ in (
@@ -1160,27 +1186,30 @@ def _parameter_after_validate(o):
         ):
             qn = qualified_name(type(o))
             raise serial.errors.ValidationError(
-                '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
-                '`oapi.model.%s.format_` may be "int32" or "int64" when ' % qn +
-                '`oapi.model.%s.type_` is "integer".' % (qn, )
+                '"%s" in not a valid value for `%S.format_` in this circumstance. ' % (
+                    o.format_,
+                    qn
+                ) +
+                '`%s.format_` may be "int32" or "int64" when ' % qn +
+                '`%s.type_` is "integer".' % qn
             )
         elif o.type_ == 'number' and (
             o.format_ not in ('float', 'double', None)
         ):
             qn = qualified_name(type(o))
             raise serial.errors.ValidationError(
-                '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
-                '`oapi.model.%s.format_` may be "float" or "double" when ' % qn +
-                '`oapi.model.%s.type_` is "number".' % (qn, )
+                '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
+                '`%s.format_` may be "float" or "double" when ' % qn +
+                '`%s.type_` is "number".' % (qn, )
             )
         elif o.type_ == 'string' and (
             o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
         ):
             qn = qualified_name(type(o))
             raise serial.errors.ValidationError(
-                '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
-                '`oapi.model.%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
-                '`oapi.model.%s.type_` is "string".' % (qn, )
+                '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
+                '`%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
+                '`%s.type_` is "string".' % (qn, )
             )
     return o
 
@@ -1188,7 +1217,7 @@ def _parameter_after_validate(o):
 hooks.writable(Parameter).after_validate = _parameter_after_validate
 
 
-class Header(serial.model.Object):
+class Header(Object):
 
     def __init__(
         self,
@@ -1641,7 +1670,7 @@ meta.writable(PathItem).properties = [
 ]
 
 
-class Callback(serial.model.Dictionary):
+class Callback(Dictionary):
 
     pass
 
@@ -1649,7 +1678,7 @@ class Callback(serial.model.Dictionary):
 meta.writable(Callback).value_types = (PathItem,)
 
 
-class Callbacks(serial.model.Dictionary):
+class Callbacks(Dictionary):
 
     pass
 
@@ -1657,7 +1686,7 @@ class Callbacks(serial.model.Dictionary):
 meta.writable(Callbacks).value_types = (Reference, Callback)
 
 
-class Responses(serial.model.Dictionary):
+class Responses(Dictionary):
 
     pass
 
@@ -1874,7 +1903,7 @@ meta.writable(OAuthFlows).properties = [
 ]
 
 
-class Properties(serial.model.Dictionary):
+class Properties(Dictionary):
 
     pass
 
@@ -2162,27 +2191,27 @@ def _schema_after_validate(o):
         ):
             qn = qualified_name(type(o))
             raise serial.errors.ValidationError(
-                '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
-                '`oapi.model.%s.format_` may be "int32" or "int64" when ' % qn +
-                '`oapi.model.%s.type_` is "integer".' % (qn, )
+                '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
+                '`%s.format_` may be "int32" or "int64" when ' % qn +
+                '`%s.type_` is "integer".' % (qn, )
             )
         elif o.type_ == 'number' and (
             o.format_ not in ('float', 'double', None)
         ):
             qn = qualified_name(type(o))
             raise serial.errors.ValidationError(
-                '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
-                '`oapi.model.%s.format_` may be "float" or "double" when ' % qn +
-                '`oapi.model.%s.type_` is "number".' % (qn, )
+                '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
+                '`%s.format_` may be "float" or "double" when ' % qn +
+                '`%s.type_` is "number".' % (qn, )
             )
         elif o.type_ == 'string' and (
             o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
         ):
             qn = qualified_name(type(o))
             raise serial.errors.ValidationError(
-                '"%s" in not a valid value for `oapi.model.%s.format_` in this circumstance. ' % (o.format_, qn) +
-                '`oapi.model.%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
-                '`oapi.model.%s.type_` is "string".' % (qn, )
+                '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
+                '`%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
+                '`%s.type_` is "string".' % (qn, )
             )
     return o
 
@@ -2190,7 +2219,7 @@ def _schema_after_validate(o):
 hooks.writable(Schema).after_validate = _schema_after_validate
 
 
-class Schemas(serial.model.Dictionary):
+class Schemas(Dictionary):
 
     pass
 
@@ -2198,7 +2227,7 @@ class Schemas(serial.model.Dictionary):
 meta.writable(Schemas).value_types = (Reference, Schema)
 
 
-class Headers(serial.model.Dictionary):
+class Headers(Dictionary):
 
     pass
 
@@ -2206,7 +2235,7 @@ class Headers(serial.model.Dictionary):
 meta.writable(Headers).value_types = (Reference, Header)
 
 
-class Parameters(serial.model.Dictionary):
+class Parameters(Dictionary):
 
     pass
 
@@ -2214,7 +2243,7 @@ class Parameters(serial.model.Dictionary):
 meta.writable(Parameters).value_types = (Reference, Parameter)
 
 
-class Examples(serial.model.Dictionary):
+class Examples(Dictionary):
 
     pass
 
@@ -2222,7 +2251,7 @@ class Examples(serial.model.Dictionary):
 meta.writable(Examples).value_types = (Reference, Example)
 
 
-class RequestBodies(serial.model.Dictionary):
+class RequestBodies(Dictionary):
 
     pass
 
@@ -2230,7 +2259,7 @@ class RequestBodies(serial.model.Dictionary):
 meta.writable(RequestBodies).value_types = (Reference, RequestBody)
 
 
-class SecuritySchemes(serial.model.Dictionary):
+class SecuritySchemes(Dictionary):
 
     pass
 
@@ -2238,7 +2267,7 @@ class SecuritySchemes(serial.model.Dictionary):
 meta.writable(SecuritySchemes).value_types = (Reference, SecurityScheme)
 
 
-class Links(serial.model.Dictionary):
+class Links(Dictionary):
 
     pass
 
@@ -2294,7 +2323,7 @@ meta.writable(Components).properties = [
 ]
 
 
-class Definitions(serial.model.Dictionary):
+class Definitions(Dictionary):
 
     pass
 
@@ -2302,7 +2331,7 @@ class Definitions(serial.model.Dictionary):
 meta.writable(Definitions).value_types = (Schema,)
 
 
-class Paths(serial.model.Dictionary):
+class Paths(Dictionary):
 
     pass
 
@@ -2358,7 +2387,7 @@ class OpenAPI(Object):
         super().__init__(_)
         version = self.openapi or self.swagger
         if version is not None:
-            serial.model.version(self, 'openapi', version)
+            model.version(self, 'openapi', version)
 
 
 meta.writable(OpenAPI).properties = [

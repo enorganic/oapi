@@ -1,0 +1,6 @@
+[
+  "tests/test_model.py::test_languagetool",
+  "tests/test_model.py::test_openapi_examples",
+  "tests/test_model.py::test_magento_schemas",
+  "tests/test_model.py::test_logic_broker_schemas"
+]

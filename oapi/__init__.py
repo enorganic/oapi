@@ -26,6 +26,10 @@ class Model(object):
         # type: (Union[IOBase, str], str, Callable) -> None
         if not isinstance(root, model.OpenAPI):
             root = model.OpenAPI(root)
+        # This ensures all elements have URLs and JSON pointers
+        serial.meta.url(root, serial.meta.url(root))
+        serial.meta.pointer(root, serial.meta.pointer(root))
+        # Set default formatting
         serial.meta.format_(root, format_)
         self._format = format_
         self._major_version = int((root.swagger or root.openapi).split('.')[0].strip())
@@ -238,7 +242,7 @@ class Model(object):
 
     def _get_schemas(
         self,
-        o,  # type: Union[serial.model.Model]
+        o,  # type: serial.model.Model
         root,  # type: serial.model.Model
         path_phrase=None,  # type: Optional[typing.Sequence[str]]
         path_operation_phrase=None,  # type: Optional[typing.Sequence[str]]
@@ -246,6 +250,20 @@ class Model(object):
         types=None  # Optional[Union[type, serial.properties.Property]]
     ):
         # type: (...) -> typing.Dict[str, typing.Tuple[str, oapi.model.Schema]]
+        if not isinstance(o, serial.model.Model):
+            raise TypeError(
+                'The parameter `o` must be an instance of `%s`, not %s.' % (
+                    qualified_name(serial.model.Model),
+                    repr(o)
+                )
+            )
+        if not isinstance(root, serial.model.Model):
+            raise TypeError(
+                'The parameter `root` must be an instance of `%s`, not %s.' % (
+                    qualified_name(serial.model.Model),
+                    repr(root)
+                )
+            )
         pre = re.compile(r'{(?:[^{}]+)}')
         url = serial.meta.url(o)
         pointer = url + serial.meta.pointer(o)
