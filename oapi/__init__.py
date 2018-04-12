@@ -172,7 +172,7 @@ class Model(object):
         else:
             raise ValueError(schema.type_)
         if schema.enum:
-            property = serial.properties.Enum(
+            property = serial.properties.Enumerated(
                 values=tuple(schema.enum),
                 types=(property,)
             )

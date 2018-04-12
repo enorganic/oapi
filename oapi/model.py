@@ -753,7 +753,7 @@ class Items(Object):
 meta.writable(Items).properties = [
     (
         'type_',
-        serial.properties.Enum(
+        serial.properties.Enumerated(
             name='type',
             values=(
                 'array',
@@ -791,7 +791,7 @@ meta.writable(Items).properties = [
     ),
     (
         'collection_format',
-        serial.properties.Enum(
+        serial.properties.Enumerated(
             values=('csv', 'ssv', 'tsv', 'pipes'),
             name='collectionFormat',
             versions=('openapi<3.0')
@@ -1017,7 +1017,7 @@ meta.writable(Parameter).properties = [
     ('name', serial.properties.String(required=True)),
     (
         'in_',
-        serial.properties.Enum(
+        serial.properties.Enumerated(
             values=('query', 'header', 'path', 'formData', 'body'),
             name='in',
             required=True
@@ -1053,7 +1053,7 @@ meta.writable(Parameter).properties = [
     ),
     (
         'type_',
-        serial.properties.Enum(
+        serial.properties.Enumerated(
             values=(
                 'array',
                 'object',
@@ -1140,7 +1140,7 @@ meta.writable(Parameter).properties = [
     ),
     (
         'collection_format',
-        serial.properties.Enum(
+        serial.properties.Enumerated(
             values=('csv', 'ssv', 'tsv', 'pipes', 'multi'),
             name='collectionFormat',
             versions=('openapi<3.0',)
@@ -1968,7 +1968,7 @@ class SecurityScheme(Object):
 meta.writable(SecurityScheme).properties = [
     (
         'type_',
-        serial.properties.Enum(
+        serial.properties.Enumerated(
             values=('apiKey', 'http', 'oauth2', 'openIdConnect'),
             name='type',
             required=True
@@ -1985,11 +1985,11 @@ meta.writable(SecurityScheme).properties = [
         'in_',
         serial.properties.Property(
             types=(
-                serial.properties.Enum(
+                serial.properties.Enumerated(
                     values=('query', 'header', 'cookie'),
                     versions=('openapi>=3.0',)
                 ),
-                serial.properties.Enum(
+                serial.properties.Enumerated(
                     values=('query', 'header'),
                     versions=('openapi<3.0',)
                 ),
@@ -2105,7 +2105,7 @@ meta.writable(Schema).properties = [
             types=(
                 serial.properties.Array(
                     item_types=(
-                        serial.properties.Enum(
+                        serial.properties.Enumerated(
                             values=(
                                 'array',
                                 'object',
@@ -2118,7 +2118,7 @@ meta.writable(Schema).properties = [
                         ),
                     )
                 ),
-                serial.properties.Enum(
+                serial.properties.Enumerated(
                     values=(
                         'array',
                         'object',
