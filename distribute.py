@@ -9,7 +9,7 @@ with open('./setup.py') as setup_file:
     new_setup_file_contents = setup_file_contents = setup_file.read()
     for install_requires_str in re.findall(
         r'\binstall_requires\s*=\s*\[[^\]]*\]',
-        setup_file_contents
+        new_setup_file_contents
     ):
         item_indentation = ''
         indentation = ''
@@ -51,9 +51,22 @@ with open('./setup.py') as setup_file:
                     pass
             lines.append("%s'%s'," % (item_indentation, package + operator + version))
         lines.append(indentation + ']')
-        new_setup_file_contents = setup_file_contents.replace(
+        new_setup_file_contents = new_setup_file_contents.replace(
             install_requires_str,
             '\n'.join(lines)
+        )
+    for version_str in re.findall(
+        r'\bversion\s*=\s*[\'"][^\'"]+[\'"]',
+            new_setup_file_contents
+    ):
+        name_space = {}
+        exec(version_str, name_space)
+        version_list = list(name_space['version'].split('.'))
+        version_list[-1] = str(int(version_list[-1]) + 1)
+        new_version = '.'.join(version_list)
+        new_setup_file_contents = new_setup_file_contents.replace(
+            version_str,
+            "version='%s'" % new_version
         )
 if new_setup_file_contents != setup_file_contents:
     with open('./setup.py', 'w') as setup_file:
@@ -63,8 +76,8 @@ status, output = getstatusoutput('python3.6 setup.py sdist bdist_wheel upload')
 
 print(output)
 
-if status == 0:
-    # Update the package version
+if status != 0:
+    # Decrement the package version
     with open('./setup.py') as setup_file:
         new_setup_file_contents = setup_file_contents = setup_file.read()
         for version_str in re.findall(
@@ -74,7 +87,7 @@ if status == 0:
             name_space = {}
             exec(version_str, name_space)
             version_list = list(name_space['version'].split('.'))
-            version_list[-1] = str(int(version_list[-1]) + 1)
+            version_list[-1] = str(int(version_list[-1]) - 1)
             new_version = '.'.join(version_list)
             new_setup_file_contents = setup_file_contents.replace(
                 version_str,
