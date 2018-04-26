@@ -22,16 +22,13 @@ from oapi import model, errors
 
 class Model(object):
 
-    def __init__(self, root, format_='json', rename=None):
+    def __init__(self, root, rename=None):
         # type: (Union[IOBase, str], str, Callable) -> None
         if not isinstance(root, model.OpenAPI):
             root = model.OpenAPI(root)
         # This ensures all elements have URLs and JSON pointers
         serial.meta.url(root, serial.meta.url(root))
         serial.meta.pointer(root, serial.meta.pointer(root))
-        # Set default formatting
-        serial.meta.format_(root, format_)
-        self._format = format_
         self._major_version = int((root.swagger or root.openapi).split('.')[0].strip())
         self._root = root
         self._rename = rename
