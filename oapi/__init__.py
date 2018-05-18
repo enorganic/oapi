@@ -456,27 +456,12 @@ class Model(object):
         return self._pointers_schemas
 
     def __str__(self):
-        lines = [
-            '# region Backwards Compatibility',
-            'from __future__ import nested_scopes, generators, division, absolute_import, with_statement,\\',
-            'print_function, unicode_literals',
-            'from future import standard_library',
-            'standard_library.install_aliases()',
-            'from builtins import *',
-            '# endregion',
-            '',
-            'import serial',
-            '',
-            'try:',
-            '    import typing',
-            '    from typing import Union, Dict, Any',
-            'except ImportError:',
-            '    typing = Union = Any = None',
-            '',
-            ''
-        ]
+        lines = []
         for p, m in self._pointers_models.items():
-            lines.append(get_source(m))
+            imports, source = get_source(m).split('\n\n\n')
+            if not lines:
+                lines.append(imports + '\n\n')
+            lines.append(source)
         for pointer, metadata in self._pointers_meta.items():
             cn = self._pointers_schemas[pointer][0]
             if len(pointer) > 118:
