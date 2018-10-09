@@ -4,12 +4,14 @@ from subprocess import getstatusoutput
 
 import re, pkg_resources
 
+package = __file__.split(os.path.sep)[-2]
+
 # Update `setup.py` to require currently installed versions of all packages
 with open('./setup.py') as setup_file:
     new_setup_file_contents = setup_file_contents = setup_file.read()
     for install_requires_str in re.findall(
         r'\binstall_requires\s*=\s*\[[^\]]*\]',
-        new_setup_file_contents
+        setup_file_contents
     ):
         item_indentation = ''
         indentation = ''
@@ -30,12 +32,18 @@ with open('./setup.py') as setup_file:
         install_requires = name_space['install_requires']
         lines = ['install_requires=[']
         for requirement in install_requires:
-            package, operator, version = re.split(r'([<>=]+)', requirement)
+            parts = re.split(r'([<>=]+)', requirement)
+            if len(parts) == 3:
+                referenced_package, operator, version = parts
+            else:
+                referenced_package = parts[0]
+                operator = '>='
+                version = '0'
             try:
-                version = pkg_resources.get_distribution(package).version
+                version = pkg_resources.get_distribution(referenced_package).version
             except pkg_resources.DistributionNotFound:
-                # If no installed package is found--look for a project directory with a setup file
-                requirement_setup_path = '../%s/setup.py' % package
+                # If no installed referenced_package is found--look for a project directory with a setup file
+                requirement_setup_path = '../%s/setup.py' % referenced_package
                 try:
                     with open(requirement_setup_path) as requirement_setup_file:
                         requirement_setup_contents = requirement_setup_file.read()
@@ -49,35 +57,24 @@ with open('./setup.py') as setup_file:
                             break
                 except FileNotFoundError:
                     pass
-            lines.append("%s'%s'," % (item_indentation, package + operator + version))
+            lines.append("%s'%s'," % (item_indentation, referenced_package + operator + version))
         lines.append(indentation + ']')
-        new_setup_file_contents = new_setup_file_contents.replace(
+        new_setup_file_contents = setup_file_contents.replace(
             install_requires_str,
             '\n'.join(lines)
-        )
-    for version_str in re.findall(
-        r'\bversion\s*=\s*[\'"][^\'"]+[\'"]',
-            new_setup_file_contents
-    ):
-        name_space = {}
-        exec(version_str, name_space)
-        version_list = list(name_space['version'].split('.'))
-        version_list[-1] = str(int(version_list[-1]) + 1)
-        new_version = '.'.join(version_list)
-        new_setup_file_contents = new_setup_file_contents.replace(
-            version_str,
-            "version='%s'" % new_version
         )
 if new_setup_file_contents != setup_file_contents:
     with open('./setup.py', 'w') as setup_file:
         setup_file.write(new_setup_file_contents)
 
-status, output = getstatusoutput('python3.6 setup.py sdist bdist_wheel upload')
+status, output = getstatusoutput(
+    'python3.7 setup.py sdist bdist_wheel upload -r kroger'
+)
 
 print(output)
 
-if status != 0:
-    # Decrement the package version
+if status == 0:
+    # Update the referenced_package version
     with open('./setup.py') as setup_file:
         new_setup_file_contents = setup_file_contents = setup_file.read()
         for version_str in re.findall(
@@ -87,7 +84,7 @@ if status != 0:
             name_space = {}
             exec(version_str, name_space)
             version_list = list(name_space['version'].split('.'))
-            version_list[-1] = str(int(version_list[-1]) - 1)
+            version_list[-1] = str(int(version_list[-1]) + 1)
             new_version = '.'.join(version_list)
             new_setup_file_contents = setup_file_contents.replace(
                 version_str,
@@ -97,6 +94,10 @@ if status != 0:
         with open('./setup.py', 'w') as setup_file:
             setup_file.write(new_setup_file_contents)
 
-for p in ('./dist', './build', './serial.egg-info', './.tox', './.cache', './venv'):
+for p in (
+    './dist', './build', './%s.egg-info' % package,
+    './.tox', './.cache', './venv',
+    './.pytest_cache'
+):
     if os.path.exists(p):
         shutil.rmtree(p)

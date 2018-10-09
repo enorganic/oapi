@@ -1,0 +1,11 @@
+setup.cfg
+setup.py
+oapi/__init__.py
+oapi/errors.py
+oapi/model.py
+oapi.egg-info/PKG-INFO
+oapi.egg-info/SOURCES.txt
+oapi.egg-info/dependency_links.txt
+oapi.egg-info/entry_points.txt
+oapi.egg-info/requires.txt
+oapi.egg-info/top_level.txt

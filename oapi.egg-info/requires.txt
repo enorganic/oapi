@@ -1,0 +1,11 @@
+future>=0.16.0
+pyyaml>=3.12
+iso8601>=0.1.12
+serial>=0.0.64
+jsonpointer>=1.12
+
+[dev]
+pytest>=2.9.0
+
+[test]
+pytest>=2.9.0

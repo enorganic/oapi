@@ -1,0 +1,16 @@
+Metadata-Version: 1.1
+Name: oapi
+Version: 0.0.25
+Summary: An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications.
+Home-page: https://bitbucket.com/davebelais/oapi.git
+Author: David Belais
+Author-email: david@belais.me
+License: MIT
+Description: UNKNOWN
+Keywords: openapi swagger json rest
+Platform: UNKNOWN
+Classifier: Development Status :: 1 - Planning
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
