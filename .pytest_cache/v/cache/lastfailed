@@ -1,6 +1,0 @@
-{
-  "tests/test_model.py::test_languagetool": true,
-  "tests/test_model.py::test_logic_broker_schemas": true,
-  "tests/test_model.py::test_magento_schemas": true,
-  "tests/test_model.py::test_openapi_examples": true
-}
