@@ -44,11 +44,11 @@ setup(
     # dependencies
     # See https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'future>=0.16.0',
-        'pyyaml>=3.12',
-        'iso8601>=0.1.12',
-        'serial>=0.0.64',
-        'jsonpointer>=1.12',
+        "future>=0.17.0",
+        "pyyaml>=3.13",
+        "iso8601>=0.1.12",
+        "serial>=0.0.69",
+        "jsonpointer>=2.0"
     ],
 
     # pip install -e .[dev, test]
