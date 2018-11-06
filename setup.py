@@ -44,10 +44,10 @@ setup(
     # dependencies
     # See https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        "future>=0.17.0",
+        "future>=0.17.1",
         "pyyaml>=3.13",
         "iso8601>=0.1.12",
-        "serial>=0.0.69",
+        "serial>=0.0.70",
         "jsonpointer>=2.0"
     ],
 
