@@ -6,6 +6,10 @@ Version 3x: https://swagger.io/specification
 from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function, \
     unicode_literals
 from future import standard_library
+
+import serial.abc
+import serial.abc.model
+
 standard_library.install_aliases()
 from builtins import *
 #
@@ -94,10 +98,10 @@ def resolve_references(
           is only needed if `data` is not a "root" object/element in a document (an object resulting from
           deserializing a document, as opposed to one of the child objects of that deserialized root object).
     """
-    if not isinstance(data, model.Model):
+    if not isinstance(data, serial.abc.model.Model):
         raise TypeError(
             'The parameter `data` must be an instance of `%s`, not %s.' % (
-                qualified_name(model.Model),
+                qualified_name(serial.abc.model.Model),
                 repr(data)
             )
         )
@@ -192,7 +196,7 @@ def resolve_references(
         return ref_data
     if url is None:
         r = root or data
-        if isinstance(r, model.Model):
+        if isinstance(r, serial.abc.model.Model):
             url = meta.url(r)
     if not _recurrence:
         data = deepcopy(data)
@@ -207,7 +211,7 @@ def resolve_references(
             if isinstance(v, Reference):
                 v = resolve_ref(v.ref, types=(p,))
                 setattr(data, pn, v)
-            elif recursive and isinstance(v, model.Model):
+            elif recursive and isinstance(v, serial.abc.model.Model):
                 try:
                     v = resolve_references(
                         v,
@@ -223,7 +227,7 @@ def resolve_references(
                 setattr(data, pn, v)
     elif isinstance(data, (Dictionary, dict, OrderedDict)):
         for k, v in data.items():
-            if isinstance(v, model.Model):
+            if isinstance(v, serial.abc.model.Model):
                 try:
                     data[k] = resolve_references(
                         v,
@@ -240,7 +244,7 @@ def resolve_references(
         if not isinstance(data, collections.MutableSequence):
             data = list(data)
         for i in range(len(data)):
-            if isinstance(data[i], model.Model):
+            if isinstance(data[i], serial.abc.model.Model):
                 try:
                     data[i] = resolve_references(
                         data[i],
@@ -267,7 +271,7 @@ class Reference(Object):
         if _ is not None:
             if isinstance(_, HTTPResponse):
                 meta.url(self, _.url)
-            if isinstance(_, (dict, str)) and not isinstance(_, model.Model):
+            if isinstance(_, (dict, str)) and not isinstance(_, serial.abc.model.Model):
                 _, f = model.detect_format(_)
                 keys = set(_.keys())
                 if ('$ref' in keys) and (_['$ref'] is not None):

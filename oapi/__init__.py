@@ -2,6 +2,10 @@
 from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function,\
     unicode_literals
 from future import standard_library
+
+import serial.abc
+import serial.abc.model
+
 standard_library.install_aliases()
 from builtins import *
 # <- Backwards Compatibility
@@ -247,17 +251,17 @@ class Model(object):
         types=None  # Optional[Union[type, serial.properties.Property]]
     ):
         # type: (...) -> typing.Dict[str, typing.Tuple[str, oapi.model.Schema]]
-        if not isinstance(o, serial.model.Model):
+        if not isinstance(o, serial.abc.model.Model):
             raise TypeError(
                 'The parameter `o` must be an instance of `%s`, not %s.' % (
-                    qualified_name(serial.model.Model),
+                    qualified_name(serial.abc.model.Model),
                     repr(o)
                 )
             )
-        if not isinstance(root, serial.model.Model):
+        if not isinstance(root, serial.abc.model.Model):
             raise TypeError(
                 'The parameter `root` must be an instance of `%s`, not %s.' % (
-                    qualified_name(serial.model.Model),
+                    qualified_name(serial.abc.model.Model),
                     repr(root)
                 )
             )
@@ -357,7 +361,7 @@ class Model(object):
                 self._pointers_schemas[pointer] = (name, o)
             else:
                return self._pointers_schemas
-        if not isinstance(o, serial.model.Model):
+        if not isinstance(o, serial.abc.model.Model):
             return self._pointers_schemas
         m = serial.meta.read(o)
         if isinstance(o, serial.model.Dictionary):
@@ -365,7 +369,7 @@ class Model(object):
             if isinstance(o, model.Paths):
                 items = sorted(items, key=lambda kv: len(kv[0]))
             for k, property_value in items:
-                if isinstance(property_value, serial.model.Model):
+                if isinstance(property_value, serial.abc.model.Model):
                     property_pointer = serial.meta.url(property_value) + serial.meta.pointer(property_value)
                     if property_pointer in self._references:
                         continue
@@ -413,7 +417,7 @@ class Model(object):
         elif isinstance(o, serial.model.Array):
             for i in range(len(o)):
                 property_value = o[i]
-                if isinstance(property_value, serial.model.Model):
+                if isinstance(property_value, serial.abc.model.Model):
                     property_pointer = serial.meta.url(property_value) + serial.meta.pointer(property_value)
                     if property_pointer in self._references:
                         return self._pointers_schemas
@@ -435,7 +439,7 @@ class Model(object):
             for name, property in object_properties:
                 property_value = getattr(o, name)
                 if property_value is not None:
-                    if isinstance(property_value, serial.model.Model):
+                    if isinstance(property_value, serial.abc.model.Model):
                         property_pointer = serial.meta.url(property_value) + serial.meta.pointer(property_value)
                         if property_pointer in self._references:
                             return self._pointers_schemas
