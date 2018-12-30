@@ -5,6 +5,7 @@ from future import standard_library
 
 import serial.abc
 import serial.abc.model
+import serial.marshal
 
 standard_library.install_aliases()
 from builtins import *
@@ -298,7 +299,7 @@ class Model(object):
                 root = o
                 pointer = reference_url + '#'
             if types:
-                o = serial.model.unmarshal(o, types=types)
+                o = serial.marshal.unmarshal(o, types=types)
         self._references[pointer] = o
         if hasattr(o, 'operation_id') and (o.operation_id is not None):
             operation_phrase = []

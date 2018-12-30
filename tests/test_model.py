@@ -6,6 +6,7 @@ from time import sleep
 
 from future import standard_library
 
+import serial.marshal
 from oapi import Model
 
 standard_library.install_aliases()
@@ -73,7 +74,7 @@ def test_openapi_examples():
             serial.test.json(oa)
             oa2 = resolve_references(oa)
             try:
-                assert '$ref' not in serial.model.serialize(oa2)
+                assert '$ref' not in serial.marshal.serialize(oa2)
             except AssertionError as e:
                 if e.args:
                     e.args = tuple(chain(
@@ -115,7 +116,7 @@ def test_logic_broker_schemas():
             serial.test.json(oa)
             oa2 = resolve_references(oa)
             try:
-                assert '$ref' not in serial.model.serialize(oa2)
+                assert '$ref' not in serial.marshal.serialize(oa2)
             except AssertionError as e:
                 if e.args:
                     e.args = tuple(chain(

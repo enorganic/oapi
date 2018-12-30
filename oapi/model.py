@@ -9,6 +9,8 @@ from future import standard_library
 
 import serial.abc
 import serial.abc.model
+import serial.marshal
+import serial.meta
 
 standard_library.install_aliases()
 from builtins import *
@@ -142,14 +144,14 @@ def resolve_references(
                 ref_document = _references[ref_document_url]
             else:
                 try:
-                    ref_document, f = model.detect_format(urlopen(ref_document_url))
+                    ref_document, f = serial.marshal.detect_format(urlopen(ref_document_url))
                 except HTTPError as http_error:
                     http_error.msg = http_error.msg + ': ' + ref_document_url
                     raise http_error
         if ref_pointer is None:
             ref_data = ref_document
             #if types:
-            ref_data = model.unmarshal(ref_data, types=types)
+            ref_data = serial.marshal.unmarshal(ref_data, types=types)
             ref_url_pointer = ref_document_url
             if recursive:
                 if ref_url_pointer not in _references:
@@ -177,7 +179,7 @@ def resolve_references(
             else:
                 ref_data = resolve_pointer(ref_document, ref_pointer)
                 # if types:
-                ref_data = model.unmarshal(ref_data, types)
+                ref_data = serial.marshal.unmarshal(ref_data, types)
                 if recursive:
                     _references[ref_url_pointer] = None
                     try:
@@ -272,7 +274,7 @@ class Reference(Object):
             if isinstance(_, HTTPResponse):
                 meta.url(self, _.url)
             if isinstance(_, (dict, str)) and not isinstance(_, serial.abc.model.Model):
-                _, f = model.detect_format(_)
+                _, f = serial.marshal.detect_format(_)
                 keys = set(_.keys())
                 if ('$ref' in keys) and (_['$ref'] is not None):
                     for k in keys - {'$ref'}:
@@ -2391,7 +2393,7 @@ class OpenAPI(Object):
         super().__init__(_)
         version = self.openapi or self.swagger
         if version is not None:
-            model.version(self, 'openapi', version)
+            serial.meta.version(self, 'openapi', version)
 
 
 meta.writable(OpenAPI).properties = [
