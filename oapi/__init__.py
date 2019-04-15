@@ -1,6 +1,9 @@
 # Backwards Compatibility ->
 from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function,\
     unicode_literals
+
+from warnings import warn
+
 from future import standard_library
 
 import serial.abc
@@ -25,7 +28,13 @@ from io import IOBase
 from oapi import model, errors
 
 
+_POINTER_RE = re.compile(r'{(?:[^{}]+)}')
+
+
 class Model(object):
+    """
+    This class parses an OpenAPI schema and produces a data model based on the `serial` library.
+    """
 
     def __init__(self, root, rename=None):
         # type: (Union[IOBase, str], str, Callable) -> None
@@ -40,7 +49,7 @@ class Model(object):
         self._references = OrderedDict()
         self._pointers_schemas = OrderedDict()
         self._names_models = OrderedDict()
-        self._names = set()
+        self._names_schemas = {}
         self._pointers_models = OrderedDict()
         self._pointers_meta = OrderedDict()
         self._get_models()
@@ -57,6 +66,7 @@ class Model(object):
         return self.__all__
 
     def _get_property(self, schema, name=None, required=None):
+
         # type: (Union[model.Schema, model.Reference], Optional[str], Optional[bool]) -> serial.properties.Property
         if not isinstance(schema, (model.Schema, model.Reference)):
             raise TypeError(
@@ -66,6 +76,7 @@ class Model(object):
                     repr(schema)
                 )
             )
+
         pointer = serial.meta.url(schema) + serial.meta.pointer(schema)
         if isinstance(schema, model.Reference):
             pointer = urljoin(pointer, schema.ref)
@@ -242,6 +253,109 @@ class Model(object):
         )
         return self._pointers_models[pointer]
 
+    def _resolve_schema_reference(
+        self,
+        url,  # type: str
+        pointer,  # type: str
+        o,  # type: model.Reference
+        root,  # type: serial.model.Model
+        types=None  # Optional[Union[type, serial.properties.Property]]
+    ):
+        # type: (...) -> typing.Dict[str, typing.Tuple[str, oapi.model.Schema]]
+        path_phrase = []
+        path_operation_phrase = []
+        operation_phrase = []
+        reference_parts = _POINTER_RE.split(o.ref.split('/')[-1])
+        before_arguments = '/'.join(reference_parts[:-1])
+        after_arguments = reference_parts[-1]
+        if before_arguments:
+            for property_pointer in re.split(r'[/\-]', before_arguments):
+                for w in camel_split(property_pointer):
+                    path_phrase.append(w)
+                    path_operation_phrase.append(w)
+        for property_pointer in re.split(r'[/\-]', after_arguments):
+            for w in camel_split(property_pointer):
+                path_phrase.append(w)
+                path_operation_phrase.append(w)
+        o = model.resolve_references(o, root=root, recursive=False)
+        reference_url = serial.meta.url(o)
+        if reference_url != url:
+            root = o
+            pointer = reference_url + '#'
+        if types:
+            o = serial.marshal.unmarshal(o, types=types)
+        return pointer, o, root, path_phrase, path_operation_phrase, operation_phrase
+
+    def _is_duplicate_schema_name(self, name, schema, root):
+        # type: (str, model.Schema, serial.model.Model) -> bool
+        """
+        This method determines if another schema is already using the given `name`.
+        """
+        duplicate_exists = False  # type: bool
+
+        if name in self._names_schemas:
+
+            # Lookup the existing schema of the same name
+            existing_schema = self._names_schemas[name]
+
+            # Resolve references, where needed
+            if isinstance(schema, model.Reference):
+                schema = model.resolve_references(
+                    schema,
+                    root=root,
+                    recursive=False
+                )
+            if isinstance(existing_schema, model.Reference):
+                existing_schema = model.resolve_references(
+                    existing_schema,
+                    root=root,
+                    recursive=False
+                )
+
+            # We only consider these to be duplicates if one is not a reference to the other
+            if schema == existing_schema:
+
+                # Make sure the name -> schema dictionary now holds the de-referenced schema
+                self._names_schemas[name] = existing_schema
+
+            else:
+
+                # If one of these is just an array of the other, that array won't comprise a model of it's own which
+                # would have a conflicting name--so we don't consider it a duplicate
+                if (
+                    existing_schema.type_ == 'array' and
+                    isinstance(existing_schema.items, model.Reference) and
+                    schema == model.resolve_references(
+                        existing_schema.items,
+                        root=root,
+                        recursive=False
+                    )
+                ):
+
+                    # The name will reference the item's schema
+                    self._names_schemas[name] = schema
+
+                elif not (
+                    schema.type_ == 'array' and
+                    isinstance(schema.items, model.Reference) and
+                    existing_schema == model.resolve_references(
+                        schema.items,
+                        root=root,
+                        recursive=False
+                    )
+                ):
+
+                    duplicate_exists = True
+                    warn(
+                        'The name "%s" is already being used:\n%s\n%s' % (
+                            name,
+                            repr(schema),
+                            repr(existing_schema)
+                        )
+                    )
+
+        return duplicate_exists
+
     def _get_schemas(
         self,
         o,  # type: serial.model.Model
@@ -259,6 +373,7 @@ class Model(object):
                     repr(o)
                 )
             )
+
         if not isinstance(root, serial.abc.model.Model):
             raise TypeError(
                 'The parameter `root` must be an instance of `%s`, not %s.' % (
@@ -266,7 +381,7 @@ class Model(object):
                     repr(root)
                 )
             )
-        pre = re.compile(r'{(?:[^{}]+)}')
+
         url = serial.meta.url(o)
         pointer = url + serial.meta.pointer(o)
         if pointer in self._references:
@@ -274,32 +389,15 @@ class Model(object):
         path_phrase = path_phrase or []
         path_operation_phrase = path_operation_phrase or []
         operation_phrase = operation_phrase or []
+
         if isinstance(o, model.Reference):
-            path_phrase = []
-            path_operation_phrase = []
-            operation_phrase = []
-            reference_parts = pre.split(o.ref.split('/')[-1])
-            before_arguments = '/'.join(reference_parts[:-1])
-            after_arguments = reference_parts[-1]
-            if before_arguments:
-                for property_pointer in re.split(r'[/\-]', before_arguments):
-                    for w in camel_split(property_pointer):
-                        path_phrase.append(w)
-                        path_operation_phrase.append(w)
-            for property_pointer in re.split(r'[/\-]', after_arguments):
-                for w in camel_split(property_pointer):
-                    path_phrase.append(w)
-                    path_operation_phrase.append(w)
             pointer = urljoin(pointer, o.ref)
             if pointer in self._references:
-                return self._pointers_schemas
-            o = model.resolve_references(o, root=root, recursive=False)
-            reference_url = serial.meta.url(o)
-            if reference_url != url:
-                root = o
-                pointer = reference_url + '#'
-            if types:
-                o = serial.marshal.unmarshal(o, types=types)
+                return self._pointers_schemas[pointer]
+            pointer, o, root, path_phrase, path_operation_phrase, operation_phrase = self._resolve_schema_reference(
+                url, pointer, o, root, types
+            )
+
         self._references[pointer] = o
         if hasattr(o, 'operation_id') and (o.operation_id is not None):
             operation_phrase = []
@@ -307,20 +405,30 @@ class Model(object):
             for w in camel_split(o.operation_id):
                 operation_phrase.append(w)
                 path_operation_phrase.append(w)
+
         if isinstance(o, model.Schema):
+
             if pointer in self._pointers_schemas:
                 return self._pointers_schemas
+
             if o.type_ == 'object' or o.properties or o.type_ == 'array' or o.items:
+
                 if path_phrase:
+
                     name = None
                     phrases = []
+
                     if path_phrase:
                         phrases.append(path_phrase)
                     if operation_phrase:
                         phrases.append(operation_phrase)
                     if path_operation_phrase:
                         phrases.append(path_operation_phrase)
+
+                    name_is_unique = False  # type: bool
+
                     for redundant_placement in (1, 2, 3):
+
                         for phrase in phrases:
                             title = []
                             for word in phrase:
@@ -343,27 +451,37 @@ class Model(object):
                                         else:
                                             title.remove(sk)
                                             title.append(ks)
+
                             name = class_name('/'.join(title))
+
                             if self._rename is not None:
-                                name = self._rename(name, self._names)
-                            if name and (name not in self._names):
+                                name = self._rename(name, set(self._names_schemas.keys()))
+
+                            if name and not self._is_duplicate_schema_name(name, o, root):
+                                name_is_unique = True
                                 break
-                        if name and (name not in self._names):
+
+                        if name_is_unique:
                             break
-                    unique_name = name
-                    i = 1
-                    while unique_name in self._names:
-                        unique_name = name + str(i)
-                        i += 1
-                        name = unique_name
-                    self._names.add(name)
+
+                    if not name_is_unique:
+                        unique_name = name
+                        i = 1
+                        while unique_name in self._names_schemas:
+                            unique_name = name + str(i)
+                            i += 1
+                            name = unique_name
+
+                    self._names_schemas[name] = o
                 else:
                     name = None
                 self._pointers_schemas[pointer] = (name, o)
             else:
                return self._pointers_schemas
+
         if not isinstance(o, serial.abc.model.Model):
             return self._pointers_schemas
+
         m = serial.meta.read(o)
         if isinstance(o, serial.model.Dictionary):
             items = o.items()
@@ -390,7 +508,7 @@ class Model(object):
                         if isinstance(o, model.Paths) or (not isinstance(o, model.Responses)):
                             epilogue = []
                             phrase = k
-                            phrase_parts = pre.split(phrase)
+                            phrase_parts = _POINTER_RE.split(phrase)
                             before_arguments = '/'.join(phrase_parts[:-1])
                             after_arguments = phrase_parts[-1]
                             if before_arguments:

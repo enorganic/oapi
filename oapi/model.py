@@ -21,7 +21,6 @@ from collections import OrderedDict
 import collections
 from copy import deepcopy
 from http.client import HTTPResponse
-from itertools import chain
 from numbers import Number
 from urllib import request
 from urllib.error import HTTPError
@@ -38,7 +37,7 @@ except ImportError:
 import serial
 from serial import meta, hooks, model
 
-from oapi.errors import ReferenceLoopError
+from .errors import ReferenceLoopError
 from serial.utilities import qualified_name
 
 
