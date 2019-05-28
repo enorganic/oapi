@@ -6,10 +6,6 @@ from warnings import warn
 
 from future import standard_library
 
-import serial.abc
-import serial.abc.model
-import serial.marshal
-
 standard_library.install_aliases()
 from builtins import *
 # <- Backwards Compatibility
@@ -19,9 +15,9 @@ from collections import OrderedDict
 from copy import copy
 from urllib.parse import urljoin
 
-import serial
+import sob
 from oapi.model import resolve_references
-from serial.utilities import class_name, get_source, camel_split, property_name, properties_values, qualified_name
+from sob.utilities import class_name, get_source, camel_split, property_name, properties_values, qualified_name
 
 from io import IOBase
 
@@ -33,7 +29,7 @@ _POINTER_RE = re.compile(r'{(?:[^{}]+)}')
 
 class Model(object):
     """
-    This class parses an OpenAPI schema and produces a data model based on the `serial` library.
+    This class parses an OpenAPI schema and produces a data model based on the `sob` library.
     """
 
     def __init__(self, root, rename=None):
@@ -41,8 +37,8 @@ class Model(object):
         if not isinstance(root, model.OpenAPI):
             root = model.OpenAPI(root)
         # This ensures all elements have URLs and JSON pointers
-        serial.meta.url(root, serial.meta.url(root))
-        serial.meta.pointer(root, serial.meta.pointer(root))
+        sob.meta.url(root, sob.meta.url(root))
+        sob.meta.pointer(root, sob.meta.pointer(root))
         self._major_version = int((root.swagger or root.openapi).split('.')[0].strip())
         self._root = root
         self._rename = rename
@@ -67,7 +63,7 @@ class Model(object):
 
     def _get_property(self, schema, name=None, required=None):
 
-        # type: (Union[model.Schema, model.Reference], Optional[str], Optional[bool]) -> serial.properties.Property
+        # type: (Union[model.Schema, model.Reference], Optional[str], Optional[bool]) -> sob.properties.Property
         if not isinstance(schema, (model.Schema, model.Reference)):
             raise TypeError(
                 'The parameter `schema` must be of type `%s` or `%s`, not %s.' % (
@@ -77,12 +73,12 @@ class Model(object):
                 )
             )
 
-        pointer = serial.meta.url(schema) + serial.meta.pointer(schema)
+        pointer = sob.meta.url(schema) + sob.meta.pointer(schema)
         if isinstance(schema, model.Reference):
             pointer = urljoin(pointer, schema.ref)
             schema = self._references[pointer]
         if (schema.any_of is not None) or (schema.one_of is not None):
-            property = serial.properties.Property()
+            property = sob.properties.Property()
             types = []
             if schema.any_of is not None:
                 i = 0
@@ -98,7 +94,7 @@ class Model(object):
                     i += 1
             property.types = tuple(types)
         elif schema.all_of is not None:
-            property = serial.properties.Dictionary()
+            property = sob.properties.Dictionary()
             # TODO: schema.all_of
             # i = 0
             # for s in schema.all_of:
@@ -107,7 +103,7 @@ class Model(object):
         elif schema.type_ == 'object' or schema.properties or schema.additional_properties:
             if schema.additional_properties:
                 additional_properties = schema.additional_properties
-                property = serial.properties.Dictionary()
+                property = sob.properties.Dictionary()
                 if not isinstance(additional_properties, bool):
                     property_value_types = []
                     property_value_types.append(self._get_property(additional_properties))
@@ -116,13 +112,13 @@ class Model(object):
                             property_value_types.append(self._get_property(schema_property))
                     property.value_types = property_value_types
             elif schema.properties:
-                property = serial.properties.Property()
+                property = sob.properties.Property()
                 if pointer in self._pointers_models:
                     property.types = (self._pointers_models[pointer],)
             else:
-                property = serial.properties.Dictionary()
+                property = sob.properties.Dictionary()
         elif schema.type_ == 'array' or schema.items:
-            property = serial.properties.Array()
+            property = sob.properties.Array()
             items = schema.items
             if items:
                 item_types = []
@@ -134,10 +130,10 @@ class Model(object):
                         not isinstance(
                             item_type_property,
                             (
-                                serial.properties.Date,
-                                serial.properties.DateTime,
-                                serial.properties.Array,
-                                serial.properties.Dictionary
+                                sob.properties.Date,
+                                sob.properties.DateTime,
+                                sob.properties.Array,
+                                sob.properties.Dictionary
                             )
                         )
                     ):
@@ -153,10 +149,10 @@ class Model(object):
                             not isinstance(
                                 item_type_property,
                                 (
-                                    serial.meta.Date,
-                                    serial.meta.DateTime,
-                                    serial.meta.Array,
-                                    serial.meta.Dictionary
+                                    sob.meta.Date,
+                                    sob.meta.DateTime,
+                                    sob.meta.Array,
+                                    sob.meta.Dictionary
                                 )
                             )
                         ):
@@ -166,26 +162,26 @@ class Model(object):
                 if item_types:
                     property.item_types = item_types
         elif schema.type_ == 'number':
-            property = serial.properties.Number()
+            property = sob.properties.Number()
         elif schema.type_ == 'integer':
-            property = serial.properties.Integer()
+            property = sob.properties.Integer()
         elif schema.type_ == 'string':
             if schema.format_ == 'date-time':
-                property = serial.properties.DateTime()
+                property = sob.properties.DateTime()
             elif schema.format_ == 'date':
-                property = serial.properties.Date()
+                property = sob.properties.Date()
             elif schema.format_ == 'byte':
-                property = serial.properties.Bytes()
+                property = sob.properties.Bytes()
             else:
-                property = serial.properties.String()
+                property = sob.properties.String()
         elif schema.type_ == 'boolean':
-            property = serial.properties.Boolean()
+            property = sob.properties.Boolean()
         elif schema.type_ == 'file':
-            property = serial.properties.Bytes()
+            property = sob.properties.Bytes()
         else:
             raise ValueError(schema.type_)
         if schema.enum:
-            property = serial.properties.Enumerated(
+            property = sob.properties.Enumerated(
                 values=tuple(schema.enum),
                 types=(property,)
             )
@@ -200,8 +196,8 @@ class Model(object):
             if schema.nullable is not False:
                 name, required, versions = property.name, property.required, property.versions
                 property.name = property.required = property.versions = None
-                property = serial.properties.Property(
-                    types=(property, serial.properties.Null),
+                property = sob.properties.Property(
+                    types=(property, sob.properties.Null),
                     name=name,
                     required=required,
                     versions=versions
@@ -217,17 +213,17 @@ class Model(object):
                 self._root,
                 root=self._root
             ).items():
-                name, schema = name_schema  # type: typing.Tuple[str, model.Schema, serial.model.Object]
+                name, schema = name_schema  # type: typing.Tuple[str, model.Schema, sob.model.Object]
                 self._names_models[name] = self._get_model(pointer, name, schema)
 
     def _get_model(self, pointer, name, schema):
-        # type: (str, model.Schema, serial.model.Object) -> None
+        # type: (str, model.Schema, sob.model.Object) -> None
         if (not schema.properties) or schema.additional_properties:
             return
-        m = serial.meta.Object()
+        m = sob.meta.Object()
         for n, p in schema.properties.items():
             pn = property_name(n)
-            if pn == 'serial':
+            if pn == 'sob':
                 pn = 'serial_'
             m.properties[pn] = self._get_property(
                 p,
@@ -245,7 +241,7 @@ class Model(object):
             ds = [pointer]
         if schema.description:
             ds.append(schema.description)
-        self._pointers_models[pointer] = serial.model.from_meta(
+        self._pointers_models[pointer] = sob.model.from_meta(
             name,
             m,
             docstring='\n\n'.join(ds),
@@ -258,8 +254,8 @@ class Model(object):
         url,  # type: str
         pointer,  # type: str
         o,  # type: model.Reference
-        root,  # type: serial.model.Model
-        types=None  # Optional[Union[type, serial.properties.Property]]
+        root,  # type: sob.model.Model
+        types=None  # Optional[Union[type, sob.properties.Property]]
     ):
         # type: (...) -> typing.Dict[str, typing.Tuple[str, oapi.model.Schema]]
         path_phrase = []
@@ -278,16 +274,16 @@ class Model(object):
                 path_phrase.append(w)
                 path_operation_phrase.append(w)
         o = model.resolve_references(o, root=root, recursive=False)
-        reference_url = serial.meta.url(o)
+        reference_url = sob.meta.url(o)
         if reference_url != url:
             root = o
             pointer = reference_url + '#'
         if types:
-            o = serial.marshal.unmarshal(o, types=types)
+            o = sob.model.unmarshal(o, types=types)
         return pointer, o, root, path_phrase, path_operation_phrase, operation_phrase
 
     def _is_duplicate_schema_name(self, name, schema, root):
-        # type: (str, model.Schema, serial.model.Model) -> bool
+        # type: (str, model.Schema, sob.model.Model) -> bool
         """
         This method determines if another schema is already using the given `name`.
         """
@@ -358,32 +354,32 @@ class Model(object):
 
     def _get_schemas(
         self,
-        o,  # type: serial.model.Model
-        root,  # type: serial.model.Model
+        o,  # type: sob.model.Model
+        root,  # type: sob.model.Model
         path_phrase=None,  # type: Optional[typing.Sequence[str]]
         path_operation_phrase=None,  # type: Optional[typing.Sequence[str]]
         operation_phrase=None,  # type: Optional[typing.Sequence[str]]
-        types=None  # Optional[Union[type, serial.properties.Property]]
+        types=None  # Optional[Union[type, sob.properties.Property]]
     ):
         # type: (...) -> typing.Dict[str, typing.Tuple[str, oapi.model.Schema]]
-        if not isinstance(o, serial.abc.model.Model):
+        if not isinstance(o, sob.abc.model.Model):
             raise TypeError(
                 'The parameter `o` must be an instance of `%s`, not %s.' % (
-                    qualified_name(serial.abc.model.Model),
+                    qualified_name(sob.abc.model.Model),
                     repr(o)
                 )
             )
 
-        if not isinstance(root, serial.abc.model.Model):
+        if not isinstance(root, sob.abc.model.Model):
             raise TypeError(
                 'The parameter `root` must be an instance of `%s`, not %s.' % (
-                    qualified_name(serial.abc.model.Model),
+                    qualified_name(sob.abc.model.Model),
                     repr(root)
                 )
             )
 
-        url = serial.meta.url(o)
-        pointer = url + serial.meta.pointer(o)
+        url = sob.meta.url(o)
+        pointer = url + sob.meta.pointer(o)
         if pointer in self._references:
             return self._pointers_schemas
         path_phrase = path_phrase or []
@@ -479,17 +475,17 @@ class Model(object):
             else:
                return self._pointers_schemas
 
-        if not isinstance(o, serial.abc.model.Model):
+        if not isinstance(o, sob.abc.model.Model):
             return self._pointers_schemas
 
-        m = serial.meta.read(o)
-        if isinstance(o, serial.model.Dictionary):
+        m = sob.meta.read(o)
+        if isinstance(o, sob.model.Dictionary):
             items = o.items()
             if isinstance(o, model.Paths):
                 items = sorted(items, key=lambda kv: len(kv[0]))
             for k, property_value in items:
-                if isinstance(property_value, serial.abc.model.Model):
-                    property_pointer = serial.meta.url(property_value) + serial.meta.pointer(property_value)
+                if isinstance(property_value, sob.abc.model.Model):
+                    property_pointer = sob.meta.url(property_value) + sob.meta.pointer(property_value)
                     if property_pointer in self._references:
                         continue
                     if isinstance(property_value, model.Reference):
@@ -533,11 +529,11 @@ class Model(object):
                             path_operation_phrase=item_path_operation_phrase,
                             operation_phrase=item_operation_phrase,
                         )
-        elif isinstance(o, serial.model.Array):
+        elif isinstance(o, sob.model.Array):
             for i in range(len(o)):
                 property_value = o[i]
-                if isinstance(property_value, serial.abc.model.Model):
-                    property_pointer = serial.meta.url(property_value) + serial.meta.pointer(property_value)
+                if isinstance(property_value, sob.abc.model.Model):
+                    property_pointer = sob.meta.url(property_value) + sob.meta.pointer(property_value)
                     if property_pointer in self._references:
                         return self._pointers_schemas
                     self._get_schemas(
@@ -548,7 +544,7 @@ class Model(object):
                         path_operation_phrase=copy(path_operation_phrase),
                         operation_phrase=copy(operation_phrase),
                     )
-        elif isinstance(o, serial.model.Object):
+        elif isinstance(o, sob.model.Object):
             object_properties = tuple(m.properties.items())
             if isinstance(o, model.OpenAPI):
                 object_properties = sorted(
@@ -558,8 +554,8 @@ class Model(object):
             for name, property in object_properties:
                 property_value = getattr(o, name)
                 if property_value is not None:
-                    if isinstance(property_value, serial.abc.model.Model):
-                        property_pointer = serial.meta.url(property_value) + serial.meta.pointer(property_value)
+                    if isinstance(property_value, sob.abc.model.Model):
+                        property_pointer = sob.meta.url(property_value) + sob.meta.pointer(property_value)
                         if property_pointer in self._references:
                             return self._pointers_schemas
                         self._get_schemas(
@@ -596,10 +592,10 @@ class Model(object):
             for p, v in properties_values(metadata):
                 if v is not None:
                     v = repr(v)
-                    if v[:23] == 'serial.meta.Properties(':
+                    if v[:23] == 'sob.meta.Properties(':
                         v = v[23:-1]
                     lines.append(
-                        'serial.meta.writable(%s).%s = %s' % (
+                        'sob.meta.writable(%s).%s = %s' % (
                             cn, p, v
                         )
                     )

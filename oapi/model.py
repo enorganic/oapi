@@ -7,10 +7,7 @@ from __future__ import nested_scopes, generators, division, absolute_import, wit
     unicode_literals
 from future import standard_library
 
-import serial.abc
-import serial.abc.model
-import serial.marshal
-import serial.meta
+import sob
 
 standard_library.install_aliases()
 from builtins import *
@@ -34,11 +31,11 @@ try:
 except ImportError:
     typing = Union = Any = None
 
-import serial
-from serial import meta, hooks, model
+import sob
+from sob import meta, hooks, model
 
 from .errors import ReferenceLoopError
-from serial.utilities import qualified_name
+from sob.utilities import qualified_name
 
 
 class Object(model.Object):
@@ -99,10 +96,10 @@ def resolve_references(
           is only needed if `data` is not a "root" object/element in a document (an object resulting from
           deserializing a document, as opposed to one of the child objects of that deserialized root object).
     """
-    if not isinstance(data, serial.abc.model.Model):
+    if not isinstance(data, sob.abc.model.Model):
         raise TypeError(
             'The parameter `data` must be an instance of `%s`, not %s.' % (
-                qualified_name(serial.abc.model.Model),
+                qualified_name(sob.abc.model.Model),
                 repr(data)
             )
         )
@@ -143,14 +140,14 @@ def resolve_references(
                 ref_document = _references[ref_document_url]
             else:
                 try:
-                    ref_document, f = serial.marshal.detect_format(urlopen(ref_document_url))
+                    ref_document, f = sob.model.detect_format(urlopen(ref_document_url))
                 except HTTPError as http_error:
                     http_error.msg = http_error.msg + ': ' + ref_document_url
                     raise http_error
         if ref_pointer is None:
             ref_data = ref_document
             #if types:
-            ref_data = serial.marshal.unmarshal(ref_data, types=types)
+            ref_data = sob.model.unmarshal(ref_data, types=types)
             ref_url_pointer = ref_document_url
             if recursive:
                 if ref_url_pointer not in _references:
@@ -178,7 +175,7 @@ def resolve_references(
             else:
                 ref_data = resolve_pointer(ref_document, ref_pointer)
                 # if types:
-                ref_data = serial.marshal.unmarshal(ref_data, types)
+                ref_data = sob.model.unmarshal(ref_data, types)
                 if recursive:
                     _references[ref_url_pointer] = None
                     try:
@@ -197,7 +194,7 @@ def resolve_references(
         return ref_data
     if url is None:
         r = root or data
-        if isinstance(r, serial.abc.model.Model):
+        if isinstance(r, sob.abc.model.Model):
             url = meta.url(r)
     if not _recurrence:
         data = deepcopy(data)
@@ -212,7 +209,7 @@ def resolve_references(
             if isinstance(v, Reference):
                 v = resolve_ref(v.ref, types=(p,))
                 setattr(data, pn, v)
-            elif recursive and isinstance(v, serial.abc.model.Model):
+            elif recursive and isinstance(v, sob.abc.model.Model):
                 try:
                     v = resolve_references(
                         v,
@@ -228,7 +225,7 @@ def resolve_references(
                 setattr(data, pn, v)
     elif isinstance(data, (Dictionary, dict, OrderedDict)):
         for k, v in data.items():
-            if isinstance(v, serial.abc.model.Model):
+            if isinstance(v, sob.abc.model.Model):
                 try:
                     data[k] = resolve_references(
                         v,
@@ -245,7 +242,7 @@ def resolve_references(
         if not isinstance(data, collections.MutableSequence):
             data = list(data)
         for i in range(len(data)):
-            if isinstance(data[i], serial.abc.model.Model):
+            if isinstance(data[i], sob.abc.model.Model):
                 try:
                     data[i] = resolve_references(
                         data[i],
@@ -272,8 +269,8 @@ class Reference(Object):
         if _ is not None:
             if isinstance(_, HTTPResponse):
                 meta.url(self, _.url)
-            if isinstance(_, (dict, str)) and not isinstance(_, serial.abc.model.Model):
-                _, f = serial.marshal.detect_format(_)
+            if isinstance(_, (dict, str)) and not isinstance(_, sob.abc.model.Model):
+                _, f = sob.model.detect_format(_)
                 keys = set(_.keys())
                 if ('$ref' in keys) and (_['$ref'] is not None):
                     for k in keys - {'$ref'}:
@@ -282,7 +279,7 @@ class Reference(Object):
 
 
 meta.writable(Reference).properties = [
-    ('ref', serial.properties.String(name='$ref'))
+    ('ref', sob.properties.String(name='$ref'))
 ]
 
 
@@ -306,9 +303,9 @@ class Contact(Object):
 
 
 meta.writable(Contact).properties = [
-    ('name', serial.properties.String()),
-    ('url', serial.properties.String()),
-    ('email', serial.properties.String()),
+    ('name', sob.properties.String()),
+    ('url', sob.properties.String()),
+    ('email', sob.properties.String()),
 ]
 
 
@@ -330,8 +327,8 @@ class License(Object):
 
 
 meta.writable(License).properties = [
-    ('name', serial.properties.String(required=True)),
-    ('url', serial.properties.String()),
+    ('name', sob.properties.String(required=True)),
+    ('url', sob.properties.String()),
 ]
 
 
@@ -361,12 +358,12 @@ class Info(Object):
 
 
 meta.writable(Info).properties = [
-    ('title', serial.properties.String(required=True)),
-    ('description', serial.properties.String()),
-    ('terms_of_service', serial.properties.String(name='termsOfService')),
-    ('contact', serial.properties.Property(types=(Contact,))),
-    ('license_', serial.properties.Property(types=(License,), name='license')),
-    ('version', serial.properties.String(required=True)),
+    ('title', sob.properties.String(required=True)),
+    ('description', sob.properties.String()),
+    ('terms_of_service', sob.properties.String(name='termsOfService')),
+    ('contact', sob.properties.Property(types=(Contact,))),
+    ('license_', sob.properties.Property(types=(License,), name='license')),
+    ('version', sob.properties.String(required=True)),
 ]
 
 
@@ -406,8 +403,8 @@ class Link(Object):
 
 
 meta.writable(Link).properties = [
-    ('rel', serial.properties.String()),
-    ('href', serial.properties.String()),
+    ('rel', sob.properties.String()),
+    ('href', sob.properties.String()),
 ]
 
 
@@ -467,16 +464,16 @@ class Schema(Object):
 
         - min_properties (int)
 
-        - serial.properties ({str:Schema}): Any serial.properties of the object instance described by this schema which
+        - sob.properties ({str:Schema}): Any sob.properties of the object instance described by this schema which
           correspond to a name in this mapping should be valid as described by the sub-schema corresponding to that name.
 
         - additional_properties (bool|Schema):
 
-            - If `additional_properties` is `True`--serial.properties may be present in the object described by
-              this schema with names which do not match those in `serial.properties`.
+            - If `additional_properties` is `True`--sob.properties may be present in the object described by
+              this schema with names which do not match those in `sob.properties`.
 
-            - If `additional_properties` is `False`--all serial.properties present in the object described by this schema
-              must correspond to a property matched in either `serial.properties`.
+            - If `additional_properties` is `False`--all sob.properties present in the object described by this schema
+              must correspond to a property matched in either `sob.properties`.
 
         - enum ([Any]): The value/instance described by this schema should be among those in this sequence.
 
@@ -521,7 +518,7 @@ class Schema(Object):
 
         - default (Any): The value presumed if the value/instance described by this schema is absent.
 
-        The following serial.properties are specific to OpenAPI (not part of the core `JSON Schema <http://json-schema.org>`):
+        The following sob.properties are specific to OpenAPI (not part of the core `JSON Schema <http://json-schema.org>`):
 
         - nullable (bool): If `True`, the value/instance described by this schema may be a null value (`None`).
 
@@ -651,10 +648,10 @@ class Example(Object):
 
 
 meta.writable(Example).properties = [
-    ('summary', serial.properties.String(versions=('openapi>=3.0',))),
-    ('description', serial.properties.String(versions=('openapi>=3.0',))),
-    ('value', serial.properties.Property(versions=('openapi>=3.0',))),
-    ('external_value', serial.properties.String(name='externalValue', versions=('openapi>=3.0',))),
+    ('summary', sob.properties.String(versions=('openapi>=3.0',))),
+    ('description', sob.properties.String(versions=('openapi>=3.0',))),
+    ('value', sob.properties.Property(versions=('openapi>=3.0',))),
+    ('external_value', sob.properties.String(name='externalValue', versions=('openapi>=3.0',))),
 ]
 
 
@@ -705,10 +702,10 @@ class MediaType(Object):
 
 
 meta.writable(MediaType).properties = [
-    ('schema', serial.properties.Property(types=(Reference, Schema), versions=('openapi>=3.0',))),
-    ('example', serial.properties.Property(versions=('openapi>=3.0',))),
-    ('examples', serial.properties.Dictionary(value_types=(Reference, Example), versions=('openapi>=3.0',))),
-    ('encoding', serial.properties.Dictionary(value_types=(Reference, Encoding), versions=('openapi>=3.0',))),
+    ('schema', sob.properties.Property(types=(Reference, Schema), versions=('openapi>=3.0',))),
+    ('example', sob.properties.Property(versions=('openapi>=3.0',))),
+    ('examples', sob.properties.Dictionary(value_types=(Reference, Example), versions=('openapi>=3.0',))),
+    ('encoding', sob.properties.Dictionary(value_types=(Reference, Encoding), versions=('openapi>=3.0',))),
 ]
 
 
@@ -758,7 +755,7 @@ class Items(Object):
 meta.writable(Items).properties = [
     (
         'type_',
-        serial.properties.Enumerated(
+        sob.properties.Enumerated(
             name='type',
             values=(
                 'array',
@@ -774,7 +771,7 @@ meta.writable(Items).properties = [
     ),
     (
         'format_',
-        serial.properties.String(
+        sob.properties.String(
             # values=lambda o: (
             #     None
             #     if o is None else
@@ -792,11 +789,11 @@ meta.writable(Items).properties = [
     ),
     (
         'items',
-        serial.properties.Property(types=(Items,), versions=('openapi<3.0'))
+        sob.properties.Property(types=(Items,), versions=('openapi<3.0'))
     ),
     (
         'collection_format',
-        serial.properties.Enumerated(
+        sob.properties.Enumerated(
             values=('csv', 'ssv', 'tsv', 'pipes'),
             name='collectionFormat',
             versions=('openapi<3.0')
@@ -804,63 +801,63 @@ meta.writable(Items).properties = [
     ),
     (
         'default',
-        serial.properties.Property()
+        sob.properties.Property()
     ),(
         'maximum',
-        serial.properties.Number(versions=('openapi<3.0',))
+        sob.properties.Number(versions=('openapi<3.0',))
     ),
     (
         'exclusive_maximum',
-        serial.properties.Boolean(
+        sob.properties.Boolean(
             name='exclusiveMaximum',
             versions=('openapi<3.0',)
         )
     ),
     (
         'minimum',
-        serial.properties.Number(versions=('openapi<3.0',))
+        sob.properties.Number(versions=('openapi<3.0',))
     ),
     (
         'exclusive_minimum',
-        serial.properties.Boolean(
+        sob.properties.Boolean(
             name='exclusiveMinimum',
             versions=('openapi<3.0',)
         )
     ),
     (
         'max_length',
-        serial.properties.Integer(name='maxLength', versions=('openapi<3.0',))
+        sob.properties.Integer(name='maxLength', versions=('openapi<3.0',))
     ),
     (
         'min_length',
-        serial.properties.Integer(name='minLength', versions=('openapi<3.0',))
+        sob.properties.Integer(name='minLength', versions=('openapi<3.0',))
     ),
     (
         'pattern',
-        serial.properties.String(versions=('openapi<3.0',))
+        sob.properties.String(versions=('openapi<3.0',))
     ),
     (
         'max_items',
-        serial.properties.Integer(name='maxItems', versions=('openapi<3.0',))
+        sob.properties.Integer(name='maxItems', versions=('openapi<3.0',))
     ),
     (
         'min_items',
-        serial.properties.Integer(name='minItems', versions=('openapi<3.0',))
+        sob.properties.Integer(name='minItems', versions=('openapi<3.0',))
     ),
     (
         'unique_items',
-        serial.properties.Boolean(
+        sob.properties.Boolean(
             name='uniqueItems',
             versions=('openapi<3.0',)
         )
     ),
     (
         'enum',
-        serial.properties.Array(versions=('openapi<3.0',))
+        sob.properties.Array(versions=('openapi<3.0',))
     ),
     (
         'multiple_of',
-        serial.properties.Number(
+        sob.properties.Number(
             name='multipleOf',
             versions=('openapi<3.0',)
         )
@@ -928,7 +925,7 @@ class Parameter(Object):
         - schema (Schema): The schema defining the type used for the parameter.
 
         - example (Any): Example of the media type. The example should match the specified schema and encoding
-          serial.properties if present. The `example` parameter should not be present if `examples` is present. If
+          sob.properties if present. The `example` parameter should not be present if `examples` is present. If
           referencing a `schema` which contains an example--*this* example overrides the example provided by the
           `schema`. To represent examples of media value_types that cannot naturally be represented in JSON or YAML, a
           string value can contain the example with escaping where necessary.
@@ -1019,46 +1016,46 @@ class Parameter(Object):
 
 
 meta.writable(Parameter).properties = [
-    ('name', serial.properties.String(required=True)),
+    ('name', sob.properties.String(required=True)),
     (
         'in_',
-        serial.properties.Enumerated(
+        sob.properties.Enumerated(
             values=('query', 'header', 'path', 'formData', 'body'),
             name='in',
             required=True
         )
     ),
-    ('description', serial.properties.String()),
-    ('required', serial.properties.Boolean()),
-    ('deprecated', serial.properties.Boolean()),
-    ('allow_empty_value', serial.properties.Boolean(name='allowEmptyValue')),
-    ('style', serial.properties.String(versions=('openapi>=3.0',))),
-    ('explode', serial.properties.Boolean(versions=('openapi>=3.0',))),
-    ('allow_reserved', serial.properties.Boolean(name='allowReserved', versions=('openapi>=3.0',))),
+    ('description', sob.properties.String()),
+    ('required', sob.properties.Boolean()),
+    ('deprecated', sob.properties.Boolean()),
+    ('allow_empty_value', sob.properties.Boolean(name='allowEmptyValue')),
+    ('style', sob.properties.String(versions=('openapi>=3.0',))),
+    ('explode', sob.properties.Boolean(versions=('openapi>=3.0',))),
+    ('allow_reserved', sob.properties.Boolean(name='allowReserved', versions=('openapi>=3.0',))),
     (
         'schema',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(Reference, Schema),
         )
     ),
-    ('example', serial.properties.Property(versions=('openapi>=3.0',))),
+    ('example', sob.properties.Property(versions=('openapi>=3.0',))),
     (
         'examples',
-        serial.properties.Dictionary(
+        sob.properties.Dictionary(
             value_types=(Reference, Example),
             versions=('openapi>=3.0',)
         )
     ),
     (
         'content',
-        serial.properties.Dictionary(
+        sob.properties.Dictionary(
             value_types=(MediaType,),
             versions=('openapi>=3.0')
         ),
     ),
     (
         'type_',
-        serial.properties.Enumerated(
+        sob.properties.Enumerated(
             values=(
                 'array',
                 'object',
@@ -1074,66 +1071,66 @@ meta.writable(Parameter).properties = [
     ),
     (
         'default',
-        serial.properties.Property(
+        sob.properties.Property(
             versions=('openapi<3.0',)
         )
     ),
     (
         'maximum',
-        serial.properties.Number(versions=('openapi<3.0',))
+        sob.properties.Number(versions=('openapi<3.0',))
     ),
     (
         'exclusive_maximum',
-        serial.properties.Boolean(
+        sob.properties.Boolean(
             name='exclusiveMaximum',
             versions=('openapi<3.0',)
         )
     ),
     (
         'minimum',
-        serial.properties.Number(versions=('openapi<3.0',))
+        sob.properties.Number(versions=('openapi<3.0',))
     ),
     (
         'exclusive_minimum',
-        serial.properties.Boolean(
+        sob.properties.Boolean(
             name='exclusiveMinimum',
             versions=('openapi<3.0',)
         )
     ),
     (
         'max_length',
-        serial.properties.Integer(name='maxLength', versions=('openapi<3.0',))
+        sob.properties.Integer(name='maxLength', versions=('openapi<3.0',))
     ),
     (
         'min_length',
-        serial.properties.Integer(name='minLength', versions=('openapi<3.0',))
+        sob.properties.Integer(name='minLength', versions=('openapi<3.0',))
     ),
     (
         'pattern',
-        serial.properties.String(versions=('openapi<3.0',))
+        sob.properties.String(versions=('openapi<3.0',))
     ),
     (
         'max_items',
-        serial.properties.Integer(name='maxItems', versions=('openapi<3.0',))
+        sob.properties.Integer(name='maxItems', versions=('openapi<3.0',))
     ),
     (
         'min_items',
-        serial.properties.Integer(name='minItems', versions=('openapi<3.0',))
+        sob.properties.Integer(name='minItems', versions=('openapi<3.0',))
     ),
     (
         'unique_items',
-        serial.properties.Boolean(
+        sob.properties.Boolean(
             name='uniqueItems',
             versions=('openapi<3.0',)
         )
     ),
     (
         'enum',
-        serial.properties.Array(versions=('openapi<3.0',))
+        sob.properties.Array(versions=('openapi<3.0',))
     ),
     (
         'format_',
-        serial.properties.String(
+        sob.properties.String(
             # values=(
             #     'int32', 'int64',  # type_ == 'integer'
             #     'float', 'double',  # type_ == 'number'
@@ -1145,7 +1142,7 @@ meta.writable(Parameter).properties = [
     ),
     (
         'collection_format',
-        serial.properties.Enumerated(
+        sob.properties.Enumerated(
             values=('csv', 'ssv', 'tsv', 'pipes', 'multi'),
             name='collectionFormat',
             versions=('openapi<3.0',)
@@ -1153,14 +1150,14 @@ meta.writable(Parameter).properties = [
     ),
     (
         'items',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(Items,),
             versions=('openapi<3.0',)
         )
     ),
     (
         'multiple_of',
-        serial.properties.Number(
+        sob.properties.Number(
             name='multipleOf',
             versions=('openapi<3.0',)
         )
@@ -1171,13 +1168,13 @@ meta.writable(Parameter).properties = [
 def _parameter_after_validate(o):
     # type: (Parameter) -> Parameter
     if (o.content is not None) and len(tuple(o.content.keys())) > 1:
-        raise serial.errors.ValidationError(
+        raise sob.errors.ValidationError(
             '`%s.content` may have only one mapped value.:\n%s' % (
                 qualified_name(type(o)), repr(o)
             )
         )
     if (o.content is not None) and (o.schema is not None):
-        raise serial.errors.ValidationError(
+        raise sob.errors.ValidationError(
             'An instance of `%s` may have a `schema` property or a `content` ' % qualified_name(type(o)) +
             'property, but not *both*:\n' + repr(o)
         )
@@ -1190,7 +1187,7 @@ def _parameter_after_validate(o):
             o.format_ not in ('int32', 'int64', None)
         ):
             qn = qualified_name(type(o))
-            raise serial.errors.ValidationError(
+            raise sob.errors.ValidationError(
                 '"%s" in not a valid value for `%S.format_` in this circumstance. ' % (
                     o.format_,
                     qn
@@ -1202,7 +1199,7 @@ def _parameter_after_validate(o):
             o.format_ not in ('float', 'double', None)
         ):
             qn = qualified_name(type(o))
-            raise serial.errors.ValidationError(
+            raise sob.errors.ValidationError(
                 '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
                 '`%s.format_` may be "float" or "double" when ' % qn +
                 '`%s.type_` is "number".' % (qn, )
@@ -1211,7 +1208,7 @@ def _parameter_after_validate(o):
             o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
         ):
             qn = qualified_name(type(o))
-            raise serial.errors.ValidationError(
+            raise sob.errors.ValidationError(
                 '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
                 '`%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
                 '`%s.type_` is "string".' % (qn, )
@@ -1306,11 +1303,11 @@ _header_meta.properties['allow_empty_value'].versions = ('openapi>=3.0',)
 
 
 meta.writable(Encoding).properties = [
-    ('content_type', serial.properties.String(name='contentType')),
-    ('headers', serial.properties.Dictionary(value_types=(Reference, Header))),
-    ('style', serial.properties.String()),
-    ('explode', serial.properties.Boolean()),
-    ('allow_reserved', serial.properties.Boolean(name='allowReserved')),
+    ('content_type', sob.properties.String(name='contentType')),
+    ('headers', sob.properties.Dictionary(value_types=(Reference, Header))),
+    ('style', sob.properties.String()),
+    ('explode', sob.properties.Boolean()),
+    ('allow_reserved', sob.properties.Boolean(name='allowReserved')),
 ]
 
 
@@ -1330,9 +1327,9 @@ class ServerVariable(Object):
 
 
 meta.writable(ServerVariable).properties = [
-    ('enum', serial.properties.Array(item_types=(str,))),
-    ('default', serial.properties.String(required=True)),
-    ('description', serial.properties.String()),
+    ('enum', sob.properties.Array(item_types=(str,))),
+    ('default', sob.properties.String(required=True)),
+    ('description', sob.properties.String()),
 ]
 
 
@@ -1356,9 +1353,9 @@ class Server(Object):
 
 
 meta.writable(Server).properties = [
-    ('url', serial.properties.String(required=True)),
-    ('description', serial.properties.String()),
-    ('variables', serial.properties.Dictionary(value_types=(ServerVariable,))),
+    ('url', sob.properties.String(required=True)),
+    ('description', sob.properties.String()),
+    ('variables', sob.properties.Dictionary(value_types=(ServerVariable,))),
 ]
 
 
@@ -1387,12 +1384,12 @@ class Link_(Object):
 
 
 meta.writable(Link_).properties = [
-    ('operation_ref', serial.properties.String(name='operationRef', versions=('openapi>=3.0',))),
-    ('operation_id', serial.properties.String(name='operationId', versions=('openapi>=3.0',))),
-    ('parameters', serial.properties.Dictionary(versions=('openapi>=3.0',))),
-    ('request_body', serial.properties.Property(name='requestBody', versions=('openapi>=3.0',))),
-    ('description', serial.properties.String(versions=('openapi>=3.0',))),
-    ('server', serial.properties.Property(types=(Server,), versions=('openapi>=3.0',))),
+    ('operation_ref', sob.properties.String(name='operationRef', versions=('openapi>=3.0',))),
+    ('operation_id', sob.properties.String(name='operationId', versions=('openapi>=3.0',))),
+    ('parameters', sob.properties.Dictionary(versions=('openapi>=3.0',))),
+    ('request_body', sob.properties.Property(name='requestBody', versions=('openapi>=3.0',))),
+    ('description', sob.properties.String(versions=('openapi>=3.0',))),
+    ('server', sob.properties.Property(types=(Server,), versions=('openapi>=3.0',))),
 ]
 
 
@@ -1438,37 +1435,37 @@ class Response(Object):
 meta.writable(Response).properties = [
     (
         'description',
-        serial.properties.String()
+        sob.properties.String()
     ),
     (
         'schema',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(Reference, Schema),
             versions=('openapi<3.0',)
         )
     ),
     (
         'headers',
-        serial.properties.Dictionary(
+        sob.properties.Dictionary(
             value_types=(Reference, Header)
         )
     ),
     (
         'examples',
-        serial.properties.Dictionary(
+        sob.properties.Dictionary(
             versions=('openapi<3.0',)
         )
     ),
     (
         'content',
-        serial.properties.Dictionary(
+        sob.properties.Dictionary(
             value_types=(Reference, MediaType),
             versions=('openapi>=3.0',)
         )
     ),
     (
         'links',
-        serial.properties.Dictionary(
+        sob.properties.Dictionary(
             value_types=(Reference, Link_),
             versions=('openapi>=3.0',)
         )
@@ -1496,15 +1493,15 @@ class ExternalDocumentation(Object):
 
 
 meta.writable(ExternalDocumentation).properties = [
-    ('description', serial.properties.String()),
-    ('url', serial.properties.String(required=True)),
+    ('description', sob.properties.String()),
+    ('url', sob.properties.String(required=True)),
 ]
 
 
 meta.writable(Tag).properties = [
-    ('name', serial.properties.String(required=True)),
-    ('description', serial.properties.String()),
-    ('external_docs', serial.properties.Property(types=(ExternalDocumentation,))),
+    ('name', sob.properties.String(required=True)),
+    ('description', sob.properties.String()),
+    ('external_docs', sob.properties.Property(types=(ExternalDocumentation,))),
 ]
 
 
@@ -1524,9 +1521,9 @@ class RequestBody(Object):
 
 
 meta.writable(RequestBody).properties = [
-    ('description', serial.properties.String(versions=('openapi>=3.0',))),
-    ('content', serial.properties.Dictionary(value_types=(MediaType,), versions=('openapi>=3.0',))),
-    ('required', serial.properties.Boolean(versions=('openapi>=3.0',))),
+    ('description', sob.properties.String(versions=('openapi>=3.0',))),
+    ('content', sob.properties.Dictionary(value_types=(MediaType,), versions=('openapi>=3.0',))),
+    ('required', sob.properties.Boolean(versions=('openapi>=3.0',))),
 ]
 
 
@@ -1655,20 +1652,20 @@ class PathItem(Object):
 
 
 meta.writable(PathItem).properties = [
-    ('summary', serial.properties.String(versions=('openapi>=3.0',))),
-    ('description', serial.properties.String(versions=('openapi>=3.0',))),
-    ('get', serial.properties.Property(types=(Operation,))),
-    ('put', serial.properties.Property(types=(Operation,))),
-    ('post', serial.properties.Property(types=(Operation,))),
-    ('delete', serial.properties.Property(types=(Operation,))),
-    ('options', serial.properties.Property(types=(Operation,))),
-    ('head', serial.properties.Property(types=(Operation,))),
-    ('patch', serial.properties.Property(types=(Operation,))),
-    ('trace', serial.properties.Property(types=(Operation,), versions=('openapi>=3.0',))),
-    ('servers', serial.properties.Array(item_types=(Server,), versions=('openapi>=3.0',))),
+    ('summary', sob.properties.String(versions=('openapi>=3.0',))),
+    ('description', sob.properties.String(versions=('openapi>=3.0',))),
+    ('get', sob.properties.Property(types=(Operation,))),
+    ('put', sob.properties.Property(types=(Operation,))),
+    ('post', sob.properties.Property(types=(Operation,))),
+    ('delete', sob.properties.Property(types=(Operation,))),
+    ('options', sob.properties.Property(types=(Operation,))),
+    ('head', sob.properties.Property(types=(Operation,))),
+    ('patch', sob.properties.Property(types=(Operation,))),
+    ('trace', sob.properties.Property(types=(Operation,), versions=('openapi>=3.0',))),
+    ('servers', sob.properties.Array(item_types=(Server,), versions=('openapi>=3.0',))),
     (
         'parameters',
-        serial.properties.Array(
+        sob.properties.Array(
             item_types=(Reference, Parameter)
         )
     ),
@@ -1697,11 +1694,11 @@ class Responses(Dictionary):
 
 
 meta.writable(Responses).value_types = (
-    serial.properties.Property(
+    sob.properties.Property(
         types=(Reference, Response),
         versions=('openapi>=3.0',)
     ),
-    serial.properties.Property(
+    sob.properties.Property(
         types=(Response,),
         versions=('openapi<3.0',)
     )
@@ -1709,22 +1706,22 @@ meta.writable(Responses).value_types = (
 
 
 meta.writable(Operation).properties = [
-    ('tags', serial.properties.Array(item_types=(str,))),
-    ('summary', serial.properties.String()),
-    ('description', serial.properties.String()),
-    ('external_docs', serial.properties.Property(types=(ExternalDocumentation,), name='externalDocs')),
-    ('operation_id', serial.properties.String(name='operationId')),
-    ('consumes', serial.properties.Array(item_types=(str,),versions=('openapi<3.0',))),
-    ('produces', serial.properties.Array(item_types=(str,),versions=('openapi<3.0',))),
+    ('tags', sob.properties.Array(item_types=(str,))),
+    ('summary', sob.properties.String()),
+    ('description', sob.properties.String()),
+    ('external_docs', sob.properties.Property(types=(ExternalDocumentation,), name='externalDocs')),
+    ('operation_id', sob.properties.String(name='operationId')),
+    ('consumes', sob.properties.Array(item_types=(str,),versions=('openapi<3.0',))),
+    ('produces', sob.properties.Array(item_types=(str,),versions=('openapi<3.0',))),
     (
         'parameters',
-        serial.properties.Array(
+        sob.properties.Array(
             item_types=(Reference, Parameter)
         )
     ),
     (
         'request_body',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(Reference, RequestBody),
             name='requestBody',
             versions=('openapi>=3.0',)
@@ -1732,29 +1729,29 @@ meta.writable(Operation).properties = [
     ),
     (
         'responses',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(Responses,),
             required=True
         )
     ),
     (
         'callbacks',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(
                 Callbacks,
             ),
             versions=('openapi>=3.0',)
         )
     ),
-    ('schemes', serial.properties.Array(item_types=(str,), versions=('openapi>=3.0',))),
-    ('deprecated', serial.properties.Boolean()),
+    ('schemes', sob.properties.Array(item_types=(str,), versions=('openapi>=3.0',))),
+    ('deprecated', sob.properties.Boolean()),
     (
         'security',
-        serial.properties.Array(
+        sob.properties.Array(
             item_types=(
-                serial.properties.Dictionary(
+                sob.properties.Dictionary(
                     value_types=(
-                        serial.properties.Array(
+                        sob.properties.Array(
                             item_types=(str,)
                         ),
                     )
@@ -1762,7 +1759,7 @@ meta.writable(Operation).properties = [
             )
         )
     ),
-    ('servers', serial.properties.Array(item_types=(Server,), versions=('openapi>=3.0',)))
+    ('servers', sob.properties.Array(item_types=(Server,), versions=('openapi>=3.0',)))
 ]
 
 
@@ -1789,8 +1786,8 @@ class Discriminator(Object):
 
 
 meta.writable(Discriminator).properties = [
-    ('property_name', serial.properties.String(name='propertyName', versions=('openapi>=3.0',))),
-    ('mapping', serial.properties.Dictionary(value_types=(str,), versions=('openapi>=3.0',))),
+    ('property_name', sob.properties.String(name='propertyName', versions=('openapi>=3.0',))),
+    ('mapping', sob.properties.Dictionary(value_types=(str,), versions=('openapi>=3.0',))),
 ]
 
 
@@ -1830,11 +1827,11 @@ class XML(Object):
 
 
 meta.writable(XML).properties = [
-    ('name', serial.properties.String()),
-    ('name_space', serial.properties.String(name='nameSpace')),
-    ('prefix', serial.properties.String()),
-    ('attribute', serial.properties.Boolean()),
-    ('wrapped', serial.properties.Boolean()),
+    ('name', sob.properties.String()),
+    ('name_space', sob.properties.String(name='nameSpace')),
+    ('prefix', sob.properties.String()),
+    ('attribute', sob.properties.Boolean()),
+    ('wrapped', sob.properties.Boolean()),
 ]
 
 
@@ -1859,10 +1856,10 @@ class OAuthFlow(Object):
 
 
 meta.writable(OAuthFlow).properties = [
-    ('authorization_url', serial.properties.String()),
-    ('token_url', serial.properties.String(name='tokenUrl')),
-    ('refresh_url', serial.properties.String(name='refreshUrl')),
-    ('scopes', serial.properties.Dictionary(value_types=(str,))),
+    ('authorization_url', sob.properties.String()),
+    ('token_url', sob.properties.String(name='tokenUrl')),
+    ('refresh_url', sob.properties.String(name='refreshUrl')),
+    ('scopes', sob.properties.Dictionary(value_types=(str,))),
 ]
 
 
@@ -1887,11 +1884,11 @@ class OAuthFlows(Object):
 
 
 meta.writable(OAuthFlows).properties = [
-    ('implicit', serial.properties.Property(types=(OAuthFlow,), versions=('openapi>=3.0',))),
-    ('password', serial.properties.Property(types=(OAuthFlow,), versions=('openapi>=3.0',))),
+    ('implicit', sob.properties.Property(types=(OAuthFlow,), versions=('openapi>=3.0',))),
+    ('password', sob.properties.Property(types=(OAuthFlow,), versions=('openapi>=3.0',))),
     (
         'client_credentials',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(OAuthFlow,),
             name='clientCredentials',
             versions=('openapi>=3.0',),
@@ -1899,7 +1896,7 @@ meta.writable(OAuthFlows).properties = [
     ),
     (
         'authorization_code',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(OAuthFlow,),
             name='authorizationCode',
             versions=('openapi>=3.0',)
@@ -1973,28 +1970,28 @@ class SecurityScheme(Object):
 meta.writable(SecurityScheme).properties = [
     (
         'type_',
-        serial.properties.Enumerated(
+        sob.properties.Enumerated(
             values=('apiKey', 'http', 'oauth2', 'openIdConnect'),
             name='type',
             required=True
         )
     ),
-    ('description', serial.properties.String()),
+    ('description', sob.properties.String()),
     (
         'name',
-        serial.properties.String(
+        sob.properties.String(
             required=lambda o: True if o.type_ == 'apiKey' else False
         )
     ),
     (
         'in_',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(
-                serial.properties.Enumerated(
+                sob.properties.Enumerated(
                     values=('query', 'header', 'cookie'),
                     versions=('openapi>=3.0',)
                 ),
-                serial.properties.Enumerated(
+                sob.properties.Enumerated(
                     values=('query', 'header'),
                     versions=('openapi<3.0',)
                 ),
@@ -2005,15 +2002,15 @@ meta.writable(SecurityScheme).properties = [
     ),
     (
         'scheme',
-        serial.properties.String(
+        sob.properties.String(
             required=lambda o: True if o.type_ == 'http' else False,
             versions='openapi>=3.0'
         )
     ),
-    ('bearer_format', serial.properties.String(name='bearerFormat')),
+    ('bearer_format', sob.properties.String(name='bearerFormat')),
     (
         'flows',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(OAuthFlows,),
             required=lambda o: True if o.type_ == 'oauth2' else False,
             versions=('openapi>=3.0',)
@@ -2021,21 +2018,21 @@ meta.writable(SecurityScheme).properties = [
     ),
     (
         'open_id_connect_url',
-        serial.properties.String(
+        sob.properties.String(
             name='openIdConnectUrl',
             required=lambda o: True if o.type_ == 'openIdConnect' else False
         )
     ),
     (
         'flow',
-        serial.properties.String(
+        sob.properties.String(
             versions='openapi<3.0',
             required=lambda o: True if o.type_ == 'oauth2' else False
         )
     ),
     (
         'authorization_url',
-        serial.properties.String(
+        sob.properties.String(
             name='authorizationUrl',
             versions='openapi<3.0',
             required=lambda o: (
@@ -2047,7 +2044,7 @@ meta.writable(SecurityScheme).properties = [
     ),
     (
         'token_url',
-        serial.properties.String(
+        sob.properties.String(
             name='tokenUrl',
             versions='openapi<3.0',
             required=lambda o: (
@@ -2059,7 +2056,7 @@ meta.writable(SecurityScheme).properties = [
     ),
     (
         'scopes',
-        serial.properties.Dictionary(
+        sob.properties.Dictionary(
             value_types=(str,),
             versions='openapi<3.0',
             required=lambda o: True if o.type_ == 'oauth2' else False
@@ -2068,49 +2065,49 @@ meta.writable(SecurityScheme).properties = [
 ]
 
 meta.writable(Schema).properties = [
-    ('title', serial.properties.String()),
-    ('description', serial.properties.String()),
-    ('multiple_of', serial.properties.Number(name='multipleOf')),
-    ('maximum', serial.properties.Number()),
-    ('exclusive_maximum', serial.properties.Boolean(name='exclusiveMaximum')),
-    ('minimum', serial.properties.Number()),
-    ('exclusive_minimum', serial.properties.Boolean(name='exclusiveMinimum')),
-    ('max_length', serial.properties.Integer(name='maxLength')),
-    ('min_length', serial.properties.Integer(name='minLength')),
-    ('pattern', serial.properties.String()),
-    ('max_items', serial.properties.Integer(name='maxItems')),
-    ('min_items', serial.properties.Integer(name='minItems')),
-    ('unique_items', serial.properties.Boolean(name='uniqueItems')),
+    ('title', sob.properties.String()),
+    ('description', sob.properties.String()),
+    ('multiple_of', sob.properties.Number(name='multipleOf')),
+    ('maximum', sob.properties.Number()),
+    ('exclusive_maximum', sob.properties.Boolean(name='exclusiveMaximum')),
+    ('minimum', sob.properties.Number()),
+    ('exclusive_minimum', sob.properties.Boolean(name='exclusiveMinimum')),
+    ('max_length', sob.properties.Integer(name='maxLength')),
+    ('min_length', sob.properties.Integer(name='minLength')),
+    ('pattern', sob.properties.String()),
+    ('max_items', sob.properties.Integer(name='maxItems')),
+    ('min_items', sob.properties.Integer(name='minItems')),
+    ('unique_items', sob.properties.Boolean(name='uniqueItems')),
     (
         'items',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(
                 Reference,
                 Schema,
-                serial.properties.Array(
+                sob.properties.Array(
                     item_types=(Reference, Schema)
                 )
             )
         )
     ),
-    ('max_properties', serial.properties.Integer(name='maxProperties')),
-    ('min_properties', serial.properties.Integer(name='minProperties')),
-    ('properties', serial.properties.Property(types=(Properties,))),
+    ('max_properties', sob.properties.Integer(name='maxProperties')),
+    ('min_properties', sob.properties.Integer(name='minProperties')),
+    ('properties', sob.properties.Property(types=(Properties,))),
     (
         'additional_properties',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(Reference, Schema, bool),
             name='additionalProperties'
         )
     ),
-    ('enum', serial.properties.Array()),
+    ('enum', sob.properties.Array()),
     (
         'type_',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(
-                serial.properties.Array(
+                sob.properties.Array(
                     item_types=(
-                        serial.properties.Enumerated(
+                        sob.properties.Enumerated(
                             values=(
                                 'array',
                                 'object',
@@ -2123,7 +2120,7 @@ meta.writable(Schema).properties = [
                         ),
                     )
                 ),
-                serial.properties.Enumerated(
+                sob.properties.Enumerated(
                     values=(
                         'array',
                         'object',
@@ -2140,7 +2137,7 @@ meta.writable(Schema).properties = [
     ),
     (
         'format_',
-        serial.properties.String(
+        sob.properties.String(
             # values=(
             #     'int32', 'int64',
             #     'float', 'double',
@@ -2149,38 +2146,38 @@ meta.writable(Schema).properties = [
             name='format'
         )
     ),
-    ('required', serial.properties.Array(item_types=(serial.properties.String(),))),
-    ('all_of', serial.properties.Array(item_types=(Reference, Schema), name='allOf')),
-    ('any_of', serial.properties.Array(item_types=(Reference, Schema), name='anyOf')),
-    ('one_of', serial.properties.Array(item_types=(Reference, Schema), name='oneOf')),
-    ('is_not', serial.properties.Property(types=(Reference, Schema), name='isNot')),
-    ('definitions', serial.properties.Property()),
-    ('default', serial.properties.Property()),
-    ('required', serial.properties.Array(item_types=(str,))),
-    ('default', serial.properties.Property()),
+    ('required', sob.properties.Array(item_types=(sob.properties.String(),))),
+    ('all_of', sob.properties.Array(item_types=(Reference, Schema), name='allOf')),
+    ('any_of', sob.properties.Array(item_types=(Reference, Schema), name='anyOf')),
+    ('one_of', sob.properties.Array(item_types=(Reference, Schema), name='oneOf')),
+    ('is_not', sob.properties.Property(types=(Reference, Schema), name='isNot')),
+    ('definitions', sob.properties.Property()),
+    ('default', sob.properties.Property()),
+    ('required', sob.properties.Array(item_types=(str,))),
+    ('default', sob.properties.Property()),
     (
         'discriminator',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(
-                serial.properties.Property(
+                sob.properties.Property(
                     types=(Discriminator,),
                     versions=('openapi>=3.0',),
                 ),
-                serial.properties.Property(
+                sob.properties.Property(
                     types=(str,),
                     versions=('openapi<3.0',)
                 )
             )
         )
     ),
-    ('read_only', serial.properties.Boolean()),
-    ('write_only', serial.properties.Boolean(name='writeOnly', versions=('openapi>=3.0',))),
-    ('xml', serial.properties.Property(types=(XML,))),
-    ('external_docs', serial.properties.Property(types=(ExternalDocumentation,))),
-    ('example', serial.properties.Property()),
-    ('deprecated', serial.properties.Boolean(versions=('openapi>=3.0',))),
-    ('links', serial.properties.Array(item_types=(Link,))),
-    ('nullable', serial.properties.Boolean(versions=('openapi>=3.0',)))
+    ('read_only', sob.properties.Boolean()),
+    ('write_only', sob.properties.Boolean(name='writeOnly', versions=('openapi>=3.0',))),
+    ('xml', sob.properties.Property(types=(XML,))),
+    ('external_docs', sob.properties.Property(types=(ExternalDocumentation,))),
+    ('example', sob.properties.Property()),
+    ('deprecated', sob.properties.Boolean(versions=('openapi>=3.0',))),
+    ('links', sob.properties.Array(item_types=(Link,))),
+    ('nullable', sob.properties.Boolean(versions=('openapi>=3.0',)))
 ]
 
 
@@ -2195,7 +2192,7 @@ def _schema_after_validate(o):
             o.format_ not in ('int32', 'int64', None)
         ):
             qn = qualified_name(type(o))
-            raise serial.errors.ValidationError(
+            raise sob.errors.ValidationError(
                 '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
                 '`%s.format_` may be "int32" or "int64" when ' % qn +
                 '`%s.type_` is "integer".' % (qn, )
@@ -2204,7 +2201,7 @@ def _schema_after_validate(o):
             o.format_ not in ('float', 'double', None)
         ):
             qn = qualified_name(type(o))
-            raise serial.errors.ValidationError(
+            raise sob.errors.ValidationError(
                 '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
                 '`%s.format_` may be "float" or "double" when ' % qn +
                 '`%s.type_` is "number".' % (qn, )
@@ -2213,7 +2210,7 @@ def _schema_after_validate(o):
             o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
         ):
             qn = qualified_name(type(o))
-            raise serial.errors.ValidationError(
+            raise sob.errors.ValidationError(
                 '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
                 '`%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
                 '`%s.type_` is "string".' % (qn, )
@@ -2288,7 +2285,7 @@ class Components(Object):
         schemas=None,  # type: Optional[Schemas]
         responses=None,  # type: Optional[Responses]
         parameters=None,  # type: Optional[Parameters]
-        examples=None,  # type: Optional[References]
+        examples=None,  # type: Optional[Examples]
         request_bodies=None,  # type: Optional[RequestBodies]
         headers=None,  # type: Optional[Headers]
         security_schemes=None,  # type: Optional[SecuritySchemes]
@@ -2308,20 +2305,20 @@ class Components(Object):
 
 
 meta.writable(Components).properties = [
-    ('schemas', serial.properties.Property(types=(Schemas,))),
-    ('responses', serial.properties.Property(types=(Responses,))),
+    ('schemas', sob.properties.Property(types=(Schemas,))),
+    ('responses', sob.properties.Property(types=(Responses,))),
     (
         'parameters',
-        serial.properties.Property(types=(Parameters,))
+        sob.properties.Property(types=(Parameters,))
     ),
-    ('examples', serial.properties.Property(types=(Examples,))),
-    ('request_bodies', serial.properties.Property(types=(RequestBodies,), name='requestBodies')),
-    ('headers', serial.properties.Property(types=(Headers,))),
-    ('security_schemes', serial.properties.Property(types=(SecuritySchemes,), name='securitySchemes')),
-    ('links', serial.properties.Property(types=(Links,))),
+    ('examples', sob.properties.Property(types=(Examples,))),
+    ('request_bodies', sob.properties.Property(types=(RequestBodies,), name='requestBodies')),
+    ('headers', sob.properties.Property(types=(Headers,))),
+    ('security_schemes', sob.properties.Property(types=(SecuritySchemes,), name='securitySchemes')),
+    ('links', sob.properties.Property(types=(Links,))),
     (
         'callbacks',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(Callbacks,)
         )
     ),
@@ -2392,37 +2389,37 @@ class OpenAPI(Object):
         super().__init__(_)
         version = self.openapi or self.swagger
         if version is not None:
-            serial.meta.version(self, 'openapi', version)
+            sob.meta.version(self, 'openapi', version)
 
 
 meta.writable(OpenAPI).properties = [
-    ('openapi', serial.properties.String(versions=('openapi>=3.0',), required=True)),
-    ('info', serial.properties.Property(types=(Info,), required=True)),
-    ('host', serial.properties.String(versions=('openapi<3.0',))),
-    ('servers', serial.properties.Array(item_types=(Server,), versions=('openapi>=3.0',))),
-    ('base_path', serial.properties.String(name='basePath', versions=('openapi<3.0',))),
-    ('schemes', serial.properties.Array(item_types=(str,), versions=('openapi<3.0',))),
-    ('tags', serial.properties.Array(item_types=(Tag,))),
-    ('paths', serial.properties.Property(types=(Paths,), required=True)),
-    ('components', serial.properties.Property(types=(Components,), versions=('openapi>=3.0',))),
-    ('consumes', serial.properties.Array(item_types=(str,), versions=('openapi<3.0',))),
-    ('swagger', serial.properties.String(versions=('openapi<3.0',), required=True)),
+    ('openapi', sob.properties.String(versions=('openapi>=3.0',), required=True)),
+    ('info', sob.properties.Property(types=(Info,), required=True)),
+    ('host', sob.properties.String(versions=('openapi<3.0',))),
+    ('servers', sob.properties.Array(item_types=(Server,), versions=('openapi>=3.0',))),
+    ('base_path', sob.properties.String(name='basePath', versions=('openapi<3.0',))),
+    ('schemes', sob.properties.Array(item_types=(str,), versions=('openapi<3.0',))),
+    ('tags', sob.properties.Array(item_types=(Tag,))),
+    ('paths', sob.properties.Property(types=(Paths,), required=True)),
+    ('components', sob.properties.Property(types=(Components,), versions=('openapi>=3.0',))),
+    ('consumes', sob.properties.Array(item_types=(str,), versions=('openapi<3.0',))),
+    ('swagger', sob.properties.String(versions=('openapi<3.0',), required=True)),
     (
         'definitions',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(Definitions,),
             versions=('openapi<3.0',)
         ),
     ),
     (
         'security_definitions',
-        serial.properties.Property(
+        sob.properties.Property(
             types=(
-                serial.properties.Dictionary(
+                sob.properties.Dictionary(
                     value_types=(SecurityScheme,),
                     versions=('openapi<3.0',)
                 ),
-                serial.properties.Dictionary(
+                sob.properties.Dictionary(
                     value_types=(Reference, SecurityScheme),
                     versions=('openapi>=3.0',)
                 ),
@@ -2430,21 +2427,21 @@ meta.writable(OpenAPI).properties = [
             name='securityDefinitions',
         )
     ),
-    ('produces', serial.properties.Array(item_types=(str,), versions=('openapi<3.0',)),),
-    ('external_docs', serial.properties.Property(types=(ExternalDocumentation,), name='externalDocs')),
+    ('produces', sob.properties.Array(item_types=(str,), versions=('openapi<3.0',)),),
+    ('external_docs', sob.properties.Property(types=(ExternalDocumentation,), name='externalDocs')),
     (
         'parameters',
-        serial.properties.Dictionary(
+        sob.properties.Dictionary(
             value_types=(Parameter,),
             versions=('openapi<3.0',)
         )
     ),
-    ('responses', serial.properties.Dictionary(value_types=(Response,), versions=('openapi<3.0',))),
+    ('responses', sob.properties.Dictionary(value_types=(Response,), versions=('openapi<3.0',))),
     (
         'security',
-        serial.properties.Dictionary(
+        sob.properties.Dictionary(
             value_types=(
-                serial.properties.Array(item_types=(str,)),
+                sob.properties.Array(item_types=(str,)),
             ),
             versions=('openapi<3.0',)
         )

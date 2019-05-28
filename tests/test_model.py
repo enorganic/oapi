@@ -2,24 +2,25 @@
 from __future__ import absolute_import, division, generators, nested_scopes, print_function, unicode_literals, \
     with_statement
 
+import json
 from time import sleep
 
 from future import standard_library
-
-import serial.marshal
 from oapi import Model
 
 standard_library.install_aliases()
 from builtins import *
 from future.utils import native_str
+
 # endregion
+
 import os
 from itertools import chain
 from urllib.parse import urljoin
 
 from urllib.request import urlopen
 
-import serial
+import sob
 from oapi.model import OpenAPI, Schema, resolve_references, Info
 
 
@@ -28,7 +29,7 @@ def test_languagetool():
     print(url)
     with urlopen(url) as response:
         oa = OpenAPI(response)
-        serial.test.json(oa)
+        sob.test.json(oa)
         model = Model(oa)
         model_path = os.path.abspath('./data/languagetool.py')
         if os.path.exists(model_path):
@@ -71,10 +72,10 @@ def test_openapi_examples():
         print(url)
         with urlopen(url) as response:
             oa = OpenAPI(response)
-            serial.test.json(oa)
+            sob.test.json(oa)
             oa2 = resolve_references(oa)
             try:
-                assert '$ref' not in serial.marshal.serialize(oa2)
+                assert '$ref' not in sob.model.serialize(oa2)
             except AssertionError as e:
                 if e.args:
                     e.args = tuple(chain(
@@ -85,7 +86,7 @@ def test_openapi_examples():
                     e.args = (repr(oa2),)
                 raise e
             if oa2 != oa:
-                serial.test.json(oa2)
+                sob.test.json(oa2)
 
 
 def test_magento_schemas():
@@ -98,10 +99,10 @@ def test_magento_schemas():
         print(url)
         with urlopen(url) as response:
             oa = OpenAPI(response)
-            serial.test.json(oa)
+            sob.test.json(oa)
             oa2 = resolve_references(oa)
             if oa2 != oa:
-                serial.test.json(oa2)
+                sob.test.json(oa2)
 
 
 def test_logic_broker_schemas():
@@ -113,10 +114,10 @@ def test_logic_broker_schemas():
         print(url)
         with urlopen(url) as response:
             oa = OpenAPI(response)
-            serial.test.json(oa)
+            sob.test.json(oa)
             oa2 = resolve_references(oa)
             try:
-                assert '$ref' not in serial.marshal.serialize(oa2)
+                assert '$ref' not in sob.model.serialize(oa2)
             except AssertionError as e:
                 if e.args:
                     e.args = tuple(chain(
@@ -127,7 +128,7 @@ def test_logic_broker_schemas():
                     e.args = (repr(oa2),)
                 raise e
             if oa2 != oa:
-                serial.test.json(oa2)
+                sob.test.json(oa2)
 
 
 if __name__ == '__main__':
