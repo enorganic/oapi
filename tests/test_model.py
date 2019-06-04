@@ -2,15 +2,11 @@
 from __future__ import absolute_import, division, generators, nested_scopes, print_function, unicode_literals, \
     with_statement
 
-import json
-from time import sleep
-
 from future import standard_library
 from oapi import Model
 
 standard_library.install_aliases()
 from builtins import *
-from future.utils import native_str
 
 # endregion
 
@@ -21,7 +17,7 @@ from urllib.parse import urljoin
 from urllib.request import urlopen
 
 import sob
-from oapi.model import OpenAPI, Schema, resolve_references, Info
+from oapi.parse.model import OpenAPI, resolve_references
 
 
 def test_languagetool():
