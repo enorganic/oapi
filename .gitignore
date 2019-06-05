@@ -1,11 +1,9 @@
+*~
 **/.idea/*
+**/__pycache__
 **/.tox/*
 **/.cache/*
-**/__pycache__
-/docs/_build
-/docs/index.rst
-/.DS_Store
-**/.DS_Store
-/build/*
-/dist/*
-**.egg-info/*
+.DS_Store
+*.egg-info/*
+.vscode/*
+.pytest_cache/*
