@@ -1,5 +1,21 @@
 """
-This module provides functionality for resolving references in an instance of `oapi.oas.model.OpenAPI`.
+This module provides functionality for resolving references within an instance of `oapi.oas.model.OpenAPI`.
+
+For example, the following will replace all references in the Open API document `open_api_document` with the objects
+targeted by the `ref` property of the reference:
+
+```python
+from urllib.request import urlopen
+from oapi.oas.model import OpenAPI
+
+with urlopen(
+    'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/callback-example.yaml'
+) as response:
+    open_api_document = OpenAPI(response)
+
+resolver = Resolver(open_api_document)
+resolver.dereference()
+```
 """
 
 from collections import OrderedDict
@@ -12,6 +28,7 @@ from sob import meta
 
 
 from jsonpointer import resolve_pointer
+from sob.utilities import qualified_name
 
 try:
     import typing
@@ -22,6 +39,7 @@ except ImportError:
 from sob.model import Model, Array, Dictionary, Object, unmarshal, detect_format
 from sob.properties import Property
 from sob.properties.types import NoneType
+from sob.errors import get_exception_text
 
 from .model import Reference, OpenAPI
 from ..errors import ReferenceLoopError
@@ -81,32 +99,70 @@ class _Document(object):
 
         return url
 
-    def dereference(self, model_instance, recursive=False):
+    def dereference(self, model_instance, recursive=True):
         # type: (Model, bool) -> None
         """
         Recursively dereference this objects and all items/properties
         """
-        if isinstance(model_instance, Reference):
-            raise ReferenceLoopError('A reference cannot be "dereferenced"')
-        elif isinstance(model_instance, Object):
-            self.dereference_object_properties(model_instance, recursive=recursive)
-        elif isinstance(
-            model_instance,
-            (Array, collections.Sequence, collections.Set)
-        ) and not isinstance(
-            model_instance,
-            (str, bytes)
-        ):
-            self.dereference_array_items(model_instance, recursive=recursive)
-        elif isinstance(model_instance, (Dictionary, dict, OrderedDict)):
-            self.dereference_dictionary_values(model_instance, recursive=recursive)
 
-    def dereference_object_properties(self, object_, recursive=False):
+        try:
+            if isinstance(model_instance, Object):
+                self.dereference_object_properties(model_instance, recursive=recursive)
+            elif isinstance(
+                model_instance,
+                (Array, collections.Sequence, collections.Set)
+            ) and not isinstance(
+                model_instance,
+                (str, bytes)
+            ):
+                self.dereference_array_items(model_instance, recursive=recursive)
+            elif isinstance(model_instance, (Dictionary, dict, OrderedDict)):
+                self.dereference_dictionary_values(model_instance, recursive=recursive)
+            else:
+                raise TypeError(
+                    'The argument must be an instance of `%s`, not %s' % (
+                        qualified_name(Model),
+                        repr(model_instance)
+                    )
+                )
+        except (ReferenceLoopError, RecursionError):
+            if not recursive:
+                raise
+
+    def prevent_infinite_recursion(self, model_instance):
+        # type: (Model) -> Model
+        """
+        Prevent recursion errors by putting a placeholder `None` in place of the parent object in the `pointer` cache
+        """
+        pointer = meta.pointer(model_instance)
+        existing_value = None  # type: Model
+        if pointer:
+            if pointer in self.pointers:
+                existing_value = self.pointers[pointer]
+            self.pointers[pointer] = None
+        return pointer, existing_value
+
+    def reset_recursion_placeholder(self, pointer, previous_value):
+        # type: (Optional[str], Optional[Model]) -> None
+        """
+        Cleanup a placeholder created by the `prevent_infinite_recursion` method
+        """
+        if pointer and (pointer in self.pointers):
+            if previous_value is None:
+                del self.pointers[pointer]
+            else:
+                self.pointers[pointer] = previous_value
+
+    def dereference_object_properties(self, object_, recursive=True):
         # type: (Model, bool) -> None
         """
         Replace all references in this object's properties with the referenced object
         """
         object_meta = meta.read(object_)
+
+        # Prevent recursion errors
+        pointer, existing = self.prevent_infinite_recursion(object_)
+
         for property_name, property_ in object_meta.properties.items():
             value = getattr(object_, property_name)
             if isinstance(value, Reference):
@@ -116,14 +172,20 @@ class _Document(object):
                     self.resolve(value.ref, types=(property_,), dereference=recursive)
                 )
             elif recursive and isinstance(value, Model):
-                self.dereference(value)
+                self.dereference(value, recursive=recursive)
 
-    def dereference_array_items(self, array, recursive=False):
+        self.reset_recursion_placeholder(pointer, existing)
+
+    def dereference_array_items(self, array, recursive=True):
         # type: (Model, bool) -> None
         """
         Replace all references in this array with the referenced object
         """
         array_meta = meta.read(array)
+
+        # Prevent recursion errors
+        pointer, existing = self.prevent_infinite_recursion(array)
+
         for index in range(len(array)):
             item = array[index]
             if isinstance(item, Reference):
@@ -133,14 +195,20 @@ class _Document(object):
                     dereference=recursive
                 )
             elif recursive and isinstance(item, Model):
-                self.dereference(item)
+                self.dereference(item, recursive=recursive)
 
-    def dereference_dictionary_values(self, dictionary, recursive=False):
+        self.reset_recursion_placeholder(pointer, existing)
+
+    def dereference_dictionary_values(self, dictionary, recursive=True):
         # type: (Model, bool) -> None
         """
         Replace all references in this dictionary with the referenced object
         """
         dictionary_meta = meta.read(dictionary)
+
+        # Prevent recursion errors
+        pointer, existing = self.prevent_infinite_recursion(dictionary)
+
         for key, value in dictionary.items():
             if isinstance(value, Reference):
                 dictionary[key] = self.resolve(
@@ -149,7 +217,9 @@ class _Document(object):
                     dereference=recursive
                 )
             elif recursive and isinstance(value, Model):
-                self.dereference(value)
+                self.dereference(value, recursive=recursive)
+
+        self.reset_recursion_placeholder(pointer, existing)
 
     @staticmethod
     def unmarshal_resolved_reference(resolved_reference, url, pointer, types=None):
@@ -167,11 +237,21 @@ class _Document(object):
         Return the object referenced by a pointer
         """
 
-        if pointer not in self.pointers:
+        if pointer in self.pointers:
+            # This catches
+            if self.pointers[pointer] is None:
+                raise ReferenceLoopError(pointer)
+
+        else:
 
             if pointer[0] == '#':
                 # Resolve a reference within the same Open API document
-                resolved = resolve_pointer(self.root, pointer[1:])
+                try:
+                    resolved = resolve_pointer(self.root, pointer[1:])
+                except RecursionError:
+                    raise RecursionError(
+                        pointer + '\n' + get_exception_text()
+                    )
 
                 # Cast the resolved reference as one of the given types
                 resolved = self.unmarshal_resolved_reference(resolved, self.url, pointer, types=types)
@@ -180,7 +260,7 @@ class _Document(object):
                 url, document_pointer = self.get_url_pointer(pointer)
 
                 # Retrieve the document
-                document = self.resolver.get_document(url)
+                document = self.resolver.get_document(urljoin(self.url, url.lstrip('/')))
 
                 # Resolve the pointer, if needed
                 if document_pointer:
@@ -192,7 +272,7 @@ class _Document(object):
 
             # Recursively dereference
             if dereference and isinstance(resolved, Model):
-                self.dereference(resolved)
+                self.dereference(resolved, recursive=dereference)
 
             # Cache the resolved pointer
             self.pointers[pointer] = resolved
@@ -201,7 +281,7 @@ class _Document(object):
 
     def dereference_all(self):
         # type: (OpenAPI) -> None
-        self.dereference(self.root)
+        self.dereference(self.root, recursive=True)
 
 
 class Resolver(object):
@@ -231,6 +311,8 @@ class Resolver(object):
         assert isinstance(root, OpenAPI)
         assert isinstance(url, (str, NoneType))
 
+        self.url = url
+
         # This is the function used to open external pointer references
         self.urlopen = urlopen
 
@@ -253,9 +335,12 @@ class Resolver(object):
         """
         Retrieve a document by URL, or use the cached document if previously retrieved
         """
+
         if url not in self.documents:
+
             with self.urlopen(url) as response:
-                self.documents[url] = _Document(self, detect_format(response)[0], url)
+                self.documents[url] = _Document(self, detect_format(response)[0], url=url)
+
         return self.documents[url]
 
     def dereference(self):
@@ -268,201 +353,3 @@ class Resolver(object):
     def resolve(self, pointer, types=None, dereference=False):
         # type: (str, Sequence[Property, type], bool) -> Model
         return self.documents['#'].resolve(pointer, types, dereference=dereference)
-
-
-
-# def resolve(
-#     data,  # type: model.Model
-#     url = None,  # type: Optional[str]
-#     urlopen = request.urlopen,  # type: Union[typing.Callable, Sequence[typing.Callable]]
-#     recursive = True, # type: bool
-#     root = None,  # type: Optional[Union[model.Model, dict, Sequence]]
-#     _references = None,  # type: Optional[typing.Dict[str, Union[Object, Dictionary, Array]]]
-#     _recurrence = False  # type: bool
-# ):
-#     # type: (...) -> Model
-#     """
-#     Replaces `oapi.model.Reference` instances with the material referenced.
-#
-#     Arguments:
-#
-#         - data (Object|Dictionary|Array): A deserialized object or array.
-#
-#         - url (str): The URL from where `data` was retrieved. The base URL for relative paths will be the directory
-#           above this URL, and this URL will be used to index _references in order to prevent cyclic recursion when
-#           mapping (external) bidirectional _references between two (or more) documents. For `Object` instances, if the
-#           URL is not provided, it will be inferred from the object's metadata where possible. Objects created from an
-#           instance of `http.client.HTTPResponse` will have had the source URL stored with it's metadata when the
-#           object was instantiated.
-#
-#         - urlopen (`collections.Callable`): If provided, this should be a function taking one argument (a `str`),
-#           which can be used in lieu of `request.urlopen` to retrieve a document and return an instance of a sub-class
-#           of `IOBase` (such as `http.client.HTTPResponse`). This should be used if authentication is needed in order
-#           to retrieve external _references in the document, or if local file paths will be referenced instead of web
-#           URL's.
-#
-#         - root (Object|Dictionary|Array): The root document to be used for resolving inline references. This argument
-#           is only needed if `data` is not a "root" object/element in a document (an object resulting from
-#           deserializing a document, as opposed to one of the child objects of that deserialized root object).
-#     """
-#     if not isinstance(data, sob.abc.model.Model):
-#         raise TypeError(
-#             'The parameter `data` must be an instance of `%s`, not %s.' % (
-#                 qualified_name(sob.abc.model.Model),
-#                 repr(data)
-#             )
-#         )
-#
-#     if _references is None:
-#         _references = {}
-#
-#     def resolve_ref(
-#         ref,  # type: str
-#         types=None  # type: tuple
-#     ):
-#         # type: (...) -> typing.Any
-#         ref_root = root
-#         ref_document_url = url
-#         if ref[0] == '#':
-#             ref_document = ref_root
-#             ref_pointer = ref[1:]
-#         else:
-#             ref_parts = ref.split('#')
-#             ref_parts_url = ref_parts[0]
-#             if ref_document_url:
-#                 parse_result = urlparse(ref_parts_url)
-#                 if parse_result.scheme:
-#                     ref_document_url = ref_parts_url
-#                 else:
-#                     ref_document_url = urljoin(
-#                         ref_document_url,
-#                         ref_parts_url.lstrip('/ ')
-#                     )
-#             else:
-#                 ref_document_url = ref_parts_url
-#             if len(ref_parts) < 2:
-#                 ref_pointer = None
-#             else:
-#                 ref_pointer = '#'.join(ref_parts[1:])
-#             if ref_document_url in _references:
-#                 if _references[ref_document_url] is None:
-#                     raise ReferenceLoopError()
-#                 ref_document = _references[ref_document_url]
-#             else:
-#                 try:
-#                     ref_document, f = detect_format(urlopen(ref_document_url))
-#                 except HTTPError as http_error:
-#                     http_error.msg = http_error.msg + ': ' + ref_document_url
-#                     raise http_error
-#         if ref_pointer is None:
-#             ref_data = ref_document
-#             #if types:
-#             ref_data = unmarshal(ref_data, types=types)
-#             ref_url_pointer = ref_document_url
-#             if recursive:
-#                 if ref_url_pointer not in _references:
-#                     _references[ref_url_pointer] = None
-#                     try:
-#                         ref_data = resolve(
-#                             ref_data,
-#                             root=ref_document,
-#                             urlopen=urlopen,
-#                             url=ref_document_url,
-#                             recursive=recursive,
-#                             _references=_references,
-#                             _recurrence=True
-#                         )
-#                         _references[ref_url_pointer] = ref_data
-#                     except ReferenceLoopError:
-#                         pass
-#         else:
-#             ref_url_pointer = '%s#%s' % (ref_document_url or '', ref_pointer)
-#             if ref_url_pointer in _references:
-#                 if _references[ref_url_pointer] is None:
-#                     raise ReferenceLoopError()
-#                 else:
-#                     ref_data = _references[ref_url_pointer]
-#             else:
-#                 ref_data = resolve_pointer(ref_document, ref_pointer)
-#                 # if types:
-#                 ref_data = unmarshal(ref_data, types)
-#                 if recursive:
-#                     _references[ref_url_pointer] = None
-#                     try:
-#                         ref_data = resolve(
-#                             ref_data,
-#                             root=ref_document,
-#                             urlopen=urlopen,
-#                             url=ref_document_url,
-#                             recursive=recursive,
-#                             _references=_references,
-#                             _recurrence=True
-#                         )
-#                         _references[ref_url_pointer] = ref_data
-#                     except ReferenceLoopError:
-#                         pass
-#         return ref_data
-#     if url is None:
-#         r = root or data
-#         if isinstance(r, sob.abc.model.Model):
-#             url = meta.url(r)
-#     if not _recurrence:
-#         data = deepcopy(data)
-#     if root is None:
-#         root = deepcopy(data)
-#     if isinstance(data, Reference):
-#         data = resolve_ref(data.ref)
-#     elif isinstance(data, Object):
-#         m = meta.read(data)
-#         for pn, p in m.properties.items():
-#             v = getattr(data, pn)
-#             if isinstance(v, Reference):
-#                 v = resolve_ref(v.ref, types=(p,))
-#                 setattr(data, pn, v)
-#             elif recursive and isinstance(v, sob.abc.model.Model):
-#                 try:
-#                     v = resolve(
-#                         v,
-#                         root=root,
-#                         urlopen=urlopen,
-#                         url=url,
-#                         recursive=recursive,
-#                         _references=_references,
-#                         _recurrence=True
-#                     )
-#                 except ReferenceLoopError:
-#                     pass
-#                 setattr(data, pn, v)
-#     elif isinstance(data, (Dictionary, dict, OrderedDict)):
-#         for k, v in data.items():
-#             if isinstance(v, sob.abc.model.Model):
-#                 try:
-#                     data[k] = resolve(
-#                         v,
-#                         root=root,
-#                         urlopen=urlopen,
-#                         url=url,
-#                         recursive=recursive,
-#                         _references=_references,
-#                         _recurrence=True
-#                     )
-#                 except ReferenceLoopError:
-#                     pass
-#     elif isinstance(data, (Array, collections.Sequence, collections.Set)) and not isinstance(data, (str, bytes)):
-#         if not isinstance(data, collections.MutableSequence):
-#             data = list(data)
-#         for i in range(len(data)):
-#             if isinstance(data[i], sob.abc.model.Model):
-#                 try:
-#                     data[i] = resolve(
-#                         data[i],
-#                         root=root,
-#                         urlopen=urlopen,
-#                         url=url,
-#                         recursive=recursive,
-#                         _references=_references,
-#                         _recurrence=True
-#                     )
-#                 except ReferenceLoopError:
-#                     pass
-#     return data

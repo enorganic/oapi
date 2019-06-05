@@ -17,7 +17,6 @@ backport()  # noqa
 # endregion
 
 from copy import deepcopy
-from http.client import HTTPResponse
 from numbers import Number
 
 try:
@@ -27,33 +26,52 @@ except ImportError:
     typing = Union = Any = None
 
 import sob
-from sob import meta, hooks, model
-
-from sob.utilities import qualified_name
 
 
-class Object(model.Object):
+class Object(sob.model.Object):
+
+    def __init__(
+        self,
+        *args,
+        **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+
+
+_object_hooks = sob.hooks.writable(Object)  # type: hooks.Object
+
+
+def _object_before_setitem(self, key, value):
+    # type: (Object, str, Any) -> Tuple[str, Any]
+    """
+    This hook allows for the use of extension attributes
+    """
+
+    if key[:2] == 'x-':
+        # Look for a matching property, and if none exists--create one
+        try:
+            self._get_key_property_name(key)
+        except KeyError:
+            meta_ = sob.meta.writable(self)
+            if meta_.properties is None:
+                meta_.properties = sob.meta.Properties()
+            property_name = sob.utilities.property_name(key)
+            meta_.properties[property_name] = sob.properties.Property(name=key)
+
+    return key, value
+
+
+_object_hooks.before_setitem = _object_before_setitem
+
+
+class Array(sob.model.Array):
 
     pass
 
 
-object_hooks = hooks.writable(Object)  # type: hooks.Object
-
-
-class Array(model.Array):
+class Dictionary(sob.model.Dictionary):
 
     pass
-
-
-array_hooks = hooks.writable(Array)
-
-
-class Dictionary(model.Dictionary):
-
-    pass
-
-
-dictionary_hooks = hooks.writable(Dictionary)
 
 
 class Reference(Object):
@@ -64,19 +82,29 @@ class Reference(Object):
         ref=None,  # type: Optional[str]
     ):
         self.ref = ref
-        if _ is not None:
-            if isinstance(_, HTTPResponse):
-                meta.url(self, _.url)
-            if isinstance(_, (dict, str)) and not isinstance(_, sob.abc.model.Model):
-                _, f = sob.model.detect_format(_)
-                keys = set(_.keys())
-                if ('$ref' in keys) and (_['$ref'] is not None):
-                    for k in keys - {'$ref'}:
-                        del _[k]
         super().__init__(_)
 
 
-meta.writable(Reference).properties = [
+_reference_hooks = sob.hooks.writable(Reference)
+
+
+def _reference_before_unmarshal(data):
+    # type: (typing.Mapping) -> typing.Mapping
+    """
+    This prevents any attribute except `$ref` from being applied to references
+    """
+
+    if data and ('$ref' in data):
+        for key in (set(data.keys()) - {'$ref'}):
+            del data[key]
+
+    return data
+
+
+_reference_hooks.before_unmarshal = _reference_before_unmarshal
+
+
+sob.meta.writable(Reference).properties = [
     ('ref', sob.properties.String(name='$ref'))
 ]
 
@@ -100,7 +128,7 @@ class Contact(Object):
         super().__init__(_)
 
 
-meta.writable(Contact).properties = [
+sob.meta.writable(Contact).properties = [
     ('name', sob.properties.String()),
     ('url', sob.properties.String()),
     ('email', sob.properties.String()),
@@ -124,7 +152,7 @@ class License(Object):
         super().__init__(_)
 
 
-meta.writable(License).properties = [
+sob.meta.writable(License).properties = [
     ('name', sob.properties.String(required=True)),
     ('url', sob.properties.String()),
 ]
@@ -155,7 +183,7 @@ class Info(Object):
         super().__init__(_)
 
 
-meta.writable(Info).properties = [
+sob.meta.writable(Info).properties = [
     ('title', sob.properties.String(required=True)),
     ('description', sob.properties.String()),
     ('terms_of_service', sob.properties.String(name='termsOfService')),
@@ -200,7 +228,7 @@ class Link(Object):
         super().__init__(_)
 
 
-meta.writable(Link).properties = [
+sob.meta.writable(Link).properties = [
     ('rel', sob.properties.String()),
     ('href', sob.properties.String()),
 ]
@@ -445,7 +473,7 @@ class Example(Object):
         super().__init__(_)
 
 
-meta.writable(Example).properties = [
+sob.meta.writable(Example).properties = [
     ('summary', sob.properties.String(versions=('openapi>=3.0',))),
     ('description', sob.properties.String(versions=('openapi>=3.0',))),
     ('value', sob.properties.Property(versions=('openapi>=3.0',))),
@@ -499,7 +527,7 @@ class MediaType(Object):
         super().__init__(_)
 
 
-meta.writable(MediaType).properties = [
+sob.meta.writable(MediaType).properties = [
     ('schema', sob.properties.Property(types=(Reference, Schema), versions=('openapi>=3.0',))),
     ('example', sob.properties.Property(versions=('openapi>=3.0',))),
     ('examples', sob.properties.Dictionary(value_types=(Reference, Example), versions=('openapi>=3.0',))),
@@ -550,7 +578,7 @@ class Items(Object):
         super().__init__(_)
 
 
-meta.writable(Items).properties = [
+sob.meta.writable(Items).properties = [
     (
         'type_',
         sob.properties.Enumerated(
@@ -813,7 +841,7 @@ class Parameter(Object):
         super().__init__(_)
 
 
-meta.writable(Parameter).properties = [
+sob.meta.writable(Parameter).properties = [
     ('name', sob.properties.String(required=True)),
     (
         'in_',
@@ -968,12 +996,12 @@ def _parameter_after_validate(o):
     if (o.content is not None) and len(tuple(o.content.keys())) > 1:
         raise sob.errors.ValidationError(
             '`%s.content` may have only one mapped value.:\n%s' % (
-                qualified_name(type(o)), repr(o)
+                sob.utilities.qualified_name(type(o)), repr(o)
             )
         )
     if (o.content is not None) and (o.schema is not None):
         raise sob.errors.ValidationError(
-            'An instance of `%s` may have a `schema` property or a `content` ' % qualified_name(type(o)) +
+            'An instance of `%s` may have a `schema` property or a `content` ' % sob.utilities.qualified_name(type(o)) +
             'property, but not *both*:\n' + repr(o)
         )
     if o.format_ in (
@@ -984,7 +1012,7 @@ def _parameter_after_validate(o):
         if o.type_ == 'integer' and (
             o.format_ not in ('int32', 'int64', None)
         ):
-            qn = qualified_name(type(o))
+            qn = sob.utilities.qualified_name(type(o))
             raise sob.errors.ValidationError(
                 '"%s" in not a valid value for `%S.format_` in this circumstance. ' % (
                     o.format_,
@@ -996,7 +1024,7 @@ def _parameter_after_validate(o):
         elif o.type_ == 'number' and (
             o.format_ not in ('float', 'double', None)
         ):
-            qn = qualified_name(type(o))
+            qn = sob.utilities.qualified_name(type(o))
             raise sob.errors.ValidationError(
                 '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
                 '`%s.format_` may be "float" or "double" when ' % qn +
@@ -1005,7 +1033,7 @@ def _parameter_after_validate(o):
         elif o.type_ == 'string' and (
             o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
         ):
-            qn = qualified_name(type(o))
+            qn = sob.utilities.qualified_name(type(o))
             raise sob.errors.ValidationError(
                 '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
                 '`%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
@@ -1014,7 +1042,7 @@ def _parameter_after_validate(o):
     return o
 
 
-hooks.writable(Parameter).after_validate = _parameter_after_validate
+sob.hooks.writable(Parameter).after_validate = _parameter_after_validate
 
 
 class Header(Object):
@@ -1081,8 +1109,8 @@ class Header(Object):
         self.items = items
         super().__init__(_)
 
-_header_meta = meta.writable(Header)
-_header_meta.properties = deepcopy(meta.read(Parameter).properties)
+_header_meta = sob.meta.writable(Header)
+_header_meta.properties = deepcopy(sob.meta.read(Parameter).properties)
 del _header_meta.properties['name']
 del _header_meta.properties['in_']
 _header_meta.properties['schema'].versions = ('openapi>=3.0',)
@@ -1100,7 +1128,7 @@ _header_meta.properties['deprecated'].versions = ('openapi>=3.0',)
 _header_meta.properties['allow_empty_value'].versions = ('openapi>=3.0',)
 
 
-meta.writable(Encoding).properties = [
+sob.meta.writable(Encoding).properties = [
     ('content_type', sob.properties.String(name='contentType')),
     ('headers', sob.properties.Dictionary(value_types=(Reference, Header))),
     ('style', sob.properties.String()),
@@ -1124,7 +1152,7 @@ class ServerVariable(Object):
         super().__init__(_)
 
 
-meta.writable(ServerVariable).properties = [
+sob.meta.writable(ServerVariable).properties = [
     ('enum', sob.properties.Array(item_types=(str,))),
     ('default', sob.properties.String(required=True)),
     ('description', sob.properties.String()),
@@ -1150,7 +1178,7 @@ class Server(Object):
         super().__init__(_)
 
 
-meta.writable(Server).properties = [
+sob.meta.writable(Server).properties = [
     ('url', sob.properties.String(required=True)),
     ('description', sob.properties.String()),
     ('variables', sob.properties.Dictionary(value_types=(ServerVariable,))),
@@ -1181,7 +1209,7 @@ class Link_(Object):
         super().__init__(_)
 
 
-meta.writable(Link_).properties = [
+sob.meta.writable(Link_).properties = [
     ('operation_ref', sob.properties.String(name='operationRef', versions=('openapi>=3.0',))),
     ('operation_id', sob.properties.String(name='operationId', versions=('openapi>=3.0',))),
     ('parameters', sob.properties.Dictionary(versions=('openapi>=3.0',))),
@@ -1230,7 +1258,7 @@ class Response(Object):
         super().__init__(_)
 
 
-meta.writable(Response).properties = [
+sob.meta.writable(Response).properties = [
     (
         'description',
         sob.properties.String()
@@ -1290,13 +1318,13 @@ class ExternalDocumentation(Object):
         super().__init__(_)
 
 
-meta.writable(ExternalDocumentation).properties = [
+sob.meta.writable(ExternalDocumentation).properties = [
     ('description', sob.properties.String()),
     ('url', sob.properties.String(required=True)),
 ]
 
 
-meta.writable(Tag).properties = [
+sob.meta.writable(Tag).properties = [
     ('name', sob.properties.String(required=True)),
     ('description', sob.properties.String()),
     ('external_docs', sob.properties.Property(types=(ExternalDocumentation,))),
@@ -1318,7 +1346,7 @@ class RequestBody(Object):
         super().__init__(_)
 
 
-meta.writable(RequestBody).properties = [
+sob.meta.writable(RequestBody).properties = [
     ('description', sob.properties.String(versions=('openapi>=3.0',))),
     ('content', sob.properties.Dictionary(value_types=(MediaType,), versions=('openapi>=3.0',))),
     ('required', sob.properties.Boolean(versions=('openapi>=3.0',))),
@@ -1449,7 +1477,7 @@ class PathItem(Object):
         super().__init__(_)
 
 
-meta.writable(PathItem).properties = [
+sob.meta.writable(PathItem).properties = [
     ('summary', sob.properties.String(versions=('openapi>=3.0',))),
     ('description', sob.properties.String(versions=('openapi>=3.0',))),
     ('get', sob.properties.Property(types=(Operation,))),
@@ -1475,7 +1503,7 @@ class Callback(Dictionary):
     pass
 
 
-meta.writable(Callback).value_types = (PathItem,)
+sob.meta.writable(Callback).value_types = (PathItem,)
 
 
 class Callbacks(Dictionary):
@@ -1483,7 +1511,7 @@ class Callbacks(Dictionary):
     pass
 
 
-meta.writable(Callbacks).value_types = (Reference, Callback)
+sob.meta.writable(Callbacks).value_types = (Reference, Callback)
 
 
 class Responses(Dictionary):
@@ -1491,7 +1519,7 @@ class Responses(Dictionary):
     pass
 
 
-meta.writable(Responses).value_types = (
+sob.meta.writable(Responses).value_types = (
     sob.properties.Property(
         types=(Reference, Response),
         versions=('openapi>=3.0',)
@@ -1503,7 +1531,7 @@ meta.writable(Responses).value_types = (
 )
 
 
-meta.writable(Operation).properties = [
+sob.meta.writable(Operation).properties = [
     ('tags', sob.properties.Array(item_types=(str,))),
     ('summary', sob.properties.String()),
     ('description', sob.properties.String()),
@@ -1583,7 +1611,7 @@ class Discriminator(Object):
         super().__init__(_)
 
 
-meta.writable(Discriminator).properties = [
+sob.meta.writable(Discriminator).properties = [
     ('property_name', sob.properties.String(name='propertyName', versions=('openapi>=3.0',))),
     ('mapping', sob.properties.Dictionary(value_types=(str,), versions=('openapi>=3.0',))),
 ]
@@ -1624,7 +1652,7 @@ class XML(Object):
         super().__init__(_)
 
 
-meta.writable(XML).properties = [
+sob.meta.writable(XML).properties = [
     ('name', sob.properties.String()),
     ('name_space', sob.properties.String(name='nameSpace')),
     ('prefix', sob.properties.String()),
@@ -1653,7 +1681,7 @@ class OAuthFlow(Object):
         super().__init__(_)
 
 
-meta.writable(OAuthFlow).properties = [
+sob.meta.writable(OAuthFlow).properties = [
     ('authorization_url', sob.properties.String()),
     ('token_url', sob.properties.String(name='tokenUrl')),
     ('refresh_url', sob.properties.String(name='refreshUrl')),
@@ -1681,7 +1709,7 @@ class OAuthFlows(Object):
         super().__init__(_)
 
 
-meta.writable(OAuthFlows).properties = [
+sob.meta.writable(OAuthFlows).properties = [
     ('implicit', sob.properties.Property(types=(OAuthFlow,), versions=('openapi>=3.0',))),
     ('password', sob.properties.Property(types=(OAuthFlow,), versions=('openapi>=3.0',))),
     (
@@ -1708,7 +1736,7 @@ class Properties(Dictionary):
     pass
 
 
-meta.writable(Properties).value_types = (Reference, Schema)
+sob.meta.writable(Properties).value_types = (Reference, Schema)
 
 
 class SecurityScheme(Object):
@@ -1765,7 +1793,7 @@ class SecurityScheme(Object):
         super().__init__(_)
 
 
-meta.writable(SecurityScheme).properties = [
+sob.meta.writable(SecurityScheme).properties = [
     (
         'type_',
         sob.properties.Enumerated(
@@ -1862,7 +1890,7 @@ meta.writable(SecurityScheme).properties = [
     )
 ]
 
-meta.writable(Schema).properties = [
+sob.meta.writable(Schema).properties = [
     ('title', sob.properties.String()),
     ('description', sob.properties.String()),
     ('multiple_of', sob.properties.Number(name='multipleOf')),
@@ -1989,7 +2017,7 @@ def _schema_after_validate(o):
         if o.type_ == 'integer' and (
             o.format_ not in ('int32', 'int64', None)
         ):
-            qn = qualified_name(type(o))
+            qn = sob.utilities.qualified_name(type(o))
             raise sob.errors.ValidationError(
                 '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
                 '`%s.format_` may be "int32" or "int64" when ' % qn +
@@ -1998,7 +2026,7 @@ def _schema_after_validate(o):
         elif o.type_ == 'number' and (
             o.format_ not in ('float', 'double', None)
         ):
-            qn = qualified_name(type(o))
+            qn = sob.utilities.qualified_name(type(o))
             raise sob.errors.ValidationError(
                 '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
                 '`%s.format_` may be "float" or "double" when ' % qn +
@@ -2007,7 +2035,7 @@ def _schema_after_validate(o):
         elif o.type_ == 'string' and (
             o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
         ):
-            qn = qualified_name(type(o))
+            qn = sob.utilities.qualified_name(type(o))
             raise sob.errors.ValidationError(
                 '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
                 '`%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
@@ -2016,7 +2044,7 @@ def _schema_after_validate(o):
     return o
 
 
-hooks.writable(Schema).after_validate = _schema_after_validate
+sob.hooks.writable(Schema).after_validate = _schema_after_validate
 
 
 class Schemas(Dictionary):
@@ -2024,7 +2052,7 @@ class Schemas(Dictionary):
     pass
 
 
-meta.writable(Schemas).value_types = (Reference, Schema)
+sob.meta.writable(Schemas).value_types = (Reference, Schema)
 
 
 class Headers(Dictionary):
@@ -2032,7 +2060,7 @@ class Headers(Dictionary):
     pass
 
 
-meta.writable(Headers).value_types = (Reference, Header)
+sob.meta.writable(Headers).value_types = (Reference, Header)
 
 
 class Parameters(Dictionary):
@@ -2040,7 +2068,7 @@ class Parameters(Dictionary):
     pass
 
 
-meta.writable(Parameters).value_types = (Reference, Parameter)
+sob.meta.writable(Parameters).value_types = (Reference, Parameter)
 
 
 class Examples(Dictionary):
@@ -2048,7 +2076,7 @@ class Examples(Dictionary):
     pass
 
 
-meta.writable(Examples).value_types = (Reference, Example)
+sob.meta.writable(Examples).value_types = (Reference, Example)
 
 
 class RequestBodies(Dictionary):
@@ -2056,7 +2084,7 @@ class RequestBodies(Dictionary):
     pass
 
 
-meta.writable(RequestBodies).value_types = (Reference, RequestBody)
+sob.meta.writable(RequestBodies).value_types = (Reference, RequestBody)
 
 
 class SecuritySchemes(Dictionary):
@@ -2064,7 +2092,7 @@ class SecuritySchemes(Dictionary):
     pass
 
 
-meta.writable(SecuritySchemes).value_types = (Reference, SecurityScheme)
+sob.meta.writable(SecuritySchemes).value_types = (Reference, SecurityScheme)
 
 
 class Links(Dictionary):
@@ -2072,7 +2100,7 @@ class Links(Dictionary):
     pass
 
 
-meta.writable(Links).value_types = (Reference, Link_)
+sob.meta.writable(Links).value_types = (Reference, Link_)
 
 
 class Components(Object):
@@ -2102,7 +2130,7 @@ class Components(Object):
         super().__init__(_)
 
 
-meta.writable(Components).properties = [
+sob.meta.writable(Components).properties = [
     ('schemas', sob.properties.Property(types=(Schemas,))),
     ('responses', sob.properties.Property(types=(Responses,))),
     (
@@ -2128,7 +2156,7 @@ class Definitions(Dictionary):
     pass
 
 
-meta.writable(Definitions).value_types = (Schema,)
+sob.meta.writable(Definitions).value_types = (Schema,)
 
 
 class Paths(Dictionary):
@@ -2136,7 +2164,7 @@ class Paths(Dictionary):
     pass
 
 
-meta.writable(Paths).value_types = (PathItem,)
+sob.meta.writable(Paths).value_types = (PathItem,)
 
 
 class OpenAPI(Object):
@@ -2190,7 +2218,7 @@ class OpenAPI(Object):
             sob.meta.version(self, 'openapi', version)
 
 
-meta.writable(OpenAPI).properties = [
+sob.meta.writable(OpenAPI).properties = [
     ('openapi', sob.properties.String(versions=('openapi>=3.0',), required=True)),
     ('info', sob.properties.Property(types=(Info,), required=True)),
     ('host', sob.properties.String(versions=('openapi<3.0',))),

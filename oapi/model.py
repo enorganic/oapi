@@ -1,15 +1,15 @@
-# Backwards Compatibility ->
-from __future__ import nested_scopes, generators, division, absolute_import, with_statement, print_function,\
-    unicode_literals
+# region Backwards Compatibility
+
+from __future__ import nested_scopes, generators, division, absolute_import, with_statement, \
+   print_function, unicode_literals
+
+from sob.utilities.compatibility import backport
+
+backport()  # noqa
+
+# endregion
 
 from warnings import warn
-
-from future import standard_library
-
-standard_library.install_aliases()
-from builtins import *
-# <- Backwards Compatibility
-
 import re
 from collections import OrderedDict
 from copy import copy
@@ -597,8 +597,8 @@ class Model(object):
             for p, v in properties_values(metadata):
                 if v is not None:
                     v = repr(v)
-                    if v[:23] == 'sob.meta.Properties(':
-                        v = v[23:-1]
+                    if v[:19] == 'sob.meta.Properties(':
+                        v = v[19:-1]
                     lines.append(
                         'sob.meta.writable(%s).%s = %s' % (
                             cn, p, v

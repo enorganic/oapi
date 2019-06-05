@@ -2,8 +2,10 @@
 from __future__ import absolute_import, division, generators, nested_scopes, print_function, unicode_literals, \
     with_statement
 
+from copy import deepcopy
+
 from future import standard_library
-from oapi import Model
+from oapi.model import Model
 
 standard_library.install_aliases()
 from builtins import *
@@ -17,13 +19,16 @@ from urllib.parse import urljoin
 from urllib.request import urlopen
 
 import sob
-from oapi.parse.model import OpenAPI, resolve_references
+from oapi.oas.references import Resolver
+from oapi.oas.model import OpenAPI
+
+# https://github.com/OAI/OpenAPI-Specification/tree/master/examples
+OPENAPI_EXAMPLE_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/'
+LANGUAGE_TOOL_URL = 'https://languagetool.org/http-api/languagetool-swagger.json'
 
 
 def test_languagetool():
-    url = 'https://languagetool.org/http-api/languagetool-swagger.json'
-    print(url)
-    with urlopen(url) as response:
+    with urlopen(LANGUAGE_TOOL_URL) as response:
         oa = OpenAPI(response)
         sob.test.json(oa)
         model = Model(oa)
@@ -40,8 +45,7 @@ def test_languagetool():
 
 
 def test_openapi_examples():
-    # https://github.com/OAI/OpenAPI-Specification/tree/master/examples
-    examples = (
+    for relative_path in (
         'v2.0/json/petstore-separate/spec/swagger.json',
         'v3.0/link-example.yaml',
         'v2.0/json/petstore-with-external-docs.json',
@@ -62,30 +66,31 @@ def test_openapi_examples():
         'v2.0/yaml/petstore-with-external-docs.yaml',
         'v2.0/yaml/petstore.yaml',
         'v2.0/yaml/uber.yaml',
-    )
-    for rp in examples:
-        url = urljoin('https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/', rp)
+    ):
+        url = urljoin(OPENAPI_EXAMPLE_URL, relative_path)
         print(url)
         with urlopen(url) as response:
             oa = OpenAPI(response)
             sob.test.json(oa)
-            oa2 = resolve_references(oa)
+            oa2 = deepcopy(oa)
+            assert sob.meta.url(oa) == sob.meta.url(oa2)
+            Resolver(oa2).dereference()
             try:
-                assert '$ref' not in sob.model.serialize(oa2)
+                assert '$ref' not in str(oa2)
             except AssertionError as e:
                 if e.args:
                     e.args = tuple(chain(
-                        (e.args[0] + '\n' + repr(oa2),),
+                        (e.args[0] + '\n' + str(oa2),),
                         e.args[1:]
                     ))
                 else:
-                    e.args = (repr(oa2),)
+                    e.args = (str(oa2),)
                 raise e
             if oa2 != oa:
                 sob.test.json(oa2)
 
 
-def test_magento_schemas():
+def _test_magento_schemas():
     for rp in (
         'latest-2.0.schema.json',
         'latest-2.1.schema.json',
@@ -96,12 +101,13 @@ def test_magento_schemas():
         with urlopen(url) as response:
             oa = OpenAPI(response)
             sob.test.json(oa)
-            oa2 = resolve_references(oa)
+            oa2 = deepcopy(oa)
+            Resolver(oa2).dereference()
             if oa2 != oa:
                 sob.test.json(oa2)
 
 
-def test_logic_broker_schemas():
+def _test_logic_broker_schemas():
     for rp in (
         'v1',
         'v2',
@@ -111,7 +117,8 @@ def test_logic_broker_schemas():
         with urlopen(url) as response:
             oa = OpenAPI(response)
             sob.test.json(oa)
-            oa2 = resolve_references(oa)
+            oa2 = deepcopy(oa)
+            Resolver(oa2).dereference()
             try:
                 assert '$ref' not in sob.model.serialize(oa2)
             except AssertionError as e:
@@ -128,8 +135,8 @@ def test_logic_broker_schemas():
 
 
 if __name__ == '__main__':
+    _test_logic_broker_schemas()
+    _test_magento_schemas()
     test_languagetool()
     test_openapi_examples()
-    test_magento_schemas()
-    test_logic_broker_schemas()
 
