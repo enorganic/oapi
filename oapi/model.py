@@ -395,7 +395,7 @@ class Model(object):
             pointer = urljoin(pointer, o.ref)
             if pointer in self._references:
                 return self._pointers_schemas[pointer]
-            pointer, o, root, path_phrase, path_operation_phrase, operation_phrase = self._resolve_schema_reference(
+            pointer, o, root, path_phrase, path_operation_phrase, operation_phrase = self.resolve_schema_reference(
                 url, pointer, o, root, types
             )
 
@@ -458,7 +458,7 @@ class Model(object):
                             if self._rename is not None:
                                 name = self._rename(name, set(self._names_schemas.keys()))
 
-                            if name and not self._is_duplicate_schema_name(name, o, root):
+                            if name and not self.is_duplicate_schema_name(name, o, root):
                                 name_is_unique = True
                                 break
 
@@ -494,7 +494,7 @@ class Model(object):
                     if property_pointer in self._references:
                         continue
                     if isinstance(property_value, model.Reference):
-                        self._get_schemas(
+                        self._traverse_model_definitions(
                             property_value,
                             root=root,
                             types=m.value_types,
@@ -526,7 +526,7 @@ class Model(object):
                             elif not isinstance(o, model.Responses):
                                 item_path_phrase += epilogue
                                 item_path_operation_phrase += epilogue
-                        self._get_schemas(
+                        self._traverse_model_definitions(
                             property_value,
                             root=root,
                             types=m.value_types,
@@ -541,7 +541,7 @@ class Model(object):
                     property_pointer = sob.meta.url(property_value) + sob.meta.pointer(property_value)
                     if property_pointer in self._references:
                         return self._pointers_schemas
-                    self._get_schemas(
+                    self._traverse_model_definitions(
                         property_value,
                         root=root,
                         types=m.item_types,
@@ -563,7 +563,7 @@ class Model(object):
                         property_pointer = sob.meta.url(property_value) + sob.meta.pointer(property_value)
                         if property_pointer in self._references:
                             return self._pointers_schemas
-                        self._get_schemas(
+                        self._traverse_model_definitions(
                             property_value,
                             root=root,
                             types=(property,),

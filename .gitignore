@@ -4,6 +4,6 @@
 **/.tox/*
 **/.cache/*
 .DS_Store
-*.egg-info/*
+.egg-info/*
 .vscode/*
 .pytest_cache/*

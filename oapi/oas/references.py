@@ -21,7 +21,9 @@ resolver.dereference()
 from collections import OrderedDict
 
 import collections
+from itertools import chain
 from urllib import request
+from urllib.error import HTTPError
 from urllib.parse import urlparse, urljoin
 
 from sob import meta
@@ -311,14 +313,14 @@ class Resolver(object):
         assert isinstance(root, OpenAPI)
         assert isinstance(url, (str, NoneType))
 
-        self.url = url
-
         # This is the function used to open external pointer references
         self.urlopen = urlopen
 
         # Infer the URL from the `OpenAPI` document, if not explicitly provided
         if url is None:
             url = meta.url(root) or '#'
+
+        self.url = url
 
         # This is the primary document--the one we are resolving
         document = _Document(self, root, url)
@@ -338,8 +340,37 @@ class Resolver(object):
 
         if url not in self.documents:
 
-            with self.urlopen(url) as response:
-                self.documents[url] = _Document(self, detect_format(response)[0], url=url)
+            try:
+
+                with self.urlopen(url) as response:
+                    self.documents[url] = _Document(self, detect_format(response)[0], url=url)
+
+            except HTTPError as e:
+
+                e.msg = '%s: %s' % (
+                    get_exception_text().rstrip(),
+                    url
+                )
+
+                raise e
+
+            except FileNotFoundError as e:
+
+                e.args = tuple(
+                    chain(
+                        [
+                            '%s: %s' % (
+                                e.args[0],
+                                url
+                            )
+                        ],
+                        e.args[1:]
+                    ) if e.args else (
+                        url
+                    )
+                )
+
+                raise e
 
         return self.documents[url]
 
@@ -352,4 +383,6 @@ class Resolver(object):
 
     def resolve(self, pointer, types=None, dereference=False):
         # type: (str, Sequence[Property, type], bool) -> Model
-        return self.documents['#'].resolve(pointer, types, dereference=dereference)
+        url, pointer = self.documents['#'].get_url_pointer(pointer)
+        print('Pointer: ' + repr((url, pointer)))
+        return self.documents[url].resolve(pointer, types, dereference=dereference)
