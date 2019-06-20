@@ -2,7 +2,7 @@
 import os
 from subprocess import getstatusoutput
 
-from setuptools_setup_versions import version, install_requires
+from setuptools_setup_versions import install_requires
 
 package = __file__.split('/')[-2]
 
@@ -20,6 +20,12 @@ print(output)
 
 # Update the package version if there were not any errors
 if status == 0:
-    version.increment()
+    error = None
+else:
+    error = OSError(output)
 
 exec(open('./clean.py').read())
+
+if error:
+    raise error
+

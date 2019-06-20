@@ -3,9 +3,9 @@ from setuptools import setup, find_packages
 setup(
     name='oapi',
 
-    version="0.0.34",
+    version="0.0.37",
 
-    description='An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications.',
+    description='An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications',
 
     # The project's main homepage.
     url='https://bitbucket.com/davebelais/oapi.git',
@@ -47,7 +47,7 @@ setup(
         "future>=0.17.1",
         "pyyaml>=3.13",
         "iso8601>=0.1.12",
-        "sob>=0.1.8",
+        "sob>=0.1.12",
         "jsonpointer>=2.0"
     ],
 
