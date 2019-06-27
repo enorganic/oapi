@@ -5,7 +5,9 @@ setup(
 
     version="0.0.37",
 
-    description='An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications',
+    description=(
+        'An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications'
+    ),
 
     # The project's main homepage.
     url='https://bitbucket.com/davebelais/oapi.git',
@@ -61,9 +63,6 @@ setup(
         ],
     },
 
-    package_data={},
-
-    # See http://docs.python.org/3.5/distutils/setupscript.html#installing-additional-files
     data_files=[],
 
     entry_points={
