@@ -66,7 +66,13 @@ _META_MODULE_QUALIFIED_NAME = qualified_name(meta)
 _META_PROPERTIES_QAULIFIED_NAME = qualified_name(meta.Properties)
 _META_PROPERTIES_QAULIFIED_NAME_LENGTH = len(_META_PROPERTIES_QAULIFIED_NAME)
 _DOC_POINTER_RE = re.compile(
-    r'\s*([^\s](?:.|\r?\n)*[^\s])\s*\r?\n\s*(?:\r?\n|$)'
+    (
+        # Pointer
+        r'^(.*?)'
+        # Pointer stops at a double-return or end-of-string
+        r'(?:\r?\n\s*\r?\n|$)'
+    ),
+    re.DOTALL
 )
 _SPACES_RE = re.compile(r'[\s\n]')
 
@@ -872,7 +878,7 @@ class _ModuleParser(object):
     @staticmethod
     def _get_model_relative_url_pointer_and_class_name(model):
         # type: (type) -> str
-        match = _DOC_POINTER_RE.match(
+        match = _DOC_POINTER_RE.search(
             model.__doc__
         )
         relative_url_pointer = None
