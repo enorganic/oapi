@@ -134,7 +134,8 @@ class _Document(object):
     def prevent_infinite_recursion(self, model_instance):
         # type: (Model) -> Model
         """
-        Prevent recursion errors by putting a placeholder `None` in place of the parent object in the `pointer` cache
+        Prevent recursion errors by putting a placeholder `None` in place of
+        the parent object in the `pointer` cache
         """
         pointer = meta.pointer(model_instance)
         existing_value = None  # type: Model
@@ -147,7 +148,8 @@ class _Document(object):
     def reset_recursion_placeholder(self, pointer, previous_value):
         # type: (Optional[str], Optional[Model]) -> None
         """
-        Cleanup a placeholder created by the `prevent_infinite_recursion` method
+        Cleanup a placeholder created by the `prevent_infinite_recursion`
+        method
         """
         if pointer and (pointer in self.pointers):
             if previous_value is None:
@@ -158,7 +160,8 @@ class _Document(object):
     def dereference_object_properties(self, object_, recursive=True):
         # type: (Model, bool) -> None
         """
-        Replace all references in this object's properties with the referenced object
+        Replace all references in this object's properties with the referenced
+        object
         """
         object_meta = meta.read(object_)
 
@@ -238,47 +241,40 @@ class _Document(object):
         """
         Return the object referenced by a pointer
         """
-
         if pointer in self.pointers:
             # This catches
             if self.pointers[pointer] is None:
                 raise ReferenceLoopError(pointer)
-
         else:
-
+            self.pointers[pointer] = None
             if pointer[0] == '#':
                 # Resolve a reference within the same Open API document
-                try:
-                    resolved = resolve_pointer(self.root, pointer[1:])
-                except RecursionError:
-                    raise RecursionError(
-                        pointer + '\n' + get_exception_text()
-                    )
-
+                resolved = resolve_pointer(self.root, pointer[1:])
                 # Cast the resolved reference as one of the given types
-                resolved = self.unmarshal_resolved_reference(resolved, self.url, pointer, types=types)
+                resolved = self.unmarshal_resolved_reference(
+                    resolved, self.url, pointer, types=types
+                )
             else:
                 # Resolve a reference from another Open API document
                 url, document_pointer = self.get_url_pointer(pointer)
-
                 # Retrieve the document
-                document = self.resolver.get_document(urljoin(self.url, url.lstrip('/')))
-
+                document = self.resolver.get_document(
+                    urljoin(self.url, url.lstrip('/'))
+                )
                 # Resolve the pointer, if needed
                 if document_pointer:
                     resolved = document.resolve(document_pointer, types)
                 else:
                     resolved = document.root
                     # Cast the resolved reference as one of the given types
-                    resolved = self.unmarshal_resolved_reference(resolved, url, document_pointer, types=types)
-
+                    resolved = self.unmarshal_resolved_reference(
+                        resolved, url, document_pointer, types=types
+                    )
             # Recursively dereference
             if dereference and isinstance(resolved, Model):
                 self.dereference(resolved, recursive=dereference)
-
             # Cache the resolved pointer
             self.pointers[pointer] = resolved
-
         return self.pointers[pointer]
 
     def dereference_all(self):
@@ -288,44 +284,46 @@ class _Document(object):
 
 class Resolver(object):
     """
-    This class should be used, with an instance of `oapi.oas.model.OpenAPI`, to resolve references.
+    This class should be used, with an instance of `oapi.oas.model.OpenAPI`, to
+    resolve references.
 
     Parameters:
 
-        - root (oapi.oas.model.OpenAPI): The OpenAPI document against which pointers will be resolved.
+        - root (oapi.oas.model.OpenAPI): The OpenAPI document against which
+          pointers will be resolved.
 
-        - url (str): The URL or file path from where `root` was retrieved. The base URL for relative paths will be the
-          directory above this URL. This will not typically be needed, as it can be inferred from most `Model`
-          instances.
+        - url (str): The URL or file path from where `root` was retrieved. The
+          base URL for relative paths will be the directory above this URL.
+          This will not typically be needed, as it can be inferred from most
+          `Model` instances.
 
-        - urlopen (collections.Callable): If provided, this should be a function taking one argument (a `str`),
-          which can be used in lieu of `urllib.request.urlopen` to retrieve a document and return an instance of a
-          sub-class of `IOBase` (such as `http.client.HTTPResponse`). This should be used if authentication is needed
-          in order to retrieve external references in the document, or if local file paths will be referenced instead
-          of web URL's (use `open` as the value for the `urlopen` parameter in this case).
+        - urlopen (collections.Callable): If provided, this should be a
+          function taking one argument (a `str`), which can be used in lieu
+          of `urllib.request.urlopen` to retrieve a document and return an
+          instance of a sub-class of `IOBase` (such as
+          `http.client.HTTPResponse`). This should be used if authentication is
+          needed in order to retrieve external references in the document,
+          or if local file paths will be referenced instead of web URL's (use
+          `open` as the value for the `urlopen` parameter
+          in this case).
     """
 
     def __init__(self, root, url=None, urlopen = request.urlopen):
         # type: (OpenAPI, Optional[str], typing.Callable, bool) -> None
-
         # Ensure arguments are of the correct types
         assert callable(urlopen)
         assert isinstance(root, OpenAPI)
         assert isinstance(url, (str, NoneType))
-
         # This is the function used to open external pointer references
         self.urlopen = urlopen
-
         # Infer the URL from the `OpenAPI` document, if not explicitly provided
         if url is None:
             url = meta.url(root) or '#'
-
         self.url = url
-
         # This is the primary document--the one we are resolving
         document = _Document(self, root, url)
-
-        # Store the primary document both by URL and under the key "#" (for convenient reference)
+        # Store the primary document both by URL and under the key "#" (for
+        # convenient reference)
         self.documents = {
             url: document
         }
@@ -335,27 +333,22 @@ class Resolver(object):
     def get_document(self, url):
         # type: (str) -> Model
         """
-        Retrieve a document by URL, or use the cached document if previously retrieved
+        Retrieve a document by URL, or use the cached document if previously
+        retrieved
         """
-
         if url not in self.documents:
-
             try:
-
                 with self.urlopen(url) as response:
-                    self.documents[url] = _Document(self, detect_format(response)[0], url=url)
-
+                    self.documents[url] = _Document(
+                        self, detect_format(response)[0], url=url
+                    )
             except HTTPError as e:
-
                 e.msg = '%s: %s' % (
                     get_exception_text().rstrip(),
                     url
                 )
-
                 raise e
-
             except FileNotFoundError as e:
-
                 e.args = tuple(
                     chain(
                         [
@@ -369,9 +362,7 @@ class Resolver(object):
                         url
                     )
                 )
-
                 raise e
-
         return self.documents[url]
 
     def dereference(self):
@@ -384,5 +375,4 @@ class Resolver(object):
     def resolve(self, pointer, types=None, dereference=False):
         # type: (str, Sequence[Property, type], bool) -> Model
         url, pointer = self.documents['#'].get_url_pointer(pointer)
-        print('Pointer: ' + repr((url, pointer)))
         return self.documents[url].resolve(pointer, types, dereference=dereference)

@@ -93,11 +93,9 @@ def _reference_before_unmarshal(data):
     """
     This prevents any attribute except `$ref` from being applied to references
     """
-
     if data and ('$ref' in data):
         for key in (set(data.keys()) - {'$ref'}):
             del data[key]
-
     return data
 
 
