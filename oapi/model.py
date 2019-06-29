@@ -393,9 +393,21 @@ class _Modeler(object):
         for definition in self.model_definitions:
             model = self.get_model(definition)
             if model.__name__ in models_names:
+                existing_model_meta = meta.read(models_names[model.__name__])
+                new_model_meta = meta.read(model)
                 # Ensure this is just a repeat use of the same model, and not
                 # a different model of the same name
-                assert models_names[model.__name__] == model
+                if existing_model_meta != new_model_meta:
+                    raise RuntimeError(
+                        'An attempt was made to define a model using an '
+                        'existing model name (`%s`)"\n\n'
+                        'Existing Model Metadata:\n\n%s\n\n'
+                        'New Model Metadata:\n\n%s' % (
+                            model.__name__,
+                            repr(existing_model_meta),
+                            repr(new_model_meta)
+                        )
+                    )
             elif model not in (Array, Dictionary):
                 models_names[model.__name__] = model
                 yield model
