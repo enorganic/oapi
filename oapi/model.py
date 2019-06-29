@@ -65,7 +65,9 @@ except ImportError:
 _META_MODULE_QUALIFIED_NAME = qualified_name(meta)
 _META_PROPERTIES_QAULIFIED_NAME = qualified_name(meta.Properties)
 _META_PROPERTIES_QAULIFIED_NAME_LENGTH = len(_META_PROPERTIES_QAULIFIED_NAME)
-_DOC_POINTER_RE = re.compile(r'\s*([^\s](?:.|\r?\n)*[^\s])\s*\r?\n\s*\r?\n')
+_DOC_POINTER_RE = re.compile(
+    r'\s*([^\s](?:.|\r?\n)*[^\s])\s*\r?\n\s*(?:\r?\n|$)'
+)
 _SPACES_RE = re.compile(r'[\s\n]')
 
 
