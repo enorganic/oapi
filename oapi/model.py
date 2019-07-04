@@ -221,7 +221,8 @@ class _Modeler(object):
                 property_.types = []
             for schema in schemas:
                 child_property_ = self.get_property(schema)
-                property_.types.append(child_property_)
+                if child_property_ is not None:
+                    property_.types.append(child_property_)
 
     def property_all_of(self, property_, schemas):
         # type: (Iterable[Schema]) -> None
@@ -233,7 +234,8 @@ class _Modeler(object):
                 property_.types = []
             for schema in schemas:
                 child_property_ = self.get_property(schema)
-                property_.types.append(child_property_)
+                if child_property_ is not None:
+                    property_.types.append(child_property_)
 
     def get_property(
         self,
@@ -255,9 +257,11 @@ class _Modeler(object):
             self.property_all_of(property_, schema.all_of)
         elif schema_defines_model(schema):
             property_ = properties.Property()
-            property_.types = (
-                self.get_model(schema, is_property=(not is_referenced)),
+            property_types = self.get_model(
+                schema, is_property=(not is_referenced)
             )
+            if property_types is not None:
+                property_.types = (property_types,)
         elif schema.type_ == 'number':
             property_ = properties.Number()
         elif schema.type_ == 'integer':
@@ -468,15 +472,22 @@ class _Modeler(object):
             )
         elif items_schemas is not None:
             items_schemas = (items_schemas,)
+        item_types = None
         # If item types are defined--create a class, otherwise--use the base
         # class
         if items_schemas:
             item_types = []
             for items_schema in items_schemas:
                 if schema_defines_model(items_schema):
-                    item_types.append(self.get_model(items_schema))
+                    items_model = self.get_model(items_schema)
                 else:
-                    item_types.append(self.get_property(items_schema))
+                    items_model = self.get_property(items_schema)
+                # Checking to make sure the model is not `None` is
+                # necessary because is some fringe cases (involving cyclic
+                # references) a model cannot be retrieved at this point
+                if items_model is not None:
+                    item_types.append(items_model)
+        if item_types:
             array_meta = meta.Array(item_types=item_types)
             # If the array allows a single type--base the array name on that
             # type in order to allow re-use

@@ -3,23 +3,23 @@ from setuptools import setup, find_packages
 setup(
     name='oapi',
 
-    version="0.0.43",
+    version="0.0.46",
 
     description=(
         'An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications'
     ),
 
-    # The project's main homepage.
+    # The project's main homepage.,
     url='https://bitbucket.com/davebelais/oapi.git',
 
-    # Author details
+    # Author details,
     author='David Belais',
     author_email='david@belais.me',
 
-    # Choose your license
+    # Choose your license,
     license='MIT',
 
-    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers,
     classifiers=[
         'Development Status :: 1 - Planning',
         # 'Development Status :: 2 - Pre-Alpha',
@@ -44,16 +44,14 @@ setup(
     # py_modules=[], # Single-file module names
 
     # dependencies
-    # See https://packaging.python.org/en/latest/requirements.html
+    # See https://packaging.python.org/en/latest/requirements.html,
     install_requires=[
         "future>=0.17.1",
         "pyyaml>=5.1.1",
         "iso8601>=0.1.12",
-        "sob>=0.1.18",
+        "sob>=0.1.19",
         "jsonpointer>=2.0"
     ],
-
-    # pip install -e .[dev, test]
     extras_require={
         'dev': [
             'pytest>=2.9.0'
