@@ -6,16 +6,6 @@ from __future__ import (
 )
 
 from sob.utilities.compatibility import backport
-backport()  # noqa
-
-import importlib
-
-try:
-    urlopen = importlib.import_module('urllib.request').urlopen
-except ImportError:
-    urlopen = importlib.import_module('urllib').urlopen
-
-# endregion
 
 import os
 import re
@@ -32,35 +22,26 @@ from sob.utilities import (
     get_source, property_name, properties_values, class_name,
     calling_function_qualified_name
 )
+from sob.utilities.compatibility import (
+    typing, backport, urlopen, urljoin, urlparse
+)
 from sob.model import (
     Model as ModelBase, Object, Dictionary, Array,
     from_meta as model_from_meta
 )
 from sob.utilities import qualified_name, url_relative_to
 from sob.properties import Property, Null
-
 from .oas.references import Resolver
 from .oas.model import OpenAPI, Schema, Reference, Parameter, Operation
 
-try:
-    _urllib_parse = importlib.import_module('urllib.parse')
-    urljoin = _urllib_parse.urljoin
-    urlparse = _urllib_parse.urlparse
-except ImportError:
-    _urllib = importlib.import_module('urllib')
-    urljoin = _urllib.urljoin
-    urlparse = _urllib.urlparse
+backport()
 
-
-try:
-    from typing import Iterable, Sequence, Optional, Union
-except ImportError:
-    Iterable = Sequence = Optional = Union = None
-    _SchemaOrReference = None
-
+Iterable = typing.Iterable
+Sequence = typing.Sequence
+Optional = typing.Optional
+Union = typing.Union
 
 # Constants
-
 
 _META_MODULE_QUALIFIED_NAME = qualified_name(meta)
 _META_PROPERTIES_QAULIFIED_NAME = qualified_name(meta.Properties)
@@ -75,7 +56,6 @@ _DOC_POINTER_RE = re.compile(
     re.DOTALL
 )
 _SPACES_RE = re.compile(r'[\s\n]')
-
 
 # region Functions
 
@@ -142,6 +122,19 @@ def operation_defines_model(operation):
 # region Private Classes
 
 
+class _RecursiveReferencePlaceholder(object):
+
+    def __init__(self, relative_url_pointer):
+        # type: (str) -> None
+        self.relative_url_pointer = relative_url_pointer
+
+    def __eq__(self, other):
+        # type: (_RecursiveReferencePlaceholder) -> bool
+        return (
+            self.relative_url_pointer == other.relative_url_pointer
+        )
+
+
 class _Modeler(object):
     """
     This class parses an OpenAPI schema and produces a data model based on the
@@ -176,8 +169,11 @@ class _Modeler(object):
         self.pointers_models = OrderedDict()
 
     def get_relative_url_pointer_model(self, relative_url_pointer):
-        # type: (str) -> Model
-        return self._relative_urls_pointers_models[relative_url_pointer]
+        # type: (str) -> Module
+        model = self._relative_urls_pointers_models[relative_url_pointer]
+        # if model is None:
+        #     print(relative_url_pointer)
+        return model
 
     def set_relative_url_pointer_class_name(
         self, relative_url_pointer, class_name_
@@ -198,11 +194,15 @@ class _Modeler(object):
         ] = relative_url_pointer
         return class_name_
 
-    def relative_url_pointer_exists(self, relative_url_pointer):
+    def relative_url_pointer_class_name_exists(self, relative_url_pointer):
         # type: (str) -> bool
         return relative_url_pointer in self._relative_urls_pointers_class_names
 
-    def class_name_exists(self, class_name_):
+    def relative_url_pointer_model_exists(self, relative_url_pointer):
+        # type: (str) -> bool
+        return relative_url_pointer in self._relative_urls_pointers_models
+
+    def class_name_relative_urls_pointer_exists(self, class_name_):
         # type: (str) -> bool
         return class_name_ in self._class_names_relative_urls_pointers
 
@@ -258,7 +258,8 @@ class _Modeler(object):
         elif schema_defines_model(schema):
             property_ = properties.Property()
             property_types = self.get_model(
-                schema, is_property=(not is_referenced)
+                schema,
+                is_property=(not is_referenced)
             )
             if property_types is not None:
                 property_.types = (property_types,)
@@ -345,8 +346,17 @@ class _Modeler(object):
         relative_url, pointer = self.get_definition_relative_url_and_pointer(
             definition
         )
-
         return relative_url + pointer
+
+    def set_relative_url_pointer_model(self, relative_url_pointer, model):
+        # type: (str, Optional[sob.model.Model]) -> None
+        self._relative_urls_pointers_models[relative_url_pointer] = model
+
+    def set_model_class_name(self, model, class_name_=None):
+        # type: (Optional[sob.model.Model], Optional[str]) -> None
+        if class_name_ is None:
+            class_name_ = model.__name__
+        self._class_names_models[class_name_] = model
 
     def get_model(self, definition, is_property=False):
         # type: (Union[Schema, Operation, Parameter], bool) -> ModelBase
@@ -354,9 +364,12 @@ class _Modeler(object):
             definition
         )
         # If this model has already been generated--use the cached model
-        if relative_url_pointer not in self._relative_urls_pointers_models:
-            # Setting this to `None` prevents recursion errors
-            self._relative_urls_pointers_models[relative_url_pointer] = None
+        if not self.relative_url_pointer_model_exists(relative_url_pointer):
+            # Setting this to prevents recursion errors
+            self.set_relative_url_pointer_model(
+                relative_url_pointer,
+                None
+            )
             if isinstance(definition, Schema):
                 model = self.get_schema_model(
                     definition,
@@ -386,9 +399,12 @@ class _Modeler(object):
                         repr(definition)
                     )
                 )
-            self._relative_urls_pointers_models[relative_url_pointer] = model
-            self._class_names_models[model.__name__] = model
-        return self._relative_urls_pointers_models[relative_url_pointer]
+            self.set_relative_url_pointer_model(
+                relative_url_pointer,
+                model
+            )
+            self.set_model_class_name(model)
+        return self.get_relative_url_pointer_model(relative_url_pointer)
 
     @property
     def models(self):
@@ -405,8 +421,8 @@ class _Modeler(object):
                     raise RuntimeError(
                         'An attempt was made to define a model using an '
                         'existing model name (`%s`)"\n\n'
-                        'Existing Model Metadata:\n\n%s\n\n'
-                        'New Model Metadata:\n\n%s' % (
+                        'Existing Module Metadata:\n\n%s\n\n'
+                        'New Module Metadata:\n\n%s' % (
                             model.__name__,
                             repr(existing_model_meta),
                             repr(new_model_meta)
@@ -649,7 +665,7 @@ class _Modeler(object):
     ):
         # type: (str, str, Optional[bool]) -> str
         relative_url_pointer = relative_url + pointer
-        if not self.relative_url_pointer_exists(relative_url_pointer):
+        if not self.relative_url_pointer_class_name_exists(relative_url_pointer):
             parts = [
                 part.replace('~1', '/') for part in
                 pointer.lstrip('#/').split('/')
@@ -678,8 +694,8 @@ class _Modeler(object):
 
             relative_url_pointer_class_name = get_class_name(start_index)
             while start_index and (
-                self.class_name_exists(relative_url_pointer_class_name) and
-                self.get_class_name_relative_url_pointer(
+                    self.class_name_relative_urls_pointer_exists(relative_url_pointer_class_name) and
+                    self.get_class_name_relative_url_pointer(
                     relative_url_pointer_class_name
                 ) != relative_url_pointer
             ):
@@ -699,21 +715,12 @@ class _Modeler(object):
         `Schema`, `Parameter`, and `Operation`
         """
         self._traversed_relative_urls_pointers = set()
-        for definition in self._traverse_model_definitions(
-            self.root, (OpenAPI,)
+        for definition in tuple(
+            self._traverse_model_definitions(
+                self.root, (OpenAPI,)
+            )
         ):
             yield self._resolve(definition)
-            # definition = self._resolve(definition)
-            # relative_url_pointer = self.get_definition_relative_url_pointer(
-            #     definition
-            # )
-            # if relative_url_pointer not in (
-            #     self._traversed_relative_urls_pointers
-            # ):
-            #     self._traversed_relative_urls_pointers.add(
-            #         relative_url_pointer
-            #     )
-            #     yield definition
 
     def _resolve(self, model_instance, types=None):
         # type: (ModelBase, Optional[Sequence[type, Property]]) -> ModelBase
@@ -724,8 +731,12 @@ class _Modeler(object):
             if types is None:
                 types = (Schema,)
             url = meta.url(model_instance)
+            pointer = urljoin(
+                meta.pointer(model_instance),
+                model_instance.ref
+            )
             model_instance = self.resolver.get_document(url).resolve(
-                urljoin(meta.pointer(model_instance), model_instance.ref),
+                pointer,
                 types
             )
         return model_instance
@@ -930,11 +941,11 @@ class _ModuleParser(object):
 # region Public Classes
 
 
-class Model(object):
+class Module(object):
     """
     This class parses an Open API document and outputs a module defining
     classes to represent each schema defined in the Open API document as a
-    subclass of `sob.model.Model`.
+    subclass of `sob.model.Module`.
 
     Initialization Parameters:
 
@@ -1017,12 +1028,14 @@ class Model(object):
         return relative_url, pointer
 
     def model_from_pointer(self, url_pointer):
-        # type: (str) -> Model
+        # type: (str) -> Module
         """
         Return a model from a pointer
         """
         relative_url, pointer = self._get_relative_url_and_pointer(url_pointer)
-        return self._modeler.get_relative_url_pointer_model(relative_url + pointer)
+        return self._modeler.get_relative_url_pointer_model(
+            relative_url + pointer
+        )
 
     def save(self, path):
         # type: (str) -> None
@@ -1043,7 +1056,11 @@ class Model(object):
             model_io.write(str(self))
 
     def __eq__(self, other):
-        # type: (Model) -> bool
+        # type: (Module) -> bool
         return isinstance(other, self.__class__) and str(self) == str(other)
+
+
+# For backwards compatibility...
+Model = Module
 
 # endregion

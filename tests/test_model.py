@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, generators, nested_scopes, pri
 from copy import deepcopy
 
 from future import standard_library
-from oapi.model import Model
+from oapi.model import Module
 
 standard_library.install_aliases()
 from builtins import *
@@ -23,15 +23,20 @@ from oapi.oas.references import Resolver
 from oapi.oas.model import OpenAPI
 
 # https://github.com/OAI/OpenAPI-Specification/tree/master/examples
-OPENAPI_EXAMPLE_URL = 'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/'
-LANGUAGE_TOOL_URL = 'https://languagetool.org/http-api/languagetool-swagger.json'
+OPENAPI_EXAMPLE_URL = (
+    'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/'
+    'examples/'
+)
+LANGUAGE_TOOL_URL = (
+    'https://languagetool.org/http-api/languagetool-swagger.json'
+)
 
 
 def test_languagetool():
     with urlopen(LANGUAGE_TOOL_URL) as response:
         oa = OpenAPI(response)
         sob.test.json(oa)
-        model = Model(oa)
+        model = Module(oa)
         model_path = os.path.abspath('./data/languagetool.py')
         if os.path.exists(model_path):
             with open(model_path, 'r') as model_file:

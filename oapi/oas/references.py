@@ -17,7 +17,7 @@ resolver = Resolver(open_api_document)
 resolver.dereference()
 ```
 """
-
+from sob.utilities.compatibility import backport, typing
 from collections import OrderedDict
 
 import collections
@@ -25,18 +25,12 @@ from itertools import chain
 from urllib import request
 from urllib.error import HTTPError
 from urllib.parse import urlparse, urljoin
+from warnings import warn
 
 from sob import meta
 
-
 from jsonpointer import resolve_pointer
 from sob.utilities import qualified_name
-
-try:
-    import typing
-    from typing import Union, Any, Sequence, Dict
-except ImportError:
-    typing = Union = Any = Sequence = Dict = None
 
 from sob.model import Model, Array, Dictionary, Object, unmarshal, detect_format
 from sob.properties import Property
@@ -45,6 +39,13 @@ from sob.errors import get_exception_text
 
 from .model import Reference, OpenAPI
 from ..errors import ReferenceLoopError
+
+backport()
+
+Optional = typing.Optional
+Union = typing.Union
+Sequence = typing.Sequence
+Dict = typing.Dict
 
 
 class _Document(object):
@@ -109,7 +110,9 @@ class _Document(object):
 
         try:
             if isinstance(model_instance, Object):
-                self.dereference_object_properties(model_instance, recursive=recursive)
+                self.dereference_object_properties(
+                    model_instance, recursive=recursive
+                )
             elif isinstance(
                 model_instance,
                 (Array, collections.Sequence, collections.Set)
@@ -117,9 +120,15 @@ class _Document(object):
                 model_instance,
                 (str, bytes)
             ):
-                self.dereference_array_items(model_instance, recursive=recursive)
-            elif isinstance(model_instance, (Dictionary, dict, OrderedDict)):
-                self.dereference_dictionary_values(model_instance, recursive=recursive)
+                self.dereference_array_items(
+                    model_instance, recursive=recursive
+                )
+            elif isinstance(
+                model_instance, (Dictionary, dict, OrderedDict)
+            ):
+                self.dereference_dictionary_values(
+                    model_instance, recursive=recursive
+                )
             else:
                 raise TypeError(
                     'The argument must be an instance of `%s`, not %s' % (
@@ -128,7 +137,9 @@ class _Document(object):
                     )
                 )
         except (ReferenceLoopError, RecursionError):
-            if not recursive:
+            if recursive:
+                warn(get_exception_text())
+            else:
                 raise
 
     def prevent_infinite_recursion(self, model_instance):
@@ -174,7 +185,11 @@ class _Document(object):
                 setattr(
                     object_,
                     property_name,
-                    self.resolve(value.ref, types=(property_,), dereference=recursive)
+                    self.resolve(
+                        value.ref,
+                        types=(property_,),
+                        dereference=recursive
+                    )
                 )
             elif recursive and isinstance(value, Model):
                 self.dereference(value, recursive=recursive)
