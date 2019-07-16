@@ -49,16 +49,16 @@ setup(
         "future>=0.17.1",
         "pyyaml>=5.1.1",
         "iso8601>=0.1.12",
-        "sob>=0.1.19",
+        "sob>=0.1.24",
         "jsonpointer>=2.0"
     ],
     extras_require={
-        'dev': [
-            'pytest>=2.9.0'
+        "dev": [
+            "pytest>=5.0.1"
         ],
-        'test': [
-            'pytest>=2.9.0'
-        ],
+        "test": [
+            "pytest>=5.0.1"
+        ]
     },
 
     data_files=[],
