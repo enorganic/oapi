@@ -107,7 +107,6 @@ class _Document(object):
         """
         Recursively dereference this objects and all items/properties
         """
-
         try:
             if isinstance(model_instance, Object):
                 self.dereference_object_properties(
@@ -257,18 +256,14 @@ class _Document(object):
         Return the object referenced by a pointer
         """
         if pointer in self.pointers:
-            # This catches
+            # This catches recursion errors
             if self.pointers[pointer] is None:
                 raise ReferenceLoopError(pointer)
         else:
             self.pointers[pointer] = None
             if pointer[0] == '#':
                 # Resolve a reference within the same Open API document
-                try:
-                    resolved = resolve_pointer(self.root, pointer[1:])
-                except JsonPointerException:
-                    print(pointer[1:])
-                    raise
+                resolved = resolve_pointer(self.root, pointer[1:])
                 # Cast the resolved reference as one of the given types
                 resolved = self.unmarshal_resolved_reference(
                     resolved,

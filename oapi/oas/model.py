@@ -85,9 +85,12 @@ class Reference(Object):
         self,
         _=None,  # type: Optional[typing.Mapping]
         ref=None,  # type: Optional[str]
+        **kwargs
     ):
         self.ref = ref
         super().__init__(_)
+        for key, value in kwargs.items():
+            self[key] = value
 
 
 sob.meta.writable(Reference).properties = [
@@ -110,6 +113,22 @@ def _reference_before_setitem(self, key, value):
 
 
 _reference_hooks.before_setitem = _reference_before_setitem
+
+
+def _reference_after_unmarshal(data):  # noqa
+    # type: (Dict[str, Any]) -> None
+    """
+    This ensures all reference objects have a `$ref` attribute
+    """
+    if data['$ref'] is None:
+        raise TypeError(
+            'All instances of `%s` must have a `$ref` attribute' %
+            sob.utilities.qualified_name(Reference)
+        )
+    return data
+
+
+_reference_hooks.after_unmarshal = _reference_after_unmarshal
 
 
 class Contact(Object):
@@ -141,7 +160,8 @@ sob.meta.writable(Contact).properties = [
 
 class License(Object):
     """
-    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#licenseObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
+    #licenseObject
     """
 
     def __init__(
