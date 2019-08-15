@@ -29,7 +29,7 @@ from warnings import warn
 
 from sob import meta
 
-from jsonpointer import resolve_pointer
+from jsonpointer import resolve_pointer, JsonPointerException
 from sob.utilities import qualified_name
 
 from sob.model import Model, Array, Dictionary, Object, unmarshal, detect_format
@@ -264,11 +264,20 @@ class _Document(object):
             self.pointers[pointer] = None
             if pointer[0] == '#':
                 # Resolve a reference within the same Open API document
-                resolved = resolve_pointer(self.root, pointer[1:])
+                try:
+                    resolved = resolve_pointer(self.root, pointer[1:])
+                except JsonPointerException:
+                    print(pointer[1:])
+                    raise
                 # Cast the resolved reference as one of the given types
                 resolved = self.unmarshal_resolved_reference(
-                    resolved, self.url, pointer, types=types
+                    resolved,
+                    self.url,
+                    pointer,
+                    types=types
                 )
+                if resolved is None:
+                    raise RuntimeError()
             else:
                 # Resolve a reference from another Open API document
                 url, document_pointer = self.get_url_pointer(pointer)
@@ -346,7 +355,7 @@ class Resolver(object):
             self.documents['#'] = document
 
     def get_document(self, url):
-        # type: (str) -> Model
+        # type: (str) -> _Document
         """
         Retrieve a document by URL, or use the cached document if previously
         retrieved

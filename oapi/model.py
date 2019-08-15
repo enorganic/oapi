@@ -170,10 +170,7 @@ class _Modeler(object):
 
     def get_relative_url_pointer_model(self, relative_url_pointer):
         # type: (str) -> Module
-        model = self._relative_urls_pointers_models[relative_url_pointer]
-        # if model is None:
-        #     print(relative_url_pointer)
-        return model
+        return self._relative_urls_pointers_models[relative_url_pointer]
 
     def set_relative_url_pointer_class_name(
         self, relative_url_pointer, class_name_
@@ -607,9 +604,13 @@ class _Modeler(object):
             object_meta.properties[property_name_] = self.get_property(
                 property_,
                 name=None if property_name_ == name_ else name_,
-                required=True if (
-                    schema.required and (name_ in schema.required)
-                ) else False
+                required=(
+                    True if (
+                        schema.required and (
+                            name_ in schema.required
+                        )
+                    ) else False
+                )
             )
         name = self.set_relative_url_pointer_class_name(
             relative_url_pointer, name
@@ -735,10 +736,22 @@ class _Modeler(object):
                 meta.pointer(model_instance),
                 model_instance.ref
             )
-            model_instance = self.resolver.get_document(url).resolve(
-                pointer,
-                types
-            )
+            while isinstance(model_instance, Reference):
+                resolved_model_instance = self.resolver.get_document(
+                    url
+                ).resolve(
+                    pointer,
+                    types
+                )
+                if resolved_model_instance is model_instance:
+                    raise RuntimeError(
+                        '`Reference` instance is self-referential: ' +
+                        pointer
+                    )
+                else:
+                    model_instance = resolved_model_instance
+            if isinstance(model_instance, Reference):
+                raise RuntimeError(pointer)
         return model_instance
 
     def _add_traversed_definition(
@@ -1047,10 +1060,8 @@ class Module(object):
         defined by elements residing at the same location as the documented
         JSON pointer in the pre-existing classes' docstrings.
         """
-
         # Make sure that any matching, existing classes use the same names
         self._parse_existing_module(path)
-
         # Save the module
         with open(path, 'w') as model_io:
             model_io.write(str(self))

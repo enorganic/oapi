@@ -41,23 +41,28 @@ class Object(sob.model.Object):
 _object_hooks = sob.hooks.writable(Object)  # type: hooks.Object
 
 
+def _add_property(self, key):
+    # type: (Object, str) -> None
+    """
+    Look for a matching property, and if none exists--create one
+    """
+    try:
+        self._get_key_property_name(key)
+    except KeyError:
+        meta_ = sob.meta.writable(self)
+        if meta_.properties is None:
+            meta_.properties = sob.meta.Properties()
+        property_name = sob.utilities.property_name(key)
+        meta_.properties[property_name] = sob.properties.Property(name=key)
+
+
 def _object_before_setitem(self, key, value):
     # type: (Object, str, Any) -> Tuple[str, Any]
     """
     This hook allows for the use of extension attributes
     """
-
     if key[:2] == 'x-':
-        # Look for a matching property, and if none exists--create one
-        try:
-            self._get_key_property_name(key)
-        except KeyError:
-            meta_ = sob.meta.writable(self)
-            if meta_.properties is None:
-                meta_.properties = sob.meta.Properties()
-            property_name = sob.utilities.property_name(key)
-            meta_.properties[property_name] = sob.properties.Property(name=key)
-
+        _add_property(self, key)
     return key, value
 
 
@@ -85,31 +90,32 @@ class Reference(Object):
         super().__init__(_)
 
 
-_reference_hooks = sob.hooks.writable(Reference)
-
-
-def _reference_before_unmarshal(data):
-    # type: (typing.Mapping) -> typing.Mapping
-    """
-    This prevents any attribute except `$ref` from being applied to references
-    """
-    if data and ('$ref' in data):
-        for key in (set(data.keys()) - {'$ref'}):
-            del data[key]
-    return data
-
-
-_reference_hooks.before_unmarshal = _reference_before_unmarshal
-
-
 sob.meta.writable(Reference).properties = [
     ('ref', sob.properties.String(name='$ref'))
 ]
 
 
+_reference_hooks = sob.hooks.writable(Reference)  # type: hooks.Object
+
+
+def _reference_before_setitem(self, key, value):
+    # type: (Object, str, Any) -> Tuple[str, Any]
+    """
+    This hook allows for the use of any arbitrary attribute, as specified in
+    the `patternProperties` for this object in the OpenAPI schema
+    """
+    if key != '$ref':
+        _add_property(self, key)
+    return key, value
+
+
+_reference_hooks.before_setitem = _reference_before_setitem
+
+
 class Contact(Object):
     """
-    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#contactObject
+    https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
+    #contactObject
     """
 
     def __init__(
