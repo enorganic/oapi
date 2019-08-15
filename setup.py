@@ -24,7 +24,7 @@ setup(
         "future>=0.17.1",
         "pyyaml>=5.1.1",
         "iso8601>=0.1.12",
-        "sob>=0.1.24",
+        "sob>=0.1.32",
         "jsonpointer>=2.0"
     ],
     extras_require={
