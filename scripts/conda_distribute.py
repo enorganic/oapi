@@ -3,14 +3,15 @@ import os
 import shutil
 from tempfile import gettempdir
 from subprocess import getstatusoutput
-from setuptools_setup_versions import install_requires
 
 REPOSITORY_DIRECTORY = os.path.dirname(
     os.path.dirname(
         __file__
     )
 )
-PACKAGE_NAME = REPOSITORY_DIRECTORY.split('/')[-1].split('\\')[-1]
+PACKAGE_NAME = REPOSITORY_DIRECTORY.split(
+    '/'
+)[-1].split('\\')[-1].replace('_', '-')
 
 
 def run(command: str) -> str:
@@ -50,4 +51,3 @@ if __name__ == '__main__':
                 os.path.abspath(REPOSITORY_DIRECTORY + '/scripts/clean.py')
             }
         )
-
