@@ -1,8 +1,7 @@
 # region Backwards Compatibility
-
 from __future__ import (
     nested_scopes, generators, division, absolute_import, with_statement,
-   print_function, unicode_literals
+    print_function, unicode_literals
 )
 
 from sob.utilities.compatibility import backport
@@ -278,7 +277,9 @@ class _Modeler(object):
         elif schema.type_ == 'file':
             property_ = properties.Bytes()
         else:
-            raise ValueError(schema.type_)
+            raise ValueError(
+                'No schema "type" found:\n' + repr(schema)
+            )
         if schema.enum:
             property_ = properties.Enumerated(
                 values=tuple(schema.enum),

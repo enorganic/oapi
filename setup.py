@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='oapi',
-    version="0.0.48",
+    version="0.0.49",
     description=(
         'An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications'
     ),
@@ -21,7 +21,7 @@ setup(
     keywords='openapi swagger json rest',
     packages=find_packages(),
     install_requires=[
-        "future>=0.17.1",
+        "future>=0.18.2",
         "pyyaml>=5.1.1",
         "iso8601>=0.1.12",
         "sob>=0.1.32",
@@ -29,10 +29,10 @@ setup(
     ],
     extras_require={
         "dev": [
-            "pytest>=5.0.1"
+            "pytest>=5.1.1"
         ],
         "test": [
-            "pytest>=5.0.1"
+            "pytest>=5.1.1"
         ]
     }
 )
