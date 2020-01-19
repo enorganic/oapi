@@ -24,6 +24,7 @@ from sob.utilities import (
 from sob.utilities.compatibility import (
     typing, backport, urlopen, urljoin, urlparse
 )
+from sob.utilities.string import split_long_comment_line
 from sob.model import (
     Model as ModelBase, Object, Dictionary, Array,
     from_meta as model_from_meta
@@ -55,6 +56,7 @@ _DOC_POINTER_RE = re.compile(
     re.DOTALL
 )
 _SPACES_RE = re.compile(r'[\s\n]')
+_LINE_LENGTH = 79  # type: int
 
 # region Functions
 
@@ -835,14 +837,12 @@ class _Modeler(object):
         relative_url_pointer = self.get_class_name_relative_url_pointer(
             class_name_
         )
-        lines = []
-        if len(relative_url_pointer) > 79:
-            pointer_split = relative_url_pointer.split('#')
-            lines.append('# ' + pointer_split[0])
-            lines.append('# #' + '#'.join(pointer_split[1:]))
-        else:
-            lines.append('# ' + relative_url_pointer)
-
+        lines = list()
+        lines.append(
+            split_long_comment_line(
+                '# ' + relative_url_pointer
+            )
+        )
         for property_name_, value in properties_values(meta_):
             if value is not None:
                 value = repr(value)
@@ -854,11 +854,22 @@ class _Modeler(object):
                         -1
                     ]
                 lines.append(
-                    '%s.writable(%s).%s = %s' % (
+                    '%s.writable(\n    %s%s\n).%s = %s' % (
                         _META_MODULE_QUALIFIED_NAME,
                         class_name_,
+                        (
+                            '  # noqa'
+                            if len(class_name_) + 4 > _LINE_LENGTH else
+                            ''
+                        ),
                         property_name_,
-                        value
+                        '\n'.join(
+                            line + (
+                                '  # noqa'
+                                if len(line) > _LINE_LENGTH else ''
+                            )
+                            for line in value.split('\n')
+                        )
                     )
                 )
         return '\n'.join(lines) + '\n'

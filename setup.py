@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='oapi',
-    version="0.0.52",
+    version="0.0.58",
     description=(
         'An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications'
     ),
@@ -10,21 +10,14 @@ setup(
     author='David Belais',
     author_email='david@belais.me',
     license='MIT',
-    classifiers=[
-        'Development Status :: 1 - Planning',
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-    ],
+    python_requires='>=3.7',
     keywords='openapi swagger json rest',
     packages=find_packages(),
     install_requires=[
         "future>=0.18.2",
         "pyyaml>=5.1.1",
         "iso8601>=0.1.12",
-        "sob>=0.1.32",
+        "sob>=0.1.45",
         "jsonpointer>=2.0"
     ],
     extras_require={
