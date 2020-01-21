@@ -79,8 +79,8 @@ def schema_defines_object(schema):
     `Object`.
     """
     return (
-        schema.type_ == 'object' and
         schema.properties and
+        schema.type_ in ('object', None) and
         (not schema.additional_properties)
     )
 
