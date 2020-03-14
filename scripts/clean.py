@@ -1,8 +1,6 @@
-# !python3.7
+# !/usr/bin/env python3
 
 """
-@author: David Belais <david@belais.me>
-
 This script cleans up some temporary files created by `setuptools`, `tox`, and
 `pytest`.
 """
@@ -19,8 +17,7 @@ module_name = __file__.split('/')[-3].replace('-', '_')
 
 for file_or_directory in (
     'dist', 'build', '%s.egg-info' % module_name,
-    '.tox', '.cache', 'venv',
-    '.pytest_cache'
+    '.cache', '.pytest_cache', '.tox'
 ):
     if os.path.exists(file_or_directory):
         command = (

@@ -10,7 +10,7 @@ setup(
     author='David Belais',
     author_email='david@belais.me',
     license='MIT',
-    python_requires='>=3.7',
+    python_requires='>=3.5',
     keywords='openapi swagger json rest',
     packages=find_packages(),
     install_requires=[

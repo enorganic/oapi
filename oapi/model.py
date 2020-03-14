@@ -123,7 +123,7 @@ def operation_defines_model(operation):
 # region Private Classes
 
 
-class _RecursiveReferencePlaceholder(object):
+class _RecursiveReferencePlaceholder:
 
     def __init__(self, relative_url_pointer):
         # type: (str) -> None
@@ -136,7 +136,7 @@ class _RecursiveReferencePlaceholder(object):
         )
 
 
-class _Modeler(object):
+class _Modeler:
     """
     This class parses an OpenAPI schema and produces a data model based on the
     `sob` library.
@@ -905,7 +905,7 @@ class _Modeler(object):
         return '\n'.join(module_contents)
 
 
-class _ModuleParser(object):
+class _ModuleParser:
 
     def __init__(self, path=None):
         # type: (Optional[str]) -> None
@@ -966,7 +966,7 @@ class _ModuleParser(object):
 # region Public Classes
 
 
-class Module(object):
+class Module:
     """
     This class parses an Open API document and outputs a module defining
     classes to represent each schema defined in the Open API document as a

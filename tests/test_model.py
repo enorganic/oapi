@@ -23,7 +23,6 @@ import sob
 from oapi.oas.references import Resolver
 from oapi.oas.model import OpenAPI
 
-# https://github.com/OAI/OpenAPI-Specification/tree/master/examples
 OPENAPI_EXAMPLE_URL = (
     'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/'
     'examples/'

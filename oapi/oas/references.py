@@ -48,7 +48,7 @@ Sequence = typing.Sequence
 Dict = typing.Dict
 
 
-class _Document(object):
+class _Document:
 
     def __init__(
         self,
@@ -301,7 +301,7 @@ class _Document(object):
         self.dereference(self.root, recursive=True)
 
 
-class Resolver(object):
+class Resolver:
     """
     This class should be used, with an instance of `oapi.oas.model.OpenAPI`, to
     resolve references.
