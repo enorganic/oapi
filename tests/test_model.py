@@ -1,17 +1,6 @@
-# region Backwards Compatibility
-from __future__ import (
-    absolute_import, division, generators, nested_scopes,
-    print_function, unicode_literals, with_statement
-)
-
 from copy import deepcopy
 
-from future import standard_library
 from oapi.model import Module
-
-standard_library.install_aliases()
-from builtins import *
-# endregion
 
 import os
 from itertools import chain
@@ -45,8 +34,12 @@ def test_languagetool():
                     model_file_data = str(model_file_data, encoding='utf-8')
                 assert str(model) == model_file_data
         else:
-            with open(model_path, 'w') as model_file:
-                model_file.write(str(model))
+            model_string: str = str(model)
+            if model_string.strip():
+                with open(model_path, 'w') as model_file:
+                    model_file.write(model_string)
+            else:
+                raise ValueError()
 
 
 def test_openapi_examples():
@@ -144,4 +137,3 @@ if __name__ == '__main__':
     _test_magento_schemas()
     test_languagetool()
     test_openapi_examples()
-

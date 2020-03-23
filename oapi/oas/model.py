@@ -1,29 +1,12 @@
 """
-
 Version 2x: https://swagger.io/docs/specification/2-0/basic-structure/
 Version 3x: https://swagger.io/specification
-
 """
-
-# region Compatibility
-
-from __future__ import nested_scopes, generators, division, absolute_import, with_statement, \
-   print_function, unicode_literals
-
-from sob.utilities.compatibility import backport
-
-backport()  # noqa
-
-# endregion
 
 from copy import deepcopy
 from numbers import Number
-
-try:
-    import typing
-    from typing import Union, Any
-except ImportError:
-    typing = Union = Any = None
+import typing
+from typing import Union, Any
 
 import sob
 
@@ -472,7 +455,7 @@ class Schema(Object):
         self.links = links
         self.nullable = nullable
         super().__init__(_)
-        
+
 
 # ...definitions are postponed until dependencies are defined
 

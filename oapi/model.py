@@ -1,18 +1,11 @@
-# region Backwards Compatibility
-from __future__ import (
-    nested_scopes, generators, division, absolute_import, with_statement,
-    print_function, unicode_literals
-)
-
-from sob.utilities.compatibility import backport
-
 import os
 import re
 import collections
 
-from warnings import warn
 from collections import OrderedDict
 from io import IOBase
+from urllib.parse import urlparse, urljoin
+from urllib.request import urlopen
 
 from sob import __name__ as _sob_module_name
 from sob import meta
@@ -21,27 +14,17 @@ from sob.utilities import (
     get_source, property_name, properties_values, class_name,
     calling_function_qualified_name
 )
-from sob.utilities.compatibility import (
-    typing, backport, urlopen, urljoin, urlparse
-)
 from sob.utilities.string import split_long_comment_line
 from sob.model import (
     Model as ModelBase, Object, Dictionary, Array,
     from_meta as model_from_meta
 )
 from sob.utilities import qualified_name, url_relative_to
-from sob.properties import Property, Null
+from sob.properties import Property
+from sob.properties.types import Null
 from .oas.references import Resolver
 from .oas.model import OpenAPI, Schema, Reference, Parameter, Operation
-
-backport()
-
-Iterable = typing.Iterable
-Sequence = typing.Sequence
-Optional = typing.Optional
-Union = typing.Union
-
-# Constants
+from typing import Iterable, Sequence, Optional, Union
 
 _META_MODULE_QUALIFIED_NAME = qualified_name(meta)
 _META_PROPERTIES_QAULIFIED_NAME = qualified_name(meta.Properties)

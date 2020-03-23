@@ -1,17 +1,6 @@
-from __future__ import (
-    nested_scopes, generators, division, absolute_import,
-    with_statement, print_function, unicode_literals
-)
-from future import standard_library
-standard_library.install_aliases()
-from future.builtins import *  # noqa
-
-import sob  # noqa
-import numbers  # noqa
-try:
-    from typing import Union, Dict, Any, Sequence, IO, Optional
-except ImportError:
-    Union = Dict = Any = Sequence = IO = Optional = None
+import sob
+import numbers
+from typing import Union, Dict, Any, Sequence, IO, Optional
 
 
 class CheckPostResponses200Schema(sob.model.Object):
@@ -21,11 +10,19 @@ class CheckPostResponses200Schema(sob.model.Object):
 
     def __init__(
         self,
-        _data=None,  # type: Optional[Union[str, bytes, dict, Sequence, IO]]
-        software=None,  # type: Optional[CheckPostResponses200SchemaSoftware]
-        language=None,  # type: Optional[CheckPostResponses200SchemaLanguage]
-        matches=None  # type: Optional[CheckPostResponses200SchemaMatches]
-    ):
+        _data: Optional[
+            Union[str, bytes, dict, Sequence, IO]
+        ] = None,
+        software: Optional[
+            'CheckPostResponses200SchemaSoftware'
+        ] = None,
+        language: Optional[
+            'CheckPostResponses200SchemaLanguage'
+        ] = None,
+        matches: Optional[
+            'CheckPostResponses200SchemaMatches'
+        ] = None
+    ) -> None:
         self.software = software
         self.language = language
         self.matches = matches
@@ -39,14 +36,40 @@ class CheckPostResponses200SchemaSoftware(sob.model.Object):
 
     def __init__(
         self,
-        _data=None,  # type: Optional[Union[str, bytes, dict, Sequence, IO]]
-        name=None,  # type: Optional[Union[str, sob.properties.types.Null]]
-        version=None,  # type: Optional[Union[str, sob.properties.types.Null]]
-        build_date=None,  # type: Optional[Union[str, sob.properties.types.Null]]  # noqa
-        api_version=None,  # type: Optional[Union[int, sob.properties.types.Null]]  # noqa
-        status=None,  # type: Optional[str]
-        premium=None  # type: Optional[bool]
-    ):
+        _data: Optional[
+            Union[str, bytes, dict, Sequence, IO]
+        ] = None,
+        name: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        version: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        build_date: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        api_version: Optional[
+            Union[
+                int,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        status: Optional[
+            str
+        ] = None,
+        premium: Optional[
+            bool
+        ] = None
+    ) -> None:
         self.name = name
         self.version = version
         self.build_date = build_date
@@ -65,11 +88,31 @@ class CheckPostResponses200SchemaLanguage(sob.model.Object):
 
     def __init__(
         self,
-        _data=None,  # type: Optional[Union[str, bytes, dict, Sequence, IO]]
-        name=None,  # type: Optional[Union[str, sob.properties.types.Null]]
-        code=None,  # type: Optional[Union[str, sob.properties.types.Null]]
-        detected_language=None  # type: Optional[Union[CheckPostResponses200SchemaPropertiesLanguageDetectedLanguage, sob.properties.types.Null]]  # noqa
-    ):
+        _data: Optional[
+            Union[str, bytes, dict, Sequence, IO]
+        ] = None,
+        name: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        code: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        detected_language: Optional[
+            Union[
+                (
+                    'CheckPostResponses200SchemaPropertiesLanguageDetectedLang'
+                    'uage'
+                ),
+                sob.properties.types.Null
+            ]
+        ] = None
+    ) -> None:
         self.name = name
         self.code = code
         self.detected_language = detected_language
@@ -89,11 +132,25 @@ class CheckPostResponses200SchemaPropertiesLanguageDetectedLanguage(
 
     def __init__(
         self,
-        _data=None,  # type: Optional[Union[str, bytes, dict, Sequence, IO]]
-        name=None,  # type: Optional[Union[str, sob.properties.types.Null]]
-        code=None,  # type: Optional[Union[str, sob.properties.types.Null]]
-        confidence=None  # type: Optional[numbers.Number]
-    ):
+        _data: Optional[
+            Union[str, bytes, dict, Sequence, IO]
+        ] = None,
+        name: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        code: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        confidence: Optional[
+            numbers.Number
+        ] = None
+    ) -> None:
         self.name = name
         self.code = code
         self.confidence = confidence
@@ -115,16 +172,55 @@ class CheckPostResponses200SchemaPropertiesMatchesItems(sob.model.Object):
 
     def __init__(
         self,
-        _data=None,  # type: Optional[Union[str, bytes, dict, Sequence, IO]]
-        message=None,  # type: Optional[Union[str, sob.properties.types.Null]]
-        short_message=None,  # type: Optional[str]
-        offset=None,  # type: Optional[Union[int, sob.properties.types.Null]]
-        length=None,  # type: Optional[Union[int, sob.properties.types.Null]]
-        replacements=None,  # type: Optional[Union[CheckPostResponses200SchemaPropertiesMatchesItemsReplacements, sob.properties.types.Null]]  # noqa
-        context=None,  # type: Optional[Union[CheckPostResponses200SchemaPropertiesMatchesItemsContext, sob.properties.types.Null]]  # noqa
-        sentence=None,  # type: Optional[Union[str, sob.properties.types.Null]]
-        rule=None  # type: Optional[CheckPostResponses200SchemaPropertiesMatchesItemsRule]  # noqa
-    ):
+        _data: Optional[
+            Union[str, bytes, dict, Sequence, IO]
+        ] = None,
+        message: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        short_message: Optional[
+            str
+        ] = None,
+        offset: Optional[
+            Union[
+                int,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        length: Optional[
+            Union[
+                int,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        replacements: Optional[
+            Union[
+                (
+                    'CheckPostResponses200SchemaPropertiesMatchesItemsReplacem'
+                    'ents'
+                ),
+                sob.properties.types.Null
+            ]
+        ] = None,
+        context: Optional[
+            Union[
+                'CheckPostResponses200SchemaPropertiesMatchesItemsContext',
+                sob.properties.types.Null
+            ]
+        ] = None,
+        sentence: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        rule: Optional[
+            'CheckPostResponses200SchemaPropertiesMatchesItemsRule'
+        ] = None
+    ) -> None:
         self.message = message
         self.short_message = short_message
         self.offset = offset
@@ -160,9 +256,13 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesReplacementsIte
 
     def __init__(
         self,
-        _data=None,  # type: Optional[Union[str, bytes, dict, Sequence, IO]]
-        value=None  # type: Optional[str]
-    ):
+        _data: Optional[
+            Union[str, bytes, dict, Sequence, IO]
+        ] = None,
+        value: Optional[
+            str
+        ] = None
+    ) -> None:
         self.value = value
         super().__init__(_data)
 
@@ -177,11 +277,28 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsContext(
 
     def __init__(
         self,
-        _data=None,  # type: Optional[Union[str, bytes, dict, Sequence, IO]]
-        text=None,  # type: Optional[Union[str, sob.properties.types.Null]]
-        offset=None,  # type: Optional[Union[int, sob.properties.types.Null]]
-        length=None  # type: Optional[Union[int, sob.properties.types.Null]]
-    ):
+        _data: Optional[
+            Union[str, bytes, dict, Sequence, IO]
+        ] = None,
+        text: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        offset: Optional[
+            Union[
+                int,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        length: Optional[
+            Union[
+                int,
+                sob.properties.types.Null
+            ]
+        ] = None
+    ) -> None:
         self.text = text
         self.offset = offset
         self.length = length
@@ -196,14 +313,43 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsRule(sob.model.Object):
 
     def __init__(
         self,
-        _data=None,  # type: Optional[Union[str, bytes, dict, Sequence, IO]]
-        id_=None,  # type: Optional[Union[str, sob.properties.types.Null]]
-        sub_id=None,  # type: Optional[str]
-        description=None,  # type: Optional[Union[str, sob.properties.types.Null]]  # noqa
-        urls=None,  # type: Optional[CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleUrls]  # noqa
-        issue_type=None,  # type: Optional[str]
-        category=None  # type: Optional[Union[CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleCategory, sob.properties.types.Null]]  # noqa
-    ):
+        _data: Optional[
+            Union[str, bytes, dict, Sequence, IO]
+        ] = None,
+        id_: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        sub_id: Optional[
+            str
+        ] = None,
+        description: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        urls: Optional[
+            (
+                'CheckPostResponses200SchemaPropertiesMatchesItemsProperti'
+                'esRuleUrls'
+            )
+        ] = None,
+        issue_type: Optional[
+            str
+        ] = None,
+        category: Optional[
+            Union[
+                (
+                    'CheckPostResponses200SchemaPropertiesMatchesItemsProperti'
+                    'esRuleCategory'
+                ),
+                sob.properties.types.Null
+            ]
+        ] = None
+    ) -> None:
         self.id_ = id_
         self.sub_id = sub_id
         self.description = description
@@ -236,9 +382,13 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRulePropertiesU
 
     def __init__(
         self,
-        _data=None,  # type: Optional[Union[str, bytes, dict, Sequence, IO]]
-        value=None  # type: Optional[str]
-    ):
+        _data: Optional[
+            Union[str, bytes, dict, Sequence, IO]
+        ] = None,
+        value: Optional[
+            str
+        ] = None
+    ) -> None:
         self.value = value
         super().__init__(_data)
 
@@ -253,10 +403,16 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleCategory(
 
     def __init__(
         self,
-        _data=None,  # type: Optional[Union[str, bytes, dict, Sequence, IO]]
-        id_=None,  # type: Optional[str]
-        name=None  # type: Optional[str]
-    ):
+        _data: Optional[
+            Union[str, bytes, dict, Sequence, IO]
+        ] = None,
+        id_: Optional[
+            str
+        ] = None,
+        name: Optional[
+            str
+        ] = None
+    ) -> None:
         self.id_ = id_
         self.name = name
         super().__init__(_data)
@@ -277,11 +433,28 @@ class LanguagesGetResponses200SchemaItems(sob.model.Object):
 
     def __init__(
         self,
-        _data=None,  # type: Optional[Union[str, bytes, dict, Sequence, IO]]
-        name=None,  # type: Optional[Union[str, sob.properties.types.Null]]
-        code=None,  # type: Optional[Union[str, sob.properties.types.Null]]
-        long_code=None  # type: Optional[Union[str, sob.properties.types.Null]]
-    ):
+        _data: Optional[
+            Union[str, bytes, dict, Sequence, IO]
+        ] = None,
+        name: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        code: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None,
+        long_code: Optional[
+            Union[
+                str,
+                sob.properties.types.Null
+            ]
+        ] = None
+    ) -> None:
         self.name = name
         self.code = code
         self.long_code = long_code

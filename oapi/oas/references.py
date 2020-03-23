@@ -9,7 +9,8 @@ from urllib.request import urlopen
 from oapi.oas.model import OpenAPI
 
 with urlopen(
-    'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/callback-example.yaml'
+    'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/'
+    'examples/v3.0/callback-example.yaml'
 ) as response:
     open_api_document = OpenAPI(response)
 
@@ -17,35 +18,27 @@ resolver = Resolver(open_api_document)
 resolver.dereference()
 ```
 """
-from sob.utilities.compatibility import backport, typing
-from collections import OrderedDict
-
 import collections
+from collections import OrderedDict
 from itertools import chain
+from typing import Dict, Optional, Sequence, Union
 from urllib import request
 from urllib.error import HTTPError
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urljoin, urlparse
 from warnings import warn
 
+from jsonpointer import resolve_pointer
+
 from sob import meta
-
-from jsonpointer import resolve_pointer, JsonPointerException
-from sob.utilities import qualified_name
-
-from sob.model import Model, Array, Dictionary, Object, unmarshal, detect_format
+from sob.errors import get_exception_text
+from sob.model import (
+    Array, Dictionary, Model, Object, detect_format, unmarshal
+)
 from sob.properties import Property
 from sob.properties.types import NoneType
-from sob.errors import get_exception_text
-
-from .model import Reference, OpenAPI
+from sob.utilities import qualified_name
+from .model import OpenAPI, Reference
 from ..errors import ReferenceLoopError
-
-backport()
-
-Optional = typing.Optional
-Union = typing.Union
-Sequence = typing.Sequence
-Dict = typing.Dict
 
 
 class _Document:
@@ -135,10 +128,8 @@ class _Document:
                         repr(model_instance)
                     )
                 )
-        except (ReferenceLoopError, RecursionError):
-            if recursive:
-                warn(get_exception_text())
-            else:
+        except ReferenceLoopError:
+            if not recursive:
                 raise
 
     def prevent_infinite_recursion(self, model_instance):
