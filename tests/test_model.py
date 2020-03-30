@@ -26,7 +26,10 @@ def test_languagetool():
         oa = OpenAPI(response)
         sob.test.json(oa)
         model = Module(oa)
-        model_path = os.path.abspath('./data/languagetool.py')
+        model_path = os.path.abspath(urljoin(
+            __file__,
+            './data/languagetool.py'
+        ))
         if os.path.exists(model_path):
             with open(model_path, 'r') as model_file:
                 model_file_data = model_file.read()

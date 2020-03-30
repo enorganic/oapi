@@ -21,10 +21,10 @@ from sob.model import (
 )
 from sob.utilities import qualified_name, url_relative_to
 from sob.properties import Property
-from sob.properties.types import Null
+from sob.utilities.types import Null
 from .oas.references import Resolver
 from .oas.model import OpenAPI, Schema, Reference, Parameter, Operation
-from typing import Iterable, Sequence, Optional, Union
+from typing import Iterable, Sequence, Optional, Union, List
 
 _META_MODULE_QUALIFIED_NAME = qualified_name(meta)
 _META_PROPERTIES_QAULIFIED_NAME = qualified_name(meta.Properties)
@@ -863,13 +863,13 @@ class _Modeler:
         return get_source(model).split('\n\n\n')
 
     @property
-    def module_definition(self):
-        # type: (...) -> str
+    def module_definition(self) -> str:
         class_names_sources = OrderedDict()
-        module_contents = []
+        classes: List[str] = []
+        imports: List[str] = []
         for model_class in self.models:
             class_name_ = model_class.__name__
-            imports, source = self.represent_model(model_class)
+            imports_str, source = self.represent_model(model_class)
             if class_name_ in class_names_sources:
                 raise RuntimeError(
                     'The class name `%s` occured twice:\n\n%s\n\n%s' % (
@@ -879,13 +879,22 @@ class _Modeler:
                     )
                 )
             class_names_sources[class_name_] = source
-            # Only include the imports once
-            if not module_contents:
-                module_contents.append(imports + '\n\n')
-            module_contents.append(source)
-        for class_name_ in class_names_sources.keys():
-            module_contents.append(self.represent_model_meta(class_name_))
-        return '\n'.join(module_contents)
+            # Only include each import once
+            line: str
+            for line in imports_str.split('\n'):
+                if line not in imports:
+                    imports.append(line)
+            classes.append(source)
+        return '\n'.join(
+            sorted(
+                imports,
+                key=lambda sort_line: 1 if sort_line == 'import sob' else 0
+            ) + ['\n'] +
+            classes + [
+                self.represent_model_meta(class_name_)
+                for class_name_ in class_names_sources.keys()
+            ]
+        )
 
 
 class _ModuleParser:
@@ -929,8 +938,6 @@ class _ModuleParser:
             if groups:
                 relative_url_pointer = _SPACES_RE.sub('', groups[0])
         return relative_url_pointer, model.__name__
-
-
 
     @property
     def relative_urls_pointers_class_names(self):

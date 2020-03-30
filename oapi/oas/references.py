@@ -35,7 +35,7 @@ from sob.model import (
     Array, Dictionary, Model, Object, detect_format, unmarshal
 )
 from sob.properties import Property
-from sob.properties.types import NoneType
+from sob.utilities.types import NoneType
 from sob.utilities import qualified_name
 from .model import OpenAPI, Reference
 from ..errors import ReferenceLoopError
