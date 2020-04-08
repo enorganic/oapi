@@ -860,7 +860,14 @@ class _Modeler:
     @staticmethod
     def represent_model(model):
         # type: (ModelBase) -> Tuple[str, str]
-        return get_source(model).split('\n\n\n')
+        model_source: str = get_source(model)
+        sections: Sequence[str] = model_source.split('\n\n\n')
+        if len(sections) != 2:
+            raise ValueError(
+                'Model source contains unexpected content:\n' +
+                model_source
+            )
+        return sections
 
     @property
     def module_definition(self) -> str:
