@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='oapi',
-    version="0.0.64",
+    version="0.0.65",
     description=(
         'An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications'
     ),
@@ -19,7 +19,7 @@ setup(
     install_requires=[
         "pyyaml>=5.3",
         "iso8601>=0.1.12",
-        "sob>=0.2.14",
+        "sob>=0.2.17",
         "jsonpointer>=2.0"
     ],
     extras_require={
