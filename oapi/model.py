@@ -317,6 +317,7 @@ class _Modeler:
         in relation to the root document and the pointer
         """
         url = meta.url(definition)
+        assert isinstance(url, str)
         pointer = meta.pointer(definition)
         return self.get_relative_url(url), pointer
 
@@ -329,7 +330,7 @@ class _Modeler:
         relative_url, pointer = self.get_definition_relative_url_and_pointer(
             definition
         )
-        return (relative_url or '') + pointer
+        return relative_url + pointer
 
     def set_relative_url_pointer_model(self, relative_url_pointer, model):
         # type: (str, Optional[sob.model.Model]) -> None
@@ -704,7 +705,8 @@ class _Modeler:
         self._traversed_relative_urls_pointers = set()
         for definition in tuple(
             self._traverse_model_definitions(
-                self.root, (OpenAPI,)
+                self.root,
+                (OpenAPI,)
             )
         ):
             yield self._resolve(definition)

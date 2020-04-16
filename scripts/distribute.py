@@ -27,7 +27,7 @@ if __name__ == '__main__':
         REPOSITORY_DIRECTORY
     )
     # Update `setup.py` to require currently installed versions of all packages
-    install_requires.update_versions(operator='>=')
+    install_requires.update_versions(operator='~=')
     try:
         # Build
         run(

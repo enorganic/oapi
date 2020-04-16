@@ -350,7 +350,8 @@ class Resolver:
             try:
                 with self.urlopen(url) as response:
                     self.documents[url] = _Document(
-                        self, detect_format(response)[0], url=url
+                        self,
+                        detect_format(response)[0], url=url
                     )
             except HTTPError as e:
                 e.msg = '%s: %s' % (
