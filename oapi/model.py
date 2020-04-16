@@ -329,7 +329,7 @@ class _Modeler:
         relative_url, pointer = self.get_definition_relative_url_and_pointer(
             definition
         )
-        return relative_url + pointer
+        return (relative_url or '') + pointer
 
     def set_relative_url_pointer_model(self, relative_url_pointer, model):
         # type: (str, Optional[sob.model.Model]) -> None
@@ -1071,9 +1071,10 @@ class Module:
         """
         # Make sure that any matching, existing classes use the same names
         self._parse_existing_module(path)
+        model_source: str = str(self)
         # Save the module
         with open(path, 'w') as model_io:
-            model_io.write(str(self))
+            model_io.write(model_source)
 
     def __eq__(self, other):
         # type: (Module) -> bool
