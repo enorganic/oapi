@@ -232,12 +232,12 @@ class _Modeler:
             (schema.one_of is not None) or
             (schema.all_of is not None)
         ):
-            property_ = properties.Property()
+            property_ = properties.Property(required=required)
             self.property_any_of(property_, schema.any_of)
             self.property_any_of(property_, schema.one_of)
             self.property_all_of(property_, schema.all_of)
         elif schema_defines_model(schema):
-            property_ = properties.Property()
+            property_ = properties.Property(required=required)
             property_types = self.get_model(
                 schema,
                 is_property=(not is_referenced)
@@ -245,22 +245,22 @@ class _Modeler:
             if property_types is not None:
                 property_.types = (property_types,)
         elif schema.type_ == 'number':
-            property_ = properties.Number()
+            property_ = properties.Number(required=required)
         elif schema.type_ == 'integer':
-            property_ = properties.Integer()
+            property_ = properties.Integer(required=required)
         elif schema.type_ == 'string':
             if schema.format_ == 'date-time':
-                property_ = properties.DateTime()
+                property_ = properties.DateTime(required=required)
             elif schema.format_ == 'date':
-                property_ = properties.Date()
+                property_ = properties.Date(required=required)
             elif schema.format_ == 'byte':
-                property_ = properties.Bytes()
+                property_ = properties.Bytes(required=required)
             else:
-                property_ = properties.String()
+                property_ = properties.String(required=required)
         elif schema.type_ == 'boolean':
-            property_ = properties.Boolean()
+            property_ = properties.Boolean(required=required)
         elif schema.type_ == 'file':
-            property_ = properties.Bytes()
+            property_ = properties.Bytes(required=required)
         else:
             raise ValueError(
                 'No schema "type" found:\n' + repr(schema)
@@ -268,7 +268,8 @@ class _Modeler:
         if schema.enum:
             property_ = properties.Enumerated(
                 values=tuple(schema.enum),
-                types=(property_,)
+                types=(property_,),
+                required=required
             )
         if name is not None:
             property_.name = name
@@ -342,8 +343,8 @@ class _Modeler:
             class_name_ = model.__name__
         self._class_names_models[class_name_] = model
 
-    def get_model(self, definition, is_property=False):
-        # type: (Union[Schema, Operation, Parameter], bool) -> ModelBase
+    def get_model(self, definition, is_property=False, required=False):
+        # type: (Union[Schema, Operation, Parameter], bool, bool) -> ModelBase
         relative_url_pointer = self.get_definition_relative_url_pointer(
             definition
         )
@@ -370,7 +371,8 @@ class _Modeler:
                 model = self.get_parameter_model(
                     definition,
                     relative_url_pointer=relative_url_pointer,
-                    is_property=is_property
+                    is_property=is_property,
+                    required=required
                 )
             else:
                 raise TypeError(
@@ -421,11 +423,12 @@ class _Modeler:
         name = self.get_operation_class_name(operation)
         # TODO
 
-    def get_parameter_model(self, parameter):
+    def get_parameter_model(self, parameter, required: bool=False):
         # type: (Parameter) -> type
         return self.get_schema_model(
             parameter.schema,
-            name=self.get_parameter_class_name(parameter)
+            name=self.get_parameter_class_name(parameter),
+            required=required
         )
 
     def get_schema_model(
@@ -462,7 +465,10 @@ class _Modeler:
         else:
             return None
 
-    def get_schema_array(self, schema, name=None, relative_url_pointer=None):
+    def get_schema_array(
+        self, schema, name=None, relative_url_pointer=None,
+        required: bool = False
+    ):
         # type: (Schema, Optional[str], Optional[str]) -> type
         # Get all applicable items schemas
         items_schemas = self._resolve(schema.items)
@@ -479,7 +485,10 @@ class _Modeler:
             item_types = []
             for items_schema in items_schemas:
                 if schema_defines_model(items_schema):
-                    items_model = self.get_model(items_schema)
+                    items_model = self.get_model(
+                        items_schema,
+                        required=required
+                    )
                 else:
                     items_model = self.get_property(items_schema)
                 # Checking to make sure the model is not `None` is
@@ -521,9 +530,10 @@ class _Modeler:
         return array_class
 
     def get_schema_dictionary(
-        self, schema, name=None, relative_url_pointer=None
+        self, schema, name=None, relative_url_pointer=None,
+        required: bool = False
     ):
-        # type: (Schema, Optional[str], Optional[str]) -> type
+        # type: (Schema, Optional[str], Optional[str], bool) -> type
         # Get the value type schema, if applicable
         if isinstance(schema.additional_properties, (Schema, Reference)):
             if name is None:
@@ -537,7 +547,8 @@ class _Modeler:
             value_type = self.get_model(
                 self._resolve(
                     schema.additional_properties
-                )
+                ),
+                required=required
             )
             dictionary_meta.value_types = (value_type,)
             name = self.set_relative_url_pointer_class_name(
