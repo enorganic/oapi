@@ -10,10 +10,11 @@ from urllib.request import urlopen
 from sob import __name__ as _sob_module_name
 from sob import meta
 from sob import properties
-from sob.utilities import (
-    get_source, property_name, properties_values, class_name,
-    calling_function_qualified_name
+from sob.utilities.assertion import assert_argument_is_instance
+from sob.utilities.inspect import (
+    get_source, properties_values, calling_function_qualified_name
 )
+from sob.utilities.string import property_name, class_name
 from sob.utilities.string import split_long_comment_line
 from sob.model import (
     Model as ModelBase, Object, Dictionary, Array,
@@ -21,10 +22,10 @@ from sob.model import (
 )
 from sob.utilities import qualified_name, url_relative_to
 from sob.properties import Property
-from sob.utilities.types import Null
+from sob.utilities.types import NoneType, Null
 from .oas.references import Resolver
 from .oas.model import OpenAPI, Schema, Reference, Parameter, Operation
-from typing import Iterable, Sequence, Optional, Union, List
+from typing import Iterable, Sequence, Optional, Tuple, Union, List
 
 _META_MODULE_QUALIFIED_NAME = qualified_name(meta)
 _META_PROPERTIES_QAULIFIED_NAME = qualified_name(meta.Properties)
@@ -297,27 +298,30 @@ class _Modeler:
             property_.required = required
         return property_
 
-    def get_relative_url(self, url):
-        # type: (str) -> str
-        parse_result = urlparse(url)
-        # Determine if the URL is absolute or relative
-        if parse_result.netloc or parse_result.scheme == 'file':
-            # Only include the relative URL if it is not the root document
-            if url == self.resolver.url:
-                relative_url = ''
+    def get_relative_url(self, url: str) -> str:
+        relative_url: str = ''
+        if url:
+            parse_result = urlparse(url)
+            # Determine if the URL is absolute or relative
+            if parse_result.netloc or parse_result.scheme == 'file':
+                # Only include the relative URL if it is not the root document
+                if url == self.resolver.url:
+                    relative_url = ''
+                else:
+                    relative_url = url_relative_to(url, self.resolver.url)
             else:
-                relative_url = url_relative_to(url, self.resolver.url)
-        else:
-            relative_url = url
+                relative_url = url
         return relative_url
 
-    def get_definition_relative_url_and_pointer(self, definition):
-        # type: (Union[Schema, Operation, Parameter]) -> str
+    def get_definition_relative_url_and_pointer(
+        self,
+        definition: Union[Schema, Operation, Parameter]
+    ) -> Tuple[str, str]:
         """
         Given a schema/operation/parameter definition, return a relative path
         in relation to the root document and the pointer
         """
-        url = meta.url(definition)
+        url: Optional[str] = meta.url(definition) or ''
         assert isinstance(url, str)
         pointer = meta.pointer(definition)
         return self.get_relative_url(url), pointer
@@ -730,7 +734,7 @@ class _Modeler:
         if isinstance(model_instance, Reference):
             if types is None:
                 types = (Schema,)
-            url = meta.url(model_instance)
+            url = meta.url(model_instance) or ''
             pointer = urljoin(
                 meta.pointer(model_instance),
                 model_instance.ref

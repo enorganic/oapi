@@ -328,7 +328,7 @@ class Resolver:
         self.urlopen = urlopen
         # Infer the URL from the `OpenAPI` document, if not explicitly provided
         if url is None:
-            url = meta.url(root) or '#'
+            url = meta.url(root) or ''
         self.url = url
         # This is the primary document--the one we are resolving
         document = _Document(self, root, url)
@@ -337,8 +337,8 @@ class Resolver:
         self.documents = {
             url: document
         }
-        if url != '#':
-            self.documents['#'] = document
+        if url != '':
+            self.documents[''] = document
 
     def get_document(self, url):
         # type: (str) -> _Document
@@ -347,6 +347,8 @@ class Resolver:
         retrieved
         """
         if url not in self.documents:
+            print(url)
+            print(self.documents.keys())
             try:
                 with self.urlopen(url) as response:
                     self.documents[url] = _Document(
@@ -381,9 +383,9 @@ class Resolver:
         """
         Dereference the primary document
         """
-        self.documents['#'].dereference_all()
+        self.documents[''].dereference_all()
 
     def resolve(self, pointer, types=None, dereference=False):
         # type: (str, Sequence[Property, type], bool) -> Model
-        url, pointer = self.documents['#'].get_url_pointer(pointer)
+        url, pointer = self.documents[''].get_url_pointer(pointer)
         return self.documents[url].resolve(pointer, types, dereference=dereference)
