@@ -1,6 +1,5 @@
 import typing
 import io
-import numbers
 import sob
 
 
@@ -173,7 +172,7 @@ The automatically detected text language (might be different from the
             ]
         ] = None,
         confidence: typing.Optional[
-            numbers.Number
+            typing.Union[int, float]
         ] = None
     ) -> None:
         self.name = name

@@ -4,7 +4,6 @@ Version 3x: https://swagger.io/specification
 """
 
 from copy import deepcopy
-from numbers import Number
 import typing
 from typing import Union, Any
 
@@ -252,16 +251,16 @@ class Schema(Object):
 
         - description (str)
 
-        - multiple_of (Number): The numeric value this schema describes should be divisible by this number.
+        - multiple_of (int|float): The numeric value this schema describes should be divisible by this number.
 
-        - maximum (Number): The number this schema describes should be less than or equal to this value, or less than
+        - maximum (int|float): The number this schema describes should be less than or equal to this value, or less than
           this value, depending on the value of `exclusive_maximum`.
 
         - exclusive_maximum (bool): If `True`, the numeric instance described by this schema must be *less than*
           `maximum`. If `False`, the numeric instance described by this schema can be less than or *equal to*
           `maximum`.
 
-        - minimum (Number): The number this schema describes should be greater than or equal to this value, or greater
+        - minimum (int|float): The number this schema describes should be greater than or equal to this value, or greater
           than this value, depending on the value of `exclusive_minimum`.
 
         - exclusive_minimum (bool): If `True`, the numeric instance described by this schema must be *greater than*
@@ -381,10 +380,10 @@ class Schema(Object):
         _=None,  # type: Optional[typing.Mapping]
         title=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
-        multiple_of=None,  # type: Optional[Number]
-        maximum=None,  # type: Optional[Number]
+        multiple_of=None,  # type: Optional[Union[int, float]]
+        maximum=None,  # type: Optional[Union[int, float]]
         exclusive_maximum=None,  # type: Optional[bool]
-        minimum=None,  # type: Optional[Number]
+        minimum=None,  # type: Optional[Union[int, float]]
         exclusive_minimum=None,  # type: Optional[bool]
         max_length=None,  # type: Optional[int]
         min_length=None,  # type: Optional[int]
@@ -552,9 +551,9 @@ class Items(Object):
         items=None,  # type: Optional[Items]
         collection_format=None,  # type: Optional[str]
         default=None,  # type: Optional[Any]
-        maximum=None,  # type: Optional[numbers.Number]
+        maximum=None,  # type: Optional[Union[int, float]]
         exclusive_maximum=None,  # type: Optional[bool]
-        minimum=None,  # type: Optional[numbers.Number]
+        minimum=None,  # type: Optional[Union[int, float]]
         exclusive_minimum=None,  # type: Optional[bool]
         max_length=None,  # type: Optional[int]
         min_length=None,  # type: Optional[int]
@@ -563,7 +562,7 @@ class Items(Object):
         min_items=None,  # type: Optional[str]
         unique_items=None,  # type: Optional[bool]
         enum=None,  # type: Optional[Sequence[str]]
-        multiple_of=None,  # type: Optional[Number]
+        multiple_of=None,  # type: Optional[Union[int, float]]
     ):
         self.type_ = type_
         self.format_ = format_
@@ -799,9 +798,9 @@ class Parameter(Object):
         content=None,  # type: Optional[typing.Mapping[str, MediaType]]
         type_=None,  # type: Optional[str]
         default=None,  # type: Any
-        maximum=None,  # type: Optional[numbers.Number]
+        maximum=None,  # type: Optional[Union[int, float]]
         exclusive_maximum=None,  # type: Optional[bool]
-        minimum=None,  # type: Optional[numbers.Number]
+        minimum=None,  # type: Optional[Union[int, float]]
         exclusive_minimum=None,  # type: Optional[bool]
         max_length=None,  # type: Optional[int]
         min_length=None,  # type: Optional[int]
@@ -811,7 +810,7 @@ class Parameter(Object):
         unique_items=None,  # type: Optional[bool]
         format_=None,  # type: Optional[str]
         enum=None,  # type: Optional[Sequence[str]]
-        multiple_of=None,  # type: Optional[Number]
+        multiple_of=None,  # type: Optional[Union[int, float]]
         collection_format=None,  # type: Optional[str]
         items=None,  # type: Optional[Schema]
     ):
@@ -1070,9 +1069,9 @@ class Header(Object):
         content=None,  # type: Optional[typing.Mapping[str, MediaType]]
         type_=None,  # type: Optional[str]
         default=None,  # type: Any
-        maximum=None,  # type: Optional[numbers.Number]
+        maximum=None,  # type: Optional[Union[int, float]]
         exclusive_maximum=None,  # type: Optional[bool]
-        minimum=None,  # type: Optional[numbers.Number]
+        minimum=None,  # type: Optional[Union[int, float]]
         exclusive_minimum=None,  # type: Optional[bool]
         max_length=None,  # type: Optional[int]
         min_length=None,  # type: Optional[int]
@@ -1082,7 +1081,7 @@ class Header(Object):
         unique_items=None,  # type: Optional[bool]
         format_=None,  # type: Optional[str]
         enum=None,  # type: Optional[Sequence[str]]
-        multiple_of=None,  # type: Optional[Number]
+        multiple_of=None,  # type: Optional[Union[int, float]]
         collection_format=None,  # type: Optional[str]
         items=None,  # type: Optional[Schema]
     ):
