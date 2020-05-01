@@ -25,7 +25,6 @@ from typing import Dict, Optional, Sequence, Union
 from urllib import request
 from urllib.error import HTTPError
 from urllib.parse import urljoin, urlparse
-from warnings import warn
 
 from jsonpointer import resolve_pointer
 
