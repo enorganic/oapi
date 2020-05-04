@@ -19,7 +19,7 @@ setup(
     install_requires=[
         "pyyaml~=5.3",
         "iso8601~=0.1.12",
-        "sob~=0.3.18",
+        "sob~=0.3",
         "jsonpointer~=2.0"
     ],
     extras_require={
