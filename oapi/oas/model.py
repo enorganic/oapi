@@ -1128,7 +1128,7 @@ _header_meta.properties['type_'].values = (
     'boolean'
 )
 _header_meta.properties['items'].types = (Items,)
-_header_meta.properties['items'].required = lambda o: True if o.type_ == 'array' else False
+# _header_meta.properties['items'].required = lambda o: True if o.type_ == 'array' else False
 _header_meta.properties['required'].versions = ('openapi>=3.0',)
 _header_meta.properties['deprecated'].versions = ('openapi>=3.0',)
 _header_meta.properties['allow_empty_value'].versions = ('openapi>=3.0',)
@@ -1812,7 +1812,7 @@ sob.meta.writable(SecurityScheme).properties = [
     (
         'name',
         sob.properties.String(
-            required=lambda o: True if o.type_ == 'apiKey' else False
+            # required=lambda o: True if o.type_ == 'apiKey' else False
         )
     ),
     (
@@ -1829,13 +1829,13 @@ sob.meta.writable(SecurityScheme).properties = [
                 ),
             ),
             name='in',
-            required=lambda o: True if o.type_ == 'apiKey' else False
+            # required=lambda o: True if o.type_ == 'apiKey' else False
         )
     ),
     (
         'scheme',
         sob.properties.String(
-            required=lambda o: True if o.type_ == 'http' else False,
+            # required=lambda o: True if o.type_ == 'http' else False,
             versions='openapi>=3.0'
         )
     ),
@@ -1844,7 +1844,7 @@ sob.meta.writable(SecurityScheme).properties = [
         'flows',
         sob.properties.Property(
             types=(OAuthFlows,),
-            required=lambda o: True if o.type_ == 'oauth2' else False,
+            # required=lambda o: True if o.type_ == 'oauth2' else False,
             versions=('openapi>=3.0',)
         )
     ),
@@ -1852,14 +1852,14 @@ sob.meta.writable(SecurityScheme).properties = [
         'open_id_connect_url',
         sob.properties.String(
             name='openIdConnectUrl',
-            required=lambda o: True if o.type_ == 'openIdConnect' else False
+            # required=lambda o: True if o.type_ == 'openIdConnect' else False
         )
     ),
     (
         'flow',
         sob.properties.String(
             versions='openapi<3.0',
-            required=lambda o: True if o.type_ == 'oauth2' else False
+            # required=lambda o: True if o.type_ == 'oauth2' else False
         )
     ),
     (
@@ -1867,11 +1867,11 @@ sob.meta.writable(SecurityScheme).properties = [
         sob.properties.String(
             name='authorizationUrl',
             versions='openapi<3.0',
-            required=lambda o: (
-                True
-                if o.type_ == 'oauth2' and o.flow in ('implicit', 'accessCode') else
-                False
-            )
+            # required=lambda o: (
+            #     True
+            #     if o.type_ == 'oauth2' and o.flow in ('implicit', 'accessCode') else
+            #     False
+            # )
         )
     ),
     (
@@ -1879,11 +1879,11 @@ sob.meta.writable(SecurityScheme).properties = [
         sob.properties.String(
             name='tokenUrl',
             versions='openapi<3.0',
-            required=lambda o: (
-                True
-                if o.type_ == 'oauth2' and o.flow in ('password', 'application', 'accessCode') else
-                False
-            )
+            # required=lambda o: (
+            #     True
+            #     if o.type_ == 'oauth2' and o.flow in ('password', 'application', 'accessCode') else
+            #     False
+            # )
         )
     ),
     (
@@ -1891,7 +1891,7 @@ sob.meta.writable(SecurityScheme).properties = [
         sob.properties.Dictionary(
             value_types=(str,),
             versions='openapi<3.0',
-            required=lambda o: True if o.type_ == 'oauth2' else False
+            # required=lambda o: True if o.type_ == 'oauth2' else False
         )
     )
 ]
