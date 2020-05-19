@@ -20,7 +20,7 @@ setup(
         "setuptools"
     ],
     install_requires=[
-        "pyyaml>=3",
+        "pyyaml>=3.10",
         "iso8601~=0.1",
         "sob>=0.5.7,<1",
         "jsonpointer~=2.0"
