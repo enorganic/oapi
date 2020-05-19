@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='oapi',
-    version="0.1.1",
+    version="0.1.2",
     description=(
         'An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications'
     ),
@@ -16,22 +16,25 @@ setup(
         'oapi',
         'oapi.oas'
     ],
+    setup_requires=[
+        "setuptools"
+    ],
     install_requires=[
-        "pyyaml~=5.3",
-        "iso8601~=0.1.12",
-        "sob~=0.4.1",
+        "pyyaml>=3",
+        "iso8601~=0.1",
+        "sob>=0.5.7,<1",
         "jsonpointer~=2.0"
     ],
     extras_require={
         "dev": [
-            "pytest~=5.4.1",
-            "tox~=3.14.6",
-            "flake8~=3.7.9"
+            "pytest~=5.4",
+            "tox~=3.14",
+            "flake8~=3.7"
         ],
         "test": [
-            "pytest~=5.4.1",
-            "tox~=3.14.6",
-            "flake8~=3.7.9"
+            "pytest~=5.4",
+            "tox~=3.14",
+            "flake8~=3.7"
         ]
     }
 )
