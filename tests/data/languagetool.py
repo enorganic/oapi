@@ -534,7 +534,7 @@ sob.meta.writable(
     (
         'software',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 CheckPostResponses200SchemaSoftware
             ])
         )
@@ -542,7 +542,7 @@ sob.meta.writable(
     (
         'language',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 CheckPostResponses200SchemaLanguage
             ])
         )
@@ -550,7 +550,7 @@ sob.meta.writable(
     (
         'matches',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 CheckPostResponses200SchemaMatches
             ])
         )
@@ -564,7 +564,7 @@ sob.meta.writable(
     (
         'name',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -573,7 +573,7 @@ sob.meta.writable(
     (
         'version',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -583,7 +583,7 @@ sob.meta.writable(
         'build_date',
         sob.properties.Property(
             name='buildDate',
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -593,7 +593,7 @@ sob.meta.writable(
         'api_version',
         sob.properties.Property(
             name='apiVersion',
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.Integer(),
                 sob.utilities.types.Null
             ])
@@ -610,7 +610,7 @@ sob.meta.writable(
     (
         'name',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -619,7 +619,7 @@ sob.meta.writable(
     (
         'code',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -629,9 +629,9 @@ sob.meta.writable(
         'detected_language',
         sob.properties.Property(
             name='detectedLanguage',
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.Property(
-                    types=sob.types.Types([
+                    types=sob.types.MutableTypes([
                         CheckPostResponses200SchemaPropertiesLanguageDetectedLanguage  # noqa
                     ])
                 ),
@@ -649,7 +649,7 @@ sob.meta.writable(
     (
         'name',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -658,7 +658,7 @@ sob.meta.writable(
     (
         'code',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -670,7 +670,7 @@ sob.meta.writable(
 # #/paths/~1check/post/responses/200/schema/properties/matches
 sob.meta.writable(
     CheckPostResponses200SchemaMatches
-).item_types = sob.types.Types([
+).item_types = sob.types.MutableTypes([
     CheckPostResponses200SchemaPropertiesMatchesItems
 ])
 
@@ -681,7 +681,7 @@ sob.meta.writable(
     (
         'message',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -696,7 +696,7 @@ sob.meta.writable(
     (
         'offset',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.Integer(),
                 sob.utilities.types.Null
             ])
@@ -705,7 +705,7 @@ sob.meta.writable(
     (
         'length',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.Integer(),
                 sob.utilities.types.Null
             ])
@@ -714,9 +714,9 @@ sob.meta.writable(
     (
         'replacements',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.Property(
-                    types=sob.types.Types([
+                    types=sob.types.MutableTypes([
                         CheckPostResponses200SchemaPropertiesMatchesItemsReplacements  # noqa
                     ])
                 ),
@@ -727,9 +727,9 @@ sob.meta.writable(
     (
         'context',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.Property(
-                    types=sob.types.Types([
+                    types=sob.types.MutableTypes([
                         CheckPostResponses200SchemaPropertiesMatchesItemsContext  # noqa
                     ])
                 ),
@@ -740,7 +740,7 @@ sob.meta.writable(
     (
         'sentence',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -749,7 +749,7 @@ sob.meta.writable(
     (
         'rule',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 CheckPostResponses200SchemaPropertiesMatchesItemsRule
             ])
         )
@@ -760,7 +760,7 @@ sob.meta.writable(
 # properties/replacements
 sob.meta.writable(
     CheckPostResponses200SchemaPropertiesMatchesItemsReplacements
-).item_types = sob.types.Types([
+).item_types = sob.types.MutableTypes([
     CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesReplacementsItems  # noqa
 ])
 
@@ -780,7 +780,7 @@ sob.meta.writable(
     (
         'text',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -789,7 +789,7 @@ sob.meta.writable(
     (
         'offset',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.Integer(),
                 sob.utilities.types.Null
             ])
@@ -798,7 +798,7 @@ sob.meta.writable(
     (
         'length',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.Integer(),
                 sob.utilities.types.Null
             ])
@@ -815,7 +815,7 @@ sob.meta.writable(
         'id_',
         sob.properties.Property(
             name='id',
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -830,7 +830,7 @@ sob.meta.writable(
     (
         'description',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -839,7 +839,7 @@ sob.meta.writable(
     (
         'urls',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleUrls  # noqa
             ])
         )
@@ -853,9 +853,9 @@ sob.meta.writable(
     (
         'category',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.Property(
-                    types=sob.types.Types([
+                    types=sob.types.MutableTypes([
                         CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleCategory  # noqa
                     ])
                 ),
@@ -869,7 +869,7 @@ sob.meta.writable(
 # properties/rule/properties/urls
 sob.meta.writable(
     CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleUrls
-).item_types = sob.types.Types([
+).item_types = sob.types.MutableTypes([
     CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRulePropertiesUrlsItems  # noqa
 ])
 
@@ -898,7 +898,7 @@ sob.meta.writable(
 # #/paths/~1languages/get/responses/200/schema
 sob.meta.writable(
     LanguagesGetResponses200Schema
-).item_types = sob.types.Types([
+).item_types = sob.types.MutableTypes([
     LanguagesGetResponses200SchemaItems
 ])
 
@@ -909,7 +909,7 @@ sob.meta.writable(
     (
         'name',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -918,7 +918,7 @@ sob.meta.writable(
     (
         'code',
         sob.properties.Property(
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])
@@ -928,7 +928,7 @@ sob.meta.writable(
         'long_code',
         sob.properties.Property(
             name='longCode',
-            types=sob.types.Types([
+            types=sob.types.MutableTypes([
                 sob.properties.String(),
                 sob.utilities.types.Null
             ])

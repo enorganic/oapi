@@ -10,7 +10,8 @@ from urllib.request import urlopen
 from sob import __name__ as _sob_module_name
 from sob import meta
 from sob import properties
-from sob.utilities.assertion import assert_argument_is_instance
+from sob.thesaurus import get_class_meta_attribute_assignment_source
+from sob.types import MutableTypes
 from sob.utilities.inspect import (
     get_source, properties_values, calling_function_qualified_name
 )
@@ -831,8 +832,7 @@ class _Modeler:
             else:
                 raise TypeError(model_instance)
 
-    def represent_model_meta(self, class_name_):
-        # type: (str) -> str
+    def represent_model_meta(self, class_name_: str) -> str:
         meta_ = self._class_names_meta[class_name_]
         relative_url_pointer = self.get_class_name_relative_url_pointer(
             class_name_
@@ -854,23 +854,38 @@ class _Modeler:
                         -1
                     ]
                 lines.append(
-                    '%s.writable(\n    %s%s\n).%s = %s' % (
-                        _META_MODULE_QUALIFIED_NAME,
+                    get_class_meta_attribute_assignment_source(
                         class_name_,
-                        (
-                            '  # noqa'
-                            if len(class_name_) + 4 > _LINE_LENGTH else
-                            ''
-                        ),
                         property_name_,
-                        '\n'.join(
-                            line + (
-                                '  # noqa'
-                                if len(line) > _LINE_LENGTH else ''
-                            )
-                            for line in value.split('\n')
-                        )
+                        meta_
                     )
+                    # 'setattr(\n'
+                    # '    {}.writable(\n'
+                    # '        {}{}\n'
+                    # '    ),\n'
+                    # '    "{}",\n'
+                    # '    {}\n'
+                    # ')'.format(
+                    #     _META_MODULE_QUALIFIED_NAME,
+                    #     class_name_,
+                    #     (
+                    #         '  # noqa'
+                    #         if len(class_name_) + 8 > _LINE_LENGTH else
+                    #         ''
+                    #     ),
+                    #     property_name_,
+                    #     '\n'.join(
+                    #         '    {}{}'.format(
+                    #             line,
+                    #             (
+                    #                 '  # noqa'
+                    #                 if len(line) + 4 > _LINE_LENGTH else
+                    #                 ''
+                    #             )
+                    #         )
+                    #         for line in value.split('\n')
+                    #     )
+                    # )
                 )
         return '\n'.join(lines) + '\n'
 

@@ -4,6 +4,7 @@
 .*/**
 **/.*/**
 build/**
+pip-wheel-metadata/**
 dist/**
 venv/**
 **.pyc
@@ -12,7 +13,8 @@ venv/**
 **/__pycache__/**
 **/.DS_Store
 *.egg-info/**
+*.eggs/**
 **/*.egg-info
-!*.gitignore
-!.tox
+!.gitignore
 !.flake8
+!.tox
