@@ -32,13 +32,14 @@ def setup(**kwargs: Any) -> None:
     # Pass the modified keyword arguments to `setuptools.setup`
     setuptools.setup(**kwargs)
 
+
 setup(
     name='oapi',
-    version="1.0.0",
+    version="1.0.3",
     description=(
         'An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications'
     ),
-    url='https://github.com/davebelais/oapi.git',
+    url='https://github.com/davebelais/oapi',
     author='David Belais',
     author_email='david@belais.me',
     license='MIT',
@@ -54,20 +55,21 @@ setup(
     install_requires=[
         "pyyaml>=3.10",
         "iso8601~=0.1",
-        "sob~=1.0",
+        "sob~=1.6",
         "jsonpointer~=2.0"
     ],
     extras_require={
         "dev": [
             "pytest~=5.4",
-            "tox~=3.20",
+            "tox~=3.21",
             "flake8~=3.8",
-            "daves-dev-tools~=0.0",
-            "readme-md-docstrings~=0.1"
+            "daves-dev-tools~=0.3",
+            "readme-md-docstrings~=0.1",
+            "setuptools-setup-versions~=1.5"
         ],
         "test": [
             "pytest~=5.4",
-            "tox~=3.20",
+            "tox~=3.21",
             "flake8~=3.8"
         ]
     }

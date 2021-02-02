@@ -346,8 +346,6 @@ class Resolver:
         retrieved
         """
         if url not in self.documents:
-            print(url)
-            print(self.documents.keys())
             try:
                 with self.urlopen(url) as response:
                     self.documents[url] = _Document(

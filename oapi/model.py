@@ -263,10 +263,12 @@ class _Modeler:
             property_ = properties.Boolean(required=required)
         elif schema.type_ == 'file':
             property_ = properties.Bytes(required=required)
-        else:
+        elif schema.type_:
             raise ValueError(
-                'No schema "type" found:\n' + repr(schema)
+                'Unknown schema type:\n' + repr(schema)
             )
+        else:
+            property_ = properties.Property(required=required)
         if schema.enum:
             property_ = properties.Enumerated(
                 values=tuple(schema.enum),
@@ -859,33 +861,6 @@ class _Modeler:
                         property_name_,
                         meta_
                     )
-                    # 'setattr(\n'
-                    # '    {}.writable(\n'
-                    # '        {}{}\n'
-                    # '    ),\n'
-                    # '    "{}",\n'
-                    # '    {}\n'
-                    # ')'.format(
-                    #     _META_MODULE_QUALIFIED_NAME,
-                    #     class_name_,
-                    #     (
-                    #         '  # noqa'
-                    #         if len(class_name_) + 8 > _LINE_LENGTH else
-                    #         ''
-                    #     ),
-                    #     property_name_,
-                    #     '\n'.join(
-                    #         '    {}{}'.format(
-                    #             line,
-                    #             (
-                    #                 '  # noqa'
-                    #                 if len(line) + 4 > _LINE_LENGTH else
-                    #                 ''
-                    #             )
-                    #         )
-                    #         for line in value.split('\n')
-                    #     )
-                    # )
                 )
         return '\n'.join(lines) + '\n'
 
