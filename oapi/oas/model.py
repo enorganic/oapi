@@ -598,30 +598,19 @@ sob.meta.writable(Items).properties = [
                 'string',
                 'boolean'
             ),
-            versions=('openapi<3.0')
+            versions=('openapi<3.0',)
         )
     ),
     (
         'format_',
         sob.properties.String(
-            # values=lambda o: (
-            #     None
-            #     if o is None else
-            #     ('int32', 'int64')
-            #     if o.type_ == 'integer' else
-            #     ('float', 'double')
-            #     if o.type_ == 'number' else
-            #     ('byte', 'binary', 'date', 'date-time', 'password')
-            #     if o.type_ == 'string'
-            #     else tuple()
-            # ),
             name='format',
-            versions=('openapi<3.0')
+            versions=('openapi<3.0',)
         )
     ),
     (
         'items',
-        sob.properties.Property(types=(Items,), versions=('openapi<3.0'))
+        sob.properties.Property(types=(Items,), versions=('openapi<3.0',))
     ),
     (
         'collection_format',
