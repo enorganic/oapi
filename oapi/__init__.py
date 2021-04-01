@@ -5,9 +5,4 @@ from . import oas
 from . import errors
 from . import model
 
-__all__: List[str] = [
-    "client",
-    "oas",
-    "errors",
-    "model"
-]
+__all__: List[str] = ["client", "oas", "errors", "model"]

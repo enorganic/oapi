@@ -31,7 +31,12 @@ from jsonpointer import resolve_pointer
 from sob import meta
 from sob.errors import get_exception_text
 from sob.model import (
-    Array, Dictionary, Model, Object, detect_format, unmarshal
+    Array,
+    Dictionary,
+    Model,
+    Object,
+    detect_format,
+    unmarshal,
 )
 from sob.properties import Property
 from sob.utilities.types import NoneType
@@ -41,7 +46,6 @@ from ..errors import ReferenceLoopError
 
 
 class _Document:
-
     def __init__(
         self,
         resolver,  # type: Resolver
@@ -67,13 +71,13 @@ class _Document:
         """
         Get an absolute URL + relative pointer
         """
-        pointer_split = pointer.split('#')
+        pointer_split = pointer.split("#")
         url = self.get_absolute_url(pointer_split[0])
 
         if len(pointer_split) > 1:
-            pointer = '#'.join(pointer_split[1:])
-            if pointer[0] != '#':
-                pointer = '#' + pointer
+            pointer = "#".join(pointer_split[1:])
+            if pointer[0] != "#":
+                pointer = "#" + pointer
         else:
             pointer = None
 
@@ -87,10 +91,7 @@ class _Document:
         parse_result = urlparse(url)
 
         if not parse_result.scheme:
-            url = urljoin(
-                self.url,
-                url.lstrip('/ ')
-            )
+            url = urljoin(self.url, url.lstrip("/ "))
 
         return url
 
@@ -105,27 +106,19 @@ class _Document:
                     model_instance, recursive=recursive
                 )
             elif isinstance(
-                model_instance,
-                (Array, collections.Sequence, collections.Set)
-            ) and not isinstance(
-                model_instance,
-                (str, bytes)
-            ):
+                model_instance, (Array, collections.Sequence, collections.Set)
+            ) and not isinstance(model_instance, (str, bytes)):
                 self.dereference_array_items(
                     model_instance, recursive=recursive
                 )
-            elif isinstance(
-                model_instance, (Dictionary, dict, OrderedDict)
-            ):
+            elif isinstance(model_instance, (Dictionary, dict, OrderedDict)):
                 self.dereference_dictionary_values(
                     model_instance, recursive=recursive
                 )
             else:
                 raise TypeError(
-                    'The argument must be an instance of `%s`, not %s' % (
-                        qualified_name(Model),
-                        repr(model_instance)
-                    )
+                    "The argument must be an instance of `%s`, not %s"
+                    % (qualified_name(Model), repr(model_instance))
                 )
         except ReferenceLoopError:
             if not recursive:
@@ -175,10 +168,8 @@ class _Document:
                     object_,
                     property_name,
                     self.resolve(
-                        value.ref,
-                        types=(property_,),
-                        dereference=recursive
-                    )
+                        value.ref, types=(property_,), dereference=recursive
+                    ),
                 )
             elif recursive and isinstance(value, Model):
                 self.dereference(value, recursive=recursive)
@@ -201,7 +192,7 @@ class _Document:
                 array[index] = self.resolve(
                     item.ref,
                     types=array_meta.item_types,
-                    dereference=recursive
+                    dereference=recursive,
                 )
             elif recursive and isinstance(item, Model):
                 self.dereference(item, recursive=recursive)
@@ -223,7 +214,7 @@ class _Document:
                 dictionary[key] = self.resolve(
                     value.ref,
                     types=dictionary_meta.value_types,
-                    dereference=recursive
+                    dereference=recursive,
                 )
             elif recursive and isinstance(value, Model):
                 self.dereference(value, recursive=recursive)
@@ -231,7 +222,9 @@ class _Document:
         self.reset_recursion_placeholder(pointer, existing)
 
     @staticmethod
-    def unmarshal_resolved_reference(resolved_reference, url, pointer, types=None):
+    def unmarshal_resolved_reference(
+        resolved_reference, url, pointer, types=None
+    ):
         # type: (Model, Optional[str], str, Sequence[Property, type]) -> Model
         if types or (not isinstance(resolved_reference, Model)):
             resolved_reference = unmarshal(resolved_reference, types=types)
@@ -251,15 +244,12 @@ class _Document:
                 raise ReferenceLoopError(pointer)
         else:
             self.pointers[pointer] = None
-            if pointer[0] == '#':
+            if pointer[0] == "#":
                 # Resolve a reference within the same Open API document
                 resolved = resolve_pointer(self.root, pointer[1:])
                 # Cast the resolved reference as one of the given types
                 resolved = self.unmarshal_resolved_reference(
-                    resolved,
-                    self.url,
-                    pointer,
-                    types=types
+                    resolved, self.url, pointer, types=types
                 )
                 if resolved is None:
                     raise RuntimeError()
@@ -268,7 +258,7 @@ class _Document:
                 url, document_pointer = self.get_url_pointer(pointer)
                 # Retrieve the document
                 document = self.resolver.get_document(
-                    urljoin(self.url, url.lstrip('/'))
+                    urljoin(self.url, url.lstrip("/"))
                 )
                 # Resolve the pointer, if needed
                 if document_pointer:
@@ -317,7 +307,7 @@ class Resolver:
           in this case).
     """
 
-    def __init__(self, root, url=None, urlopen = request.urlopen):
+    def __init__(self, root, url=None, urlopen=request.urlopen):
         # type: (OpenAPI, Optional[str], typing.Callable, bool) -> None
         # Ensure arguments are of the correct types
         assert callable(urlopen)
@@ -327,17 +317,15 @@ class Resolver:
         self.urlopen = urlopen
         # Infer the URL from the `OpenAPI` document, if not explicitly provided
         if url is None:
-            url = meta.url(root) or ''
+            url = meta.url(root) or ""
         self.url = url
         # This is the primary document--the one we are resolving
         document = _Document(self, root, url)
         # Store the primary document both by URL and under the key "#" (for
         # convenient reference)
-        self.documents = {
-            url: document
-        }
-        if url != '':
-            self.documents[''] = document
+        self.documents = {url: document}
+        if url != "":
+            self.documents[""] = document
 
     def get_document(self, url):
         # type: (str) -> _Document
@@ -349,28 +337,16 @@ class Resolver:
             try:
                 with self.urlopen(url) as response:
                     self.documents[url] = _Document(
-                        self,
-                        detect_format(response)[0], url=url
+                        self, detect_format(response)[0], url=url
                     )
             except HTTPError as e:
-                e.msg = '%s: %s' % (
-                    get_exception_text().rstrip(),
-                    url
-                )
+                e.msg = "%s: %s" % (get_exception_text().rstrip(), url)
                 raise e
             except FileNotFoundError as e:
                 e.args = tuple(
-                    chain(
-                        [
-                            '%s: %s' % (
-                                e.args[0],
-                                url
-                            )
-                        ],
-                        e.args[1:]
-                    ) if e.args else (
-                        url
-                    )
+                    chain(["%s: %s" % (e.args[0], url)], e.args[1:])
+                    if e.args
+                    else (url)
                 )
                 raise e
         return self.documents[url]
@@ -380,9 +356,11 @@ class Resolver:
         """
         Dereference the primary document
         """
-        self.documents[''].dereference_all()
+        self.documents[""].dereference_all()
 
     def resolve(self, pointer, types=None, dereference=False):
         # type: (str, Sequence[Property, type], bool) -> Model
-        url, pointer = self.documents[''].get_url_pointer(pointer)
-        return self.documents[url].resolve(pointer, types, dereference=dereference)
+        url, pointer = self.documents[""].get_url_pointer(pointer)
+        return self.documents[url].resolve(
+            pointer, types, dereference=dereference
+        )

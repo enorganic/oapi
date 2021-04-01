@@ -34,29 +34,24 @@ def setup(**kwargs: Any) -> None:
 
 
 setup(
-    name='oapi',
-    version="1.0.3",
+    name="oapi",
+    version="1.1.0",
     description=(
-        'An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications'
+        "An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications"
     ),
-    url='https://github.com/davebelais/oapi',
-    author='David Belais',
-    author_email='david@belais.me',
-    license='MIT',
-    python_requires='~=3.6',
-    keywords='openapi swagger json rest',
-    packages=[
-        'oapi',
-        'oapi.oas'
-    ],
-    setup_requires=[
-        "setuptools"
-    ],
+    url="https://github.com/davebelais/oapi",
+    author="David Belais",
+    author_email="david@belais.me",
+    license="MIT",
+    python_requires="~=3.6",
+    keywords="openapi swagger json rest",
+    packages=["oapi", "oapi.oas"],
+    setup_requires=["setuptools"],
     install_requires=[
         "pyyaml>=3.10",
         "iso8601~=0.1",
-        "sob~=1.6",
-        "jsonpointer~=2.0"
+        "sob~=1.8",
+        "jsonpointer~=2.0",
     ],
     extras_require={
         "dev": [
@@ -65,12 +60,8 @@ setup(
             "flake8~=3.8",
             "daves-dev-tools~=0.3",
             "readme-md-docstrings~=0.1",
-            "setuptools-setup-versions~=1.5"
+            "setuptools-setup-versions~=1.8",
         ],
-        "test": [
-            "pytest~=5.4",
-            "tox~=3.21",
-            "flake8~=3.8"
-        ]
-    }
+        "test": ["pytest~=5.4", "tox~=3.21", "flake8~=3.8"],
+    },
 )

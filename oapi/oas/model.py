@@ -11,12 +11,7 @@ import sob
 
 
 class Object(sob.model.Object):
-
-    def __init__(
-        self,
-        *args,
-        **kwargs
-    ):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
 
@@ -43,7 +38,7 @@ def _object_before_setitem(self, key, value):
     """
     This hook allows for the use of extension attributes
     """
-    if key[:2] == 'x-':
+    if key[:2] == "x-":
         _add_property(self, key)
     return key, value
 
@@ -62,12 +57,11 @@ class Dictionary(sob.model.Dictionary):
 
 
 class Reference(Object):
-
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
         ref=None,  # type: Optional[str]
-        **kwargs
+        **kwargs,
     ):
         self.ref = ref
         super().__init__(_)
@@ -76,7 +70,7 @@ class Reference(Object):
 
 
 sob.meta.writable(Reference).properties = [
-    ('ref', sob.properties.String(name='$ref'))
+    ("ref", sob.properties.String(name="$ref"))
 ]
 
 
@@ -89,7 +83,7 @@ def _reference_before_setitem(self, key, value):
     This hook allows for the use of any arbitrary attribute, as specified in
     the `patternProperties` for this object in the OpenAPI schema
     """
-    if key != '$ref':
+    if key != "$ref":
         _add_property(self, key)
     return key, value
 
@@ -102,10 +96,10 @@ def _reference_after_unmarshal(data):  # noqa
     """
     This ensures all reference objects have a `$ref` attribute
     """
-    if data['$ref'] is None:
+    if data["$ref"] is None:
         raise TypeError(
-            'All instances of `%s` must have a `$ref` attribute' %
-            sob.utilities.qualified_name(Reference)
+            "All instances of `%s` must have a `$ref` attribute"
+            % sob.utilities.qualified_name(Reference)
         )
     return data
 
@@ -134,9 +128,9 @@ class Contact(Object):
 
 
 sob.meta.writable(Contact).properties = [
-    ('name', sob.properties.String()),
-    ('url', sob.properties.String()),
-    ('email', sob.properties.String()),
+    ("name", sob.properties.String()),
+    ("url", sob.properties.String()),
+    ("email", sob.properties.String()),
 ]
 
 
@@ -159,8 +153,8 @@ class License(Object):
 
 
 sob.meta.writable(License).properties = [
-    ('name', sob.properties.String(required=True)),
-    ('url', sob.properties.String()),
+    ("name", sob.properties.String(required=True)),
+    ("url", sob.properties.String()),
 ]
 
 
@@ -190,12 +184,12 @@ class Info(Object):
 
 
 sob.meta.writable(Info).properties = [
-    ('title', sob.properties.String(required=True)),
-    ('description', sob.properties.String()),
-    ('terms_of_service', sob.properties.String(name='termsOfService')),
-    ('contact', sob.properties.Property(types=(Contact,))),
-    ('license_', sob.properties.Property(types=(License,), name='license')),
-    ('version', sob.properties.String(required=True)),
+    ("title", sob.properties.String(required=True)),
+    ("description", sob.properties.String()),
+    ("terms_of_service", sob.properties.String(name="termsOfService")),
+    ("contact", sob.properties.Property(types=(Contact,))),
+    ("license_", sob.properties.Property(types=(License,), name="license")),
+    ("version", sob.properties.String(required=True)),
 ]
 
 
@@ -222,7 +216,6 @@ class Tag(Object):
 
 
 class Link(Object):
-
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
@@ -235,8 +228,8 @@ class Link(Object):
 
 
 sob.meta.writable(Link).properties = [
-    ('rel', sob.properties.String()),
-    ('href', sob.properties.String()),
+    ("rel", sob.properties.String()),
+    ("href", sob.properties.String()),
 ]
 
 
@@ -480,10 +473,15 @@ class Example(Object):
 
 
 sob.meta.writable(Example).properties = [
-    ('summary', sob.properties.String(versions=('openapi>=3.0',))),
-    ('description', sob.properties.String(versions=('openapi>=3.0',))),
-    ('value', sob.properties.Property(versions=('openapi>=3.0',))),
-    ('external_value', sob.properties.String(name='externalValue', versions=('openapi>=3.0',))),
+    ("summary", sob.properties.String(versions=("openapi>=3.0",))),
+    ("description", sob.properties.String(versions=("openapi>=3.0",))),
+    ("value", sob.properties.Property(versions=("openapi>=3.0",))),
+    (
+        "external_value",
+        sob.properties.String(
+            name="externalValue", versions=("openapi>=3.0",)
+        ),
+    ),
 ]
 
 
@@ -534,15 +532,29 @@ class MediaType(Object):
 
 
 sob.meta.writable(MediaType).properties = [
-    ('schema', sob.properties.Property(types=(Reference, Schema), versions=('openapi>=3.0',))),
-    ('example', sob.properties.Property(versions=('openapi>=3.0',))),
-    ('examples', sob.properties.Dictionary(value_types=(Reference, Example), versions=('openapi>=3.0',))),
-    ('encoding', sob.properties.Dictionary(value_types=(Reference, Encoding), versions=('openapi>=3.0',))),
+    (
+        "schema",
+        sob.properties.Property(
+            types=(Reference, Schema), versions=("openapi>=3.0",)
+        ),
+    ),
+    ("example", sob.properties.Property(versions=("openapi>=3.0",))),
+    (
+        "examples",
+        sob.properties.Dictionary(
+            value_types=(Reference, Example), versions=("openapi>=3.0",)
+        ),
+    ),
+    (
+        "encoding",
+        sob.properties.Dictionary(
+            value_types=(Reference, Encoding), versions=("openapi>=3.0",)
+        ),
+    ),
 ]
 
 
 class Items(Object):
-
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
@@ -586,103 +598,78 @@ class Items(Object):
 
 sob.meta.writable(Items).properties = [
     (
-        'type_',
+        "type_",
         sob.properties.Enumerated(
-            name='type',
+            name="type",
             values=(
-                'array',
-                'object',
-                'file',
-                'integer',
-                'number',
-                'string',
-                'boolean'
+                "array",
+                "object",
+                "file",
+                "integer",
+                "number",
+                "string",
+                "boolean",
             ),
-            versions=('openapi<3.0',)
-        )
+            versions=("openapi<3.0",),
+        ),
     ),
     (
-        'format_',
-        sob.properties.String(
-            name='format',
-            versions=('openapi<3.0',)
-        )
+        "format_",
+        sob.properties.String(name="format", versions=("openapi<3.0",)),
     ),
     (
-        'items',
-        sob.properties.Property(types=(Items,), versions=('openapi<3.0',))
+        "items",
+        sob.properties.Property(types=(Items,), versions=("openapi<3.0",)),
     ),
     (
-        'collection_format',
+        "collection_format",
         sob.properties.Enumerated(
-            values=('csv', 'ssv', 'tsv', 'pipes'),
-            name='collectionFormat',
-            versions=('openapi<3.0')
-        )
+            values=("csv", "ssv", "tsv", "pipes"),
+            name="collectionFormat",
+            versions=("openapi<3.0"),
+        ),
     ),
+    ("default", sob.properties.Property()),
+    ("maximum", sob.properties.Number(versions=("openapi<3.0",))),
     (
-        'default',
-        sob.properties.Property()
-    ),(
-        'maximum',
-        sob.properties.Number(versions=('openapi<3.0',))
-    ),
-    (
-        'exclusive_maximum',
+        "exclusive_maximum",
         sob.properties.Boolean(
-            name='exclusiveMaximum',
-            versions=('openapi<3.0',)
-        )
+            name="exclusiveMaximum", versions=("openapi<3.0",)
+        ),
     ),
+    ("minimum", sob.properties.Number(versions=("openapi<3.0",))),
     (
-        'minimum',
-        sob.properties.Number(versions=('openapi<3.0',))
-    ),
-    (
-        'exclusive_minimum',
+        "exclusive_minimum",
         sob.properties.Boolean(
-            name='exclusiveMinimum',
-            versions=('openapi<3.0',)
-        )
+            name="exclusiveMinimum", versions=("openapi<3.0",)
+        ),
     ),
     (
-        'max_length',
-        sob.properties.Integer(name='maxLength', versions=('openapi<3.0',))
+        "max_length",
+        sob.properties.Integer(name="maxLength", versions=("openapi<3.0",)),
     ),
     (
-        'min_length',
-        sob.properties.Integer(name='minLength', versions=('openapi<3.0',))
+        "min_length",
+        sob.properties.Integer(name="minLength", versions=("openapi<3.0",)),
+    ),
+    ("pattern", sob.properties.String(versions=("openapi<3.0",))),
+    (
+        "max_items",
+        sob.properties.Integer(name="maxItems", versions=("openapi<3.0",)),
     ),
     (
-        'pattern',
-        sob.properties.String(versions=('openapi<3.0',))
+        "min_items",
+        sob.properties.Integer(name="minItems", versions=("openapi<3.0",)),
     ),
     (
-        'max_items',
-        sob.properties.Integer(name='maxItems', versions=('openapi<3.0',))
+        "unique_items",
+        sob.properties.Boolean(name="uniqueItems", versions=("openapi<3.0",)),
     ),
+    ("enum", sob.properties.Array(versions=("openapi<3.0",))),
     (
-        'min_items',
-        sob.properties.Integer(name='minItems', versions=('openapi<3.0',))
+        "multiple_of",
+        sob.properties.Number(name="multipleOf", versions=("openapi<3.0",)),
     ),
-    (
-        'unique_items',
-        sob.properties.Boolean(
-            name='uniqueItems',
-            versions=('openapi<3.0',)
-        )
-    ),
-    (
-        'enum',
-        sob.properties.Array(versions=('openapi<3.0',))
-    ),
-    (
-        'multiple_of',
-        sob.properties.Number(
-            name='multipleOf',
-            versions=('openapi<3.0',)
-        )
-    )
 ]
 
 
@@ -777,13 +764,13 @@ class Parameter(Object):
         description=None,  # type: Optional[str]
         required=None,  # type: Optional[bool]
         deprecated=None,  # type: Optional[bool]
-        allow_empty_value=None, # type: Optional[bool]
+        allow_empty_value=None,  # type: Optional[bool]
         style=None,  # type: Optional[str]
-        explode=None, # type: Optional[bool]
-        allow_reserved=None, # type: Optional[bool]
-        schema=None, # type: Optional[Schema]
-        example=None, # type: Any
-        examples=None, # type: Optional[typing.Mapping[str, Example]]
+        explode=None,  # type: Optional[bool]
+        allow_reserved=None,  # type: Optional[bool]
+        schema=None,  # type: Optional[Schema]
+        example=None,  # type: Any
+        examples=None,  # type: Optional[typing.Mapping[str, Example]]
         content=None,  # type: Optional[typing.Mapping[str, MediaType]]
         type_=None,  # type: Optional[str]
         default=None,  # type: Any
@@ -837,152 +824,122 @@ class Parameter(Object):
 
 
 sob.meta.writable(Parameter).properties = [
-    ('name', sob.properties.String(required=True)),
+    ("name", sob.properties.String(required=True)),
     (
-        'in_',
+        "in_",
         sob.properties.Enumerated(
-            values=('query', 'header', 'path', 'formData', 'body'),
-            name='in',
-            required=True
-        )
+            values=("query", "header", "path", "formData", "body"),
+            name="in",
+            required=True,
+        ),
     ),
-    ('description', sob.properties.String()),
-    ('required', sob.properties.Boolean()),
-    ('deprecated', sob.properties.Boolean()),
-    ('allow_empty_value', sob.properties.Boolean(name='allowEmptyValue')),
-    ('style', sob.properties.String(versions=('openapi>=3.0',))),
-    ('explode', sob.properties.Boolean(versions=('openapi>=3.0',))),
-    ('allow_reserved', sob.properties.Boolean(name='allowReserved', versions=('openapi>=3.0',))),
+    ("description", sob.properties.String()),
+    ("required", sob.properties.Boolean()),
+    ("deprecated", sob.properties.Boolean()),
+    ("allow_empty_value", sob.properties.Boolean(name="allowEmptyValue")),
+    ("style", sob.properties.String(versions=("openapi>=3.0",))),
+    ("explode", sob.properties.Boolean(versions=("openapi>=3.0",))),
     (
-        'schema',
-        sob.properties.Property(
-            types=(Reference, Schema),
-        )
+        "allow_reserved",
+        sob.properties.Boolean(
+            name="allowReserved", versions=("openapi>=3.0",)
+        ),
     ),
-    ('example', sob.properties.Property(versions=('openapi>=3.0',))),
+    ("schema", sob.properties.Property(types=(Reference, Schema),)),
+    ("example", sob.properties.Property(versions=("openapi>=3.0",))),
     (
-        'examples',
+        "examples",
         sob.properties.Dictionary(
-            value_types=(Reference, Example),
-            versions=('openapi>=3.0',)
-        )
-    ),
-    (
-        'content',
-        sob.properties.Dictionary(
-            value_types=(MediaType,),
-            versions=('openapi>=3.0')
+            value_types=(Reference, Example), versions=("openapi>=3.0",)
         ),
     ),
     (
-        'type_',
+        "content",
+        sob.properties.Dictionary(
+            value_types=(MediaType,), versions=("openapi>=3.0")
+        ),
+    ),
+    (
+        "type_",
         sob.properties.Enumerated(
             values=(
-                'array',
-                'object',
-                'file',
-                'integer',
-                'number',
-                'string',
-                'boolean'
+                "array",
+                "object",
+                "file",
+                "integer",
+                "number",
+                "string",
+                "boolean",
             ),
-            name='type',
-            versions=('openapi<3.0',)
-        )
+            name="type",
+            versions=("openapi<3.0",),
+        ),
     ),
+    ("default", sob.properties.Property(versions=("openapi<3.0",))),
+    ("maximum", sob.properties.Number(versions=("openapi<3.0",))),
     (
-        'default',
-        sob.properties.Property(
-            versions=('openapi<3.0',)
-        )
-    ),
-    (
-        'maximum',
-        sob.properties.Number(versions=('openapi<3.0',))
-    ),
-    (
-        'exclusive_maximum',
+        "exclusive_maximum",
         sob.properties.Boolean(
-            name='exclusiveMaximum',
-            versions=('openapi<3.0',)
-        )
+            name="exclusiveMaximum", versions=("openapi<3.0",)
+        ),
     ),
+    ("minimum", sob.properties.Number(versions=("openapi<3.0",))),
     (
-        'minimum',
-        sob.properties.Number(versions=('openapi<3.0',))
-    ),
-    (
-        'exclusive_minimum',
+        "exclusive_minimum",
         sob.properties.Boolean(
-            name='exclusiveMinimum',
-            versions=('openapi<3.0',)
-        )
+            name="exclusiveMinimum", versions=("openapi<3.0",)
+        ),
     ),
     (
-        'max_length',
-        sob.properties.Integer(name='maxLength', versions=('openapi<3.0',))
+        "max_length",
+        sob.properties.Integer(name="maxLength", versions=("openapi<3.0",)),
     ),
     (
-        'min_length',
-        sob.properties.Integer(name='minLength', versions=('openapi<3.0',))
+        "min_length",
+        sob.properties.Integer(name="minLength", versions=("openapi<3.0",)),
+    ),
+    ("pattern", sob.properties.String(versions=("openapi<3.0",))),
+    (
+        "max_items",
+        sob.properties.Integer(name="maxItems", versions=("openapi<3.0",)),
     ),
     (
-        'pattern',
-        sob.properties.String(versions=('openapi<3.0',))
+        "min_items",
+        sob.properties.Integer(name="minItems", versions=("openapi<3.0",)),
     ),
     (
-        'max_items',
-        sob.properties.Integer(name='maxItems', versions=('openapi<3.0',))
+        "unique_items",
+        sob.properties.Boolean(name="uniqueItems", versions=("openapi<3.0",)),
     ),
+    ("enum", sob.properties.Array(versions=("openapi<3.0",))),
     (
-        'min_items',
-        sob.properties.Integer(name='minItems', versions=('openapi<3.0',))
-    ),
-    (
-        'unique_items',
-        sob.properties.Boolean(
-            name='uniqueItems',
-            versions=('openapi<3.0',)
-        )
-    ),
-    (
-        'enum',
-        sob.properties.Array(versions=('openapi<3.0',))
-    ),
-    (
-        'format_',
+        "format_",
         sob.properties.String(
             # values=(
             #     'int32', 'int64',  # type_ == 'integer'
             #     'float', 'double',  # type_ == 'number'
             #     'byte', 'binary', 'date', 'date-time', 'password',  # type_ == 'string'
             # ),
-            name='format',
-            versions=('openapi<3.0')
-        )
+            name="format",
+            versions=("openapi<3.0"),
+        ),
     ),
     (
-        'collection_format',
+        "collection_format",
         sob.properties.Enumerated(
-            values=('csv', 'ssv', 'tsv', 'pipes', 'multi'),
-            name='collectionFormat',
-            versions=('openapi<3.0',)
-        )
+            values=("csv", "ssv", "tsv", "pipes", "multi"),
+            name="collectionFormat",
+            versions=("openapi<3.0",),
+        ),
     ),
     (
-        'items',
-        sob.properties.Property(
-            types=(Items,),
-            versions=('openapi<3.0',)
-        )
+        "items",
+        sob.properties.Property(types=(Items,), versions=("openapi<3.0",)),
     ),
     (
-        'multiple_of',
-        sob.properties.Number(
-            name='multipleOf',
-            versions=('openapi<3.0',)
-        )
-    )
+        "multiple_of",
+        sob.properties.Number(name="multipleOf", versions=("openapi<3.0",)),
+    ),
 ]
 
 
@@ -990,49 +947,58 @@ def _parameter_after_validate(o):
     # type: (Parameter) -> Parameter
     if (o.content is not None) and len(tuple(o.content.keys())) > 1:
         raise sob.errors.ValidationError(
-            '`%s.content` may have only one mapped value.:\n%s' % (
-                sob.utilities.qualified_name(type(o)), repr(o)
-            )
+            "`%s.content` may have only one mapped value.:\n%s"
+            % (sob.utilities.qualified_name(type(o)), repr(o))
         )
     if (o.content is not None) and (o.schema is not None):
         raise sob.errors.ValidationError(
-            'An instance of `%s` may have a `schema` property or a `content` ' % sob.utilities.qualified_name(type(o)) +
-            'property, but not *both*:\n' + repr(o)
+            "An instance of `%s` may have a `schema` property or a `content` "
+            % sob.utilities.qualified_name(type(o))
+            + "property, but not *both*:\n"
+            + repr(o)
         )
     if o.format_ in (
-        'int32', 'int64',  # type_ == 'integer'
-        'float', 'double',  # type_ == 'number'
-        'byte', 'binary', 'date', 'date-time', 'password',  # type_ == 'string'
+        "int32",
+        "int64",  # type_ == 'integer'
+        "float",
+        "double",  # type_ == 'number'
+        "byte",
+        "binary",
+        "date",
+        "date-time",
+        "password",  # type_ == 'string'
     ):
-        if o.type_ == 'integer' and (
-            o.format_ not in ('int32', 'int64', None)
+        if o.type_ == "integer" and (
+            o.format_ not in ("int32", "int64", None)
         ):
             qn = sob.utilities.qualified_name(type(o))
             raise sob.errors.ValidationError(
-                '"%s" in not a valid value for `%S.format_` in this circumstance. ' % (
-                    o.format_,
-                    qn
-                ) +
-                '`%s.format_` may be "int32" or "int64" when ' % qn +
-                '`%s.type_` is "integer".' % qn
+                '"%s" in not a valid value for `%S.format_` in this circumstance. '
+                % (o.format_, qn)
+                + '`%s.format_` may be "int32" or "int64" when ' % qn
+                + '`%s.type_` is "integer".' % qn
             )
-        elif o.type_ == 'number' and (
-            o.format_ not in ('float', 'double', None)
+        elif o.type_ == "number" and (
+            o.format_ not in ("float", "double", None)
         ):
             qn = sob.utilities.qualified_name(type(o))
             raise sob.errors.ValidationError(
-                '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
-                '`%s.format_` may be "float" or "double" when ' % qn +
-                '`%s.type_` is "number".' % (qn, )
+                '"%s" in not a valid value for `%s.format_` in this circumstance. '
+                % (o.format_, qn)
+                + '`%s.format_` may be "float" or "double" when ' % qn
+                + '`%s.type_` is "number".' % (qn,)
             )
-        elif o.type_ == 'string' and (
-            o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
+        elif o.type_ == "string" and (
+            o.format_
+            not in ("byte", "binary", "date", "date-time", "password", None)
         ):
             qn = sob.utilities.qualified_name(type(o))
             raise sob.errors.ValidationError(
-                '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
-                '`%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
-                '`%s.type_` is "string".' % (qn, )
+                '"%s" in not a valid value for `%s.format_` in this circumstance. '
+                % (o.format_, qn)
+                + '`%s.format_` may be "byte", "binary", "date", "date-time" or "password" when '
+                % qn
+                + '`%s.type_` is "string".' % (qn,)
             )
     return o
 
@@ -1041,20 +1007,19 @@ sob.hooks.writable(Parameter).after_validate = _parameter_after_validate
 
 
 class Header(Object):
-
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
         description=None,  # type: Optional[str]
         required=None,  # type: Optional[bool]
         deprecated=None,  # type: Optional[bool]
-        allow_empty_value=None, # type: Optional[bool]
+        allow_empty_value=None,  # type: Optional[bool]
         style=None,  # type: Optional[str]
-        explode=None, # type: Optional[bool]
-        allow_reserved=None, # type: Optional[bool]
-        schema=None, # type: Optional[Schema]
-        example=None, # type: Any
-        examples=None, # type: Optional[typing.Mapping[str, Example]]
+        explode=None,  # type: Optional[bool]
+        allow_reserved=None,  # type: Optional[bool]
+        schema=None,  # type: Optional[Schema]
+        example=None,  # type: Any
+        examples=None,  # type: Optional[typing.Mapping[str, Example]]
         content=None,  # type: Optional[typing.Mapping[str, MediaType]]
         type_=None,  # type: Optional[str]
         default=None,  # type: Any
@@ -1104,36 +1069,36 @@ class Header(Object):
         self.items = items
         super().__init__(_)
 
+
 _header_meta = sob.meta.writable(Header)
 _header_meta.properties = deepcopy(sob.meta.read(Parameter).properties)
-del _header_meta.properties['name']
-del _header_meta.properties['in_']
-_header_meta.properties['schema'].versions = ('openapi>=3.0',)
-_header_meta.properties['type_'].values = (
-    'array',
-    'integer',
-    'number',
-    'string',
-    'boolean'
+del _header_meta.properties["name"]
+del _header_meta.properties["in_"]
+_header_meta.properties["schema"].versions = ("openapi>=3.0",)
+_header_meta.properties["type_"].values = (
+    "array",
+    "integer",
+    "number",
+    "string",
+    "boolean",
 )
-_header_meta.properties['items'].types = (Items,)
+_header_meta.properties["items"].types = (Items,)
 # _header_meta.properties['items'].required = lambda o: True if o.type_ == 'array' else False
-_header_meta.properties['required'].versions = ('openapi>=3.0',)
-_header_meta.properties['deprecated'].versions = ('openapi>=3.0',)
-_header_meta.properties['allow_empty_value'].versions = ('openapi>=3.0',)
+_header_meta.properties["required"].versions = ("openapi>=3.0",)
+_header_meta.properties["deprecated"].versions = ("openapi>=3.0",)
+_header_meta.properties["allow_empty_value"].versions = ("openapi>=3.0",)
 
 
 sob.meta.writable(Encoding).properties = [
-    ('content_type', sob.properties.String(name='contentType')),
-    ('headers', sob.properties.Dictionary(value_types=(Reference, Header))),
-    ('style', sob.properties.String()),
-    ('explode', sob.properties.Boolean()),
-    ('allow_reserved', sob.properties.Boolean(name='allowReserved')),
+    ("content_type", sob.properties.String(name="contentType")),
+    ("headers", sob.properties.Dictionary(value_types=(Reference, Header))),
+    ("style", sob.properties.String()),
+    ("explode", sob.properties.Boolean()),
+    ("allow_reserved", sob.properties.Boolean(name="allowReserved")),
 ]
 
 
 class ServerVariable(Object):
-
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
@@ -1148,9 +1113,9 @@ class ServerVariable(Object):
 
 
 sob.meta.writable(ServerVariable).properties = [
-    ('enum', sob.properties.Array(item_types=(str,))),
-    ('default', sob.properties.String(required=True)),
-    ('description', sob.properties.String()),
+    ("enum", sob.properties.Array(item_types=(str,))),
+    ("default", sob.properties.String(required=True)),
+    ("description", sob.properties.String()),
 ]
 
 
@@ -1164,7 +1129,7 @@ class Server(Object):
         _=None,  # type: Optional[typing.Mapping]
         url=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
-        variables=None  # type: Optional[typing.Mapping[str, ServerVariable]]
+        variables=None,  # type: Optional[typing.Mapping[str, ServerVariable]]
     ):
         # type: (...) -> None
         self.url = url
@@ -1174,9 +1139,9 @@ class Server(Object):
 
 
 sob.meta.writable(Server).properties = [
-    ('url', sob.properties.String(required=True)),
-    ('description', sob.properties.String()),
-    ('variables', sob.properties.Dictionary(value_types=(ServerVariable,))),
+    ("url", sob.properties.String(required=True)),
+    ("description", sob.properties.String()),
+    ("variables", sob.properties.Dictionary(value_types=(ServerVariable,))),
 ]
 
 
@@ -1205,12 +1170,26 @@ class Link_(Object):
 
 
 sob.meta.writable(Link_).properties = [
-    ('operation_ref', sob.properties.String(name='operationRef', versions=('openapi>=3.0',))),
-    ('operation_id', sob.properties.String(name='operationId', versions=('openapi>=3.0',))),
-    ('parameters', sob.properties.Dictionary(versions=('openapi>=3.0',))),
-    ('request_body', sob.properties.Property(name='requestBody', versions=('openapi>=3.0',))),
-    ('description', sob.properties.String(versions=('openapi>=3.0',))),
-    ('server', sob.properties.Property(types=(Server,), versions=('openapi>=3.0',))),
+    (
+        "operation_ref",
+        sob.properties.String(name="operationRef", versions=("openapi>=3.0",)),
+    ),
+    (
+        "operation_id",
+        sob.properties.String(name="operationId", versions=("openapi>=3.0",)),
+    ),
+    ("parameters", sob.properties.Dictionary(versions=("openapi>=3.0",))),
+    (
+        "request_body",
+        sob.properties.Property(
+            name="requestBody", versions=("openapi>=3.0",)
+        ),
+    ),
+    ("description", sob.properties.String(versions=("openapi>=3.0",))),
+    (
+        "server",
+        sob.properties.Property(types=(Server,), versions=("openapi>=3.0",)),
+    ),
 ]
 
 
@@ -1254,42 +1233,26 @@ class Response(Object):
 
 
 sob.meta.writable(Response).properties = [
+    ("description", sob.properties.String()),
     (
-        'description',
-        sob.properties.String()
-    ),
-    (
-        'schema',
+        "schema",
         sob.properties.Property(
-            types=(Reference, Schema),
-            versions=('openapi<3.0',)
-        )
+            types=(Reference, Schema), versions=("openapi<3.0",)
+        ),
+    ),
+    ("headers", sob.properties.Dictionary(value_types=(Reference, Header))),
+    ("examples", sob.properties.Dictionary(versions=("openapi<3.0",))),
+    (
+        "content",
+        sob.properties.Dictionary(
+            value_types=(Reference, MediaType), versions=("openapi>=3.0",)
+        ),
     ),
     (
-        'headers',
+        "links",
         sob.properties.Dictionary(
-            value_types=(Reference, Header)
-        )
-    ),
-    (
-        'examples',
-        sob.properties.Dictionary(
-            versions=('openapi<3.0',)
-        )
-    ),
-    (
-        'content',
-        sob.properties.Dictionary(
-            value_types=(Reference, MediaType),
-            versions=('openapi>=3.0',)
-        )
-    ),
-    (
-        'links',
-        sob.properties.Dictionary(
-            value_types=(Reference, Link_),
-            versions=('openapi>=3.0',)
-        )
+            value_types=(Reference, Link_), versions=("openapi>=3.0",)
+        ),
     ),
 ]
 
@@ -1314,20 +1277,19 @@ class ExternalDocumentation(Object):
 
 
 sob.meta.writable(ExternalDocumentation).properties = [
-    ('description', sob.properties.String()),
-    ('url', sob.properties.String(required=True)),
+    ("description", sob.properties.String()),
+    ("url", sob.properties.String(required=True)),
 ]
 
 
 sob.meta.writable(Tag).properties = [
-    ('name', sob.properties.String(required=True)),
-    ('description', sob.properties.String()),
-    ('external_docs', sob.properties.Property(types=(ExternalDocumentation,))),
+    ("name", sob.properties.String(required=True)),
+    ("description", sob.properties.String()),
+    ("external_docs", sob.properties.Property(types=(ExternalDocumentation,))),
 ]
 
 
 class RequestBody(Object):
-
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
@@ -1342,9 +1304,14 @@ class RequestBody(Object):
 
 
 sob.meta.writable(RequestBody).properties = [
-    ('description', sob.properties.String(versions=('openapi>=3.0',))),
-    ('content', sob.properties.Dictionary(value_types=(MediaType,), versions=('openapi>=3.0',))),
-    ('required', sob.properties.Boolean(versions=('openapi>=3.0',))),
+    ("description", sob.properties.String(versions=("openapi>=3.0",))),
+    (
+        "content",
+        sob.properties.Dictionary(
+            value_types=(MediaType,), versions=("openapi>=3.0",)
+        ),
+    ),
+    ("required", sob.properties.Boolean(versions=("openapi>=3.0",))),
 ]
 
 
@@ -1473,23 +1440,26 @@ class PathItem(Object):
 
 
 sob.meta.writable(PathItem).properties = [
-    ('summary', sob.properties.String(versions=('openapi>=3.0',))),
-    ('description', sob.properties.String(versions=('openapi>=3.0',))),
-    ('get', sob.properties.Property(types=(Operation,))),
-    ('put', sob.properties.Property(types=(Operation,))),
-    ('post', sob.properties.Property(types=(Operation,))),
-    ('delete', sob.properties.Property(types=(Operation,))),
-    ('options', sob.properties.Property(types=(Operation,))),
-    ('head', sob.properties.Property(types=(Operation,))),
-    ('patch', sob.properties.Property(types=(Operation,))),
-    ('trace', sob.properties.Property(types=(Operation,), versions=('openapi>=3.0',))),
-    ('servers', sob.properties.Array(item_types=(Server,), versions=('openapi>=3.0',))),
+    ("summary", sob.properties.String(versions=("openapi>=3.0",))),
+    ("description", sob.properties.String(versions=("openapi>=3.0",))),
+    ("get", sob.properties.Property(types=(Operation,))),
+    ("put", sob.properties.Property(types=(Operation,))),
+    ("post", sob.properties.Property(types=(Operation,))),
+    ("delete", sob.properties.Property(types=(Operation,))),
+    ("options", sob.properties.Property(types=(Operation,))),
+    ("head", sob.properties.Property(types=(Operation,))),
+    ("patch", sob.properties.Property(types=(Operation,))),
     (
-        'parameters',
-        sob.properties.Array(
-            item_types=(Reference, Parameter)
-        )
+        "trace",
+        sob.properties.Property(
+            types=(Operation,), versions=("openapi>=3.0",)
+        ),
     ),
+    (
+        "servers",
+        sob.properties.Array(item_types=(Server,), versions=("openapi>=3.0",)),
+    ),
+    ("parameters", sob.properties.Array(item_types=(Reference, Parameter))),
 ]
 
 
@@ -1516,71 +1486,66 @@ class Responses(Dictionary):
 
 sob.meta.writable(Responses).value_types = (
     sob.properties.Property(
-        types=(Reference, Response),
-        versions=('openapi>=3.0',)
+        types=(Reference, Response), versions=("openapi>=3.0",)
     ),
-    sob.properties.Property(
-        types=(Response,),
-        versions=('openapi<3.0',)
-    )
+    sob.properties.Property(types=(Response,), versions=("openapi<3.0",)),
 )
 
 
 sob.meta.writable(Operation).properties = [
-    ('tags', sob.properties.Array(item_types=(str,))),
-    ('summary', sob.properties.String()),
-    ('description', sob.properties.String()),
-    ('external_docs', sob.properties.Property(types=(ExternalDocumentation,), name='externalDocs')),
-    ('operation_id', sob.properties.String(name='operationId')),
-    ('consumes', sob.properties.Array(item_types=(str,),versions=('openapi<3.0',))),
-    ('produces', sob.properties.Array(item_types=(str,),versions=('openapi<3.0',))),
+    ("tags", sob.properties.Array(item_types=(str,))),
+    ("summary", sob.properties.String()),
+    ("description", sob.properties.String()),
     (
-        'parameters',
-        sob.properties.Array(
-            item_types=(Reference, Parameter)
-        )
+        "external_docs",
+        sob.properties.Property(
+            types=(ExternalDocumentation,), name="externalDocs"
+        ),
+    ),
+    ("operation_id", sob.properties.String(name="operationId")),
+    (
+        "consumes",
+        sob.properties.Array(item_types=(str,), versions=("openapi<3.0",)),
     ),
     (
-        'request_body',
+        "produces",
+        sob.properties.Array(item_types=(str,), versions=("openapi<3.0",)),
+    ),
+    ("parameters", sob.properties.Array(item_types=(Reference, Parameter))),
+    (
+        "request_body",
         sob.properties.Property(
             types=(Reference, RequestBody),
-            name='requestBody',
-            versions=('openapi>=3.0',)
-        )
+            name="requestBody",
+            versions=("openapi>=3.0",),
+        ),
     ),
+    ("responses", sob.properties.Property(types=(Responses,), required=True)),
     (
-        'responses',
+        "callbacks",
         sob.properties.Property(
-            types=(Responses,),
-            required=True
-        )
+            types=(Callbacks,), versions=("openapi>=3.0",)
+        ),
     ),
     (
-        'callbacks',
-        sob.properties.Property(
-            types=(
-                Callbacks,
-            ),
-            versions=('openapi>=3.0',)
-        )
+        "schemes",
+        sob.properties.Array(item_types=(str,), versions=("openapi>=3.0",)),
     ),
-    ('schemes', sob.properties.Array(item_types=(str,), versions=('openapi>=3.0',))),
-    ('deprecated', sob.properties.Boolean()),
+    ("deprecated", sob.properties.Boolean()),
     (
-        'security',
+        "security",
         sob.properties.Array(
             item_types=(
                 sob.properties.Dictionary(
-                    value_types=(
-                        sob.properties.Array(
-                            item_types=(str,)
-                        ),
-                    )
+                    value_types=(sob.properties.Array(item_types=(str,)),)
                 ),
             )
-        )
+        ),
     ),
-    ('servers', sob.properties.Array(item_types=(Server,), versions=('openapi>=3.0',)))
+    (
+        "servers",
+        sob.properties.Array(item_types=(Server,), versions=("openapi>=3.0",)),
+    ),
 ]
 
 
@@ -1607,8 +1572,16 @@ class Discriminator(Object):
 
 
 sob.meta.writable(Discriminator).properties = [
-    ('property_name', sob.properties.String(name='propertyName', versions=('openapi>=3.0',))),
-    ('mapping', sob.properties.Dictionary(value_types=(str,), versions=('openapi>=3.0',))),
+    (
+        "property_name",
+        sob.properties.String(name="propertyName", versions=("openapi>=3.0",)),
+    ),
+    (
+        "mapping",
+        sob.properties.Dictionary(
+            value_types=(str,), versions=("openapi>=3.0",)
+        ),
+    ),
 ]
 
 
@@ -1648,11 +1621,11 @@ class XML(Object):
 
 
 sob.meta.writable(XML).properties = [
-    ('name', sob.properties.String()),
-    ('name_space', sob.properties.String(name='nameSpace')),
-    ('prefix', sob.properties.String()),
-    ('attribute', sob.properties.Boolean()),
-    ('wrapped', sob.properties.Boolean()),
+    ("name", sob.properties.String()),
+    ("name_space", sob.properties.String(name="nameSpace")),
+    ("prefix", sob.properties.String()),
+    ("attribute", sob.properties.Boolean()),
+    ("wrapped", sob.properties.Boolean()),
 ]
 
 
@@ -1677,10 +1650,10 @@ class OAuthFlow(Object):
 
 
 sob.meta.writable(OAuthFlow).properties = [
-    ('authorization_url', sob.properties.String()),
-    ('token_url', sob.properties.String(name='tokenUrl')),
-    ('refresh_url', sob.properties.String(name='refreshUrl')),
-    ('scopes', sob.properties.Dictionary(value_types=(str,))),
+    ("authorization_url", sob.properties.String()),
+    ("token_url", sob.properties.String(name="tokenUrl")),
+    ("refresh_url", sob.properties.String(name="refreshUrl")),
+    ("scopes", sob.properties.Dictionary(value_types=(str,))),
 ]
 
 
@@ -1705,23 +1678,33 @@ class OAuthFlows(Object):
 
 
 sob.meta.writable(OAuthFlows).properties = [
-    ('implicit', sob.properties.Property(types=(OAuthFlow,), versions=('openapi>=3.0',))),
-    ('password', sob.properties.Property(types=(OAuthFlow,), versions=('openapi>=3.0',))),
     (
-        'client_credentials',
+        "implicit",
         sob.properties.Property(
-            types=(OAuthFlow,),
-            name='clientCredentials',
-            versions=('openapi>=3.0',),
-        )
+            types=(OAuthFlow,), versions=("openapi>=3.0",)
+        ),
     ),
     (
-        'authorization_code',
+        "password",
+        sob.properties.Property(
+            types=(OAuthFlow,), versions=("openapi>=3.0",)
+        ),
+    ),
+    (
+        "client_credentials",
         sob.properties.Property(
             types=(OAuthFlow,),
-            name='authorizationCode',
-            versions=('openapi>=3.0',)
-        )
+            name="clientCredentials",
+            versions=("openapi>=3.0",),
+        ),
+    ),
+    (
+        "authorization_code",
+        sob.properties.Property(
+            types=(OAuthFlow,),
+            name="authorizationCode",
+            versions=("openapi>=3.0",),
+        ),
     ),
 ]
 
@@ -1790,251 +1773,271 @@ class SecurityScheme(Object):
 
 sob.meta.writable(SecurityScheme).properties = [
     (
-        'type_',
+        "type_",
         sob.properties.Enumerated(
-            values=('apiKey', 'http', 'oauth2', 'openIdConnect'),
-            name='type',
-            required=True
-        )
+            values=("apiKey", "http", "oauth2", "openIdConnect"),
+            name="type",
+            required=True,
+        ),
     ),
-    ('description', sob.properties.String()),
+    ("description", sob.properties.String()),
     (
-        'name',
+        "name",
         sob.properties.String(
             # required=lambda o: True if o.type_ == 'apiKey' else False
-        )
+        ),
     ),
     (
-        'in_',
+        "in_",
         sob.properties.Property(
             types=(
                 sob.properties.Enumerated(
-                    values=('query', 'header', 'cookie'),
-                    versions=('openapi>=3.0',)
+                    values=("query", "header", "cookie"),
+                    versions=("openapi>=3.0",),
                 ),
                 sob.properties.Enumerated(
-                    values=('query', 'header'),
-                    versions=('openapi<3.0',)
+                    values=("query", "header"), versions=("openapi<3.0",)
                 ),
             ),
-            name='in',
+            name="in",
             # required=lambda o: True if o.type_ == 'apiKey' else False
-        )
+        ),
     ),
     (
-        'scheme',
+        "scheme",
         sob.properties.String(
             # required=lambda o: True if o.type_ == 'http' else False,
-            versions='openapi>=3.0'
-        )
+            versions="openapi>=3.0"
+        ),
     ),
-    ('bearer_format', sob.properties.String(name='bearerFormat')),
+    ("bearer_format", sob.properties.String(name="bearerFormat")),
     (
-        'flows',
+        "flows",
         sob.properties.Property(
             types=(OAuthFlows,),
             # required=lambda o: True if o.type_ == 'oauth2' else False,
-            versions=('openapi>=3.0',)
-        )
+            versions=("openapi>=3.0",),
+        ),
     ),
     (
-        'open_id_connect_url',
+        "open_id_connect_url",
         sob.properties.String(
-            name='openIdConnectUrl',
+            name="openIdConnectUrl",
             # required=lambda o: True if o.type_ == 'openIdConnect' else False
-        )
+        ),
     ),
     (
-        'flow',
+        "flow",
         sob.properties.String(
-            versions='openapi<3.0',
+            versions="openapi<3.0",
             # required=lambda o: True if o.type_ == 'oauth2' else False
-        )
+        ),
     ),
     (
-        'authorization_url',
+        "authorization_url",
         sob.properties.String(
-            name='authorizationUrl',
-            versions='openapi<3.0',
+            name="authorizationUrl",
+            versions="openapi<3.0",
             # required=lambda o: (
             #     True
             #     if o.type_ == 'oauth2' and o.flow in ('implicit', 'accessCode') else
             #     False
             # )
-        )
+        ),
     ),
     (
-        'token_url',
+        "token_url",
         sob.properties.String(
-            name='tokenUrl',
-            versions='openapi<3.0',
+            name="tokenUrl",
+            versions="openapi<3.0",
             # required=lambda o: (
             #     True
             #     if o.type_ == 'oauth2' and o.flow in ('password', 'application', 'accessCode') else
             #     False
             # )
-        )
+        ),
     ),
     (
-        'scopes',
+        "scopes",
         sob.properties.Dictionary(
             value_types=(str,),
-            versions='openapi<3.0',
+            versions="openapi<3.0",
             # required=lambda o: True if o.type_ == 'oauth2' else False
-        )
-    )
+        ),
+    ),
 ]
 
 sob.meta.writable(Schema).properties = [
-    ('title', sob.properties.String()),
-    ('description', sob.properties.String()),
-    ('multiple_of', sob.properties.Number(name='multipleOf')),
-    ('maximum', sob.properties.Number()),
-    ('exclusive_maximum', sob.properties.Boolean(name='exclusiveMaximum')),
-    ('minimum', sob.properties.Number()),
-    ('exclusive_minimum', sob.properties.Boolean(name='exclusiveMinimum')),
-    ('max_length', sob.properties.Integer(name='maxLength')),
-    ('min_length', sob.properties.Integer(name='minLength')),
-    ('pattern', sob.properties.String()),
-    ('max_items', sob.properties.Integer(name='maxItems')),
-    ('min_items', sob.properties.Integer(name='minItems')),
-    ('unique_items', sob.properties.Boolean(name='uniqueItems')),
+    ("title", sob.properties.String()),
+    ("description", sob.properties.String()),
+    ("multiple_of", sob.properties.Number(name="multipleOf")),
+    ("maximum", sob.properties.Number()),
+    ("exclusive_maximum", sob.properties.Boolean(name="exclusiveMaximum")),
+    ("minimum", sob.properties.Number()),
+    ("exclusive_minimum", sob.properties.Boolean(name="exclusiveMinimum")),
+    ("max_length", sob.properties.Integer(name="maxLength")),
+    ("min_length", sob.properties.Integer(name="minLength")),
+    ("pattern", sob.properties.String()),
+    ("max_items", sob.properties.Integer(name="maxItems")),
+    ("min_items", sob.properties.Integer(name="minItems")),
+    ("unique_items", sob.properties.Boolean(name="uniqueItems")),
     (
-        'items',
+        "items",
         sob.properties.Property(
             types=(
                 Reference,
                 Schema,
-                sob.properties.Array(
-                    item_types=(Reference, Schema)
-                )
+                sob.properties.Array(item_types=(Reference, Schema)),
             )
-        )
+        ),
     ),
-    ('max_properties', sob.properties.Integer(name='maxProperties')),
-    ('min_properties', sob.properties.Integer(name='minProperties')),
-    ('properties', sob.properties.Property(types=(Properties,))),
+    ("max_properties", sob.properties.Integer(name="maxProperties")),
+    ("min_properties", sob.properties.Integer(name="minProperties")),
+    ("properties", sob.properties.Property(types=(Properties,))),
     (
-        'additional_properties',
+        "additional_properties",
         sob.properties.Property(
-            types=(Reference, Schema, bool),
-            name='additionalProperties'
-        )
+            types=(Reference, Schema, bool), name="additionalProperties"
+        ),
     ),
-    ('enum', sob.properties.Array()),
+    ("enum", sob.properties.Array()),
     (
-        'type_',
+        "type_",
         sob.properties.Property(
             types=(
                 sob.properties.Array(
                     item_types=(
                         sob.properties.Enumerated(
                             values=(
-                                'array',
-                                'object',
-                                'file',
-                                'integer',
-                                'number',
-                                'string',
-                                'boolean'
+                                "array",
+                                "object",
+                                "file",
+                                "integer",
+                                "number",
+                                "string",
+                                "boolean",
                             )
                         ),
                     )
                 ),
                 sob.properties.Enumerated(
                     values=(
-                        'array',
-                        'object',
-                        'file',
-                        'integer',
-                        'number',
-                        'string',
-                        'boolean'
+                        "array",
+                        "object",
+                        "file",
+                        "integer",
+                        "number",
+                        "string",
+                        "boolean",
                     )
-                )
+                ),
             ),
-            name='type'
-        )
+            name="type",
+        ),
     ),
     (
-        'format_',
+        "format_",
         sob.properties.String(
             # values=(
             #     'int32', 'int64',
             #     'float', 'double',
             #     'byte', 'binary', 'date', 'date-time', 'password'
             # ),
-            name='format'
-        )
+            name="format"
+        ),
     ),
-    ('required', sob.properties.Array(item_types=(sob.properties.String(),))),
-    ('all_of', sob.properties.Array(item_types=(Reference, Schema), name='allOf')),
-    ('any_of', sob.properties.Array(item_types=(Reference, Schema), name='anyOf')),
-    ('one_of', sob.properties.Array(item_types=(Reference, Schema), name='oneOf')),
-    ('is_not', sob.properties.Property(types=(Reference, Schema), name='isNot')),
-    ('definitions', sob.properties.Property()),
-    ('default', sob.properties.Property()),
-    ('required', sob.properties.Array(item_types=(str,))),
-    ('default', sob.properties.Property()),
+    ("required", sob.properties.Array(item_types=(sob.properties.String(),))),
     (
-        'discriminator',
+        "all_of",
+        sob.properties.Array(item_types=(Reference, Schema), name="allOf"),
+    ),
+    (
+        "any_of",
+        sob.properties.Array(item_types=(Reference, Schema), name="anyOf"),
+    ),
+    (
+        "one_of",
+        sob.properties.Array(item_types=(Reference, Schema), name="oneOf"),
+    ),
+    (
+        "is_not",
+        sob.properties.Property(types=(Reference, Schema), name="isNot"),
+    ),
+    ("definitions", sob.properties.Property()),
+    ("default", sob.properties.Property()),
+    ("required", sob.properties.Array(item_types=(str,))),
+    ("default", sob.properties.Property()),
+    (
+        "discriminator",
         sob.properties.Property(
             types=(
                 sob.properties.Property(
-                    types=(Discriminator,),
-                    versions=('openapi>=3.0',),
+                    types=(Discriminator,), versions=("openapi>=3.0",),
                 ),
                 sob.properties.Property(
-                    types=(str,),
-                    versions=('openapi<3.0',)
-                )
+                    types=(str,), versions=("openapi<3.0",)
+                ),
             )
-        )
+        ),
     ),
-    ('read_only', sob.properties.Boolean()),
-    ('write_only', sob.properties.Boolean(name='writeOnly', versions=('openapi>=3.0',))),
-    ('xml', sob.properties.Property(types=(XML,))),
-    ('external_docs', sob.properties.Property(types=(ExternalDocumentation,))),
-    ('example', sob.properties.Property()),
-    ('deprecated', sob.properties.Boolean(versions=('openapi>=3.0',))),
-    ('links', sob.properties.Array(item_types=(Link,))),
-    ('nullable', sob.properties.Boolean(versions=('openapi>=3.0',)))
+    ("read_only", sob.properties.Boolean()),
+    (
+        "write_only",
+        sob.properties.Boolean(name="writeOnly", versions=("openapi>=3.0",)),
+    ),
+    ("xml", sob.properties.Property(types=(XML,))),
+    ("external_docs", sob.properties.Property(types=(ExternalDocumentation,))),
+    ("example", sob.properties.Property()),
+    ("deprecated", sob.properties.Boolean(versions=("openapi>=3.0",))),
+    ("links", sob.properties.Array(item_types=(Link,))),
+    ("nullable", sob.properties.Boolean(versions=("openapi>=3.0",))),
 ]
 
 
 def _schema_after_validate(o):
     # type: (Schema) -> Schema
     if o.format_ in (
-        'int32', 'int64',  # type_ == 'integer'
-        'float', 'double',  # type_ == 'number'
-        'byte', 'binary', 'date', 'date-time', 'password',  # type_ == 'string'
+        "int32",
+        "int64",  # type_ == 'integer'
+        "float",
+        "double",  # type_ == 'number'
+        "byte",
+        "binary",
+        "date",
+        "date-time",
+        "password",  # type_ == 'string'
     ):
-        if o.type_ == 'integer' and (
-            o.format_ not in ('int32', 'int64', None)
+        if o.type_ == "integer" and (
+            o.format_ not in ("int32", "int64", None)
         ):
             qn = sob.utilities.qualified_name(type(o))
             raise sob.errors.ValidationError(
-                '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
-                '`%s.format_` may be "int32" or "int64" when ' % qn +
-                '`%s.type_` is "integer".' % (qn, )
+                '"%s" in not a valid value for `%s.format_` in this circumstance. '
+                % (o.format_, qn)
+                + '`%s.format_` may be "int32" or "int64" when ' % qn
+                + '`%s.type_` is "integer".' % (qn,)
             )
-        elif o.type_ == 'number' and (
-            o.format_ not in ('float', 'double', None)
+        elif o.type_ == "number" and (
+            o.format_ not in ("float", "double", None)
         ):
             qn = sob.utilities.qualified_name(type(o))
             raise sob.errors.ValidationError(
-                '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
-                '`%s.format_` may be "float" or "double" when ' % qn +
-                '`%s.type_` is "number".' % (qn, )
+                '"%s" in not a valid value for `%s.format_` in this circumstance. '
+                % (o.format_, qn)
+                + '`%s.format_` may be "float" or "double" when ' % qn
+                + '`%s.type_` is "number".' % (qn,)
             )
-        elif o.type_ == 'string' and (
-            o.format_ not in ('byte', 'binary', 'date', 'date-time', 'password', None)
+        elif o.type_ == "string" and (
+            o.format_
+            not in ("byte", "binary", "date", "date-time", "password", None)
         ):
             qn = sob.utilities.qualified_name(type(o))
             raise sob.errors.ValidationError(
-                '"%s" in not a valid value for `%s.format_` in this circumstance. ' % (o.format_, qn) +
-                '`%s.format_` may be "byte", "binary", "date", "date-time" or "password" when ' % qn +
-                '`%s.type_` is "string".' % (qn, )
+                '"%s" in not a valid value for `%s.format_` in this circumstance. '
+                % (o.format_, qn)
+                + '`%s.format_` may be "byte", "binary", "date", "date-time" or "password" when '
+                % qn
+                + '`%s.type_` is "string".' % (qn,)
             )
     return o
 
@@ -2099,7 +2102,6 @@ sob.meta.writable(Links).value_types = (Reference, Link_)
 
 
 class Components(Object):
-
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
@@ -2126,23 +2128,23 @@ class Components(Object):
 
 
 sob.meta.writable(Components).properties = [
-    ('schemas', sob.properties.Property(types=(Schemas,))),
-    ('responses', sob.properties.Property(types=(Responses,))),
+    ("schemas", sob.properties.Property(types=(Schemas,))),
+    ("responses", sob.properties.Property(types=(Responses,))),
+    ("parameters", sob.properties.Property(types=(Parameters,))),
+    ("examples", sob.properties.Property(types=(Examples,))),
     (
-        'parameters',
-        sob.properties.Property(types=(Parameters,))
+        "request_bodies",
+        sob.properties.Property(types=(RequestBodies,), name="requestBodies"),
     ),
-    ('examples', sob.properties.Property(types=(Examples,))),
-    ('request_bodies', sob.properties.Property(types=(RequestBodies,), name='requestBodies')),
-    ('headers', sob.properties.Property(types=(Headers,))),
-    ('security_schemes', sob.properties.Property(types=(SecuritySchemes,), name='securitySchemes')),
-    ('links', sob.properties.Property(types=(Links,))),
+    ("headers", sob.properties.Property(types=(Headers,))),
     (
-        'callbacks',
+        "security_schemes",
         sob.properties.Property(
-            types=(Callbacks,)
-        )
+            types=(SecuritySchemes,), name="securitySchemes"
+        ),
     ),
+    ("links", sob.properties.Property(types=(Links,))),
+    ("callbacks", sob.properties.Property(types=(Callbacks,))),
 ]
 
 
@@ -2163,7 +2165,6 @@ sob.meta.writable(Paths).value_types = (PathItem,)
 
 
 class OpenAPI(Object):
-
     def __init__(
         self,
         _=None,  # type: Optional[typing.Mapping]
@@ -2210,61 +2211,92 @@ class OpenAPI(Object):
         super().__init__(_)
         version = self.openapi or self.swagger
         if version is not None:
-            sob.meta.version(self, 'openapi', version)
+            sob.meta.version(self, "openapi", version)
 
 
 sob.meta.writable(OpenAPI).properties = [
-    ('openapi', sob.properties.String(versions=('openapi>=3.0',), required=True)),
-    ('info', sob.properties.Property(types=(Info,), required=True)),
-    ('host', sob.properties.String(versions=('openapi<3.0',))),
-    ('servers', sob.properties.Array(item_types=(Server,), versions=('openapi>=3.0',))),
-    ('base_path', sob.properties.String(name='basePath', versions=('openapi<3.0',))),
-    ('schemes', sob.properties.Array(item_types=(str,), versions=('openapi<3.0',))),
-    ('tags', sob.properties.Array(item_types=(Tag,))),
-    ('paths', sob.properties.Property(types=(Paths,), required=True)),
-    ('components', sob.properties.Property(types=(Components,), versions=('openapi>=3.0',))),
-    ('consumes', sob.properties.Array(item_types=(str,), versions=('openapi<3.0',))),
-    ('swagger', sob.properties.String(versions=('openapi<3.0',), required=True)),
     (
-        'definitions',
+        "openapi",
+        sob.properties.String(versions=("openapi>=3.0",), required=True),
+    ),
+    ("info", sob.properties.Property(types=(Info,), required=True)),
+    ("host", sob.properties.String(versions=("openapi<3.0",))),
+    (
+        "servers",
+        sob.properties.Array(item_types=(Server,), versions=("openapi>=3.0",)),
+    ),
+    (
+        "base_path",
+        sob.properties.String(name="basePath", versions=("openapi<3.0",)),
+    ),
+    (
+        "schemes",
+        sob.properties.Array(item_types=(str,), versions=("openapi<3.0",)),
+    ),
+    ("tags", sob.properties.Array(item_types=(Tag,))),
+    ("paths", sob.properties.Property(types=(Paths,), required=True)),
+    (
+        "components",
         sob.properties.Property(
-            types=(Definitions,),
-            versions=('openapi<3.0',)
+            types=(Components,), versions=("openapi>=3.0",)
         ),
     ),
     (
-        'security_definitions',
+        "consumes",
+        sob.properties.Array(item_types=(str,), versions=("openapi<3.0",)),
+    ),
+    (
+        "swagger",
+        sob.properties.String(versions=("openapi<3.0",), required=True),
+    ),
+    (
+        "definitions",
+        sob.properties.Property(
+            types=(Definitions,), versions=("openapi<3.0",)
+        ),
+    ),
+    (
+        "security_definitions",
         sob.properties.Property(
             types=(
                 sob.properties.Dictionary(
-                    value_types=(SecurityScheme,),
-                    versions=('openapi<3.0',)
+                    value_types=(SecurityScheme,), versions=("openapi<3.0",)
                 ),
                 sob.properties.Dictionary(
                     value_types=(Reference, SecurityScheme),
-                    versions=('openapi>=3.0',)
+                    versions=("openapi>=3.0",),
                 ),
             ),
-            name='securityDefinitions',
-        )
+            name="securityDefinitions",
+        ),
     ),
-    ('produces', sob.properties.Array(item_types=(str,), versions=('openapi<3.0',)),),
-    ('external_docs', sob.properties.Property(types=(ExternalDocumentation,), name='externalDocs')),
     (
-        'parameters',
-        sob.properties.Dictionary(
-            value_types=(Parameter,),
-            versions=('openapi<3.0',)
-        )
+        "produces",
+        sob.properties.Array(item_types=(str,), versions=("openapi<3.0",)),
     ),
-    ('responses', sob.properties.Dictionary(value_types=(Response,), versions=('openapi<3.0',))),
     (
-        'security',
+        "external_docs",
+        sob.properties.Property(
+            types=(ExternalDocumentation,), name="externalDocs"
+        ),
+    ),
+    (
+        "parameters",
         sob.properties.Dictionary(
-            value_types=(
-                sob.properties.Array(item_types=(str,)),
-            ),
-            versions=('openapi<3.0',)
-        )
+            value_types=(Parameter,), versions=("openapi<3.0",)
+        ),
+    ),
+    (
+        "responses",
+        sob.properties.Dictionary(
+            value_types=(Response,), versions=("openapi<3.0",)
+        ),
+    ),
+    (
+        "security",
+        sob.properties.Dictionary(
+            value_types=(sob.properties.Array(item_types=(str,)),),
+            versions=("openapi<3.0",),
+        ),
     ),
 ]
