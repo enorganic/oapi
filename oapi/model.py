@@ -12,13 +12,16 @@ from sob import __name__ as _sob_module_name
 from sob import meta
 from sob import properties
 from sob.thesaurus import get_class_meta_attribute_assignment_source
-from sob.types import MutableTypes
 from sob.utilities.inspect import (
     get_source,
     properties_values,
     calling_function_qualified_name,
 )
-from sob.utilities.string import property_name, class_name
+from sob.utilities.string import (
+    property_name,
+    class_name,
+    split_long_docstring_lines,
+)
 from sob.utilities.string import split_long_comment_line
 from sob.model import (
     Model as ModelBase,
@@ -562,22 +565,21 @@ class _Modeler:
         return dictionary_class
 
     def get_docstring(self, schema, relative_url_pointer):
-        # type: (Schema, str) -> type
+        # type: (Schema, str) -> str
         if relative_url_pointer is None:
             relative_url_pointer = self.get_definition_relative_url_pointer(
                 schema
             )
-
         if len(relative_url_pointer) > 116 and relative_url_pointer[0] != "#":
             pointer_split = relative_url_pointer.split("#")
             docstring_lines = [
-                pointer_split[0] + "\n" + "#" + "#".join(pointer_split[1:])
+                f"{pointer_split[0]}\n#{'#'.join(pointer_split[1:])}"
             ]
         else:
             docstring_lines = [relative_url_pointer]
         if schema and schema.description:
             docstring_lines.append(schema.description)
-        return "\n\n".join(docstring_lines)
+        return split_long_docstring_lines("\n\n".join(docstring_lines))
 
     def get_schema_object(self, schema, name=None, relative_url_pointer=None):
         # type: (Schema, Optional[str], Optional[str]) -> type

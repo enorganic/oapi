@@ -35,7 +35,7 @@ def setup(**kwargs: Any) -> None:
 
 setup(
     name="oapi",
-    version="1.2.0",
+    version="1.3.0",
     description=(
         "An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications"
     ),
@@ -50,7 +50,7 @@ setup(
     install_requires=[
         "pyyaml>=3.10",
         "iso8601~=0.1",
-        "sob~=1.8",
+        "sob~=1.9",
         "jsonpointer~=2.0",
     ],
     extras_require={
