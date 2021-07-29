@@ -50,7 +50,7 @@ setup(
     install_requires=[
         "pyyaml>=3.10",
         "iso8601~=0.1",
-        "sob~=1.9",
+        "sob~=1.13",
         "jsonpointer~=2.0",
     ],
     extras_require={
@@ -60,8 +60,8 @@ setup(
             "flake8~=3.8",
             "daves-dev-tools~=0.3",
             "readme-md-docstrings~=0.1",
-            "setuptools-setup-versions~=1.8",
+            "setuptools-setup-versions~=1.18",
         ],
-        "test": ["pytest~=5.4", "tox~=3.21", "flake8~=3.8"],
+        "test": ["pytest~=5.4", "tox~=3.21", "flake8~=3.8", "black~=21.7b0"],
     },
 )
