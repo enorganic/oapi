@@ -35,7 +35,7 @@ def setup(**kwargs: Any) -> None:
 
 setup(
     name="oapi",
-    version="1.3.0",
+    version="1.4.0",
     description=(
         "An SDK for parsing OpenAPI (Swagger) 2.0 - 3.0 specifications"
     ),

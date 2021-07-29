@@ -785,10 +785,11 @@ class _Modeler:
                 # This is needed for `operation_defines_model`, to ensure
                 # parameters are not referenced
                 dereferenced_model_instance = copy(model_instance)
-                dereferenced_model_instance.parameters = tuple(
-                    self._resolve(parameter, (Parameter, Reference))
-                    for parameter in dereferenced_model_instance.parameters
-                )
+                if dereferenced_model_instance.parameters:
+                    dereferenced_model_instance.parameters = tuple(
+                        self._resolve(parameter, (Parameter, Reference))
+                        for parameter in dereferenced_model_instance.parameters
+                    )
                 if operation_defines_model(dereferenced_model_instance):
                     yield model_instance
             meta_ = meta.read(model_instance)
