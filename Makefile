@@ -6,7 +6,8 @@ install:
 	python3 -m pip install\
 	 -r requirements.txt\
 	 -e . && \
-	mypy --install-types --non-interactive &
+	mypy --install-types --non-interactive ; \
+	echo "Installation Finished"
 
 clean:
 	(. venv/bin/activate || venv/Scripts/activate.bat) && \
@@ -27,7 +28,7 @@ upgrade:
 	 -nv '*' . pyproject.toml tox.ini \
 	 > .unversioned_requirements.txt && \
 	python3 -m pip install --upgrade --upgrade-strategy eager\
-	 -r .unversioned_requirements.txt -e '.[all]' && \
+	 -r .unversioned_requirements.txt -e . && \
 	rm .unversioned_requirements.txt && \
 	make requirements
 
