@@ -1,13 +1,18 @@
 [build-system]
 requires = [
-    "setuptools>=53.0.0",
-    "wheel"
+    "setuptools",
+    "wheel",
+    "pip",
 ]
 build-backend = "setuptools.build_meta"
+
 [tool.black]
 line-length = 79
+extend-exclude = "/tests"
 target-version = [
     "py36",
     "py37",
-    "py38"
+    "py38",
+    "py39",
+    "py310",
 ]

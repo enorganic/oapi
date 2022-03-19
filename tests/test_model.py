@@ -6,7 +6,7 @@ import os
 from itertools import chain
 from urllib.parse import urljoin
 
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 import sob
 from oapi.oas.references import Resolver
@@ -22,7 +22,9 @@ LANGUAGE_TOOL_URL = (
 
 
 def test_languagetool():
-    with urlopen(LANGUAGE_TOOL_URL) as response:
+    with urlopen(
+        Request(LANGUAGE_TOOL_URL, headers={"User-agent": ""})
+    ) as response:
         oa = OpenAPI(response)
         sob.test.json(oa)
         model = Module(oa)

@@ -845,7 +845,12 @@ sob.meta.writable(Parameter).properties = [
             name="allowReserved", versions=("openapi>=3.0",)
         ),
     ),
-    ("schema", sob.properties.Property(types=(Reference, Schema),)),
+    (
+        "schema",
+        sob.properties.Property(
+            types=(Reference, Schema),
+        ),
+    ),
     ("example", sob.properties.Property(versions=("openapi>=3.0",))),
     (
         "examples",
@@ -1972,7 +1977,8 @@ sob.meta.writable(Schema).properties = [
         sob.properties.Property(
             types=(
                 sob.properties.Property(
-                    types=(Discriminator,), versions=("openapi>=3.0",),
+                    types=(Discriminator,),
+                    versions=("openapi>=3.0",),
                 ),
                 sob.properties.Property(
                     types=(str,), versions=("openapi<3.0",)
@@ -1980,7 +1986,7 @@ sob.meta.writable(Schema).properties = [
             )
         ),
     ),
-    ("read_only", sob.properties.Boolean()),
+    ("read_only", sob.properties.Boolean(name="readOnly")),
     (
         "write_only",
         sob.properties.Boolean(name="writeOnly", versions=("openapi>=3.0",)),

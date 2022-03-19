@@ -1,13 +1,12 @@
 import os
 import re
-import collections
-
+import sob
+from sob.abc import MarshallableTypes
 from collections import OrderedDict
 from copy import copy
 from io import IOBase
 from urllib.parse import urlparse, urljoin
 from urllib.request import urlopen
-
 from sob import __name__ as _sob_module_name
 from sob import meta
 from sob import properties
@@ -32,10 +31,21 @@ from sob.model import (
 )
 from sob.utilities import qualified_name, url_relative_to
 from sob.properties import Property
-from sob.utilities.types import NoneType, Null
+from sob.utilities.types import Null
 from .oas.references import Resolver
 from .oas.model import OpenAPI, Schema, Reference, Parameter, Operation
-from typing import Iterable, Sequence, Optional, Tuple, Union, List
+from typing import (
+    IO,
+    Dict,
+    Iterable,
+    Sequence,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    List,
+)
 
 _META_MODULE_QUALIFIED_NAME = qualified_name(meta)
 _META_PROPERTIES_QAULIFIED_NAME = qualified_name(meta.Properties)
@@ -133,8 +143,9 @@ class _Modeler:
     `sob` library.
     """
 
-    def __init__(self, root):
-        # type: (Union[IOBase, str], str, Callable) -> None
+    def __init__(
+        self, root: Union[IO[str], IO[bytes], Dict[str, MarshallableTypes]]
+    ) -> None:
         if not isinstance(root, OpenAPI):
             root = OpenAPI(root)
         # This ensures all elements have URLs and JSON pointers
@@ -213,8 +224,9 @@ class _Modeler:
                 if child_property_ is not None:
                     property_.types.append(child_property_)
 
-    def property_all_of(self, property_, schemas):
-        # type: (Iterable[Schema]) -> None
+    def property_all_of(
+        self, property_: Property, schemas: Iterable[Schema]
+    ) -> None:
         """
         TODO
         """
@@ -332,8 +344,9 @@ class _Modeler:
         pointer = meta.pointer(definition)
         return self.get_relative_url(url), pointer
 
-    def get_definition_relative_url_pointer(self, definition):
-        # type: (Union[Schema, Operation, Parameter]) -> str
+    def get_definition_relative_url_pointer(
+        self, definition: Union[Schema, Operation, Parameter]
+    ) -> str:
         """
         Given a schema/operation/parameter definition, return a relative path +
         pointer in relation to the root document
@@ -343,8 +356,9 @@ class _Modeler:
         )
         return relative_url + pointer
 
-    def set_relative_url_pointer_model(self, relative_url_pointer, model):
-        # type: (str, Optional[sob.model.Model]) -> None
+    def set_relative_url_pointer_model(
+        self, relative_url_pointer: str, model: sob.model.Model
+    ) -> None:
         self._relative_urls_pointers_models[relative_url_pointer] = model
 
     def set_model_class_name(self, model, class_name_=None):
@@ -463,15 +477,16 @@ class _Modeler:
 
     def get_schema_array(
         self,
-        schema,
-        name=None,
-        relative_url_pointer=None,
+        schema: Schema,
+        name: Optional[str] = None,
+        relative_url_pointer: Optional[str] = None,
         required: bool = False,
-    ):
-        # type: (Schema, Optional[str], Optional[str]) -> type
-        # Get all applicable items schemas
+    ) -> Type[Array]:
+        """
+        Get all applicable items schemas
+        """
         items_schemas = self._resolve(schema.items)
-        if isinstance(items_schemas, (collections.Sequence, collections.Set)):
+        if isinstance(items_schemas, (Sequence, Set)):
             items_schemas = tuple(
                 self._resolve(items_schema) for items_schema in items_schemas
             )
@@ -511,8 +526,8 @@ class _Modeler:
                 return self._class_names_models[name]
             else:
                 if relative_url_pointer is None:
-                    relative_url_pointer = self.get_definition_relative_url_pointer(
-                        schema
+                    relative_url_pointer = (
+                        self.get_definition_relative_url_pointer(schema)
                     )
                 name = self.set_relative_url_pointer_class_name(
                     relative_url_pointer, name
@@ -541,8 +556,8 @@ class _Modeler:
             if name is None:
                 name = self.get_schema_class_name(schema)
             if relative_url_pointer is None:
-                relative_url_pointer = self.get_definition_relative_url_pointer(
-                    schema
+                relative_url_pointer = (
+                    self.get_definition_relative_url_pointer(schema)
                 )
             name += "Dictionary"
             dictionary_meta = meta.Dictionary()
@@ -717,10 +732,18 @@ class _Modeler:
         ):
             yield self._resolve(definition)
 
-    def _resolve(self, model_instance, types=None):
-        # type: (ModelBase, Optional[Sequence[type, Property]]) -> ModelBase
+    def _resolve(
+        self,
+        model_instance: ModelBase,
+        types: Optional[Sequence[Union[type, Property]]] = None,
+    ) -> ModelBase:
         """
-        If `model_instance` is a reference, get the referenced object
+        If `model_instance` is a reference, get the referenced object.
+
+        Parameters:
+
+        - model_instance (sob.model.Model)
+        - types ([type|sob.properties.Property])
         """
         if isinstance(model_instance, Reference):
             if types is None:
