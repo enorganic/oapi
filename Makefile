@@ -6,7 +6,7 @@ install:
 	python3 -m pip install\
 	 -r requirements.txt\
 	 -e . && \
-	mypy --install-types --non-interactive ;
+	mypy --install-types --non-interactive &
 
 clean:
 	(. venv/bin/activate || venv/Scripts/activate.bat) && \
