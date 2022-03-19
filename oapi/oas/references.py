@@ -18,10 +18,9 @@ resolver = Resolver(open_api_document)
 resolver.dereference()
 ```
 """
-import collections
 from collections import OrderedDict
 from itertools import chain
-from typing import Dict, Optional, Sequence, Union
+from typing import Dict, Optional, Sequence, Set, Union
 from urllib import request
 from urllib.error import HTTPError
 from urllib.parse import urljoin, urlparse
@@ -106,7 +105,7 @@ class _Document:
                     model_instance, recursive=recursive
                 )
             elif isinstance(
-                model_instance, (Array, collections.Sequence, collections.Set)
+                model_instance, (Array, Sequence, Set)
             ) and not isinstance(model_instance, (str, bytes)):
                 self.dereference_array_items(
                     model_instance, recursive=recursive
