@@ -27,13 +27,13 @@ class CheckPostResponses200Schema(sob.model.Object):
             None,
         ] = None,
         software: typing.Optional[
-            'CheckPostResponses200SchemaSoftware'
+            "CheckPostResponses200SchemaSoftware"
         ] = None,
         language: typing.Optional[
-            'CheckPostResponses200SchemaLanguage'
+            "CheckPostResponses200SchemaLanguage"
         ] = None,
         matches: typing.Optional[
-            'CheckPostResponses200SchemaMatches'
+            "CheckPostResponses200SchemaMatches"
         ] = None
     ) -> None:
         self.software = software
@@ -147,8 +147,8 @@ class CheckPostResponses200SchemaLanguage(sob.model.Object):
         detected_language: typing.Optional[
             typing.Union[
                 (
-                    'CheckPostResponses200SchemaPropertiesLanguageDetectedLang'
-                    'uage'
+                    "CheckPostResponses200SchemaPropertiesLanguageDetectedLang"
+                    "uage"
                 ),
                 sob.utilities.types.Null
             ]
@@ -217,7 +217,7 @@ class CheckPostResponses200SchemaMatches(sob.model.Array):
         self,
         items: typing.Union[
             typing.Iterable[
-                'CheckPostResponses200SchemaPropertiesMatchesItems'
+                "CheckPostResponses200SchemaPropertiesMatchesItems"
             ],
             sob.abc.Readable,
             str,
@@ -276,15 +276,15 @@ class CheckPostResponses200SchemaPropertiesMatchesItems(sob.model.Object):
         replacements: typing.Optional[
             typing.Union[
                 (
-                    'CheckPostResponses200SchemaPropertiesMatchesItemsReplacem'
-                    'ents'
+                    "CheckPostResponses200SchemaPropertiesMatchesItemsReplacem"
+                    "ents"
                 ),
                 sob.utilities.types.Null
             ]
         ] = None,
         context: typing.Optional[
             typing.Union[
-                'CheckPostResponses200SchemaPropertiesMatchesItemsContext',
+                "CheckPostResponses200SchemaPropertiesMatchesItemsContext",
                 sob.utilities.types.Null
             ]
         ] = None,
@@ -295,7 +295,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItems(sob.model.Object):
             ]
         ] = None,
         rule: typing.Optional[
-            'CheckPostResponses200SchemaPropertiesMatchesItemsRule'
+            "CheckPostResponses200SchemaPropertiesMatchesItemsRule"
         ] = None
     ) -> None:
         self.message = message
@@ -325,8 +325,8 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsReplacements(
         items: typing.Union[
             typing.Iterable[
                 (
-                    'CheckPostResponses200SchemaPropertiesMatchesItemsProperti'
-                    'esReplacementsItems'
+                    "CheckPostResponses200SchemaPropertiesMatchesItemsProperti"
+                    "esReplacementsItems"
                 )
             ],
             sob.abc.Readable,
@@ -467,8 +467,8 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsRule(sob.model.Object):
         ] = None,
         urls: typing.Optional[
             (
-                'CheckPostResponses200SchemaPropertiesMatchesItemsProperti'
-                'esRuleUrls'
+                "CheckPostResponses200SchemaPropertiesMatchesItemsProperti"
+                "esRuleUrls"
             )
         ] = None,
         issue_type: typing.Optional[
@@ -477,8 +477,8 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsRule(sob.model.Object):
         category: typing.Optional[
             typing.Union[
                 (
-                    'CheckPostResponses200SchemaPropertiesMatchesItemsProperti'
-                    'esRuleCategory'
+                    "CheckPostResponses200SchemaPropertiesMatchesItemsProperti"
+                    "esRuleCategory"
                 ),
                 sob.utilities.types.Null
             ]
@@ -508,8 +508,8 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleUrls(
         items: typing.Union[
             typing.Iterable[
                 (
-                    'CheckPostResponses200SchemaPropertiesMatchesItemsProperti'
-                    'esRulePropertiesUrlsItems'
+                    "CheckPostResponses200SchemaPropertiesMatchesItemsProperti"
+                    "esRulePropertiesUrlsItems"
                 )
             ],
             sob.abc.Readable,
@@ -604,7 +604,7 @@ class LanguagesGetResponses200Schema(sob.model.Array):
         self,
         items: typing.Union[
             typing.Iterable[
-                'LanguagesGetResponses200SchemaItems'
+                "LanguagesGetResponses200SchemaItems"
             ],
             sob.abc.Readable,
             str,
@@ -689,7 +689,7 @@ class WordsGetResponses200Schema(sob.model.Object):
             None,
         ] = None,
         words: typing.Optional[
-            'WordsGetResponses200SchemaWords'
+            "WordsGetResponses200SchemaWords"
         ] = None
     ) -> None:
         self.words = words
