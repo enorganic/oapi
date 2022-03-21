@@ -243,7 +243,7 @@ class _Document:
                 raise ReferenceLoopError(pointer)
         else:
             self.pointers[pointer] = None
-            if pointer[0] == "#":
+            if pointer.startswith("#"):
                 # Resolve a reference within the same Open API document
                 resolved = resolve_pointer(self.root, pointer[1:])
                 # Cast the resolved reference as one of the given types
@@ -273,6 +273,7 @@ class _Document:
                 self.dereference(resolved, recursive=dereference)
             # Cache the resolved pointer
             self.pointers[pointer] = resolved
+        meta.set_pointer(self.pointers[pointer], pointer)
         return self.pointers[pointer]
 
     def dereference_all(self):

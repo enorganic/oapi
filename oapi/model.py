@@ -1,39 +1,6 @@
 import os
 import re
 import sob
-from sob.abc import MarshallableTypes
-from collections import OrderedDict
-from copy import copy
-from io import IOBase
-from urllib.parse import urlparse, urljoin
-from urllib.request import urlopen
-from sob import __name__ as _sob_module_name
-from sob import meta
-from sob import properties
-from sob.thesaurus import get_class_meta_attribute_assignment_source
-from sob.utilities.inspect import (
-    get_source,
-    properties_values,
-    calling_function_qualified_name,
-)
-from sob.utilities.string import (
-    property_name,
-    class_name,
-    split_long_docstring_lines,
-)
-from sob.utilities.string import split_long_comment_line
-from sob.model import (
-    Model as ModelBase,
-    Object,
-    Dictionary,
-    Array,
-    from_meta as model_from_meta,
-)
-from sob.utilities import qualified_name, url_relative_to
-from sob.properties import Property
-from sob.utilities.types import Null
-from .oas.references import Resolver
-from .oas.model import OpenAPI, Schema, Reference, Parameter, Operation
 from typing import (
     IO,
     Dict,
@@ -46,9 +13,31 @@ from typing import (
     Union,
     List,
 )
+from collections import OrderedDict
+from copy import copy
+from io import IOBase
+from urllib.parse import urlparse, urljoin
+from urllib.request import urlopen
+from sob.abc import MarshallableTypes
+from sob.thesaurus import get_class_meta_attribute_assignment_source
+from sob.utilities.inspect import (
+    get_source,
+    properties_values,
+    calling_function_qualified_name,
+)
+from sob.utilities.string import (
+    property_name,
+    class_name,
+    split_long_docstring_lines,
+)
+from sob.utilities.string import split_long_comment_line
+from sob.utilities import qualified_name, url_relative_to
+from sob.utilities.types import Null
+from .oas.references import Resolver
+from .oas.model import OpenAPI, Schema, Reference, Parameter, Operation
 
-_META_MODULE_QUALIFIED_NAME = qualified_name(meta)
-_META_PROPERTIES_QAULIFIED_NAME = qualified_name(meta.Properties)
+_META_MODULE_QUALIFIED_NAME = qualified_name(sob.meta)
+_META_PROPERTIES_QAULIFIED_NAME = qualified_name(sob.meta.Properties)
 _META_PROPERTIES_QAULIFIED_NAME_LENGTH = len(_META_PROPERTIES_QAULIFIED_NAME)
 _DOC_POINTER_RE = re.compile(
     (
@@ -93,7 +82,7 @@ def schema_defines_dictionary(schema):
     # type: (Schema) -> bool
     """
     If properties are not defined for a schema, or unspecified attributes are
-    allowed--the schema will translate to an instance of `Dictionary`.
+    allowed--the schema will translate to an instance of `sob.abc.Dictionary`.
     """
     return schema.type_ == "object" and (
         schema.additional_properties or (not schema.properties)
@@ -149,8 +138,8 @@ class _Modeler:
         if not isinstance(root, OpenAPI):
             root = OpenAPI(root)
         # This ensures all elements have URLs and JSON pointers
-        meta.url(root, meta.url(root))
-        meta.pointer(root, meta.pointer(root))
+        sob.meta.set_url(root, sob.meta.get_url(root))
+        sob.meta.set_pointer(root, sob.meta.get_pointer(root))
         # Private Properties
         self._traversed_relative_urls_pointers = set()
         self._relative_urls_pointers_class_names = {}
@@ -171,8 +160,9 @@ class _Modeler:
         self.names_schemas = {}
         self.pointers_models = OrderedDict()
 
-    def get_relative_url_pointer_model(self, relative_url_pointer):
-        # type: (str) -> Module
+    def get_relative_url_pointer_model(
+        self, relative_url_pointer: str
+    ) -> "Module":
         return self._relative_urls_pointers_models[relative_url_pointer]
 
     def set_relative_url_pointer_class_name(
@@ -194,28 +184,32 @@ class _Modeler:
         ] = relative_url_pointer
         return class_name_
 
-    def relative_url_pointer_class_name_exists(self, relative_url_pointer):
-        # type: (str) -> bool
+    def relative_url_pointer_class_name_exists(
+        self, relative_url_pointer: str
+    ) -> bool:
         return relative_url_pointer in self._relative_urls_pointers_class_names
 
-    def relative_url_pointer_model_exists(self, relative_url_pointer):
-        # type: (str) -> bool
+    def relative_url_pointer_model_exists(
+        self, relative_url_pointer: str
+    ) -> bool:
         return relative_url_pointer in self._relative_urls_pointers_models
 
-    def class_name_relative_urls_pointer_exists(self, class_name_):
-        # type: (str) -> bool
+    def class_name_relative_urls_pointer_exists(
+        self, class_name_: str
+    ) -> bool:
         return class_name_ in self._class_names_relative_urls_pointers
 
-    def get_relative_url_pointer_class_name(self, relative_url_pointer):
-        # type: (str) -> str
+    def get_relative_url_pointer_class_name(
+        self, relative_url_pointer: str
+    ) -> str:
         return self._relative_urls_pointers_class_names[relative_url_pointer]
 
-    def get_class_name_relative_url_pointer(self, class_name_):
-        # type: (str) -> str
+    def get_class_name_relative_url_pointer(self, class_name_: str) -> str:
         return self._class_names_relative_urls_pointers[class_name_]
 
-    def property_any_of(self, property_, schemas):
-        # type: (Property, Iterable[Schema]) -> None
+    def property_any_of(
+        self, property_: sob.abc.Property, schemas: Iterable[Schema]
+    ) -> None:
         if schemas:
             if property_.types is None:
                 property_.types = []
@@ -225,11 +219,8 @@ class _Modeler:
                     property_.types.append(child_property_)
 
     def property_all_of(
-        self, property_: Property, schemas: Iterable[Schema]
+        self, property_: sob.abc.Property, schemas: Iterable[Schema]
     ) -> None:
-        """
-        TODO
-        """
         if schemas:
             if property_.types is None:
                 property_.types = []
@@ -240,11 +231,10 @@ class _Modeler:
 
     def get_property(
         self,
-        schema,  # type: Union[Schema, Reference]
-        name=None,  # type: Optional[str]
-        required=None,  # type: Optional[bool]
-    ):
-        # type: (...) -> properties.Property
+        schema: Union[Schema, Reference],
+        name: Optional[str] = None,
+        required: Optional[bool] = None,
+    ) -> sob.abc.Property:
         is_referenced = isinstance(schema, Reference)
         schema = self._resolve(schema)
         if (
@@ -252,40 +242,40 @@ class _Modeler:
             or (schema.one_of is not None)
             or (schema.all_of is not None)
         ):
-            property_ = properties.Property(required=required)
+            property_ = sob.properties.Property(required=required)
             self.property_any_of(property_, schema.any_of)
             self.property_any_of(property_, schema.one_of)
             self.property_all_of(property_, schema.all_of)
         elif schema_defines_model(schema):
-            property_ = properties.Property(required=required)
+            property_ = sob.properties.Property(required=required)
             property_types = self.get_model(
                 schema, is_property=(not is_referenced)
             )
             if property_types is not None:
                 property_.types = (property_types,)
         elif schema.type_ == "number":
-            property_ = properties.Number(required=required)
+            property_ = sob.properties.Number(required=required)
         elif schema.type_ == "integer":
-            property_ = properties.Integer(required=required)
+            property_ = sob.properties.Integer(required=required)
         elif schema.type_ == "string":
             if schema.format_ == "date-time":
-                property_ = properties.DateTime(required=required)
+                property_ = sob.properties.DateTime(required=required)
             elif schema.format_ == "date":
-                property_ = properties.Date(required=required)
+                property_ = sob.properties.Date(required=required)
             elif schema.format_ == "byte":
-                property_ = properties.Bytes(required=required)
+                property_ = sob.properties.Bytes(required=required)
             else:
-                property_ = properties.String(required=required)
+                property_ = sob.properties.String(required=required)
         elif schema.type_ == "boolean":
-            property_ = properties.Boolean(required=required)
+            property_ = sob.properties.Boolean(required=required)
         elif schema.type_ == "file":
-            property_ = properties.Bytes(required=required)
+            property_ = sob.properties.Bytes(required=required)
         elif schema.type_:
             raise ValueError("Unknown schema type:\n" + repr(schema))
         else:
-            property_ = properties.Property(required=required)
+            property_ = sob.properties.Property(required=required)
         if schema.enum:
-            property_ = properties.Enumerated(
+            property_ = sob.properties.Enumerated(
                 values=tuple(schema.enum),
                 types=(property_,),
                 required=required,
@@ -307,7 +297,7 @@ class _Modeler:
                     property_.versions,
                 )
                 property_.name = property_.required = property_.versions = None
-                property_ = Property(
+                property_ = sob.properties.Property(
                     types=(property_, Null),
                     name=name,
                     required=required,
@@ -339,9 +329,9 @@ class _Modeler:
         Given a schema/operation/parameter definition, return a relative path
         in relation to the root document and the pointer
         """
-        url: Optional[str] = meta.url(definition) or ""
+        url: Optional[str] = sob.meta.url(definition) or ""
         assert isinstance(url, str)
-        pointer = meta.pointer(definition)
+        pointer = sob.meta.pointer(definition)
         return self.get_relative_url(url), pointer
 
     def get_definition_relative_url_pointer(
@@ -361,14 +351,19 @@ class _Modeler:
     ) -> None:
         self._relative_urls_pointers_models[relative_url_pointer] = model
 
-    def set_model_class_name(self, model, class_name_=None):
-        # type: (Optional[sob.model.Model], Optional[str]) -> None
+    def set_model_class_name(
+        self, model: Optional[sob.abc.Model], class_name_: Optional[str] = None
+    ) -> None:
         if class_name_ is None:
             class_name_ = model.__name__
         self._class_names_models[class_name_] = model
 
-    def get_model(self, definition, is_property=False, required=False):
-        # type: (Union[Schema, Operation, Parameter], bool, bool) -> ModelBase
+    def get_model(
+        self,
+        definition: Union[Schema, Operation, Parameter],
+        is_property: bool = False,
+        required: bool = False,
+    ) -> sob.abc.Model:
         relative_url_pointer = self.get_definition_relative_url_pointer(
             definition
         )
@@ -410,15 +405,16 @@ class _Modeler:
             self.set_model_class_name(model)
         return self.get_relative_url_pointer_model(relative_url_pointer)
 
-    @property
-    def models(self):
-        # type: (...) -> typing.Iterator[Union[Schema, Operation, Parameter]]
-        models_names = {}
+    @property  # type: ignore
+    def models(self) -> Iterable[Union[Schema, Operation, Parameter]]:
+        models_names: Dict[str, sob.abc.Model] = {}
         for definition in self.model_definitions:
             model = self.get_model(definition)
             if model.__name__ in models_names:
-                existing_model_meta = meta.read(models_names[model.__name__])
-                new_model_meta = meta.read(model)
+                existing_model_meta = sob.meta.read(
+                    models_names[model.__name__]
+                )
+                new_model_meta = sob.meta.read(model)
                 # Ensure this is just a repeat use of the same model, and not
                 # a different model of the same name
                 if existing_model_meta != new_model_meta:
@@ -433,17 +429,17 @@ class _Modeler:
                             repr(new_model_meta),
                         )
                     )
-            elif model not in (Array, Dictionary):
+            elif model not in (sob.model.Array, sob.model.Dictionary):
                 models_names[model.__name__] = model
                 yield model
 
-    def get_operation_model(self, operation):
-        # type: (Operation) -> type
-        name = self.get_operation_class_name(operation)
-        # TODO
+    def get_operation_model(self, operation: Operation) -> Type[sob.abc.Model]:
+        name: str = self.get_operation_class_name(operation)  # noqa
+        raise NotImplementedError()  # TODO
 
-    def get_parameter_model(self, parameter, required: bool = False):
-        # type: (Parameter) -> type
+    def get_parameter_model(
+        self, parameter: Parameter, required: bool = False
+    ) -> Type[sob.abc.Model]:
         return self.get_schema_model(
             parameter.schema,
             name=self.get_parameter_class_name(parameter),
@@ -451,9 +447,12 @@ class _Modeler:
         )
 
     def get_schema_model(
-        self, schema, name=None, relative_url_pointer=None, is_property=False
-    ):
-        # type: (Schema, Optional[str], Optional[str], bool) -> type
+        self,
+        schema: Schema,
+        name: Optional[str] = None,
+        relative_url_pointer: Optional[str] = None,
+        is_property: bool = False,
+    ) -> Type[sob.abc.Model]:
         if name is None:
             name = self.get_schema_class_name(schema, is_property=is_property)
         if relative_url_pointer is None:
@@ -481,7 +480,7 @@ class _Modeler:
         name: Optional[str] = None,
         relative_url_pointer: Optional[str] = None,
         required: bool = False,
-    ) -> Type[Array]:
+    ) -> Type[sob.abc.Array]:
         """
         Get all applicable items schemas
         """
@@ -492,7 +491,7 @@ class _Modeler:
             )
         elif items_schemas is not None:
             items_schemas = (items_schemas,)
-        item_types = None
+        item_types: Optional[List[sob.abc.Model]] = None
         # If item types are defined--create a class, otherwise--use the base
         # class
         if items_schemas:
@@ -510,18 +509,18 @@ class _Modeler:
                 if items_model is not None:
                     item_types.append(items_model)
         if item_types:
-            array_meta = meta.Array(item_types=item_types)
+            array_meta = sob.meta.Array(item_types=item_types)
             # If the array allows a single type--base the array name on that
             # type in order to allow re-use
             if (
                 len(item_types) == 1
                 and isinstance(item_types[0], type)
-                and issubclass(item_types[0], ModelBase)
+                and issubclass(item_types[0], sob.abc.Model)
             ):
                 name = item_types[0].__name__
             elif name is None:
                 name = self.get_schema_class_name(schema)
-            name += "Array"
+            name = f"{name}Array"
             if name in self._class_names_models:
                 return self._class_names_models[name]
             else:
@@ -533,25 +532,23 @@ class _Modeler:
                     relative_url_pointer, name
                 )
                 self._class_names_meta[name] = array_meta
-                array_class = model_from_meta(
+                array_class = sob.model.from_meta(
                     name,
                     array_meta,
                     docstring=self.get_docstring(schema, relative_url_pointer),
                     module="__main__",
                 )
         else:
-            array_class = Array
+            array_class = sob.model.Array
         return array_class
 
     def get_schema_dictionary(
         self,
-        schema,
-        name=None,
-        relative_url_pointer=None,
+        schema: Schema,
+        name: Optional[str] = None,
+        relative_url_pointer: Optional[str] = None,
         required: bool = False,
-    ):
-        # type: (Schema, Optional[str], Optional[str], bool) -> type
-        # Get the value type schema, if applicable
+    ) -> Type[sob.abc.Dictionary]:
         if isinstance(schema.additional_properties, (Schema, Reference)):
             if name is None:
                 name = self.get_schema_class_name(schema)
@@ -559,8 +556,8 @@ class _Modeler:
                 relative_url_pointer = (
                     self.get_definition_relative_url_pointer(schema)
                 )
-            name += "Dictionary"
-            dictionary_meta = meta.Dictionary()
+            name = f"{name}Dictionary"
+            dictionary_meta = sob.meta.Dictionary()
             value_type = self.get_model(
                 self._resolve(schema.additional_properties), required=required
             )
@@ -569,14 +566,14 @@ class _Modeler:
                 relative_url_pointer, name
             )
             self._class_names_meta[name] = dictionary_meta
-            dictionary_class = model_from_meta(
+            dictionary_class = sob.model.from_meta(
                 name,
                 dictionary_meta,
                 docstring=self.get_docstring(schema, relative_url_pointer),
                 module="__main__",
             )
         else:
-            dictionary_class = Dictionary
+            dictionary_class = sob.model.Dictionary
         return dictionary_class
 
     def get_docstring(self, schema, relative_url_pointer):
@@ -604,13 +601,13 @@ class _Modeler:
             relative_url_pointer = self.get_definition_relative_url_pointer(
                 schema
             )
-        object_meta = meta.Object()
+        object_meta = sob.meta.Object()
         for name_, property_ in schema.properties.items():
             property_name_ = property_name(name_)
             # Prevent property names from conflicting with the dependency
             # module namespace
-            if property_name_ == _sob_module_name:
-                property_name_ = _sob_module_name + "_"
+            if property_name_ == sob.__name__:
+                property_name_ = f"{sob.__name__}_"
             object_meta.properties[property_name_] = self.get_property(
                 property_,
                 name=None if property_name_ == name_ else name_,
@@ -624,7 +621,7 @@ class _Modeler:
             relative_url_pointer, name
         )
         self._class_names_meta[name] = object_meta
-        return model_from_meta(
+        return sob.model.from_meta(
             name,
             object_meta,
             docstring=self.get_docstring(schema, relative_url_pointer),
@@ -719,24 +716,25 @@ class _Modeler:
             )
         return self.get_relative_url_pointer_class_name(relative_url_pointer)
 
-    @property
-    def model_definitions(self):
-        # type: (...) -> Tuple[str, str, ModelBase]
+    @property  # type: ignore
+    def model_definitions(
+        self,
+    ) -> Iterable[Union[Schema, Parameter, Operation]]:
         """
         This property returns all objects defining a model, namely instances of
         `Schema`, `Parameter`, and `Operation`
         """
         self._traversed_relative_urls_pointers = set()
-        for definition in tuple(
-            self._traverse_model_definitions(self.root, (OpenAPI,))
+        for definition in self._traverse_model_definitions(
+            self.root, (OpenAPI,)
         ):
             yield self._resolve(definition)
 
     def _resolve(
         self,
-        model_instance: ModelBase,
-        types: Optional[Sequence[Union[type, Property]]] = None,
-    ) -> ModelBase:
+        model_instance: sob.abc.Model,
+        types: Optional[Sequence[Union[type, sob.abc.Property]]] = None,
+    ) -> Union[Schema, Parameter, Operation]:
         """
         If `model_instance` is a reference, get the referenced object.
 
@@ -748,15 +746,17 @@ class _Modeler:
         if isinstance(model_instance, Reference):
             if types is None:
                 types = (Schema,)
-            url = meta.url(model_instance) or ""
-            pointer = urljoin(meta.pointer(model_instance), model_instance.ref)
+            url: str = sob.meta.get_url(model_instance) or ""
+            pointer: str = urljoin(
+                sob.meta.get_pointer(model_instance), model_instance.ref
+            )
             while isinstance(model_instance, Reference):
                 resolved_model_instance = self.resolver.get_document(
                     url
                 ).resolve(pointer, types)
                 if resolved_model_instance is model_instance:
                     raise RuntimeError(
-                        "`Reference` instance is self-referential: " + pointer
+                        f"`Reference` instance is self-referential: {pointer}"
                     )
                 else:
                     model_instance = resolved_model_instance
@@ -765,7 +765,7 @@ class _Modeler:
         return model_instance
 
     def _add_traversed_definition(
-        self, definition  # type: ModelBase
+        self, definition  # type: sob.abc.Model
     ):
         # type: (...) -> None
         self._traversed_relative_urls_pointers.add(
@@ -773,7 +773,7 @@ class _Modeler:
         )
 
     def _is_traversed_definition(
-        self, definition  # type: ModelBase
+        self, definition  # type: sob.abc.Model
     ):
         # type: (...) -> bool
         relative_url_pointer = self.get_definition_relative_url_pointer(
@@ -783,11 +783,10 @@ class _Modeler:
 
     def _traverse_model_definitions(
         self,
-        model_instance,  # type: ModelBase
-        types=None,  # type: Optional[Union[type, properties.Property]]
-    ):
-        # type: (...) -> typing.Iterator[Union[Schema, Operation, Parameter]]
-        assert isinstance(model_instance, ModelBase)
+        model_instance: sob.abc.Model,
+        types: Optional[Union[type, sob.abc.Property]] = None,
+    ) -> Iterable[Union[Schema, Operation, Parameter]]:
+        assert isinstance(model_instance, sob.abc.Model)
         model_instance = self._resolve(model_instance, types)
         if not self._is_traversed_definition(model_instance):
             self._add_traversed_definition(model_instance)
@@ -815,26 +814,26 @@ class _Modeler:
                     )
                 if operation_defines_model(dereferenced_model_instance):
                     yield model_instance
-            meta_ = meta.read(model_instance)
+            meta_ = sob.meta.read(model_instance)
             # Recursively find other definitions
-            if isinstance(model_instance, Dictionary):
-                for key, value in model_instance.items():
-                    if isinstance(value, ModelBase):
+            if isinstance(model_instance, sob.abc.Dictionary):
+                for value in model_instance.values():
+                    if isinstance(value, sob.abc.Model):
                         for definition in self._traverse_model_definitions(
                             value, meta_.value_types
                         ):
                             yield definition
-            elif isinstance(model_instance, Array):
+            elif isinstance(model_instance, sob.abc.Array):
                 for item in model_instance:
-                    if isinstance(item, ModelBase):
+                    if isinstance(item, sob.abc.Model):
                         for definition in self._traverse_model_definitions(
                             item, meta_.item_types
                         ):
                             yield definition
-            elif isinstance(model_instance, Object):
+            elif isinstance(model_instance, sob.abc.Object):
                 for name, property_ in meta_.properties.items():
                     value = getattr(model_instance, name)
-                    if isinstance(value, ModelBase):
+                    if isinstance(value, sob.abc.Model):
                         for definition in self._traverse_model_definitions(
                             value, (property_,)
                         ):
@@ -867,7 +866,7 @@ class _Modeler:
 
     @staticmethod
     def represent_model(model):
-        # type: (ModelBase) -> Tuple[str, str]
+        # type: (sob.abc.Model) -> Tuple[str, str]
         model_source: str = get_source(model)
         sections: Sequence[str] = model_source.split("\n\n\n")
         if len(sections) != 2:
@@ -935,7 +934,7 @@ class _ModuleParser:
             if (
                 name[0] != "_"
                 and isinstance(value, type)
-                and issubclass(value, ModelBase)
+                and issubclass(value, sob.abc.Model)
             ):
                 yield value
 

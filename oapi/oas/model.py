@@ -2170,6 +2170,26 @@ class Paths(Dictionary):
 sob.meta.writable(Paths).value_types = (PathItem,)
 
 
+class APIKeySecurityScheme(Object):
+    # TODO: https://bit.ly/3iiHCkr
+    pass
+
+
+class HTTPSecurityScheme(Object):
+    # TODO: https://bit.ly/3qlMzxl
+    pass
+
+
+class OAuth2SecurityScheme(Object):
+    # TODO: https://bit.ly/3CSalGe
+    pass
+
+
+class OpenIdConnectSecurityScheme(Object):
+    # TODO: https://bit.ly/3In8Scm
+    pass
+
+
 class OpenAPI(Object):
     def __init__(
         self,
@@ -2300,9 +2320,22 @@ sob.meta.writable(OpenAPI).properties = [
     ),
     (
         "security",
-        sob.properties.Dictionary(
-            value_types=(sob.properties.Array(item_types=(str,)),),
-            versions=("openapi<3.0",),
+        sob.properties.Property(
+            types=[
+                sob.properties.Dictionary(
+                    value_types=(sob.properties.Array(item_types=(str,)),),
+                    versions=("openapi<3.0",),
+                ),
+                sob.properties.Array(
+                    # item_types=[
+                    #     APIKeySecurityScheme,
+                    #     HTTPSecurityScheme,
+                    #     OAuth2SecurityScheme,
+                    #     OpenIdConnectSecurityScheme,
+                    # ],
+                    versions=("openapi>=3.0",),
+                ),
+            ]
         ),
     ),
 ]
