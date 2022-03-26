@@ -146,10 +146,7 @@ class CheckPostResponses200SchemaLanguage(sob.model.Object):
         ] = None,
         detected_language: typing.Optional[
             typing.Union[
-                (
-                    "CheckPostResponses200SchemaPropertiesLanguageDetectedLang"
-                    "uage"
-                ),
+                "CheckPostResponses200SchemaPropertiesLanguageDetectedLanguage",  # noqa
                 sob.utilities.types.Null
             ]
         ] = None
@@ -275,10 +272,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItems(sob.model.Object):
         ] = None,
         replacements: typing.Optional[
             typing.Union[
-                (
-                    "CheckPostResponses200SchemaPropertiesMatchesItemsReplacem"
-                    "ents"
-                ),
+                "CheckPostResponses200SchemaPropertiesMatchesItemsReplacements",  # noqa
                 sob.utilities.types.Null
             ]
         ] = None,
@@ -324,10 +318,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsReplacements(
         self,
         items: typing.Union[
             typing.Iterable[
-                (
-                    "CheckPostResponses200SchemaPropertiesMatchesItemsProperti"
-                    "esReplacementsItems"
-                )
+                "CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesReplacementsItems"  # noqa
             ],
             sob.abc.Readable,
             str,
@@ -466,20 +457,14 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsRule(sob.model.Object):
             ]
         ] = None,
         urls: typing.Optional[
-            (
-                "CheckPostResponses200SchemaPropertiesMatchesItemsProperti"
-                "esRuleUrls"
-            )
+            "CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleUrls"  # noqa
         ] = None,
         issue_type: typing.Optional[
             str
         ] = None,
         category: typing.Optional[
             typing.Union[
-                (
-                    "CheckPostResponses200SchemaPropertiesMatchesItemsProperti"
-                    "esRuleCategory"
-                ),
+                "CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleCategory",  # noqa
                 sob.utilities.types.Null
             ]
         ] = None
@@ -507,10 +492,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleUrls(
         self,
         items: typing.Union[
             typing.Iterable[
-                (
-                    "CheckPostResponses200SchemaPropertiesMatchesItemsProperti"
-                    "esRulePropertiesUrlsItems"
-                )
+                "CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRulePropertiesUrlsItems"  # noqa
             ],
             sob.abc.Readable,
             str,
@@ -821,7 +803,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -831,7 +813,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -842,7 +824,7 @@ sob.meta.object_writable(  # type: ignore
             name='buildDate',
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -853,7 +835,7 @@ sob.meta.object_writable(  # type: ignore
             name='apiVersion',
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.Integer(),
+                int,
                 sob.utilities.types.Null
             ])
         )
@@ -871,7 +853,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -881,7 +863,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -892,11 +874,7 @@ sob.meta.object_writable(  # type: ignore
             name='detectedLanguage',
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.Property(
-                    types=sob.types.MutableTypes([
-                        CheckPostResponses200SchemaPropertiesLanguageDetectedLanguage  # noqa
-                    ])
-                ),
+                CheckPostResponses200SchemaPropertiesLanguageDetectedLanguage,  # noqa
                 sob.utilities.types.Null
             ])
         )
@@ -913,7 +891,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -923,7 +901,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -946,7 +924,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -962,7 +940,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.Integer(),
+                int,
                 sob.utilities.types.Null
             ])
         )
@@ -972,7 +950,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.Integer(),
+                int,
                 sob.utilities.types.Null
             ])
         )
@@ -982,11 +960,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.Property(
-                    types=sob.types.MutableTypes([
-                        CheckPostResponses200SchemaPropertiesMatchesItemsReplacements  # noqa
-                    ])
-                ),
+                CheckPostResponses200SchemaPropertiesMatchesItemsReplacements,  # noqa
                 sob.utilities.types.Null
             ])
         )
@@ -996,11 +970,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.Property(
-                    types=sob.types.MutableTypes([
-                        CheckPostResponses200SchemaPropertiesMatchesItemsContext  # noqa
-                    ])
-                ),
+                CheckPostResponses200SchemaPropertiesMatchesItemsContext,
                 sob.utilities.types.Null
             ])
         )
@@ -1010,7 +980,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -1051,7 +1021,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -1061,7 +1031,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.Integer(),
+                int,
                 sob.utilities.types.Null
             ])
         )
@@ -1071,7 +1041,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.Integer(),
+                int,
                 sob.utilities.types.Null
             ])
         )
@@ -1089,7 +1059,7 @@ sob.meta.object_writable(  # type: ignore
             name='id',
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -1105,7 +1075,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -1129,11 +1099,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.Property(
-                    types=sob.types.MutableTypes([
-                        CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleCategory  # noqa
-                    ])
-                ),
+                CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleCategory,  # noqa
                 sob.utilities.types.Null
             ])
         )
@@ -1186,7 +1152,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -1196,7 +1162,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )
@@ -1207,7 +1173,7 @@ sob.meta.object_writable(  # type: ignore
             name='longCode',
             required=True,
             types=sob.types.MutableTypes([
-                sob.properties.String(),
+                str,
                 sob.utilities.types.Null
             ])
         )

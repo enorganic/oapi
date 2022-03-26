@@ -12,6 +12,7 @@ venv
 **/*.egg-info
 **/*.dist-info
 pip-wheel-metadata
+schemas
 !.github
 !.gitignore
 !.flake8

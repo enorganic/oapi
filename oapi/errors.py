@@ -1,4 +1,9 @@
-class ReferenceError(RuntimeError):
+class OAPIError(Exception):
+
+    pass
+
+
+class ReferenceError(OAPIError):
 
     pass
 
@@ -9,5 +14,10 @@ class ReferenceLoopError(ReferenceError):
 
 
 class ReferencePointerError(ReferenceError):
+
+    pass
+
+
+class DuplicateClassNameError(OAPIError):
 
     pass

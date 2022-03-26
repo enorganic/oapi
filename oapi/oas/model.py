@@ -2,69 +2,31 @@
 Version 2x: https://swagger.io/docs/specification/2-0/basic-structure/
 Version 3x: https://swagger.io/specification
 """
-
-from copy import deepcopy
 import typing
+import sob
+from copy import deepcopy
 from typing import Union, Any
 
-import sob
+
+# region Base Classes
 
 
-class Object(sob.model.Object):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-
-_object_hooks = sob.hooks.writable(Object)  # type: hooks.Object
-
-
-def _add_property(self, key):
-    # type: (Object, str) -> None
-    """
-    Look for a matching property, and if none exists--create one
-    """
-    try:
-        self._get_key_property_name(key)
-    except KeyError:
-        meta_ = sob.meta.writable(self)
-        if meta_.properties is None:
-            meta_.properties = sob.meta.Properties()
-        property_name = sob.utilities.property_name(key)
-        meta_.properties[property_name] = sob.properties.Property(name=key)
-
-
-def _object_before_setitem(self, key, value):
-    # type: (Object, str, Any) -> Tuple[str, Any]
-    """
-    This hook allows for the use of extension attributes
-    """
-    if key[:2] == "x-":
-        _add_property(self, key)
-    return key, value
-
-
-_object_hooks.before_setitem = _object_before_setitem
-
-
-class Array(sob.model.Array):
-
+class ExtensibleObject(sob.model.Object):
     pass
 
 
-class Dictionary(sob.model.Dictionary):
-
-    pass
+# endregion
 
 
-class Reference(Object):
+class Reference(ExtensibleObject):
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         ref=None,  # type: Optional[str]
         **kwargs,
     ):
         self.ref = ref
-        super().__init__(_)
+        super().__init__(_data)
         for key, value in kwargs.items():
             self[key] = value
 
@@ -74,40 +36,7 @@ sob.meta.writable(Reference).properties = [
 ]
 
 
-_reference_hooks = sob.hooks.writable(Reference)  # type: hooks.Object
-
-
-def _reference_before_setitem(self, key, value):
-    # type: (Object, str, Any) -> Tuple[str, Any]
-    """
-    This hook allows for the use of any arbitrary attribute, as specified in
-    the `patternProperties` for this object in the OpenAPI schema
-    """
-    if key != "$ref":
-        _add_property(self, key)
-    return key, value
-
-
-_reference_hooks.before_setitem = _reference_before_setitem
-
-
-def _reference_after_unmarshal(data):  # noqa
-    # type: (Dict[str, Any]) -> None
-    """
-    This ensures all reference objects have a `$ref` attribute
-    """
-    if data["$ref"] is None:
-        raise TypeError(
-            "All instances of `%s` must have a `$ref` attribute"
-            % sob.utilities.qualified_name(Reference)
-        )
-    return data
-
-
-_reference_hooks.after_unmarshal = _reference_after_unmarshal
-
-
-class Contact(Object):
+class Contact(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
     #contactObject
@@ -115,7 +44,7 @@ class Contact(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         name=None,  # type: Optional[str]
         url=None,  # type: Optional[str]
         email=None,  # type: Optional[str]
@@ -124,7 +53,7 @@ class Contact(Object):
         self.name = name
         self.url = url
         self.email = email
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(Contact).properties = [
@@ -134,7 +63,7 @@ sob.meta.writable(Contact).properties = [
 ]
 
 
-class License(Object):
+class License(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
     #licenseObject
@@ -142,14 +71,14 @@ class License(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         name=None,  # type: Optional[str]
         url=None,  # type: Optional[str]
     ):
         # type: (...) -> None
         self.name = name
         self.url = url
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(License).properties = [
@@ -158,14 +87,14 @@ sob.meta.writable(License).properties = [
 ]
 
 
-class Info(Object):
+class Info(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#infoObject
     """
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         title=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         terms_of_service=None,  # type: Optional[str]
@@ -180,7 +109,7 @@ class Info(Object):
         self.contact = contact
         self.license_ = license_
         self.version = version
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(Info).properties = [
@@ -193,14 +122,14 @@ sob.meta.writable(Info).properties = [
 ]
 
 
-class Tag(Object):
+class Tag(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#tagObject
     """
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         name=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         external_docs=None,  # type: Optional[ExternalDocumentation]
@@ -209,22 +138,22 @@ class Tag(Object):
         self.name = name
         self.description = description
         self.external_docs = external_docs
-        super().__init__(_)
+        super().__init__(_data)
 
 
 # Metadata definitions for `Tag` postponed until after `ExternalDocumentation` has been defined
 
 
-class Link(Object):
+class Link(ExtensibleObject):
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         rel=None,  # type: Optional[str]
         href=None,  # type: Optional[str]
     ):
         self.rel = rel
         self.href = href
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(Link).properties = [
@@ -233,7 +162,7 @@ sob.meta.writable(Link).properties = [
 ]
 
 
-class Schema(Object):
+class Schema(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schemaObject
     http://json-schema.org
@@ -370,7 +299,7 @@ class Schema(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         title=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         multiple_of=None,  # type: Optional[Union[int, float]]
@@ -446,20 +375,20 @@ class Schema(Object):
         self.deprecated = deprecated
         self.links = links
         self.nullable = nullable
-        super().__init__(_)
+        super().__init__(_data)
 
 
 # ...definitions are postponed until dependencies are defined
 
 
-class Example(Object):
+class Example(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#exampleObject
     """
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         summary=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         value=None,  # type: Any
@@ -469,7 +398,7 @@ class Example(Object):
         self.description = description
         self.value = value
         self.external_value = external_value
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(Example).properties = [
@@ -485,7 +414,7 @@ sob.meta.writable(Example).properties = [
 ]
 
 
-class Encoding(Object):
+class Encoding(ExtensibleObject):
 
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#encodingObject
@@ -493,7 +422,7 @@ class Encoding(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         content_type=None,  # type: Optional[str]
         headers=None,  # type: Optional[typing.Mapping[str, Union[Header, Reference]]]
         style=None,  # type: Optional[str]
@@ -505,20 +434,20 @@ class Encoding(Object):
         self.style = style
         self.explode = explode
         self.allow_reserved = allow_reserved
-        super().__init__(_)
+        super().__init__(_data)
 
 
 # ...definitions for `Encoding` are delayed until after the `Headers` definition
 
 
-class MediaType(Object):
+class MediaType(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#mediaTypeObject
     """
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         schema=None,  # type: Optional[Schema, Reference]
         example=None,  # type: Any
         examples=None,  # type: Union[typing.Mapping[str, Union[Example, Reference]]]
@@ -528,7 +457,7 @@ class MediaType(Object):
         self.example = example
         self.examples = examples
         self.encoding = encoding
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(MediaType).properties = [
@@ -554,10 +483,10 @@ sob.meta.writable(MediaType).properties = [
 ]
 
 
-class Items(Object):
+class Items(ExtensibleObject):
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         type_=None,  # type: Optional[str]
         format_=None,  # type: Optional[str, Sequence]
         items=None,  # type: Optional[Items]
@@ -593,7 +522,7 @@ class Items(Object):
         self.unique_items = unique_items
         self.enum = enum
         self.multiple_of = multiple_of
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(Items).properties = [
@@ -673,7 +602,7 @@ sob.meta.writable(Items).properties = [
 ]
 
 
-class Parameter(Object):
+class Parameter(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#parameterObject
 
@@ -758,7 +687,7 @@ class Parameter(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         name=None,  # type: Optional[str]
         in_=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
@@ -820,7 +749,7 @@ class Parameter(Object):
         self.format_ = format_
         self.collection_format = collection_format
         self.items = items
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(Parameter).properties = [
@@ -948,73 +877,10 @@ sob.meta.writable(Parameter).properties = [
 ]
 
 
-def _parameter_after_validate(o):
-    # type: (Parameter) -> Parameter
-    if (o.content is not None) and len(tuple(o.content.keys())) > 1:
-        raise sob.errors.ValidationError(
-            "`%s.content` may have only one mapped value.:\n%s"
-            % (sob.utilities.qualified_name(type(o)), repr(o))
-        )
-    if (o.content is not None) and (o.schema is not None):
-        raise sob.errors.ValidationError(
-            "An instance of `%s` may have a `schema` property or a `content` "
-            % sob.utilities.qualified_name(type(o))
-            + "property, but not *both*:\n"
-            + repr(o)
-        )
-    if o.format_ in (
-        "int32",
-        "int64",  # type_ == 'integer'
-        "float",
-        "double",  # type_ == 'number'
-        "byte",
-        "binary",
-        "date",
-        "date-time",
-        "password",  # type_ == 'string'
-    ):
-        if o.type_ == "integer" and (
-            o.format_ not in ("int32", "int64", None)
-        ):
-            qn = sob.utilities.qualified_name(type(o))
-            raise sob.errors.ValidationError(
-                '"%s" in not a valid value for `%S.format_` in this circumstance. '
-                % (o.format_, qn)
-                + '`%s.format_` may be "int32" or "int64" when ' % qn
-                + '`%s.type_` is "integer".' % qn
-            )
-        elif o.type_ == "number" and (
-            o.format_ not in ("float", "double", None)
-        ):
-            qn = sob.utilities.qualified_name(type(o))
-            raise sob.errors.ValidationError(
-                '"%s" in not a valid value for `%s.format_` in this circumstance. '
-                % (o.format_, qn)
-                + '`%s.format_` may be "float" or "double" when ' % qn
-                + '`%s.type_` is "number".' % (qn,)
-            )
-        elif o.type_ == "string" and (
-            o.format_
-            not in ("byte", "binary", "date", "date-time", "password", None)
-        ):
-            qn = sob.utilities.qualified_name(type(o))
-            raise sob.errors.ValidationError(
-                '"%s" in not a valid value for `%s.format_` in this circumstance. '
-                % (o.format_, qn)
-                + '`%s.format_` may be "byte", "binary", "date", "date-time" or "password" when '
-                % qn
-                + '`%s.type_` is "string".' % (qn,)
-            )
-    return o
-
-
-sob.hooks.writable(Parameter).after_validate = _parameter_after_validate
-
-
-class Header(Object):
+class Header(ExtensibleObject):
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         description=None,  # type: Optional[str]
         required=None,  # type: Optional[bool]
         deprecated=None,  # type: Optional[bool]
@@ -1072,7 +938,7 @@ class Header(Object):
         self.format_ = format_
         self.collection_format = collection_format
         self.items = items
-        super().__init__(_)
+        super().__init__(_data)
 
 
 _header_meta = sob.meta.writable(Header)
@@ -1103,10 +969,10 @@ sob.meta.writable(Encoding).properties = [
 ]
 
 
-class ServerVariable(Object):
+class ServerVariable(ExtensibleObject):
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         enum=None,  # type: Optional[Sequence[str]]
         default=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
@@ -1114,7 +980,7 @@ class ServerVariable(Object):
         self.enum = enum
         self.default = default
         self.description = description
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(ServerVariable).properties = [
@@ -1124,14 +990,14 @@ sob.meta.writable(ServerVariable).properties = [
 ]
 
 
-class Server(Object):
+class Server(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#serverObject
     """
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         url=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         variables=None,  # type: Optional[typing.Mapping[str, ServerVariable]]
@@ -1140,7 +1006,7 @@ class Server(Object):
         self.url = url
         self.description = description
         self.variables = variables
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(Server).properties = [
@@ -1150,14 +1016,14 @@ sob.meta.writable(Server).properties = [
 ]
 
 
-class Link_(Object):
+class Link_(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#linkObject
     """
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         operation_ref=None,  # type: Optional[str]
         operation_id=None,  # type: Optional[str]
         parameters=None,  # type: Optional[typing.Mapping[str, Any]]
@@ -1171,7 +1037,7 @@ class Link_(Object):
         self.request_body = request_body
         self.description = description
         self.server = server
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(Link_).properties = [
@@ -1198,7 +1064,7 @@ sob.meta.writable(Link_).properties = [
 ]
 
 
-class Response(Object):
+class Response(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#responseObject
 
@@ -1217,7 +1083,7 @@ class Response(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         description=None,  # type: Optional[str]
         schema=None,  # type: Optional[Schema]
         headers=None,  # type: Optional[typing.Mapping[str, Union[Header, Reference]]]
@@ -1234,7 +1100,7 @@ class Response(Object):
         # self.example = example
         self.content = content
         self.links = links
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(Response).properties = [
@@ -1262,7 +1128,7 @@ sob.meta.writable(Response).properties = [
 ]
 
 
-class ExternalDocumentation(Object):
+class ExternalDocumentation(ExtensibleObject):
     """
     Properties:
 
@@ -1272,13 +1138,13 @@ class ExternalDocumentation(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         description=None,  # type: Optional[str]
         url=None,  # type: Optional[str]
     ):
         self.description = description
         self.url = url
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(ExternalDocumentation).properties = [
@@ -1294,10 +1160,10 @@ sob.meta.writable(Tag).properties = [
 ]
 
 
-class RequestBody(Object):
+class RequestBody(ExtensibleObject):
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         description=None,  # type: Optional[str]
         content=None,  # type: Optional[typing.Mapping[str, MediaType]]
         required=None,  # type: Optional[bool]
@@ -1305,7 +1171,7 @@ class RequestBody(Object):
         self.description = description
         self.content = content
         self.required = required
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(RequestBody).properties = [
@@ -1320,7 +1186,7 @@ sob.meta.writable(RequestBody).properties = [
 ]
 
 
-class Operation(Object):
+class Operation(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#operationObject
 
@@ -1368,7 +1234,7 @@ class Operation(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         tags=None,  # type: Optional[Sequence[str]]
         summary=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
@@ -1401,20 +1267,20 @@ class Operation(Object):
         self.servers = servers
         self.consumes = consumes
         self.produces = produces
-        super().__init__(_)
+        super().__init__(_data)
 
 
 # Property definitions for `Operation` deferred until after `PathItem` is defined
 
 
-class PathItem(Object):
+class PathItem(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#pathItemObject
     """
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         summary=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         get=None,  # type: Optional[Operation]
@@ -1441,7 +1307,7 @@ class PathItem(Object):
         self.trace = trace
         self.servers = servers
         self.parameters = parameters
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(PathItem).properties = [
@@ -1468,7 +1334,7 @@ sob.meta.writable(PathItem).properties = [
 ]
 
 
-class Callback(Dictionary):
+class Callback(sob.model.Dictionary):
 
     pass
 
@@ -1476,7 +1342,7 @@ class Callback(Dictionary):
 sob.meta.writable(Callback).value_types = (PathItem,)
 
 
-class Callbacks(Dictionary):
+class Callbacks(sob.model.Dictionary):
 
     pass
 
@@ -1484,7 +1350,7 @@ class Callbacks(Dictionary):
 sob.meta.writable(Callbacks).value_types = (Reference, Callback)
 
 
-class Responses(Dictionary):
+class Responses(sob.model.Dictionary):
 
     pass
 
@@ -1554,7 +1420,7 @@ sob.meta.writable(Operation).properties = [
 ]
 
 
-class Discriminator(Object):
+class Discriminator(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#discriminatorObject
 
@@ -1567,13 +1433,13 @@ class Discriminator(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         property_name=None,  # type: Optional[str]
         mapping=None,  # type: Optional[typing.Mapping[str, str]]
     ):
         self.property_name = property_name
         self.mapping = mapping
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(Discriminator).properties = [
@@ -1590,7 +1456,7 @@ sob.meta.writable(Discriminator).properties = [
 ]
 
 
-class XML(Object):
+class XML(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#xmlObject
 
@@ -1610,7 +1476,7 @@ class XML(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         name=None,  # type: Optional[str]
         name_space=None,  # type: Optional[str]
         prefix=None,  # type: Optional[str]
@@ -1622,7 +1488,7 @@ class XML(Object):
         self.prefix = prefix
         self.attribute = attribute
         self.wrapped = wrapped
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(XML).properties = [
@@ -1634,14 +1500,14 @@ sob.meta.writable(XML).properties = [
 ]
 
 
-class OAuthFlow(Object):
+class OAuthFlow(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#oauthFlowObject
     """
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         authorization_url=None,  # type: Optional[str]
         token_url=None,  # type: Optional[str]
         refresh_url=None,  # type: Optional[str]
@@ -1651,7 +1517,7 @@ class OAuthFlow(Object):
         self.token_url = token_url
         self.refresh_url = refresh_url
         self.scopes = scopes
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(OAuthFlow).properties = [
@@ -1662,14 +1528,14 @@ sob.meta.writable(OAuthFlow).properties = [
 ]
 
 
-class OAuthFlows(Object):
+class OAuthFlows(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#oauthFlowsObject
     """
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         implicit=None,  # type: Optional[OAuthFlow]
         password=None,  # type: Optional[OAuthFlow]
         client_credentials=None,  # type: Optional[OAuthFlow]
@@ -1679,7 +1545,7 @@ class OAuthFlows(Object):
         self.password = password
         self.client_credentials = client_credentials
         self.authorization_code = authorization_code
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(OAuthFlows).properties = [
@@ -1714,7 +1580,7 @@ sob.meta.writable(OAuthFlows).properties = [
 ]
 
 
-class Properties(Dictionary):
+class Properties(sob.model.Dictionary):
 
     pass
 
@@ -1722,7 +1588,7 @@ class Properties(Dictionary):
 sob.meta.writable(Properties).value_types = (Reference, Schema)
 
 
-class SecurityScheme(Object):
+class SecurityScheme(ExtensibleObject):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#requestBodyObject
 
@@ -1747,7 +1613,7 @@ class SecurityScheme(Object):
 
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         type_=None,  # type: Optional[str]
         description=None,  # type: Optional[str]
         name=None,  # type: Optional[str]
@@ -1773,7 +1639,7 @@ class SecurityScheme(Object):
         self.authorization_url = authorization_url
         self.scopes = scopes
         self.token_url = token_url
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(SecurityScheme).properties = [
@@ -2000,74 +1866,23 @@ sob.meta.writable(Schema).properties = [
 ]
 
 
-def _schema_after_validate(o):
-    # type: (Schema) -> Schema
-    if o.format_ in (
-        "int32",
-        "int64",  # type_ == 'integer'
-        "float",
-        "double",  # type_ == 'number'
-        "byte",
-        "binary",
-        "date",
-        "date-time",
-        "password",  # type_ == 'string'
-    ):
-        if o.type_ == "integer" and (
-            o.format_ not in ("int32", "int64", None)
-        ):
-            qn = sob.utilities.qualified_name(type(o))
-            raise sob.errors.ValidationError(
-                '"%s" in not a valid value for `%s.format_` in this circumstance. '
-                % (o.format_, qn)
-                + '`%s.format_` may be "int32" or "int64" when ' % qn
-                + '`%s.type_` is "integer".' % (qn,)
-            )
-        elif o.type_ == "number" and (
-            o.format_ not in ("float", "double", None)
-        ):
-            qn = sob.utilities.qualified_name(type(o))
-            raise sob.errors.ValidationError(
-                '"%s" in not a valid value for `%s.format_` in this circumstance. '
-                % (o.format_, qn)
-                + '`%s.format_` may be "float" or "double" when ' % qn
-                + '`%s.type_` is "number".' % (qn,)
-            )
-        elif o.type_ == "string" and (
-            o.format_
-            not in ("byte", "binary", "date", "date-time", "password", None)
-        ):
-            qn = sob.utilities.qualified_name(type(o))
-            raise sob.errors.ValidationError(
-                '"%s" in not a valid value for `%s.format_` in this circumstance. '
-                % (o.format_, qn)
-                + '`%s.format_` may be "byte", "binary", "date", "date-time" or "password" when '
-                % qn
-                + '`%s.type_` is "string".' % (qn,)
-            )
-    return o
-
-
-sob.hooks.writable(Schema).after_validate = _schema_after_validate
-
-
-class Schemas(Dictionary):
+class Schemas(sob.model.Dictionary):
 
     pass
 
 
-sob.meta.writable(Schemas).value_types = (Reference, Schema)
+sob.meta.dictionary_writable(Schemas).value_types = (Reference, Schema)
 
 
-class Headers(Dictionary):
+class Headers(sob.model.Dictionary):
 
     pass
 
 
-sob.meta.writable(Headers).value_types = (Reference, Header)
+sob.meta.dictionary_writable(Headers).value_types = (Reference, Header)
 
 
-class Parameters(Dictionary):
+class Parameters(sob.model.Dictionary):
 
     pass
 
@@ -2075,7 +1890,7 @@ class Parameters(Dictionary):
 sob.meta.writable(Parameters).value_types = (Reference, Parameter)
 
 
-class Examples(Dictionary):
+class Examples(sob.model.Dictionary):
 
     pass
 
@@ -2083,7 +1898,7 @@ class Examples(Dictionary):
 sob.meta.writable(Examples).value_types = (Reference, Example)
 
 
-class RequestBodies(Dictionary):
+class RequestBodies(sob.model.Dictionary):
 
     pass
 
@@ -2091,7 +1906,7 @@ class RequestBodies(Dictionary):
 sob.meta.writable(RequestBodies).value_types = (Reference, RequestBody)
 
 
-class SecuritySchemes(Dictionary):
+class SecuritySchemes(sob.model.Dictionary):
 
     pass
 
@@ -2099,7 +1914,7 @@ class SecuritySchemes(Dictionary):
 sob.meta.writable(SecuritySchemes).value_types = (Reference, SecurityScheme)
 
 
-class Links(Dictionary):
+class Links(sob.model.Dictionary):
 
     pass
 
@@ -2107,10 +1922,10 @@ class Links(Dictionary):
 sob.meta.writable(Links).value_types = (Reference, Link_)
 
 
-class Components(Object):
+class Components(ExtensibleObject):
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         schemas=None,  # type: Optional[Schemas]
         responses=None,  # type: Optional[Responses]
         parameters=None,  # type: Optional[Parameters]
@@ -2130,7 +1945,7 @@ class Components(Object):
         self.security_schemes = security_schemes
         self.links = links
         self.callbacks = callbacks
-        super().__init__(_)
+        super().__init__(_data)
 
 
 sob.meta.writable(Components).properties = [
@@ -2154,7 +1969,7 @@ sob.meta.writable(Components).properties = [
 ]
 
 
-class Definitions(Dictionary):
+class Definitions(sob.model.Dictionary):
 
     pass
 
@@ -2162,7 +1977,7 @@ class Definitions(Dictionary):
 sob.meta.writable(Definitions).value_types = (Schema,)
 
 
-class Paths(Dictionary):
+class Paths(sob.model.Dictionary):
 
     pass
 
@@ -2170,30 +1985,30 @@ class Paths(Dictionary):
 sob.meta.writable(Paths).value_types = (PathItem,)
 
 
-class APIKeySecurityScheme(Object):
+class APIKeySecurityScheme(ExtensibleObject):
     # TODO: https://bit.ly/3iiHCkr
     pass
 
 
-class HTTPSecurityScheme(Object):
+class HTTPSecurityScheme(ExtensibleObject):
     # TODO: https://bit.ly/3qlMzxl
     pass
 
 
-class OAuth2SecurityScheme(Object):
+class OAuth2SecurityScheme(ExtensibleObject):
     # TODO: https://bit.ly/3CSalGe
     pass
 
 
-class OpenIdConnectSecurityScheme(Object):
+class OpenIdConnectSecurityScheme(ExtensibleObject):
     # TODO: https://bit.ly/3In8Scm
     pass
 
 
-class OpenAPI(Object):
+class OpenAPI(ExtensibleObject):
     def __init__(
         self,
-        _=None,  # type: Optional[typing.Mapping]
+        _data=None,  # type: Optional[typing.Mapping]
         openapi=None,  # type: Optional[str]
         info=None,  # type: Optional[Info]
         host=None,  # type: Optional[str]
@@ -2206,8 +2021,8 @@ class OpenAPI(Object):
         consumes=None,  # type: Any
         # 2.0 compatibility
         swagger=None,  # type: Optional[str]
-        definitions=None,  # type: Optional[typing.Mapping[str, Object]]
-        security_definitions=None,  # type: Optional[typing.Mapping[str, Union[Object, str]]]
+        definitions=None,  # type: Optional[typing.Mapping[str, ExtensibleObject]]
+        security_definitions=None,  # type: Optional[typing.Mapping[str, Union[ExtensibleObject, str]]]
         produces=None,  # type: Optional[typing.Collection[str]]
         external_docs=None,  # type: Optional[ExternalDocumentation]
         parameters=None,  # type: Optional[Dict[str, Parameter]]
@@ -2234,7 +2049,7 @@ class OpenAPI(Object):
         self.parameters = parameters
         self.responses = responses
         self.security = security
-        super().__init__(_)
+        super().__init__(_data)
         version = self.openapi or self.swagger
         if version is not None:
             sob.meta.version(self, "openapi", version)
@@ -2339,3 +2154,158 @@ sob.meta.writable(OpenAPI).properties = [
         ),
     ),
 ]
+
+# region Hooks
+
+_object_hooks: sob.abc.ObjectHooks = sob.hooks.object_writable(
+    ExtensibleObject
+)
+_reference_hooks: sob.abc.ObjectHooks = sob.hooks.object_writable(Reference)
+_parameter_hooks: sob.abc.ObjectHooks = sob.hooks.object_writable(Parameter)
+_schema_hooks: sob.abc.ObjectHooks = sob.hooks.object_writable(Schema)
+
+
+def _add_object_property(object_: sob.abc.Object, key: str) -> None:
+    """
+    Look for a matching property, and if none exists--create one
+    """
+    object_meta: typing.Optional[sob.abc.ObjectMeta] = sob.meta.object_read(
+        object_
+    )
+    if object_meta and object_meta.properties:
+        properties: sob.abc.Properties = object_meta.properties
+        key_property: typing.Tuple[str, sob.abc.Property]
+        if key in map(
+            lambda key_property: key_property[1].name or key_property[0],
+            properties.items(),
+        ):
+            # There is no need to add the property, it already exists
+            return
+    object_meta = sob.meta.object_writable(object_)
+    if object_meta.properties is None:
+        object_meta.properties = sob.meta.Properties()  # type: ignore
+    property_name = sob.utilities.property_name(key)
+    object_meta.properties[property_name] = sob.properties.Property(name=key)
+
+
+def _object_before_setitem(
+    object_: sob.abc.Object, key: str, value: Any
+) -> typing.Tuple[str, Any]:
+    """
+    This hook allows for the use of extension attributes.
+    """
+    if key[:2] == "x-":
+        _add_object_property(object_, key)
+    return key, value
+
+
+def _reference_before_setitem(
+    reference_: Reference, key: str, value: Any
+) -> typing.Tuple[str, Any]:
+    """
+    This hook allows for the use of any arbitrary attribute, as specified in
+    the `patternProperties` for this object in the OpenAPI spec.
+    """
+    if key != "$ref":
+        _add_object_property(reference_, key)
+    return key, value
+
+
+def _reference_after_unmarshal(data: typing.Dict[str, Any]) -> None:
+    """
+    This ensures all reference objects have a `$ref` attribute
+    """
+    if data.get("$ref", None) is None:
+        raise TypeError(
+            "All instances of "
+            f"`{sob.utilities.qualified_name(Reference)}` must have a `$ref` "
+            "attribute"
+        )
+    return data
+
+
+def _parameter_after_validate(parameter: Parameter) -> Parameter:
+    if (parameter.content is not None) and len(
+        tuple(parameter.content.keys())
+    ) > 1:
+        raise sob.errors.ValidationError(
+            f"`{sob.utilities.qualified_name(type(parameter))}."
+            "content` may have only one mapped value.:\n"
+            f"{sob.utilities.inspect.represent(parameter)}"
+        )
+    if (parameter.content is not None) and (parameter.schema is not None):
+        raise sob.errors.ValidationError(
+            "An instance of "
+            f"`{sob.utilities.qualified_name(type(parameter))}` may have a "
+            "`schema` property or a `content` property, but not *both*:\n"
+            f"{sob.utilities.inspect.represent(parameter)}"
+        )
+    return _schema_after_validate(parameter)
+
+
+@typing.overload
+def _schema_after_validate(schema: Schema) -> Schema:
+    pass
+
+
+@typing.overload
+def _schema_after_validate(schema: Parameter) -> Parameter:
+    pass
+
+
+def _schema_after_validate(
+    schema: Union[Schema, Parameter]
+) -> Union[Schema, Parameter]:
+    if schema.format_ in (
+        "int32",
+        "int64",  # type_ == 'integer'
+        "float",
+        "double",  # type_ == 'number'
+        "byte",
+        "binary",
+        "date",
+        "date-time",
+        "password",  # type_ == 'string'
+    ):
+        if schema.type_ == "integer" and (
+            schema.format_ not in ("int32", "int64", None)
+        ):
+            qualified_class_name = sob.utilities.qualified_name(type(schema))
+            raise sob.errors.ValidationError(
+                f'"{schema.format_}" in not a valid value for '
+                f"`{qualified_class_name}.format_` in this circumstance. "
+                f'`{qualified_class_name}.format_` may be "int32" or "int64" '
+                f'when `{qualified_class_name}.type_` is "integer".'
+            )
+        elif schema.type_ == "number" and (
+            schema.format_ not in ("float", "double", None)
+        ):
+            qualified_class_name = sob.utilities.qualified_name(type(schema))
+            raise sob.errors.ValidationError(
+                f'"{schema.format_}" in not a valid value for '
+                f"`{qualified_class_name}.format_` in this circumstance. "
+                f'`{qualified_class_name}.format_` may be "float" or "double" '
+                f'when `{qualified_class_name}.type_` is "number".'
+            )
+        elif schema.type_ == "string" and (
+            schema.format_
+            not in ("byte", "binary", "date", "date-time", "password", None)
+        ):
+            qualified_class_name = sob.utilities.qualified_name(type(schema))
+            raise sob.errors.ValidationError(
+                f'"{schema.format_}" in not a valid value for '
+                f"`{qualified_class_name}.format_` in this circumstance. "
+                f'`{qualified_class_name}.format_` may be "byte", "binary", '
+                '"date", "date-time" or "password" when '
+                f'`{qualified_class_name}.type_` is "string".'
+            )
+    return schema
+
+
+_object_hooks.before_setitem = _object_before_setitem
+_reference_hooks.before_setitem = _reference_before_setitem
+_reference_hooks.after_unmarshal = _reference_after_unmarshal
+_parameter_hooks.after_validate = _parameter_after_validate
+_schema_hooks.after_validate = _schema_after_validate
+
+# endregion
