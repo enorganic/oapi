@@ -225,11 +225,12 @@ class _Modeler:
         return self._relative_urls_pointers_models[relative_url_pointer]
 
     def set_relative_url_pointer_class_name(
-        self, relative_url_pointer, class_name_
-    ):
-        # type: (str, str) -> str
-        # Check to see if this pointer already has a class name, and use that
-        # if it does
+        self, relative_url_pointer: str, class_name_: str
+    ) -> str:
+        """
+        Check to see if this pointer already has a class name, and use that
+        if it does
+        """
         if relative_url_pointer in self._relative_urls_pointers_class_names:
             class_name_ = self._relative_urls_pointers_class_names[
                 relative_url_pointer
@@ -969,8 +970,7 @@ class _Modeler:
         assert cls
         return cls
 
-    def get_operation_class_name(self, operation):
-        # type: (Operation) -> str
+    def get_operation_class_name(self, operation: Operation) -> str:
         """
         Derive a model's class name from an `Operation` object. This only
         applies when one or more parameters are
@@ -983,8 +983,7 @@ class _Modeler:
             relative_url, pointer, is_property=True
         )
 
-    def get_parameter_class_name(self, parameter):
-        # type: (Parameter) -> str
+    def get_parameter_class_name(self, parameter: Parameter) -> str:
         """
         Derive a model's class name from a `Parameter` object
         """
@@ -995,8 +994,9 @@ class _Modeler:
             relative_url, pointer, is_property=True
         )
 
-    def get_schema_class_name(self, schema, is_property=False):
-        # type: (Schema, bool) -> str
+    def get_schema_class_name(
+        self, schema: Schema, is_property: bool = False
+    ) -> str:
         """
         Derive a model's class name from a `Schema` object
         """
@@ -1006,9 +1006,8 @@ class _Modeler:
         )
 
     def get_relative_url_and_pointer_class_name(
-        self, relative_url, pointer, is_property=False
-    ):
-        # type: (str, str, Optional[bool]) -> str
+        self, relative_url: str, pointer: str, is_property: bool = False
+    ) -> str:
         relative_url_pointer = relative_url + pointer
         if not self.relative_url_pointer_class_name_exists(
             relative_url_pointer
@@ -1028,8 +1027,7 @@ class _Modeler:
                     if length > 2 and parts[1] == "schemas":
                         start_index += 1
 
-            def get_class_name(pointer_start_index):
-                # type: (int) -> str
+            def get_class_name(pointer_start_index: int) -> str:
                 relevant_parts = list(parts[pointer_start_index:])
                 if relative_url:
                     relevant_parts.insert(0, relative_url)
@@ -1161,12 +1159,15 @@ class _Modeler:
     def iter_array_definitions(
         self,
         array: sob.abc.Array,
+        skip: int = 0,
     ) -> Iterable[Union[Schema, Operation, Parameter]]:
         meta_: Optional[sob.abc.ArrayMeta] = sob.meta.array_read(array)
         for item in array:
             if isinstance(item, sob.abc.Model):
                 yield from self.iter_model_definitions(
-                    item, (meta_.item_types or () if meta_ else ())
+                    item,
+                    (meta_.item_types or () if meta_ else ()),
+                    skip=skip,
                 )
 
     def iter_dictionary_definitions(
@@ -1194,21 +1195,34 @@ class _Modeler:
                 value: Any = getattr(object_, name)
                 if isinstance(value, sob.abc.Model):
                     yield from self.iter_model_definitions(
-                        value, property_.types or ()
+                        value,
+                        property_.types or (),
+                        skip=(
+                            2
+                            if isinstance(object_, Schema)
+                            and (name in ("any_of", "all_of", "one_of"))
+                            else 0
+                        ),
                     )
 
     def iter_model_definitions(
         self,
         model: sob.abc.Model,
         types: Union[Sequence[type], sob.abc.Types] = (),
+        skip: int = 0,
     ) -> Iterable[Union[Schema, Operation, Parameter]]:
         if isinstance(model, Reference):
             model = self.resolve_reference(model, types)
+            skip = 0
         if not self.is_traversed(model):
             self.add_traversed(model)
             # If this is a schema/parameter/operation defining a model--include
             # it in the returned results
-            if isinstance(model, Schema) and schema_defines_model(model):
+            if (
+                (not skip)
+                and isinstance(model, Schema)
+                and schema_defines_model(model)
+            ):
                 yield model
             elif isinstance(model, Parameter):
                 yield from self.iter_parameter_definitions(model)
@@ -1219,7 +1233,7 @@ class _Modeler:
             if isinstance(model, sob.abc.Dictionary):
                 yield from self.iter_dictionary_definitions(model)
             elif isinstance(model, sob.abc.Array):
-                yield from self.iter_array_definitions(model)
+                yield from self.iter_array_definitions(model, skip=skip - 1)
             elif isinstance(model, sob.abc.Object):
                 yield from self.iter_object_definitions(model)
             else:
@@ -1397,8 +1411,7 @@ class Module:
     def __str__(self) -> str:
         return self._modeler.get_module_source()
 
-    def _parse_existing_module(self, path):
-        # type: (str) -> None
+    def _parse_existing_module(self, path: str) -> None:
         if os.path.exists(path):
             self._parser.open(path)
             for (
@@ -1424,19 +1437,6 @@ class Module:
                 pointer = ""
             relative_url = self._modeler.get_relative_url(url)
         return relative_url, pointer
-
-    def model_from_pointer(self, url_pointer: str) -> Type[sob.abc.Model]:
-        """
-        Return a model from a pointer
-        """
-        relative_url, pointer = self._get_relative_url_and_pointer(url_pointer)
-        model: Optional[
-            Type[sob.abc.Model]
-        ] = self._modeler.get_relative_url_pointer_model(
-            f"{relative_url}{pointer}"
-        )
-        assert isinstance(model, type)
-        return model
 
     def save(self, path: str) -> None:
         """

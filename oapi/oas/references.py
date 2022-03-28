@@ -321,8 +321,7 @@ class Resolver:
         if url != "":
             self.documents[""] = document
 
-    def get_document(self, url):
-        # type: (str) -> _Document
+    def get_document(self, url: str) -> _Document:
         """
         Retrieve a document by URL, or use the cached document if previously
         retrieved
