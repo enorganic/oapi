@@ -1014,7 +1014,9 @@ class _Modeler:
         ):
             parts = [
                 part.replace("~1", "/")
-                for part in pointer.lstrip("#/").split("/")
+                for part in re.sub(
+                    r"/(anyOf|allOf|oneOf)/\d+/", "/", pointer.lstrip("#/")
+                ).split("/")
             ]
             length = len(parts)
             start_index = 0
