@@ -8,8 +8,10 @@ from typing import (
     Any,
     Dict,
     Iterable,
+    Iterator,
     Match,
     Optional,
+    Sequence,
     Set,
     Tuple,
     Type,
@@ -93,8 +95,9 @@ def schema_defines_dictionary(schema: Schema) -> bool:
     If properties are not defined for a schema, or unspecified attributes are
     allowed--the schema will translate to an instance of `sob.abc.Dictionary`.
     """
-    return schema.type_ == "object" and (
-        schema.additional_properties or (not schema.properties)
+    return bool(
+        schema.type_ == "object"
+        and (schema.additional_properties or (not schema.properties))
     )
 
 
@@ -118,6 +121,70 @@ def _get_model_import_class_source(
     model_source: str = get_source(model)
     partitions: Tuple[str, str, str] = model_source.partition("\n\n\n")
     return partitions[0], partitions[2]
+
+
+def _get_string_property(
+    format_: Optional[str], required: bool
+) -> sob.abc.Property:
+    if format_ == "date-time":
+        return sob.properties.DateTime(required=required)
+    elif format_ == "date":
+        return sob.properties.Date(required=required)
+    elif format_ == "byte":
+        return sob.properties.Bytes(required=required)
+    else:
+        return sob.properties.String(required=required)
+
+
+def _get_type_property(
+    type_: Optional[str], format_: Optional[str], required: bool
+) -> sob.abc.Property:
+    if type_ == "number":
+        return sob.properties.Number(required=required)
+    elif type_ == "integer":
+        return sob.properties.Integer(required=required)
+    elif type_ == "string":
+        return _get_string_property(format_, required)
+    elif type_ == "boolean":
+        return sob.properties.Boolean(required=required)
+    elif type_ == "file":
+        return sob.properties.Bytes(required=required)
+    elif type_ == "array":
+        return sob.properties.Array(required=required)
+    else:
+        if type_ and type_ != "object":
+            raise ValueError(f"Unknown schema type: {type_}")
+        return sob.properties.Property(required=required)
+
+
+def _types_from_enum_values(
+    values: Iterable[sob.abc.MarshallableTypes],
+) -> sob.abc.Types:
+    types: sob.abc.MutableTypes = sob.types.MutableTypes()
+
+    def add_value_type(value: sob.abc.MarshallableTypes) -> None:
+        type_: type = type(value)
+        if type_ not in types:
+            types.append(type_)
+
+    deque(map(add_value_type, values), maxlen=0)
+    return types
+
+
+def _append_property_type(
+    property_: sob.abc.Property, type_: Union[type, sob.abc.Property]
+) -> sob.abc.Property:
+    if type_ not in (property_.types or ()):
+        if not isinstance(property_.types, sob.abc.MutableTypes):
+            property_ = sob.properties.Property(
+                name=property_.name,
+                types=sob.types.MutableTypes(property_.types or ()),
+                required=property_.required,
+                versions=property_.versions,
+            )
+        assert isinstance(property_.types, sob.abc.MutableTypes)
+        property_.types.append(type_)
+    return property_
 
 
 class _Modeler:
@@ -204,11 +271,9 @@ class _Modeler:
         property_: sob.abc.Property,
         schemas: Iterable[Union[Schema, Reference]],
     ) -> sob.abc.Property:
-        next_schema: Union[Schema, Reference]
-        try:
-            schemas = iter(schemas)
-            next_schema = next(schemas)
-        except StopIteration:
+        schemas = iter(schemas)
+        next_schema: Optional[Schema] = self.next_schema(schemas)
+        if next_schema is None:
             return property_
         if property_.types is None:
             property_.types = sob.types.MutableTypes()  # type: ignore
@@ -235,6 +300,19 @@ class _Modeler:
                     property_.types.append(type_)  # type: ignore
         return self.extend_property_schemas(property_, schemas)
 
+    def next_schema(
+        self, schemas: Iterator[Union[Schema, Reference]]
+    ) -> Optional[Schema]:
+        next_schema: Union[Schema, Reference]
+        try:
+            next_schema = next(schemas)
+        except StopIteration:
+            return None
+        if isinstance(next_schema, Reference):
+            next_schema = self.resolve_reference(next_schema)  # type: ignore
+            assert isinstance(next_schema, Schema)
+        return next_schema
+
     def merge_schemas_properties(
         self,
         meta_properties: sob.abc.Properties,
@@ -249,15 +327,10 @@ class _Modeler:
         - meta_properties (sob.model.Properties)
         - schemas ([Schema|Reference])
         """
-        next_schema: Union[Schema, Reference]
-        try:
-            schemas = iter(schemas)
-            next_schema = next(schemas)
-        except StopIteration:
-            return
-        if isinstance(next_schema, Reference):
-            next_schema = self.resolve(next_schema)  # type: ignore
-            assert isinstance(next_schema, Schema)
+        schemas = iter(schemas)
+        next_schema: Optional[Schema] = self.next_schema(schemas)
+        if next_schema is None:
+            return None
         schema_properties: Optional[Properties] = next_schema.properties
         if schema_properties:
             name_: str
@@ -306,7 +379,7 @@ class _Modeler:
         schemas: Iterable[Union[Schema, Reference]],
         name: Optional[str] = None,
         relative_url_pointer: Optional[str] = None,
-    ) -> Type[sob.abc.Object]:
+    ) -> Optional[Type[sob.abc.Object]]:
         """
         Obtain a sub-class of `sob.model.Model` from multiple instance of
         `oapi.oas.model.Schema`.
@@ -317,13 +390,10 @@ class _Modeler:
         - name (str|None) = None
         - relative_url_pointer (str|None)
         """
-        next_schema: Union[Schema, Reference]
         schemas = iter(schemas)
-        next_schema = next(schemas)
+        next_schema: Optional[Schema] = self.next_schema(schemas)
+        assert next_schema is not None
         schemas = chain((next_schema,), schemas)
-        if isinstance(next_schema, Reference):
-            next_schema = self.resolve(next_schema)  # type: ignore
-            assert isinstance(next_schema, Schema)
         if name is None:
             name = self.get_schema_class_name(next_schema)
         if relative_url_pointer is None:
@@ -349,6 +419,17 @@ class _Modeler:
         )
         return object_class
 
+    def polymorph_property(
+        self, property_: sob.abc.Property, schema: Schema
+    ) -> sob.abc.Property:
+        if schema.any_of:
+            property_ = self.extend_property_schemas(property_, schema.any_of)
+        if schema.one_of:
+            property_ = self.extend_property_schemas(property_, schema.one_of)
+        if schema.all_of:
+            property_ = self.extend_property_schemas(property_, schema.all_of)
+        return property_
+
     def get_property(
         self,
         schema: Union[Schema, Reference],
@@ -357,60 +438,31 @@ class _Modeler:
     ) -> sob.abc.Property:
         is_referenced: bool = isinstance(schema, Reference)
         if is_referenced:
-            schema = self.resolve(schema)  # type: ignore
+            schema = self.resolve_reference(schema)  # type: ignore
         assert isinstance(schema, Schema)
+        property_: sob.abc.Property = _get_type_property(
+            schema.type_, format_=schema.format_, required=required
+        )
+        if schema_defines_model(schema):
+            model_class: Optional[Type[sob.abc.Model]] = self.get_model_class(
+                schema, is_property=(not is_referenced)
+            )
+            if model_class:
+                property_ = _append_property_type(property_, model_class)
         if (
             (schema.any_of is not None)
             or (schema.one_of is not None)
             or (schema.all_of is not None)
         ):
-            property_: sob.abc.Property = sob.properties.Property(
-                required=required
-            )
-            if schema.any_of:
-                property_ = self.extend_property_schemas(
-                    property_, schema.any_of
-                )
-            if schema.one_of:
-                property_ = self.extend_property_schemas(
-                    property_, schema.one_of
-                )
-            if schema.all_of:
-                property_ = self.extend_property_schemas(
-                    property_, schema.all_of
-                )
-        elif schema_defines_model(schema):
-            model_class: Optional[Type[sob.abc.Model]] = self.get_model_class(
-                schema, is_property=(not is_referenced)
-            )
-            property_ = sob.properties.Property(required=required)
-            if model_class:
-                property_.types = sob.types.MutableTypes((model_class,))
-        elif schema.type_ == "number":
-            property_ = sob.properties.Number(required=required)
-        elif schema.type_ == "integer":
-            property_ = sob.properties.Integer(required=required)
-        elif schema.type_ == "string":
-            if schema.format_ == "date-time":
-                property_ = sob.properties.DateTime(required=required)
-            elif schema.format_ == "date":
-                property_ = sob.properties.Date(required=required)
-            elif schema.format_ == "byte":
-                property_ = sob.properties.Bytes(required=required)
-            else:
-                property_ = sob.properties.String(required=required)
-        elif schema.type_ == "boolean":
-            property_ = sob.properties.Boolean(required=required)
-        elif schema.type_ == "file":
-            property_ = sob.properties.Bytes(required=required)
-        elif schema.type_:
-            raise ValueError("Unknown schema type:\n" + repr(schema))
-        else:
-            property_ = sob.properties.Property(required=required)
+            property_ = self.polymorph_property(property_, schema)
         if schema.enum:
             property_ = sob.properties.Enumerated(
                 values=tuple(schema.enum),
-                types=property_.types,
+                types=(
+                    property_.types
+                    or _types_from_enum_values(schema.enum)
+                    or None
+                ),
                 required=required,
             )
         if name is not None:
@@ -421,19 +473,13 @@ class _Modeler:
             # Swagger/OpenAPI versions prior to 3.0 do not support `nullable`,
             # so it must be assumed that null values are acceptable for
             # required attributes
-            ((self.major_version < 3) and (required is True))
+            (
+                (self.major_version < 3)
+                and (required is True)
+                and (schema.nullable is not False)
+            )
         ):
-            if schema.nullable is not False:
-                types_: sob.abc.MutableTypes = sob.types.MutableTypes(
-                    property_.types
-                )
-                types_.append(Null)
-                property_ = sob.properties.Property(
-                    types=types_,
-                    name=property_.name,
-                    required=property_.required,
-                    versions=property_.versions,
-                )
+            property_ = _append_property_type(property_, Null)
         if required is not None:
             property_.required = required
         return property_
@@ -687,10 +733,12 @@ class _Modeler:
             if isinstance(schemas, Schema):
                 dereferenced_schemas = (schemas,)
             elif isinstance(schemas, Reference):
-                dereferenced_schemas = (self.resolve(schemas),)  # type: ignore
+                dereferenced_schemas = (
+                    self.resolve_reference(schemas),  # type: ignore
+                )
             else:
                 dereferenced_schemas = filter(
-                    None, map(self.resolve, schemas)  # type: ignore
+                    None, map(self.resolve_reference, schemas)  # type: ignore
                 )
             for dereferenced_schema in dereferenced_schemas:
                 yield dereferenced_schema
@@ -704,7 +752,7 @@ class _Modeler:
                     )
                 if dereferenced_schema.one_of:
                     yield from self.iter_dereferenced_schemas(
-                        dereferenced_schema.all_of
+                        dereferenced_schema.one_of
                     )
 
     def get_required_schema_model_or_property(
@@ -868,7 +916,7 @@ class _Modeler:
                     relative_url_pointer, name
                 )
                 self._class_names_meta[name] = dictionary_meta
-                return sob.model.from_meta(
+                return sob.model.from_meta(  # type: ignore
                     name,
                     dictionary_meta,
                     docstring=self.get_docstring(schema, relative_url_pointer),
@@ -906,7 +954,9 @@ class _Modeler:
         - name (str|None) = None
         - relative_url_pointer (str|None)
         """
-        return self.get_merged_schemas_object_class(
+        cls: Optional[
+            Type[sob.abc.Object]
+        ] = self.get_merged_schemas_object_class(
             chain(
                 (schema,),
                 (schema.any_of or ()),
@@ -916,6 +966,8 @@ class _Modeler:
             name=name,
             relative_url_pointer=relative_url_pointer,
         )
+        assert cls
+        return cls
 
     def get_operation_class_name(self, operation):
         # type: (Operation) -> str
@@ -1012,20 +1064,20 @@ class _Modeler:
         `Schema`, `Parameter`, and `Operation`
         """
         self._traversed_relative_urls_pointers = set()
-        for definition in self._traverse_model_definitions(
-            self.root, (OpenAPI,)
-        ):
+        for definition in self.iter_model_definitions(self.root, (OpenAPI,)):
             if isinstance(definition, Reference):
-                definition = self.resolve(
+                definition = self.resolve_reference(
                     definition, types=_MODEL_DEFINITION_TYPES
                 )
             assert isinstance(definition, _MODEL_DEFINITION_TYPES)
             yield definition
 
-    def resolve(
+    def resolve_reference(
         self,
         reference: Reference,
-        types: Tuple[Union[type, sob.abc.Property], ...] = (),
+        types: Union[
+            sob.abc.Types, Sequence[Union[type, sob.abc.Property]]
+        ] = (),
     ) -> sob.abc.Model:
         """
         If `model_instance` is a reference, get the referenced object.
@@ -1052,15 +1104,17 @@ class _Modeler:
                 f"`Reference` instance is self-referential: {pointer}"
             )
         if isinstance(resolved_model, Reference):
-            resolved_model = self.resolve(resolved_model, types=types)
+            resolved_model = self.resolve_reference(
+                resolved_model, types=types
+            )
         return resolved_model
 
-    def _add_traversed(self, model: sob.abc.Model) -> None:
+    def add_traversed(self, model: sob.abc.Model) -> None:
         self._traversed_relative_urls_pointers.add(
             self.get_model_relative_url_pointer(model)
         )
 
-    def _is_traversed(self, model: sob.abc.Model) -> bool:
+    def is_traversed(self, model: sob.abc.Model) -> bool:
         relative_url_pointer = self.get_model_relative_url_pointer(model)
         return relative_url_pointer in self._traversed_relative_urls_pointers
 
@@ -1071,11 +1125,13 @@ class _Modeler:
         if operation.parameters:
             parameter_or_reference: Union[Parameter, Reference]
             parameter: Parameter
-            for parameter in filter(
+            for parameter in filter(  # type: ignore
                 None,
                 map(
                     lambda parameter_or_reference: (
-                        self.resolve(parameter_or_reference, (Parameter,))
+                        self.resolve_reference(
+                            parameter_or_reference, (Parameter,)
+                        )
                         if isinstance(parameter_or_reference, Reference)
                         else parameter_or_reference
                     ),
@@ -1086,53 +1142,86 @@ class _Modeler:
                     return True
         return False
 
-    def _traverse_model_definitions(
+    def iter_parameter_definitions(
+        self,
+        parameter: Parameter,
+    ) -> Iterable[Union[Schema, Operation, Parameter]]:
+        if parameter.schema is not None:
+            schema = parameter.schema
+            if isinstance(schema, Reference):
+                schema = self.resolve_reference(  # type: ignore
+                    schema, (Schema,)
+                )
+            assert isinstance(schema, Schema)
+            if schema_defines_model(schema) and not (
+                self.is_traversed(schema)
+            ):
+                yield schema
+
+    def iter_array_definitions(
+        self,
+        array: sob.abc.Array,
+    ) -> Iterable[Union[Schema, Operation, Parameter]]:
+        meta_: Optional[sob.abc.ArrayMeta] = sob.meta.array_read(array)
+        for item in array:
+            if isinstance(item, sob.abc.Model):
+                yield from self.iter_model_definitions(
+                    item, (meta_.item_types or () if meta_ else ())
+                )
+
+    def iter_dictionary_definitions(
+        self,
+        dictionary: sob.abc.Dictionary,
+    ) -> Iterable[Union[Schema, Operation, Parameter]]:
+        meta_: Optional[sob.abc.DictionaryMeta] = sob.meta.dictionary_read(
+            dictionary
+        )
+        for value in dictionary.values():
+            if isinstance(value, sob.abc.Model):
+                yield from self.iter_model_definitions(
+                    value, (meta_.value_types or () if meta_ else ())
+                )
+
+    def iter_object_definitions(
+        self,
+        object_: sob.abc.Object,
+    ) -> Iterable[Union[Schema, Operation, Parameter]]:
+        meta_: Optional[sob.abc.ObjectMeta] = sob.meta.object_read(object_)
+        if meta_ and meta_.properties:
+            name: str
+            property_: sob.abc.Property
+            for name, property_ in meta_.properties.items():
+                value: Any = getattr(object_, name)
+                if isinstance(value, sob.abc.Model):
+                    yield from self.iter_model_definitions(
+                        value, property_.types or ()
+                    )
+
+    def iter_model_definitions(
         self,
         model: sob.abc.Model,
-        types: Tuple[type, ...] = (),
+        types: Union[Sequence[type], sob.abc.Types] = (),
     ) -> Iterable[Union[Schema, Operation, Parameter]]:
-        assert isinstance(model, sob.abc.Model)
         if isinstance(model, Reference):
-            model = self.resolve(model, types)
-        if not self._is_traversed(model):
-            self._add_traversed(model)
+            model = self.resolve_reference(model, types)
+        if not self.is_traversed(model):
+            self.add_traversed(model)
             # If this is a schema/parameter/operation defining a model--include
             # it in the returned results
             if isinstance(model, Schema) and schema_defines_model(model):
                 yield model
             elif isinstance(model, Parameter):
-                if model.schema is not None:
-                    schema = model.schema
-                    if isinstance(schema, Reference):
-                        schema = self.resolve(model.schema, (Schema,))
-                    if schema_defines_model(schema) and not (
-                        self._is_traversed(schema)
-                    ):
-                        yield schema
+                yield from self.iter_parameter_definitions(model)
             elif isinstance(model, Operation):
                 if self.operation_defines_model(model):
                     yield model
-            meta_ = sob.meta.read(model)
             # Recursively find other definitions
             if isinstance(model, sob.abc.Dictionary):
-                for value in model.values():
-                    if isinstance(value, sob.abc.Model):
-                        yield from self._traverse_model_definitions(
-                            value, tuple(meta_.value_types)
-                        )
+                yield from self.iter_dictionary_definitions(model)
             elif isinstance(model, sob.abc.Array):
-                for item in model:
-                    if isinstance(item, sob.abc.Model):
-                        yield from self._traverse_model_definitions(
-                            item, tuple(meta_.item_types)
-                        )
+                yield from self.iter_array_definitions(model)
             elif isinstance(model, sob.abc.Object):
-                for name, property_ in meta_.properties.items():
-                    value = getattr(model, name)
-                    if isinstance(value, sob.abc.Model):
-                        yield from self._traverse_model_definitions(
-                            value, tuple(property_.types)
-                        )
+                yield from self.iter_object_definitions(model)
             else:
                 raise TypeError(model)
 
@@ -1254,6 +1343,7 @@ class _ModuleParser:
 
 def _get_path_modeler(path: str) -> _Modeler:
     with open(path, "r") as model_io:
+        assert isinstance(model_io, sob.abc.Readable)
         return _get_io_modeler(model_io)
 
 
@@ -1262,7 +1352,7 @@ def _get_url_modeler(url: str) -> _Modeler:
         return _get_io_modeler(model_io)
 
 
-def _get_io_modeler(model_io: IO[str]) -> _Modeler:
+def _get_io_modeler(model_io: sob.abc.Readable) -> _Modeler:
     return _get_open_api_modeler(OpenAPI(model_io))
 
 
@@ -1285,8 +1375,7 @@ class Module:
       instance of `oapi.oas.model.OpenAPI`.
     """
 
-    def __init__(self, data):
-        # type: (Union[str, IOBase, OpenAPI]) -> None
+    def __init__(self, data: Union[str, IOBase, OpenAPI]) -> None:
         self._parser = _ModuleParser()
         self._modeler: _Modeler
         if isinstance(data, str):
@@ -1336,14 +1425,18 @@ class Module:
             relative_url = self._modeler.get_relative_url(url)
         return relative_url, pointer
 
-    def model_from_pointer(self, url_pointer: str) -> sob.abc.Model:
+    def model_from_pointer(self, url_pointer: str) -> Type[sob.abc.Model]:
         """
         Return a model from a pointer
         """
         relative_url, pointer = self._get_relative_url_and_pointer(url_pointer)
-        return self._modeler.get_relative_url_pointer_model(
-            relative_url + pointer
+        model: Optional[
+            Type[sob.abc.Model]
+        ] = self._modeler.get_relative_url_pointer_model(
+            f"{relative_url}{pointer}"
         )
+        assert isinstance(model, type)
+        return model
 
     def save(self, path: str) -> None:
         """

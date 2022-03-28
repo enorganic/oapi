@@ -21,7 +21,7 @@ LANGUAGE_TOOL_URL = (
 )
 
 
-def test_languagetool():
+def test_languagetool() -> None:
     with urlopen(
         Request(LANGUAGE_TOOL_URL, headers={"User-agent": ""})
     ) as response:
@@ -48,7 +48,7 @@ def test_languagetool():
                 raise ValueError()
 
 
-def test_openapi_examples():
+def test_openapi_examples() -> None:
     for relative_path in (
         "v2.0/json/petstore-separate/spec/swagger.json",
         "v3.0/link-example.yaml",
@@ -71,7 +71,7 @@ def test_openapi_examples():
         "v2.0/yaml/petstore.yaml",
         "v2.0/yaml/uber.yaml",
     ):
-        url = urljoin(OPENAPI_EXAMPLE_URL, relative_path)
+        url: str = urljoin(OPENAPI_EXAMPLE_URL, relative_path)
         print(url)
         with urlopen(url) as response:
             oa = OpenAPI(response)
@@ -93,13 +93,14 @@ def test_openapi_examples():
                 sob.test.json(oa2)
 
 
-def _test_magento_schemas():
+def _test_magento_schemas() -> None:
+    rp: str
     for rp in (
         "latest-2.0.schema.json",
         "latest-2.1.schema.json",
         "latest-2.2.schema.json",
     ):
-        url = urljoin("http://devdocs.magento.com/swagger/schemas/", rp)
+        url: str = urljoin("http://devdocs.magento.com/swagger/schemas/", rp)
         print(url)
         with urlopen(url) as response:
             oa = OpenAPI(response)
@@ -110,7 +111,8 @@ def _test_magento_schemas():
                 sob.test.json(oa2)
 
 
-def _test_logic_broker_schemas():
+def _test_logic_broker_schemas() -> None:
+    rp: str
     for rp in (
         "v1",
         "v2",

@@ -33,16 +33,16 @@ def iter_source_names_models() -> Iterable[Tuple[str, Type[sob.abc.Model]]]:
     for name in dir(model):
         value = getattr(model, name, None)
         if isinstance(value, type) and issubclass(value, sob.abc.Model):
-            value.__module__ = "__main__"
+            value.__module__ = "oapi.oas.model"
             yield name, value
 
 
-def iter_names_metadata_docstrings() -> Iterable[
-    Tuple[str, sob.abc.Meta, str]
+def iter_names_metadata_docstrings_suffixes() -> Iterable[
+    Tuple[str, sob.abc.Meta, str, str]
 ]:
     def get_name_metadata(
         item: Tuple[str, Type[sob.abc.Model]]
-    ) -> Tuple[str, sob.abc.Meta, str]:
+    ) -> Tuple[str, sob.abc.Meta, str, str]:
         line: str
         return (
             item[0],
@@ -53,33 +53,43 @@ def iter_names_metadata_docstrings() -> Iterable[
                     (item[1].__doc__ or "").strip().split("\n"),
                 )
             ),
+            sob.utilities.inspect.get_source(item[1])
+            .partition("super().__init__(_data)")[2]
+            .strip(),
         )
 
     return map(get_name_metadata, iter_source_names_models())
 
 
-def iter_models_metadata() -> Iterable[
-    Tuple[Type[sob.abc.Model], sob.abc.Meta]
+def iter_models_metadata_suffixes() -> Iterable[
+    Tuple[Type[sob.abc.Model], sob.abc.Meta, str]
 ]:
     name: str
+    suffix: str
     metadata: sob.abc.Meta
-    for name, metadata, docstring in iter_names_metadata_docstrings():
+    for (
+        name,
+        metadata,
+        docstring,
+        suffix,
+    ) in iter_names_metadata_docstrings_suffixes():
         if metadata:
             yield sob.model.from_meta(
                 name,
                 metadata,
                 module="oapi.oas.model",
                 docstring=docstring.strip(),
-            ), metadata
+            ), metadata, suffix
 
 
 def main() -> None:
+    suffix: str
     cls: Type[sob.abc.Model]
     metadata: sob.abc.Meta
     imports: Set[str] = set()
     classes: List[str] = []
     metadatas: List[str] = []
-    for cls, metadata in iter_models_metadata():
+    for cls, metadata, suffix in iter_models_metadata_suffixes():
         import_source: str
         class_source: str
         import_source, _, class_source = (
@@ -87,6 +97,13 @@ def main() -> None:
             .replace("oapi.oas.model.", "")
             .rpartition("\n\n\n")
         )
+        class_source = re.sub(
+            r"\bsob\.model\.Object\b",
+            "ExtensibleObject",
+            class_source,
+        )
+        if suffix:
+            class_source = f"{class_source.rstrip()}\n        {suffix}"
         if import_source:
             imports |= set(import_source.strip().split("\n"))
         classes.append(class_source.strip())
@@ -96,40 +113,53 @@ def main() -> None:
         )
         if isinstance(metadata, sob.abc.ObjectMeta):
             metadatas.append(
-                sob.thesaurus.get_class_meta_attribute_assignment_source(
-                    cls.__name__, "properties", metadata
+                re.sub(
+                    r"\boapi\.oas\.model\.",
+                    "",
+                    sob.thesaurus.get_class_meta_attribute_assignment_source(
+                        cls.__name__, "properties", metadata
+                    ),
                 )
             )
         elif isinstance(metadata, sob.abc.ArrayMeta):
             metadatas.append(
-                sob.thesaurus.get_class_meta_attribute_assignment_source(
-                    cls.__name__, "item_types", metadata
+                re.sub(
+                    r"\boapi\.oas\.model\.",
+                    "",
+                    sob.thesaurus.get_class_meta_attribute_assignment_source(
+                        cls.__name__, "item_types", metadata
+                    ),
                 )
             )
         else:
             metadatas.append(
-                sob.thesaurus.get_class_meta_attribute_assignment_source(
-                    cls.__name__, "value_types", metadata
+                re.sub(
+                    r"\boapi\.oas\.model\.",
+                    "",
+                    sob.thesaurus.get_class_meta_attribute_assignment_source(
+                        cls.__name__, "value_types", metadata
+                    ),
                 )
             )
-    print(
-        "\n\n".join(
-            chain(
-                (
-                    "\n".join(
-                        chain(
-                            (f'"""{model.__doc__.rstrip()}\n"""',),
-                            sorted(imports),
-                        )
-                    ),
+    model_source: str = "\n\n".join(
+        chain(
+            (
+                "\n".join(
+                    chain(
+                        (f'"""{model.__doc__.rstrip()}\n"""',),
+                        sorted(imports),
+                    )
                 ),
-                (get_region_source("Base Classes"),),
-                ("\n{}\n".format("\n\n\n".join(classes)),),
-                ("\n".join(metadatas),),
-                (get_region_source("Hooks"),),
-            )
+            ),
+            (get_region_source("Base Classes"),),
+            ("\n{}\n".format("\n\n\n".join(classes)),),
+            ("\n".join(metadatas),),
+            (get_region_source("Hooks"),),
         )
     )
+    model_source = f"{model_source}\n"
+    with open(MODEL_PATH, "w") as model_io:
+        model_io.write(model_source)
 
 
 if __name__ == "__main__":

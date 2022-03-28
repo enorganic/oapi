@@ -10,7 +10,7 @@ install:
 
 # python 3.6 is used, for the time being, in order to ensure compatibility
 venv:
-{ python3.6 -m venv venv || python3 -m venv venv || \
+	{ python3.6 -m venv venv || python3 -m venv venv || \
 	py -3.6 -m venv venv || py -3 -m venv venv ; }
 
 # Activate our virtual environment
@@ -67,9 +67,11 @@ test:
 
 # Download specification schemas
 schemas:
-	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && python3 scripts/download_schemas.py
+	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && \
+	python3 scripts/download_schemas.py
 
 # Rebuild the data model (to maintain consistency when/if changes are made
 # which affect formatting)
 remodel:
-	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && python3 scripts/remodel.py
+	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && \
+	python3 scripts/remodel.py

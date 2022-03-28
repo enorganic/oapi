@@ -34,7 +34,7 @@ def _unmarshal_resolved_reference(
     resolved_reference: sob.abc.MarshallableTypes,
     url: Optional[str],
     pointer: str,
-    types: Sequence[Union[sob.abc.Property, type]] = (),
+    types: Union[Sequence[Union[sob.abc.Property, type]], sob.abc.Types] = (),
 ) -> sob.abc.Model:
     if types or (not isinstance(resolved_reference, sob.abc.Model)):
         resolved_reference = sob.model.unmarshal(
@@ -216,7 +216,9 @@ class _Document:
     def resolve(
         self,
         pointer: str,
-        types: Sequence[Union[sob.abc.Property, type]] = (),
+        types: Union[
+            sob.abc.Types, Sequence[Union[sob.abc.Property, type]]
+        ] = (),
         dereference: bool = False,
     ) -> sob.abc.Model:
         """
@@ -348,6 +350,9 @@ class Resolver:
         types: Sequence[Union[sob.abc.Property, type]] = (),
         dereference: bool = False,
     ) -> sob.abc.Model:
+        """
+        Retrieve an object at the specified pointer
+        """
         url, pointer = self.documents[""].get_url_pointer(pointer)
         return self.documents[url].resolve(
             pointer, types, dereference=dereference
