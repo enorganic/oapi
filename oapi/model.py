@@ -95,7 +95,9 @@ def default_name_class_from_pointer(pointer: str) -> str:
     name = name.replace("~1", "/").replace("~0", "~")
     if relative_url:
         name = f"{relative_url}/{name}"
-    return class_name(name)
+    name = class_name(name)
+    print(f"{pointer} -> {name} (JSON Pointer -> Class Name)")
+    return name
 
 
 def schema_defines_array(schema: Schema) -> bool:
