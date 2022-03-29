@@ -62,6 +62,16 @@ _SPACES_RE = re.compile(r"[\s\n]")
 
 
 def get_default_class_name_from_pointer(pointer: str) -> str:
+    """
+    This function infers a class name from a JSON pointer, or from a
+    relative URL concatenated with a JSON pointer. This function is
+    the default naming function used by `oapi.model.Module`.
+
+    Parameters:
+
+    - pointer (str): A JSON pointer referencing a schema within an OpenAPI
+      document, or a concatenation of a relative URL + "#" + a JSON pointer.
+    """
     relative_url: str = ""
     if "#" in pointer:
         relative_url, pointer = pointer.split("#", 1)
@@ -245,6 +255,11 @@ class _Modeler:
     """
     This class parses an OpenAPI schema and produces a data model based on the
     `sob` library.
+
+    Initialization Parameters:
+
+    - root (oapi.oas.model.OpenAPI)
+    - get_class_name_from_pointer
     """
 
     def __init__(
@@ -1307,7 +1322,8 @@ class Module:
     """
     This class parses an Open API document and outputs a module defining
     classes to represent each schema defined in the Open API document as a
-    subclass of `sob.model.Module`.
+    subclass of `sob.model.Object`, `sob.model.Array`, or
+    `sob.model.Dictionary`.
 
     Initialization Parameters:
 
@@ -1316,6 +1332,12 @@ class Module:
       The input data can be a URL, file-path, an HTTP response
       (`http.client.HTTPResponse`), a file object, or an
       instance of `oapi.oas.model.OpenAPI`.
+
+    - get_class_name_from_pointer: This argument defaults to
+      `oapi.model.get_default_class_name_from_pointer`. If an alternate
+      function is provided, it should accept a `str` (a JSON pointer
+      or concatenated relative URL + JSON pointer), and should return
+      a `str` which is a valid, unique, class name.
     """
 
     def __init__(
