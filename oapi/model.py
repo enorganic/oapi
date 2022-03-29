@@ -1015,7 +1015,17 @@ class _Modeler:
             parts = [
                 part.replace("~1", "/")
                 for part in re.sub(
-                    r"/(anyOf|allOf|oneOf)/\d+/", "/", pointer.lstrip("#/")
+                    r"/(anyOf|allOf|oneOf)/\d+/",
+                    "/",
+                    re.sub(
+                        r"/([^\/]+)/responses/(\d+)/content/[^\/]+/schema\b",
+                        r"/\1/response/\2",
+                        re.sub(
+                            r"/([^\/]+)/responses/200/content/[^\/]+/schema\b",
+                            r"/\1/response",
+                            pointer.lstrip("#/"),
+                        ),
+                    ),
                 ).split("/")
             ]
             length = len(parts)
