@@ -146,7 +146,7 @@ class CheckPostResponseLanguage(sob.model.Object):
         ] = None,
         detected_language: typing.Optional[
             typing.Union[
-                "CheckPostResponsePropertiesLanguageDetectedLanguage",
+                "CheckPostResponseLanguageDetectedLanguage",
                 sob.utilities.types.Null
             ]
         ] = None
@@ -157,7 +157,7 @@ class CheckPostResponseLanguage(sob.model.Object):
         super().__init__(_data)
 
 
-class CheckPostResponsePropertiesLanguageDetectedLanguage(sob.model.Object):
+class CheckPostResponseLanguageDetectedLanguage(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema/properties/language/properties/
     detectedLanguage
@@ -270,13 +270,13 @@ class CheckPostResponseMatchesItems(sob.model.Object):
         ] = None,
         replacements: typing.Optional[
             typing.Union[
-                "CheckPostResponsePropertiesMatchesItemsReplacements",
+                "CheckPostResponseMatchesItemsReplacements",
                 sob.utilities.types.Null
             ]
         ] = None,
         context: typing.Optional[
             typing.Union[
-                "CheckPostResponsePropertiesMatchesItemsContext",
+                "CheckPostResponseMatchesItemsContext",
                 sob.utilities.types.Null
             ]
         ] = None,
@@ -287,7 +287,7 @@ class CheckPostResponseMatchesItems(sob.model.Object):
             ]
         ] = None,
         rule: typing.Optional[
-            "CheckPostResponsePropertiesMatchesItemsRule"
+            "CheckPostResponseMatchesItemsRule"
         ] = None
     ) -> None:
         self.message = message
@@ -301,7 +301,7 @@ class CheckPostResponseMatchesItems(sob.model.Object):
         super().__init__(_data)
 
 
-class CheckPostResponsePropertiesMatchesItemsReplacements(sob.model.Array):
+class CheckPostResponseMatchesItemsReplacements(sob.model.Array):
     """
     #/paths/~1check/post/responses/200/schema/properties/matches/items/
     properties/replacements
@@ -314,7 +314,7 @@ class CheckPostResponsePropertiesMatchesItemsReplacements(sob.model.Array):
         self,
         items: typing.Union[
             typing.Iterable[
-                "CheckPostResponsePropertiesMatchesItemsReplacementsItems"
+                "CheckPostResponseMatchesItemsReplacementsItems"
             ],
             sob.abc.Readable,
             str,
@@ -325,9 +325,7 @@ class CheckPostResponsePropertiesMatchesItemsReplacements(sob.model.Array):
         super().__init__(items)
 
 
-class CheckPostResponsePropertiesMatchesItemsReplacementsItems(
-    sob.model.Object
-):
+class CheckPostResponseMatchesItemsReplacementsItems(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema/properties/matches/items/
     properties/replacements/items
@@ -360,7 +358,7 @@ class CheckPostResponsePropertiesMatchesItemsReplacementsItems(
         super().__init__(_data)
 
 
-class CheckPostResponsePropertiesMatchesItemsContext(sob.model.Object):
+class CheckPostResponseMatchesItemsContext(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema/properties/matches/items/
     properties/context
@@ -410,7 +408,7 @@ class CheckPostResponsePropertiesMatchesItemsContext(sob.model.Object):
         super().__init__(_data)
 
 
-class CheckPostResponsePropertiesMatchesItemsRule(sob.model.Object):
+class CheckPostResponseMatchesItemsRule(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema/properties/matches/items/
     properties/rule
@@ -451,14 +449,14 @@ class CheckPostResponsePropertiesMatchesItemsRule(sob.model.Object):
             ]
         ] = None,
         urls: typing.Optional[
-            "CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrls"
+            "CheckPostResponseMatchesItemsRuleUrls"
         ] = None,
         issue_type: typing.Optional[
             str
         ] = None,
         category: typing.Optional[
             typing.Union[
-                "CheckPostResponsePropertiesMatchesItemsPropertiesRuleCategory",  # noqa
+                "CheckPostResponseMatchesItemsRuleCategory",
                 sob.utilities.types.Null
             ]
         ] = None
@@ -472,9 +470,7 @@ class CheckPostResponsePropertiesMatchesItemsRule(sob.model.Object):
         super().__init__(_data)
 
 
-class CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrls(
-    sob.model.Array
-):
+class CheckPostResponseMatchesItemsRuleUrls(sob.model.Array):
     """
     #/paths/~1check/post/responses/200/schema/properties/matches/items/
     properties/rule/properties/urls
@@ -486,7 +482,7 @@ class CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrls(
         self,
         items: typing.Union[
             typing.Iterable[
-                "CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrlsItems"  # noqa
+                "CheckPostResponseMatchesItemsRuleUrlsItems"
             ],
             sob.abc.Readable,
             str,
@@ -497,9 +493,7 @@ class CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrls(
         super().__init__(items)
 
 
-class CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrlsItems(
-    sob.model.Object
-):
+class CheckPostResponseMatchesItemsRuleUrlsItems(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema/properties/matches/items/
     properties/rule/properties/urls/items
@@ -532,9 +526,7 @@ class CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrlsItems(
         super().__init__(_data)
 
 
-class CheckPostResponsePropertiesMatchesItemsPropertiesRuleCategory(
-    sob.model.Object
-):
+class CheckPostResponseMatchesItemsRuleCategory(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema/properties/matches/items/
     properties/rule/properties/category
@@ -868,7 +860,7 @@ sob.meta.object_writable(  # type: ignore
             name="detectedLanguage",
             required=True,
             types=sob.types.MutableTypes([
-                CheckPostResponsePropertiesLanguageDetectedLanguage,
+                CheckPostResponseLanguageDetectedLanguage,
                 sob.utilities.types.Null
             ])
         )
@@ -878,7 +870,7 @@ sob.meta.object_writable(  # type: ignore
 # #/paths/~1check/post/responses/200/schema/properties/language/properties/
 # detectedLanguage
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponsePropertiesLanguageDetectedLanguage
+    CheckPostResponseLanguageDetectedLanguage
 ).properties = sob.meta.Properties([
     (
         'name',
@@ -954,7 +946,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                CheckPostResponsePropertiesMatchesItemsReplacements,
+                CheckPostResponseMatchesItemsReplacements,
                 sob.utilities.types.Null
             ])
         )
@@ -964,7 +956,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                CheckPostResponsePropertiesMatchesItemsContext,
+                CheckPostResponseMatchesItemsContext,
                 sob.utilities.types.Null
             ])
         )
@@ -983,7 +975,7 @@ sob.meta.object_writable(  # type: ignore
         'rule',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                CheckPostResponsePropertiesMatchesItemsRule
+                CheckPostResponseMatchesItemsRule
             ])
         )
     )
@@ -992,15 +984,15 @@ sob.meta.object_writable(  # type: ignore
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/replacements
 sob.meta.array_writable(  # type: ignore
-    CheckPostResponsePropertiesMatchesItemsReplacements
+    CheckPostResponseMatchesItemsReplacements
 ).item_types = sob.types.MutableTypes([
-    CheckPostResponsePropertiesMatchesItemsReplacementsItems
+    CheckPostResponseMatchesItemsReplacementsItems
 ])
 
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/replacements/items
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponsePropertiesMatchesItemsReplacementsItems
+    CheckPostResponseMatchesItemsReplacementsItems
 ).properties = sob.meta.Properties([
     ('value', sob.properties.String())
 ])
@@ -1008,7 +1000,7 @@ sob.meta.object_writable(  # type: ignore
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/context
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponsePropertiesMatchesItemsContext
+    CheckPostResponseMatchesItemsContext
 ).properties = sob.meta.Properties([
     (
         'text',
@@ -1045,7 +1037,7 @@ sob.meta.object_writable(  # type: ignore
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/rule
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponsePropertiesMatchesItemsRule
+    CheckPostResponseMatchesItemsRule
 ).properties = sob.meta.Properties([
     (
         'id_',
@@ -1078,7 +1070,7 @@ sob.meta.object_writable(  # type: ignore
         'urls',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrls
+                CheckPostResponseMatchesItemsRuleUrls
             ])
         )
     ),
@@ -1093,7 +1085,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                CheckPostResponsePropertiesMatchesItemsPropertiesRuleCategory,  # noqa
+                CheckPostResponseMatchesItemsRuleCategory,
                 sob.utilities.types.Null
             ])
         )
@@ -1103,15 +1095,15 @@ sob.meta.object_writable(  # type: ignore
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/rule/properties/urls
 sob.meta.array_writable(  # type: ignore
-    CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrls
+    CheckPostResponseMatchesItemsRuleUrls
 ).item_types = sob.types.MutableTypes([
-    CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrlsItems
+    CheckPostResponseMatchesItemsRuleUrlsItems
 ])
 
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/rule/properties/urls/items
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrlsItems
+    CheckPostResponseMatchesItemsRuleUrlsItems
 ).properties = sob.meta.Properties([
     ('value', sob.properties.String())
 ])
@@ -1119,7 +1111,7 @@ sob.meta.object_writable(  # type: ignore
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/rule/properties/category
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponsePropertiesMatchesItemsPropertiesRuleCategory
+    CheckPostResponseMatchesItemsRuleCategory
 ).properties = sob.meta.Properties([
     (
         'id_',

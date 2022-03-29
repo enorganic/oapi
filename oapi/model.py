@@ -99,55 +99,25 @@ def get_default_class_name_from_pointer(pointer: str) -> str:
             r"^(components/[^/]+/|definitions/|paths/)",
             "/",
         ),
+        (
+            r"/properties/",
+            "/",
+        ),
+        (
+            r"~1",
+            "/",
+        ),
+        (
+            r"~0",
+            "~",
+        ),
     ):
         name = re.sub(pattern, repl, name)
-    name = "/".join(name.rsplit("/properties/", 1))
-    name = name.replace("~1", "/").replace("~0", "~")
     if relative_url:
         name = f"{relative_url}/{name}"
     name = class_name(name)
     print(f"{pointer} -> {name} (JSON Pointer -> Class Name)")
     return name
-
-
-def schema_defines_array(schema: Schema) -> bool:
-    """
-    Schemas of the type `array` translate to an `Array`. Incorrectly
-    implemented schemas may also neglect this, however use of the attribute
-    `items` is only valid in the context of an array--and therefore indicate
-    the schema also defines an instance of `Array`.
-    """
-    return bool(schema.type_ == "array" or schema.items)
-
-
-def schema_defines_object(schema: Schema) -> bool:
-    """
-    If properties are defined for a schema, it will translate to an instance of
-    `Object`.
-    """
-    return (
-        (schema.properties and schema.type_ is None)
-        or schema.type_ == "object"
-    ) and (not schema.additional_properties)
-
-
-def schema_defines_dictionary(schema: Schema) -> bool:
-    """
-    If properties are not defined for a schema, or unspecified attributes are
-    allowed--the schema will translate to an instance of `sob.abc.Dictionary`.
-    """
-    return bool(
-        schema.type_ == "object"
-        and (schema.additional_properties or (not schema.properties))
-    )
-
-
-def schema_defines_model(schema: Schema) -> bool:
-    return (
-        schema_defines_array(schema)
-        or schema_defines_object(schema)
-        or schema_defines_dictionary(schema)
-    )
 
 
 # endregion
@@ -293,6 +263,89 @@ class _Modeler:
         self.get_class_name_from_pointer: Callable[
             [str], str
         ] = get_class_name_from_pointer
+
+    def schema_defines_object(self, schema: Union[Schema, Reference]) -> bool:
+        """
+        If properties are defined for a schema, it will translate to an
+        instance of `Object`.
+        """
+        if isinstance(schema, Reference):
+            schema = self.resolve_reference(schema)  # type: ignore
+            assert isinstance(schema, Schema)
+        if (
+            (schema.properties and schema.type_ is None)
+            or schema.type_ == "object"
+        ) and (not schema.additional_properties):
+            return True
+        else:
+            return any(
+                map(
+                    self.schema_defines_object,
+                    chain(
+                        getattr(schema, "any_of", ()) or (),
+                        getattr(schema, "all_of", ()) or (),
+                        getattr(schema, "one_of", ()) or (),
+                    ),
+                )
+            )
+
+    def schema_defines_array(self, schema: Union[Schema, Reference]) -> bool:
+        """
+        Schemas of the type `array` translate to an `Array`. Incorrectly
+        implemented schemas may also neglect this, however use of the attribute
+        `items` is only valid in the context of an array--and therefore
+        indicate the schema also defines an instance of `Array`.
+        """
+        if isinstance(schema, Reference):
+            schema = self.resolve_reference(schema)  # type: ignore
+            assert isinstance(schema, Schema)
+        if schema.type_ == "array" or schema.items:
+            return True
+        else:
+            return any(
+                map(
+                    self.schema_defines_array,
+                    chain(
+                        getattr(schema, "any_of", ()) or (),
+                        getattr(schema, "all_of", ()) or (),
+                        getattr(schema, "one_of", ()) or (),
+                    ),
+                )
+            )
+
+    def schema_defines_dictionary(
+        self, schema: Union[Schema, Reference]
+    ) -> bool:
+        """
+        If properties are not defined for a schema, or unspecified attributes
+        are allowed--the schema will translate to an instance of
+        `sob.abc.Dictionary`.
+        """
+        if isinstance(schema, Reference):
+            schema = self.resolve_reference(schema)  # type: ignore
+            assert isinstance(schema, Schema)
+        if schema.type_ == "object" and (
+            schema.additional_properties or (not schema.properties)
+        ):
+            return True
+        else:
+            return any(
+                map(
+                    self.schema_defines_dictionary,
+                    chain(
+                        getattr(schema, "any_of", ()) or (),
+                        getattr(schema, "all_of", ()) or (),
+                        getattr(schema, "one_of", ()) or (),
+                    ),
+                )
+            )
+
+    def schema_defines_model(self, schema: Schema) -> bool:
+        return (
+            self.schema_defines_array(schema)
+            or self.schema_defines_object(schema)
+            or self.schema_defines_dictionary(schema)
+        )
 
     def get_relative_url_pointer_model(
         self, relative_url_pointer: str
@@ -457,10 +510,6 @@ class _Modeler:
                     meta_properties[property_name_] = property_
         if next_schema.all_of:
             schemas = chain(schemas, next_schema.all_of)
-        if next_schema.any_of:
-            schemas = chain(schemas, next_schema.any_of)
-        if next_schema.one_of:
-            schemas = chain(schemas, next_schema.one_of)
         self.merge_schemas_properties(meta_properties, schemas)
 
     def get_merged_schemas_object_class(
@@ -530,13 +579,13 @@ class _Modeler:
         property_: sob.abc.Property = _get_type_property(
             schema.type_, format_=schema.format_, required=required
         )
-        if schema_defines_model(schema):
+        if self.schema_defines_model(schema):
             model_class: Optional[Type[sob.abc.Model]] = self.get_model_class(
                 schema
             )
             if model_class:
                 property_ = _append_property_type(property_, model_class)
-        if (schema.any_of is not None) or (schema.one_of is not None):
+        if schema.any_of or schema.one_of:
             property_ = self.polymorph_property(property_, schema)
         if schema.enum:
             property_ = sob.properties.Enumerated(
@@ -678,20 +727,20 @@ class _Modeler:
             name = self.get_schema_class_name(schema)
         if relative_url_pointer is None:
             relative_url_pointer = self.get_model_relative_url_pointer(schema)
-        if schema_defines_array(schema):
+        if self.schema_defines_array(schema):
             return self.get_schema_array_class(
                 schema,
                 name=name,
                 relative_url_pointer=relative_url_pointer,
                 required=required,
             )
-        elif schema_defines_object(schema):
+        elif self.schema_defines_object(schema):
             return self.get_schema_object_class(
                 schema,
                 name=name,
                 relative_url_pointer=relative_url_pointer,
             )
-        elif schema_defines_dictionary(schema):
+        elif self.schema_defines_dictionary(schema):
             return self.get_schema_dictionary_class(
                 schema,
                 name=name,
@@ -813,7 +862,7 @@ class _Modeler:
         required: bool = False,
     ) -> Union[sob.abc.Property, Type[sob.abc.Model], None]:
         type_: Union[Type[sob.abc.Model], sob.abc.Property, None]
-        if schema_defines_model(schema):
+        if self.schema_defines_model(schema):
             type_ = self.get_model_class(schema)
         else:
             type_ = self.get_property(schema, required=required)
@@ -1003,12 +1052,7 @@ class _Modeler:
         cls: Optional[
             Type[sob.abc.Object]
         ] = self.get_merged_schemas_object_class(
-            chain(
-                (schema,),
-                # (schema.any_of or ()),
-                (schema.all_of or ()),
-                # (schema.one_of or ()),
-            ),
+            (schema,),
             name=name,
             relative_url_pointer=relative_url_pointer,
         )
@@ -1152,7 +1196,12 @@ class _Modeler:
                         # it will already have been yielded
                         skip=(
                             isinstance(object_, Schema)
-                            and name in ("all_of",)  # "any_of", "one_of"
+                            and name
+                            in (
+                                "all_of",
+                                # "any_of",
+                                # "one_of"
+                            )
                         ),
                     )
 
@@ -1175,7 +1224,7 @@ class _Modeler:
                 if isinstance(model, Schema):
                     if skip:
                         skip = False
-                    elif schema_defines_model(model):
+                    elif self.schema_defines_model(model):
                         yield model
                 yield from self.iter_object_schemas(model)
             elif isinstance(model, sob.abc.Dictionary):
