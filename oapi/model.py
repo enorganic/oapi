@@ -1,11 +1,12 @@
 import sob
 import os
 import re
-from itertools import chain
+from itertools import chain, starmap
 from more_itertools import unique_everseen
 from typing import (
     IO,
     Any,
+    Callable,
     Dict,
     Iterable,
     Iterator,
@@ -67,6 +68,34 @@ _MODEL_DEFINITION_TYPES: Tuple[Type[sob.abc.Model], ...] = (
 )
 
 # region Functions
+
+
+def default_name_class_from_pointer(pointer: str) -> str:
+    relative_url: str = ""
+    if "#" in pointer:
+        relative_url, pointer = pointer.split("#", 1)
+    name: str = re.sub(
+        r"^(components/[^/]+/|definitions/|paths/)",
+        "/",
+        re.sub(
+            r"/(anyOf|allOf|oneOf)/\d+/",
+            "/",
+            re.sub(
+                r"/([^\/]+)/responses/(\d+)/(content/[^\/]+/)?schema\b",
+                r"/\1/response/\2",
+                re.sub(
+                    r"/([^\/]+)/responses/200/(content/[^\/]+/)?schema\b",
+                    r"/\1/response",
+                    pointer.lstrip("#/"),
+                ),
+            ),
+        ),
+    )
+    name = "/".join(name.rsplit("/properties/", 1))
+    name = name.replace("~1", "/").replace("~0", "~")
+    if relative_url:
+        name = f"{relative_url}/{name}"
+    return class_name(name)
 
 
 def schema_defines_array(schema: Schema) -> bool:
@@ -174,11 +203,34 @@ def _types_from_enum_values(
 def _append_property_type(
     property_: sob.abc.Property, type_: Union[type, sob.abc.Property]
 ) -> sob.abc.Property:
-    if type_ not in (property_.types or ()):
+    # Representations are used in lieu of comparing classes directly
+    # because in the course of type generation it is possible to create
+    # an identical class more than once
+    type_representations: Set[str] = set(
+        filter(
+            None,
+            map(sob.utilities.inspect.represent, property_.types or ()),
+        )
+    ) | {sob.utilities.inspect.represent(property_)}
+    if sob.utilities.inspect.represent(type_) not in type_representations:
         if not isinstance(property_.types, sob.abc.MutableTypes):
+            types: sob.abc.MutableTypes
+            # If the existing property type is a base class of the
+            # type to be appended, the appended class supercedes
+            # the original
+            if (
+                property_.types
+                and len(property_.types) == 1
+                and isinstance(type_, type)
+                and isinstance(property_.types[0], type)
+                and issubclass(type_, property_.types[0])
+            ):
+                types = sob.types.MutableTypes()
+            else:
+                types = sob.types.MutableTypes(property_.types or ())
             property_ = sob.properties.Property(
                 name=property_.name,
-                types=sob.types.MutableTypes(property_.types or ()),
+                types=types,
                 required=property_.required,
                 versions=property_.versions,
             )
@@ -196,6 +248,9 @@ class _Modeler:
     def __init__(
         self,
         root: OpenAPI,
+        name_class_from_pointer: Callable[
+            [str], str
+        ] = default_name_class_from_pointer,
     ) -> None:
         # This ensures all elements have URLs and JSON pointers
         sob.meta.set_url(root, sob.meta.get_url(root))
@@ -218,6 +273,9 @@ class _Modeler:
             .split(".")[0]
             .strip()
         )
+        self.name_class_from_pointer: Callable[
+            [str], str
+        ] = name_class_from_pointer
 
     def get_relative_url_pointer_model(
         self, relative_url_pointer: str
@@ -283,22 +341,17 @@ class _Modeler:
                 types=sob.types.MutableTypes(property_.types)  # type: ignore
             )
         child_property_ = self.get_property(next_schema)
-        # Representations are used in lieu of comparing classes directly
-        # because in the course of type generation it is possible to create
-        # an identical class more than once
-        type_representations: Set[str] = set(
-            filter(
-                None,
-                map(sob.utilities.inspect.represent, property_.types or ()),
+        if child_property_.types:
+            deque(
+                starmap(
+                    _append_property_type,
+                    zip(
+                        (property_,) * len(child_property_.types),
+                        child_property_.types,
+                    ),
+                ),
+                maxlen=0,
             )
-        ) | {sob.utilities.inspect.represent(property_)}
-        if child_property_ and child_property_.types:
-            for type_ in child_property_.types:
-                if (
-                    sob.utilities.inspect.represent(property_)
-                    not in type_representations
-                ):
-                    property_.types.append(type_)  # type: ignore
         return self.extend_property_schemas(property_, schemas)
 
     def next_schema(
@@ -446,7 +499,7 @@ class _Modeler:
         )
         if schema_defines_model(schema):
             model_class: Optional[Type[sob.abc.Model]] = self.get_model_class(
-                schema, is_property=(not is_referenced)
+                schema
             )
             if model_class:
                 property_ = _append_property_type(property_, model_class)
@@ -537,7 +590,6 @@ class _Modeler:
     def get_model_class(
         self,
         definition: Union[Schema, Operation, Parameter],
-        is_property: bool = False,
     ) -> Optional[Type[sob.abc.Model]]:
         """
         Get a model class from a schema/operation/parameter. This method
@@ -547,25 +599,22 @@ class _Modeler:
         cls: Optional[Type[sob.abc.Model]]
         # If this model has already been generated--use the cached model
         if not self.relative_url_pointer_model_exists(relative_url_pointer):
-            # Setting this to prevents recursion errors
+            # Setting this to `None` prevents recursion errors
             self.set_relative_url_pointer_model(relative_url_pointer, None)
             if isinstance(definition, Schema):
                 cls = self.get_schema_model_class(
                     definition,
                     relative_url_pointer=relative_url_pointer,
-                    is_property=is_property,
                 )
             elif isinstance(definition, Operation):
                 cls = self.get_operation_model_class(
                     definition,
                     relative_url_pointer=relative_url_pointer,
-                    is_property=is_property,
                 )
             elif isinstance(definition, Parameter):
                 cls = self.get_parameter_model_class(
                     definition,
                     relative_url_pointer=relative_url_pointer,
-                    is_property=is_property,
                 )
             else:
                 raise TypeError(
@@ -579,10 +628,9 @@ class _Modeler:
             self.set_model_class_name(cls)
         return self.get_relative_url_pointer_model(relative_url_pointer)
 
-    @property  # type: ignore
-    def model_classes(self) -> Iterable[Type[sob.abc.Model]]:
+    def iter_model_classes(self) -> Iterable[Type[sob.abc.Model]]:
         models_names: Dict[str, Type[sob.abc.Model]] = {}
-        for definition in self.model_definitions:
+        for definition in self.iter_definitions():
             model: Optional[Type[sob.abc.Model]] = self.get_model_class(
                 definition
             )
@@ -614,24 +662,21 @@ class _Modeler:
         self,
         operation: Operation,
         relative_url_pointer: Optional[str] = None,
-        is_property: bool = False,
         required: bool = False,
     ) -> Type[sob.abc.Model]:
-        name: str = self.get_operation_class_name(operation)  # noqa
+        # name: str = self.get_operation_class_name(operation)  # noqa
         raise NotImplementedError()  # TODO
 
     def get_parameter_model_class(
         self,
         parameter: Parameter,
         relative_url_pointer: Optional[str] = None,
-        is_property: bool = False,
         required: bool = False,
     ) -> Optional[Type[sob.abc.Model]]:
         return self.get_schema_model_class(
             parameter.schema,  # type: ignore
             name=self.get_parameter_class_name(parameter),
             relative_url_pointer=relative_url_pointer,
-            is_property=is_property,
             required=required,
         )
 
@@ -640,11 +685,10 @@ class _Modeler:
         schema: Schema,
         name: Optional[str] = None,
         relative_url_pointer: Optional[str] = None,
-        is_property: bool = False,
         required: bool = False,
     ) -> Optional[Type[sob.abc.Model]]:
         if name is None:
-            name = self.get_schema_class_name(schema, is_property=is_property)
+            name = self.get_schema_class_name(schema)
         if relative_url_pointer is None:
             relative_url_pointer = self.get_model_relative_url_pointer(schema)
         if schema_defines_array(schema):
@@ -656,7 +700,9 @@ class _Modeler:
             )
         elif schema_defines_object(schema):
             return self.get_schema_object_class(
-                schema, name=name, relative_url_pointer=relative_url_pointer
+                schema,
+                name=name,
+                relative_url_pointer=relative_url_pointer,
             )
         elif schema_defines_dictionary(schema):
             return self.get_schema_dictionary_class(
@@ -818,7 +864,6 @@ class _Modeler:
                     name = item_types[0].__name__
                 else:
                     name = self.get_schema_class_name(schema)
-            name = f"{name}Array"
             if name in self._class_names_models:
                 return self._class_names_models[name]  # type: ignore
             else:
@@ -980,7 +1025,7 @@ class _Modeler:
             operation
         )
         return self.get_relative_url_and_pointer_class_name(
-            relative_url, pointer, is_property=True
+            relative_url, pointer
         )
 
     def get_parameter_class_name(self, parameter: Parameter) -> str:
@@ -991,82 +1036,35 @@ class _Modeler:
             parameter
         )
         return self.get_relative_url_and_pointer_class_name(
-            relative_url, pointer, is_property=True
+            relative_url, pointer
         )
 
-    def get_schema_class_name(
-        self, schema: Schema, is_property: bool = False
-    ) -> str:
+    def get_schema_class_name(self, schema: Schema) -> str:
         """
         Derive a model's class name from a `Schema` object
         """
         relative_url, pointer = self.get_model_relative_url_and_pointer(schema)
         return self.get_relative_url_and_pointer_class_name(
-            relative_url, pointer, is_property=is_property
+            relative_url, pointer
         )
 
     def get_relative_url_and_pointer_class_name(
-        self, relative_url: str, pointer: str, is_property: bool = False
+        self,
+        relative_url: str,
+        pointer: str,
     ) -> str:
-        relative_url_pointer = relative_url + pointer
+        relative_url_pointer: str = f"{relative_url}{pointer}"
         if not self.relative_url_pointer_class_name_exists(
             relative_url_pointer
         ):
-            parts = [
-                part.replace("~1", "/")
-                for part in re.sub(
-                    r"/(anyOf|allOf|oneOf)/\d+/",
-                    "/",
-                    re.sub(
-                        r"/([^\/]+)/responses/(\d+)/content/[^\/]+/schema\b",
-                        r"/\1/response/\2",
-                        re.sub(
-                            r"/([^\/]+)/responses/200/content/[^\/]+/schema\b",
-                            r"/\1/response",
-                            pointer.lstrip("#/"),
-                        ),
-                    ),
-                ).split("/")
-            ]
-            length = len(parts)
-            start_index = 0
-            first_part = parts[0].lower()
-            if length > 1:
-                if first_part in ("definitions", "paths"):
-                    start_index += 1
-                elif first_part == "components":
-                    start_index += 1
-                    if length > 2 and parts[1] == "schemas":
-                        start_index += 1
-
-            def get_class_name(pointer_start_index: int) -> str:
-                relevant_parts = list(parts[pointer_start_index:])
-                if relative_url:
-                    relevant_parts.insert(0, relative_url)
-                if is_property and len(relevant_parts) > 1:
-                    relevant_parts.pop(-2)
-                return class_name("/".join(relevant_parts))
-
-            relative_url_pointer_class_name = get_class_name(start_index)
-            while start_index and (
-                self.class_name_relative_urls_pointer_exists(
-                    relative_url_pointer_class_name
-                )
-                and self.get_class_name_relative_url_pointer(
-                    relative_url_pointer_class_name
-                )
-                != relative_url_pointer
-            ):
-                start_index -= 1
-                relative_url_pointer_class_name = get_class_name(start_index)
             # Cache the result
             self.set_relative_url_pointer_class_name(
-                relative_url_pointer, relative_url_pointer_class_name
+                relative_url_pointer,
+                self.name_class_from_pointer(relative_url_pointer),
             )
         return self.get_relative_url_pointer_class_name(relative_url_pointer)
 
-    @property  # type: ignore
-    def model_definitions(
+    def iter_definitions(
         self,
     ) -> Iterable[Union[Schema, Parameter, Operation]]:
         """
@@ -1075,11 +1073,6 @@ class _Modeler:
         """
         self._traversed_relative_urls_pointers = set()
         for definition in self.iter_model_definitions(self.root, (OpenAPI,)):
-            if isinstance(definition, Reference):
-                definition = self.resolve_reference(
-                    definition, types=_MODEL_DEFINITION_TYPES
-                )
-            assert isinstance(definition, _MODEL_DEFINITION_TYPES)
             yield definition
 
     def resolve_reference(
@@ -1166,7 +1159,7 @@ class _Modeler:
             if schema_defines_model(schema) and not (
                 self.is_traversed(schema)
             ):
-                yield schema
+                yield parameter
 
     def iter_array_definitions(
         self,
@@ -1203,7 +1196,13 @@ class _Modeler:
         if meta_ and meta_.properties:
             name: str
             property_: sob.abc.Property
-            for name, property_ in meta_.properties.items():
+            item: Tuple[str, sob.abc.Property]
+            for name, property_ in sorted(
+                meta_.properties.items(),
+                key=lambda item: (
+                    0 if item[0] in ("definitions", "components") else 1
+                ),
+            ):
                 value: Any = getattr(object_, name)
                 if isinstance(value, sob.abc.Model):
                     yield from self.iter_model_definitions(
@@ -1231,7 +1230,7 @@ class _Modeler:
             # If this is a schema/parameter/operation defining a model--include
             # it in the returned results
             if (
-                (not skip)
+                skip <= 0
                 and isinstance(model, Schema)
                 and schema_defines_model(model)
             ):
@@ -1245,7 +1244,9 @@ class _Modeler:
             if isinstance(model, sob.abc.Dictionary):
                 yield from self.iter_dictionary_definitions(model)
             elif isinstance(model, sob.abc.Array):
-                yield from self.iter_array_definitions(model, skip=skip - 1)
+                yield from self.iter_array_definitions(
+                    model, skip=max(skip - 1, 0)
+                )
             elif isinstance(model, sob.abc.Object):
                 yield from self.iter_object_definitions(model)
             else:
@@ -1277,7 +1278,7 @@ class _Modeler:
         class_names_sources: Dict[str, str] = OrderedDict()
         classes: List[str] = []
         imports: Set[str] = set()
-        for model_class in self.model_classes:
+        for model_class in self.iter_model_classes():
             class_name_ = model_class.__name__
             class_imports, class_source = _get_model_import_class_source(
                 model_class
@@ -1401,7 +1402,13 @@ class Module:
       instance of `oapi.oas.model.OpenAPI`.
     """
 
-    def __init__(self, data: Union[str, IOBase, OpenAPI]) -> None:
+    def __init__(
+        self,
+        data: Union[str, IOBase, OpenAPI],
+        name_class_from_pointer: Callable[
+            [str], str
+        ] = default_name_class_from_pointer,
+    ) -> None:
         self._parser = _ModuleParser()
         self._modeler: _Modeler
         if isinstance(data, str):
@@ -1419,6 +1426,7 @@ class Module:
                 f"of `str`, `{qualified_name(OpenAPI)}`, or a file-like "
                 f"object for the `data` parameter--not {repr(data)}"
             )
+        self._modeler.name_class_from_pointer = name_class_from_pointer
 
     def __str__(self) -> str:
         return self._modeler.get_module_source()

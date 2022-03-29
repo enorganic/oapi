@@ -2,7 +2,7 @@ import typing
 import sob
 
 
-class CheckPostResponses200Schema(sob.model.Object):
+class CheckPostResponse(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema
     """
@@ -27,16 +27,13 @@ class CheckPostResponses200Schema(sob.model.Object):
             None,
         ] = None,
         software: typing.Optional[
-            "CheckPostResponses200SchemaSoftware"
+            "CheckPostResponseSoftware"
         ] = None,
         language: typing.Optional[
-            "CheckPostResponses200SchemaLanguage"
+            "CheckPostResponseLanguage"
         ] = None,
         matches: typing.Optional[
-            typing.Union[
-                sob.abc.Array,
-                "CheckPostResponses200SchemaMatches"
-            ]
+            "CheckPostResponseMatches"
         ] = None
     ) -> None:
         self.software = software
@@ -45,7 +42,7 @@ class CheckPostResponses200Schema(sob.model.Object):
         super().__init__(_data)
 
 
-class CheckPostResponses200SchemaSoftware(sob.model.Object):
+class CheckPostResponseSoftware(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema/properties/software
     """
@@ -109,7 +106,7 @@ class CheckPostResponses200SchemaSoftware(sob.model.Object):
         super().__init__(_data)
 
 
-class CheckPostResponses200SchemaLanguage(sob.model.Object):
+class CheckPostResponseLanguage(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema/properties/language
 
@@ -149,7 +146,7 @@ class CheckPostResponses200SchemaLanguage(sob.model.Object):
         ] = None,
         detected_language: typing.Optional[
             typing.Union[
-                "CheckPostResponses200SchemaPropertiesLanguageDetectedLanguage",  # noqa
+                "CheckPostResponsePropertiesLanguageDetectedLanguage",
                 sob.utilities.types.Null
             ]
         ] = None
@@ -160,9 +157,7 @@ class CheckPostResponses200SchemaLanguage(sob.model.Object):
         super().__init__(_data)
 
 
-class CheckPostResponses200SchemaPropertiesLanguageDetectedLanguage(
-    sob.model.Object
-):
+class CheckPostResponsePropertiesLanguageDetectedLanguage(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema/properties/language/properties/
     detectedLanguage
@@ -208,7 +203,7 @@ class CheckPostResponses200SchemaPropertiesLanguageDetectedLanguage(
         super().__init__(_data)
 
 
-class CheckPostResponses200SchemaMatches(sob.model.Array):
+class CheckPostResponseMatches(sob.model.Array):
     """
     #/paths/~1check/post/responses/200/schema/properties/matches
     """
@@ -217,7 +212,7 @@ class CheckPostResponses200SchemaMatches(sob.model.Array):
         self,
         items: typing.Union[
             typing.Iterable[
-                "CheckPostResponses200SchemaPropertiesMatchesItems"
+                "CheckPostResponseMatchesItems"
             ],
             sob.abc.Readable,
             str,
@@ -228,7 +223,7 @@ class CheckPostResponses200SchemaMatches(sob.model.Array):
         super().__init__(items)
 
 
-class CheckPostResponses200SchemaPropertiesMatchesItems(sob.model.Object):
+class CheckPostResponseMatchesItems(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema/properties/matches/items
     """
@@ -275,14 +270,13 @@ class CheckPostResponses200SchemaPropertiesMatchesItems(sob.model.Object):
         ] = None,
         replacements: typing.Optional[
             typing.Union[
-                sob.abc.Array,
-                "CheckPostResponses200SchemaPropertiesMatchesItemsReplacements",  # noqa
+                "CheckPostResponsePropertiesMatchesItemsReplacements",
                 sob.utilities.types.Null
             ]
         ] = None,
         context: typing.Optional[
             typing.Union[
-                "CheckPostResponses200SchemaPropertiesMatchesItemsContext",
+                "CheckPostResponsePropertiesMatchesItemsContext",
                 sob.utilities.types.Null
             ]
         ] = None,
@@ -293,7 +287,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItems(sob.model.Object):
             ]
         ] = None,
         rule: typing.Optional[
-            "CheckPostResponses200SchemaPropertiesMatchesItemsRule"
+            "CheckPostResponsePropertiesMatchesItemsRule"
         ] = None
     ) -> None:
         self.message = message
@@ -307,9 +301,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItems(sob.model.Object):
         super().__init__(_data)
 
 
-class CheckPostResponses200SchemaPropertiesMatchesItemsReplacements(
-    sob.model.Array
-):
+class CheckPostResponsePropertiesMatchesItemsReplacements(sob.model.Array):
     """
     #/paths/~1check/post/responses/200/schema/properties/matches/items/
     properties/replacements
@@ -322,7 +314,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsReplacements(
         self,
         items: typing.Union[
             typing.Iterable[
-                "CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesReplacementsItems"  # noqa
+                "CheckPostResponsePropertiesMatchesItemsReplacementsItems"
             ],
             sob.abc.Readable,
             str,
@@ -333,7 +325,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsReplacements(
         super().__init__(items)
 
 
-class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesReplacementsItems(  # noqa
+class CheckPostResponsePropertiesMatchesItemsReplacementsItems(
     sob.model.Object
 ):
     """
@@ -368,9 +360,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesReplacementsIte
         super().__init__(_data)
 
 
-class CheckPostResponses200SchemaPropertiesMatchesItemsContext(
-    sob.model.Object
-):
+class CheckPostResponsePropertiesMatchesItemsContext(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema/properties/matches/items/
     properties/context
@@ -420,7 +410,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsContext(
         super().__init__(_data)
 
 
-class CheckPostResponses200SchemaPropertiesMatchesItemsRule(sob.model.Object):
+class CheckPostResponsePropertiesMatchesItemsRule(sob.model.Object):
     """
     #/paths/~1check/post/responses/200/schema/properties/matches/items/
     properties/rule
@@ -461,17 +451,14 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsRule(sob.model.Object):
             ]
         ] = None,
         urls: typing.Optional[
-            typing.Union[
-                sob.abc.Array,
-                "CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleUrls"  # noqa
-            ]
+            "CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrls"
         ] = None,
         issue_type: typing.Optional[
             str
         ] = None,
         category: typing.Optional[
             typing.Union[
-                "CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleCategory",  # noqa
+                "CheckPostResponsePropertiesMatchesItemsPropertiesRuleCategory",  # noqa
                 sob.utilities.types.Null
             ]
         ] = None
@@ -485,7 +472,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsRule(sob.model.Object):
         super().__init__(_data)
 
 
-class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleUrls(
+class CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrls(
     sob.model.Array
 ):
     """
@@ -499,7 +486,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleUrls(
         self,
         items: typing.Union[
             typing.Iterable[
-                "CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRulePropertiesUrlsItems"  # noqa
+                "CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrlsItems"  # noqa
             ],
             sob.abc.Readable,
             str,
@@ -510,7 +497,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleUrls(
         super().__init__(items)
 
 
-class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRulePropertiesUrlsItems(  # noqa
+class CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrlsItems(
     sob.model.Object
 ):
     """
@@ -545,7 +532,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRulePropertiesU
         super().__init__(_data)
 
 
-class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleCategory(
+class CheckPostResponsePropertiesMatchesItemsPropertiesRuleCategory(
     sob.model.Object
 ):
     """
@@ -584,7 +571,7 @@ class CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleCategory(
         super().__init__(_data)
 
 
-class LanguagesGetResponses200Schema(sob.model.Array):
+class LanguagesGetResponse(sob.model.Array):
     """
     #/paths/~1languages/get/responses/200/schema
     """
@@ -593,7 +580,7 @@ class LanguagesGetResponses200Schema(sob.model.Array):
         self,
         items: typing.Union[
             typing.Iterable[
-                "LanguagesGetResponses200SchemaItems"
+                "LanguagesGetResponseItems"
             ],
             sob.abc.Readable,
             str,
@@ -604,7 +591,7 @@ class LanguagesGetResponses200Schema(sob.model.Array):
         super().__init__(items)
 
 
-class LanguagesGetResponses200SchemaItems(sob.model.Object):
+class LanguagesGetResponseItems(sob.model.Object):
     """
     #/paths/~1languages/get/responses/200/schema/items
     """
@@ -653,7 +640,7 @@ class LanguagesGetResponses200SchemaItems(sob.model.Object):
         super().__init__(_data)
 
 
-class WordsGetResponses200Schema(sob.model.Object):
+class WordsGetResponse(sob.model.Object):
     """
     #/paths/~1words/get/responses/200/schema
     """
@@ -678,17 +665,14 @@ class WordsGetResponses200Schema(sob.model.Object):
             None,
         ] = None,
         words: typing.Optional[
-            typing.Union[
-                sob.abc.Array,
-                "WordsGetResponses200SchemaWords"
-            ]
+            "WordsGetResponseWords"
         ] = None
     ) -> None:
         self.words = words
         super().__init__(_data)
 
 
-class WordsGetResponses200SchemaWords(sob.model.Array):
+class WordsGetResponseWords(sob.model.Array):
     """
     #/paths/~1words/get/responses/200/schema/properties/words
 
@@ -710,7 +694,7 @@ class WordsGetResponses200SchemaWords(sob.model.Array):
         super().__init__(items)
 
 
-class WordsAddPostResponses200Schema(sob.model.Object):
+class WordsAddPostResponse(sob.model.Object):
     """
     #/paths/~1words~1add/post/responses/200/schema
     """
@@ -742,7 +726,7 @@ class WordsAddPostResponses200Schema(sob.model.Object):
         super().__init__(_data)
 
 
-class WordsDeletePostResponses200Schema(sob.model.Object):
+class WordsDeletePostResponse(sob.model.Object):
     """
     #/paths/~1words~1delete/post/responses/200/schema
     """
@@ -776,13 +760,13 @@ class WordsDeletePostResponses200Schema(sob.model.Object):
 
 # #/paths/~1check/post/responses/200/schema
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponses200Schema
+    CheckPostResponse
 ).properties = sob.meta.Properties([
     (
         'software',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                CheckPostResponses200SchemaSoftware
+                CheckPostResponseSoftware
             ])
         )
     ),
@@ -790,7 +774,7 @@ sob.meta.object_writable(  # type: ignore
         'language',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                CheckPostResponses200SchemaLanguage
+                CheckPostResponseLanguage
             ])
         )
     ),
@@ -798,8 +782,7 @@ sob.meta.object_writable(  # type: ignore
         'matches',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                sob.abc.Array,
-                CheckPostResponses200SchemaMatches
+                CheckPostResponseMatches
             ])
         )
     )
@@ -807,7 +790,7 @@ sob.meta.object_writable(  # type: ignore
 
 # #/paths/~1check/post/responses/200/schema/properties/software
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponses200SchemaSoftware
+    CheckPostResponseSoftware
 ).properties = sob.meta.Properties([
     (
         'name',
@@ -857,7 +840,7 @@ sob.meta.object_writable(  # type: ignore
 
 # #/paths/~1check/post/responses/200/schema/properties/language
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponses200SchemaLanguage
+    CheckPostResponseLanguage
 ).properties = sob.meta.Properties([
     (
         'name',
@@ -885,7 +868,7 @@ sob.meta.object_writable(  # type: ignore
             name="detectedLanguage",
             required=True,
             types=sob.types.MutableTypes([
-                CheckPostResponses200SchemaPropertiesLanguageDetectedLanguage,  # noqa
+                CheckPostResponsePropertiesLanguageDetectedLanguage,
                 sob.utilities.types.Null
             ])
         )
@@ -895,7 +878,7 @@ sob.meta.object_writable(  # type: ignore
 # #/paths/~1check/post/responses/200/schema/properties/language/properties/
 # detectedLanguage
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponses200SchemaPropertiesLanguageDetectedLanguage
+    CheckPostResponsePropertiesLanguageDetectedLanguage
 ).properties = sob.meta.Properties([
     (
         'name',
@@ -921,14 +904,14 @@ sob.meta.object_writable(  # type: ignore
 
 # #/paths/~1check/post/responses/200/schema/properties/matches
 sob.meta.array_writable(  # type: ignore
-    CheckPostResponses200SchemaMatches
+    CheckPostResponseMatches
 ).item_types = sob.types.MutableTypes([
-    CheckPostResponses200SchemaPropertiesMatchesItems
+    CheckPostResponseMatchesItems
 ])
 
 # #/paths/~1check/post/responses/200/schema/properties/matches/items
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponses200SchemaPropertiesMatchesItems
+    CheckPostResponseMatchesItems
 ).properties = sob.meta.Properties([
     (
         'message',
@@ -971,8 +954,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                sob.abc.Array,
-                CheckPostResponses200SchemaPropertiesMatchesItemsReplacements,  # noqa
+                CheckPostResponsePropertiesMatchesItemsReplacements,
                 sob.utilities.types.Null
             ])
         )
@@ -982,7 +964,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                CheckPostResponses200SchemaPropertiesMatchesItemsContext,
+                CheckPostResponsePropertiesMatchesItemsContext,
                 sob.utilities.types.Null
             ])
         )
@@ -1001,7 +983,7 @@ sob.meta.object_writable(  # type: ignore
         'rule',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                CheckPostResponses200SchemaPropertiesMatchesItemsRule
+                CheckPostResponsePropertiesMatchesItemsRule
             ])
         )
     )
@@ -1010,15 +992,15 @@ sob.meta.object_writable(  # type: ignore
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/replacements
 sob.meta.array_writable(  # type: ignore
-    CheckPostResponses200SchemaPropertiesMatchesItemsReplacements
+    CheckPostResponsePropertiesMatchesItemsReplacements
 ).item_types = sob.types.MutableTypes([
-    CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesReplacementsItems  # noqa
+    CheckPostResponsePropertiesMatchesItemsReplacementsItems
 ])
 
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/replacements/items
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesReplacementsItems  # noqa
+    CheckPostResponsePropertiesMatchesItemsReplacementsItems
 ).properties = sob.meta.Properties([
     ('value', sob.properties.String())
 ])
@@ -1026,7 +1008,7 @@ sob.meta.object_writable(  # type: ignore
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/context
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponses200SchemaPropertiesMatchesItemsContext
+    CheckPostResponsePropertiesMatchesItemsContext
 ).properties = sob.meta.Properties([
     (
         'text',
@@ -1063,7 +1045,7 @@ sob.meta.object_writable(  # type: ignore
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/rule
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponses200SchemaPropertiesMatchesItemsRule
+    CheckPostResponsePropertiesMatchesItemsRule
 ).properties = sob.meta.Properties([
     (
         'id_',
@@ -1096,8 +1078,7 @@ sob.meta.object_writable(  # type: ignore
         'urls',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                sob.abc.Array,
-                CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleUrls  # noqa
+                CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrls
             ])
         )
     ),
@@ -1112,7 +1093,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleCategory,  # noqa
+                CheckPostResponsePropertiesMatchesItemsPropertiesRuleCategory,  # noqa
                 sob.utilities.types.Null
             ])
         )
@@ -1122,15 +1103,15 @@ sob.meta.object_writable(  # type: ignore
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/rule/properties/urls
 sob.meta.array_writable(  # type: ignore
-    CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleUrls
+    CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrls
 ).item_types = sob.types.MutableTypes([
-    CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRulePropertiesUrlsItems  # noqa
+    CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrlsItems
 ])
 
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/rule/properties/urls/items
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRulePropertiesUrlsItems  # noqa
+    CheckPostResponsePropertiesMatchesItemsPropertiesRuleUrlsItems
 ).properties = sob.meta.Properties([
     ('value', sob.properties.String())
 ])
@@ -1138,7 +1119,7 @@ sob.meta.object_writable(  # type: ignore
 # #/paths/~1check/post/responses/200/schema/properties/matches/items/
 # properties/rule/properties/category
 sob.meta.object_writable(  # type: ignore
-    CheckPostResponses200SchemaPropertiesMatchesItemsPropertiesRuleCategory
+    CheckPostResponsePropertiesMatchesItemsPropertiesRuleCategory
 ).properties = sob.meta.Properties([
     (
         'id_',
@@ -1151,14 +1132,14 @@ sob.meta.object_writable(  # type: ignore
 
 # #/paths/~1languages/get/responses/200/schema
 sob.meta.array_writable(  # type: ignore
-    LanguagesGetResponses200Schema
+    LanguagesGetResponse
 ).item_types = sob.types.MutableTypes([
-    LanguagesGetResponses200SchemaItems
+    LanguagesGetResponseItems
 ])
 
 # #/paths/~1languages/get/responses/200/schema/items
 sob.meta.object_writable(  # type: ignore
-    LanguagesGetResponses200SchemaItems
+    LanguagesGetResponseItems
 ).properties = sob.meta.Properties([
     (
         'name',
@@ -1195,14 +1176,13 @@ sob.meta.object_writable(  # type: ignore
 
 # #/paths/~1words/get/responses/200/schema
 sob.meta.object_writable(  # type: ignore
-    WordsGetResponses200Schema
+    WordsGetResponse
 ).properties = sob.meta.Properties([
     (
         'words',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                sob.abc.Array,
-                WordsGetResponses200SchemaWords
+                WordsGetResponseWords
             ])
         )
     )
@@ -1210,21 +1190,21 @@ sob.meta.object_writable(  # type: ignore
 
 # #/paths/~1words/get/responses/200/schema/properties/words
 sob.meta.array_writable(  # type: ignore
-    WordsGetResponses200SchemaWords
+    WordsGetResponseWords
 ).item_types = sob.types.MutableTypes([
     sob.properties.String()
 ])
 
 # #/paths/~1words~1add/post/responses/200/schema
 sob.meta.object_writable(  # type: ignore
-    WordsAddPostResponses200Schema
+    WordsAddPostResponse
 ).properties = sob.meta.Properties([
     ('added', sob.properties.Boolean())
 ])
 
 # #/paths/~1words~1delete/post/responses/200/schema
 sob.meta.object_writable(  # type: ignore
-    WordsDeletePostResponses200Schema
+    WordsDeletePostResponse
 ).properties = sob.meta.Properties([
     ('deleted', sob.properties.Boolean())
 ])
