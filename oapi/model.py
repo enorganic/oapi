@@ -38,15 +38,13 @@ from sob.utilities.string import split_long_comment_line
 from sob.utilities import qualified_name, url_relative_to
 from sob.utilities.types import Null
 
-from oapi.errors import DuplicateClassNameError
+from .errors import DuplicateClassNameError
 from .oas.references import Resolver
 from .oas.model import (
     OpenAPI,
     Properties,
     Schema,
     Reference,
-    Parameter,
-    Operation,
 )
 
 _META_PROPERTIES_QAULIFIED_NAME = qualified_name(sob.meta.Properties)
@@ -61,36 +59,38 @@ _DOC_POINTER_RE = re.compile(
     re.DOTALL,
 )
 _SPACES_RE = re.compile(r"[\s\n]")
-_MODEL_DEFINITION_TYPES: Tuple[Type[sob.abc.Model], ...] = (
-    Schema,
-    Operation,
-    Parameter,
-)
-
-# region Functions
 
 
-def default_name_class_from_pointer(pointer: str) -> str:
+def get_default_class_name_from_pointer(pointer: str) -> str:
     relative_url: str = ""
     if "#" in pointer:
         relative_url, pointer = pointer.split("#", 1)
-    name: str = re.sub(
-        r"^(components/[^/]+/|definitions/|paths/)",
-        "/",
-        re.sub(
+    name: str = pointer.lstrip("/")
+    pattern: str
+    repl: str
+    for pattern, repl in (
+        (
+            r"/([^\/]+)/responses/200/(content/[^\/]+/)?schema\b",
+            r"/\1/response",
+        ),
+        (
+            r"/([^\/]+)/responses/(\d+)/(content/[^\/]+/)?schema\b",
+            r"/\1/response/\2",
+        ),
+        (
             r"/(anyOf|allOf|oneOf)/\d+/",
             "/",
-            re.sub(
-                r"/([^\/]+)/responses/(\d+)/(content/[^\/]+/)?schema\b",
-                r"/\1/response/\2",
-                re.sub(
-                    r"/([^\/]+)/responses/200/(content/[^\/]+/)?schema\b",
-                    r"/\1/response",
-                    pointer.lstrip("#/"),
-                ),
-            ),
         ),
-    )
+        (
+            r"(?:^components)?(/|^)parameters/([^/]+)/schema(/|$)",
+            r"\1\2\3",
+        ),
+        (
+            r"^(components/[^/]+/|definitions/|paths/)",
+            "/",
+        ),
+    ):
+        name = re.sub(pattern, repl, name)
     name = "/".join(name.rsplit("/properties/", 1))
     name = name.replace("~1", "/").replace("~0", "~")
     if relative_url:
@@ -250,9 +250,9 @@ class _Modeler:
     def __init__(
         self,
         root: OpenAPI,
-        name_class_from_pointer: Callable[
+        get_class_name_from_pointer: Callable[
             [str], str
-        ] = default_name_class_from_pointer,
+        ] = get_default_class_name_from_pointer,
     ) -> None:
         # This ensures all elements have URLs and JSON pointers
         sob.meta.set_url(root, sob.meta.get_url(root))
@@ -275,9 +275,9 @@ class _Modeler:
             .split(".")[0]
             .strip()
         )
-        self.name_class_from_pointer: Callable[
+        self.get_class_name_from_pointer: Callable[
             [str], str
-        ] = name_class_from_pointer
+        ] = get_class_name_from_pointer
 
     def get_relative_url_pointer_model(
         self, relative_url_pointer: str
@@ -288,14 +288,32 @@ class _Modeler:
         self, relative_url_pointer: str, class_name_: str
     ) -> str:
         """
-        Check to see if this pointer already has a class name, and use that
-        if it does
+        Attempt to associate a class name (`class_name_`) with a concatenated
+        URL + pointer (`relative_url_pointer`), and return the class name
+        which is actually used. If the pointer already had a class name
+        associated, the pre-existing class name takes precedent. If
+        a class name is not unique, it is suffixed with an underscore "_"
+        (repeatedly, if necessary) to make it unique.
+
+        Parameters:
+
+        - relative_url_pointer (str)
+        - class_name_ (str)
         """
         if relative_url_pointer in self._relative_urls_pointers_class_names:
+            # Use the previously mapped class name
             class_name_ = self._relative_urls_pointers_class_names[
                 relative_url_pointer
             ]
         else:
+            # Ensure the name is unique
+            while (
+                class_name_ in self._class_names_relative_urls_pointers
+            ) and self._class_names_relative_urls_pointers[
+                class_name_
+            ] != relative_url_pointer:
+                class_name_ = f"{class_name_}_"
+            # Update the mapping
             self._relative_urls_pointers_class_names[
                 relative_url_pointer
             ] = class_name_
@@ -482,8 +500,6 @@ class _Modeler:
             property_ = self.extend_property_schemas(property_, schema.any_of)
         if schema.one_of:
             property_ = self.extend_property_schemas(property_, schema.one_of)
-        if schema.all_of:
-            property_ = self.extend_property_schemas(property_, schema.all_of)
         return property_
 
     def get_property(
@@ -505,11 +521,7 @@ class _Modeler:
             )
             if model_class:
                 property_ = _append_property_type(property_, model_class)
-        if (
-            (schema.any_of is not None)
-            or (schema.one_of is not None)
-            or (schema.all_of is not None)
-        ):
+        if (schema.any_of is not None) or (schema.one_of is not None):
             property_ = self.polymorph_property(property_, schema)
         if schema.enum:
             property_ = sob.properties.Enumerated(
@@ -591,11 +603,11 @@ class _Modeler:
 
     def get_model_class(
         self,
-        definition: Union[Schema, Operation, Parameter],
+        definition: Schema,
     ) -> Optional[Type[sob.abc.Model]]:
         """
-        Get a model class from a schema/operation/parameter. This method
-        may also return `None` in the case of a referential loop.
+        Get a model class from a schema. This method may also return `None`
+        in the case of a referential loop.
         """
         relative_url_pointer = self.get_model_relative_url_pointer(definition)
         cls: Optional[Type[sob.abc.Model]]
@@ -603,39 +615,19 @@ class _Modeler:
         if not self.relative_url_pointer_model_exists(relative_url_pointer):
             # Setting this to `None` prevents recursion errors
             self.set_relative_url_pointer_model(relative_url_pointer, None)
-            if isinstance(definition, Schema):
-                cls = self.get_schema_model_class(
-                    definition,
-                    relative_url_pointer=relative_url_pointer,
-                )
-            elif isinstance(definition, Operation):
-                cls = self.get_operation_model_class(
-                    definition,
-                    relative_url_pointer=relative_url_pointer,
-                )
-            elif isinstance(definition, Parameter):
-                cls = self.get_parameter_model_class(
-                    definition,
-                    relative_url_pointer=relative_url_pointer,
-                )
-            else:
-                raise TypeError(
-                    "The model definition must be a "
-                    f"`{qualified_name(Schema)}`, "
-                    f"`{qualified_name(Operation)}` or "
-                    f"`{qualified_name(Parameter)}`, "
-                    f"not:\n{repr(definition)}"
-                )
+            cls = self.get_schema_model_class(
+                definition,
+                relative_url_pointer=relative_url_pointer,
+            )
             self.set_relative_url_pointer_model(relative_url_pointer, cls)
             self.set_model_class_name(cls)
         return self.get_relative_url_pointer_model(relative_url_pointer)
 
     def iter_model_classes(self) -> Iterable[Type[sob.abc.Model]]:
         models_names: Dict[str, Type[sob.abc.Model]] = {}
-        for definition in self.iter_definitions():
-            model: Optional[Type[sob.abc.Model]] = self.get_model_class(
-                definition
-            )
+        schema: Schema
+        for schema in self.iter_schemas():
+            model: Optional[Type[sob.abc.Model]] = self.get_model_class(schema)
             if model:
                 if model.__name__ in models_names:
                     existing_model_meta = sob.meta.read(
@@ -659,28 +651,6 @@ class _Modeler:
                 elif model not in (sob.model.Array, sob.model.Dictionary):
                     models_names[model.__name__] = model
                     yield model
-
-    def get_operation_model_class(
-        self,
-        operation: Operation,
-        relative_url_pointer: Optional[str] = None,
-        required: bool = False,
-    ) -> Type[sob.abc.Model]:
-        # name: str = self.get_operation_class_name(operation)  # noqa
-        raise NotImplementedError()  # TODO
-
-    def get_parameter_model_class(
-        self,
-        parameter: Parameter,
-        relative_url_pointer: Optional[str] = None,
-        required: bool = False,
-    ) -> Optional[Type[sob.abc.Model]]:
-        return self.get_schema_model_class(
-            parameter.schema,  # type: ignore
-            name=self.get_parameter_class_name(parameter),
-            relative_url_pointer=relative_url_pointer,
-            required=required,
-        )
 
     def get_schema_model_class(
         self,
@@ -767,6 +737,7 @@ class _Modeler:
     def iter_dereferenced_schemas(
         self,
         schemas: Union[Schema, Reference, Iterable[Union[Schema, Reference]]],
+        skip: bool = False,
     ) -> Iterable[Schema]:
         """
         Iterate over schemas after having resolving references and
@@ -786,18 +757,30 @@ class _Modeler:
                     self.resolve_reference(schemas),  # type: ignore
                 )
             else:
+                schema_or_reference: Union[Schema, Reference]
                 dereferenced_schemas = filter(
-                    None, map(self.resolve_reference, schemas)  # type: ignore
+                    None,
+                    map(
+                        lambda schema_or_reference: (  # type: ignore
+                            self.resolve_reference(  # type: ignore
+                                schema_or_reference
+                            )
+                            if isinstance(schema_or_reference, Reference)
+                            else schema_or_reference
+                        ),
+                        schemas,
+                    ),  # type: ignore
                 )
             for dereferenced_schema in dereferenced_schemas:
-                yield dereferenced_schema
+                if not skip:
+                    yield dereferenced_schema
                 if dereferenced_schema.any_of:
                     yield from self.iter_dereferenced_schemas(
                         dereferenced_schema.any_of
                     )
                 if dereferenced_schema.all_of:
                     yield from self.iter_dereferenced_schemas(
-                        dereferenced_schema.all_of
+                        dereferenced_schema.all_of, skip=True
                     )
                 if dereferenced_schema.one_of:
                     yield from self.iter_dereferenced_schemas(
@@ -1007,39 +990,15 @@ class _Modeler:
         ] = self.get_merged_schemas_object_class(
             chain(
                 (schema,),
-                (schema.any_of or ()),
+                # (schema.any_of or ()),
                 (schema.all_of or ()),
-                (schema.one_of or ()),
+                # (schema.one_of or ()),
             ),
             name=name,
             relative_url_pointer=relative_url_pointer,
         )
         assert cls
         return cls
-
-    def get_operation_class_name(self, operation: Operation) -> str:
-        """
-        Derive a model's class name from an `Operation` object. This only
-        applies when one or more parameters are
-        "in": "form".
-        """
-        relative_url, pointer = self.get_model_relative_url_and_pointer(
-            operation
-        )
-        return self.get_relative_url_and_pointer_class_name(
-            relative_url, pointer
-        )
-
-    def get_parameter_class_name(self, parameter: Parameter) -> str:
-        """
-        Derive a model's class name from a `Parameter` object
-        """
-        relative_url, pointer = self.get_model_relative_url_and_pointer(
-            parameter
-        )
-        return self.get_relative_url_and_pointer_class_name(
-            relative_url, pointer
-        )
 
     def get_schema_class_name(self, schema: Schema) -> str:
         """
@@ -1062,20 +1021,17 @@ class _Modeler:
             # Cache the result
             self.set_relative_url_pointer_class_name(
                 relative_url_pointer,
-                self.name_class_from_pointer(relative_url_pointer),
+                self.get_class_name_from_pointer(relative_url_pointer),
             )
         return self.get_relative_url_pointer_class_name(relative_url_pointer)
 
-    def iter_definitions(
+    def iter_schemas(
         self,
-    ) -> Iterable[Union[Schema, Parameter, Operation]]:
-        """
-        This property returns all objects defining a model, namely instances of
-        `Schema`, `Parameter`, and `Operation`
-        """
+    ) -> Iterable[Schema]:
         self._traversed_relative_urls_pointers = set()
-        for definition in self.iter_model_definitions(self.root, (OpenAPI,)):
-            yield definition
+        schema: Schema
+        for schema in self.iter_model_schemas(self.root, (OpenAPI,)):
+            yield schema
 
     def resolve_reference(
         self,
@@ -1123,77 +1079,38 @@ class _Modeler:
         relative_url_pointer = self.get_model_relative_url_pointer(model)
         return relative_url_pointer in self._traversed_relative_urls_pointers
 
-    def operation_defines_model(self, operation: Operation) -> bool:
-        """
-        Determine if an operation requires a model (if it describes a form)
-        """
-        if operation.parameters:
-            parameter_or_reference: Union[Parameter, Reference]
-            parameter: Parameter
-            for parameter in filter(  # type: ignore
-                None,
-                map(
-                    lambda parameter_or_reference: (
-                        self.resolve_reference(
-                            parameter_or_reference, (Parameter,)
-                        )
-                        if isinstance(parameter_or_reference, Reference)
-                        else parameter_or_reference
-                    ),
-                    operation.parameters,
-                ),
-            ):
-                if parameter.in_ == "form":  # type: ignore
-                    return True
-        return False
-
-    def iter_parameter_definitions(
-        self,
-        parameter: Parameter,
-    ) -> Iterable[Union[Schema, Operation, Parameter]]:
-        if parameter.schema is not None:
-            schema = parameter.schema
-            if isinstance(schema, Reference):
-                schema = self.resolve_reference(  # type: ignore
-                    schema, (Schema,)
-                )
-            assert isinstance(schema, Schema)
-            if schema_defines_model(schema) and not (
-                self.is_traversed(schema)
-            ):
-                yield parameter
-
-    def iter_array_definitions(
+    def iter_array_schemas(
         self,
         array: sob.abc.Array,
-        skip: int = 0,
-    ) -> Iterable[Union[Schema, Operation, Parameter]]:
+        skip: bool = False,
+    ) -> Iterable[Schema]:
         meta_: Optional[sob.abc.ArrayMeta] = sob.meta.array_read(array)
+        item: sob.abc.MarshallableTypes
         for item in array:
             if isinstance(item, sob.abc.Model):
-                yield from self.iter_model_definitions(
+                yield from self.iter_model_schemas(
                     item,
                     (meta_.item_types or () if meta_ else ()),
                     skip=skip,
                 )
 
-    def iter_dictionary_definitions(
+    def iter_dictionary_schemas(
         self,
         dictionary: sob.abc.Dictionary,
-    ) -> Iterable[Union[Schema, Operation, Parameter]]:
+    ) -> Iterable[Schema]:
         meta_: Optional[sob.abc.DictionaryMeta] = sob.meta.dictionary_read(
             dictionary
         )
         for value in dictionary.values():
             if isinstance(value, sob.abc.Model):
-                yield from self.iter_model_definitions(
+                yield from self.iter_model_schemas(
                     value, (meta_.value_types or () if meta_ else ())
                 )
 
-    def iter_object_definitions(
+    def iter_object_schemas(
         self,
         object_: sob.abc.Object,
-    ) -> Iterable[Union[Schema, Operation, Parameter]]:
+    ) -> Iterable[Schema]:
         meta_: Optional[sob.abc.ObjectMeta] = sob.meta.object_read(object_)
         if meta_ and meta_.properties:
             name: str
@@ -1202,55 +1119,54 @@ class _Modeler:
             for name, property_ in sorted(
                 meta_.properties.items(),
                 key=lambda item: (
-                    0 if item[0] in ("definitions", "components") else 1
+                    f"_{item[0]}"
+                    if (
+                        isinstance(object_, OpenAPI)
+                        and item[0] in ("definitions", "components")
+                    )
+                    else item[0]
                 ),
             ):
                 value: Any = getattr(object_, name)
                 if isinstance(value, sob.abc.Model):
-                    yield from self.iter_model_definitions(
+                    yield from self.iter_model_schemas(
                         value,
                         property_.types or (),
+                        # When a schema is under "allOf", it will
+                        # be merged, and if under "oneOf" or "anyOf",
+                        # it will already have been yielded
                         skip=(
-                            2
-                            if isinstance(object_, Schema)
-                            and (name in ("any_of", "all_of", "one_of"))
-                            else 0
+                            isinstance(object_, Schema)
+                            and name in ("all_of",)  # "any_of", "one_of"
                         ),
                     )
 
-    def iter_model_definitions(
+    def iter_model_schemas(
         self,
         model: sob.abc.Model,
         types: Union[Sequence[type], sob.abc.Types] = (),
-        skip: int = 0,
-    ) -> Iterable[Union[Schema, Operation, Parameter]]:
+        skip: bool = False,
+    ) -> Iterable[Schema]:
         if isinstance(model, Reference):
             model = self.resolve_reference(model, types)
-            skip = 0
+            # Skipping logic doesn't apply to references objects
+            skip = False
         if not self.is_traversed(model):
             self.add_traversed(model)
-            # If this is a schema/parameter/operation defining a model--include
-            # it in the returned results
-            if (
-                skip <= 0
-                and isinstance(model, Schema)
-                and schema_defines_model(model)
-            ):
-                yield model
-            elif isinstance(model, Parameter):
-                yield from self.iter_parameter_definitions(model)
-            elif isinstance(model, Operation):
-                if self.operation_defines_model(model):
-                    yield model
             # Recursively find other definitions
-            if isinstance(model, sob.abc.Dictionary):
-                yield from self.iter_dictionary_definitions(model)
+            if isinstance(model, sob.abc.Object):
+                # If this is a schema defining a model,
+                # include it in the returned results
+                if isinstance(model, Schema):
+                    if skip:
+                        skip = False
+                    elif schema_defines_model(model):
+                        yield model
+                yield from self.iter_object_schemas(model)
+            elif isinstance(model, sob.abc.Dictionary):
+                yield from self.iter_dictionary_schemas(model)
             elif isinstance(model, sob.abc.Array):
-                yield from self.iter_array_definitions(
-                    model, skip=max(skip - 1, 0)
-                )
-            elif isinstance(model, sob.abc.Object):
-                yield from self.iter_object_definitions(model)
+                yield from self.iter_array_schemas(model, skip=skip)
             else:
                 raise TypeError(model)
 
@@ -1281,7 +1197,9 @@ class _Modeler:
         classes: List[str] = []
         imports: Set[str] = set()
         for model_class in self.iter_model_classes():
-            class_name_ = model_class.__name__
+            class_name_: str = model_class.__name__
+            class_imports: str
+            class_source: str
             class_imports, class_source = _get_model_import_class_source(
                 model_class
             )
@@ -1312,6 +1230,20 @@ class _Modeler:
         )
 
 
+def _get_class_relative_url_pointer_and_name(
+    model: Type[sob.abc.Model],
+) -> Tuple[str, str]:
+    if not model.__doc__:
+        return "", ""
+    match: Optional[Match[str]] = _DOC_POINTER_RE.search(model.__doc__)
+    relative_url_pointer: str = ""
+    if match:
+        groups = match.groups()
+        if groups:
+            relative_url_pointer = _SPACES_RE.sub("", groups[0])
+    return relative_url_pointer, model.__name__
+
+
 class _ModuleParser:
     def __init__(self, path: str = "") -> None:
         self.namespace: Dict[str, Any] = {}
@@ -1333,41 +1265,23 @@ class _ModuleParser:
     def models(self) -> Iterable[Type[sob.abc.Model]]:
         for name, value in self.namespace.items():
             if (
-                name[0] != "_"
+                (not name.startswith("_"))
                 and isinstance(value, type)
                 and issubclass(value, sob.abc.Model)
             ):
                 yield value
 
-    @staticmethod
-    def _get_class_relative_url_pointer_and_name(
-        model: Type[sob.abc.Model],
-    ) -> Tuple[str, str]:
-        if not model.__doc__:
-            return "", ""
-        match: Optional[Match[str]] = _DOC_POINTER_RE.search(model.__doc__)
-        relative_url_pointer: str = ""
-        if match:
-            groups = match.groups()
-            if groups:
-                relative_url_pointer = _SPACES_RE.sub("", groups[0])
-        return relative_url_pointer, model.__name__
-
-    @property
-    def relative_urls_pointers_class_names(self) -> Iterable[Tuple[str, str]]:
-        for model in self.models:
+    def iter_relative_urls_pointers_class_names(
+        self,
+    ) -> Iterable[Tuple[str, str]]:
+        cls: Type[sob.abc.Model]
+        for cls in self.models:
             (
                 relative_url_pointer,
                 name,
-            ) = self._get_class_relative_url_pointer_and_name(model)
+            ) = _get_class_relative_url_pointer_and_name(cls)
             if relative_url_pointer:
                 yield relative_url_pointer, name
-
-
-# endregion
-
-
-# region Public Classes
 
 
 def _get_path_modeler(path: str) -> _Modeler:
@@ -1407,9 +1321,9 @@ class Module:
     def __init__(
         self,
         data: Union[str, IOBase, OpenAPI],
-        name_class_from_pointer: Callable[
+        get_class_name_from_pointer: Callable[
             [str], str
-        ] = default_name_class_from_pointer,
+        ] = get_default_class_name_from_pointer,
     ) -> None:
         self._parser = _ModuleParser()
         self._modeler: _Modeler
@@ -1428,7 +1342,7 @@ class Module:
                 f"of `str`, `{qualified_name(OpenAPI)}`, or a file-like "
                 f"object for the `data` parameter--not {repr(data)}"
             )
-        self._modeler.name_class_from_pointer = name_class_from_pointer
+        self._modeler.get_class_name_from_pointer = get_class_name_from_pointer
 
     def __str__(self) -> str:
         return self._modeler.get_module_source()
@@ -1439,7 +1353,7 @@ class Module:
             for (
                 relative_url_pointer,
                 class_name_,
-            ) in self._parser.relative_urls_pointers_class_names:
+            ) in self._parser.iter_relative_urls_pointers_class_names():
                 self._modeler.set_relative_url_pointer_class_name(
                     relative_url_pointer, class_name_
                 )
