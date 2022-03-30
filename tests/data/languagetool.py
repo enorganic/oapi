@@ -1095,7 +1095,9 @@ sob.meta.object_writable(  # type: ignore
 ).properties = sob.meta.Properties([
     ('deleted', sob.properties.Boolean())
 ])
-POINTERS_CLASSES: typing.Dict[str, typing.Type[sob.abc.Model]] = {
+# The following is used to retain class names when re-generating
+# this model from an updated OpenAPI document
+_POINTERS_CLASSES: typing.Dict[str, typing.Type[sob.abc.Model]] = {
     "#/paths/~1check/post/responses/200/schema": CheckPostResponse,
     "#/paths/~1check/post/responses/200/schema/properties/language":
     CheckPostResponseLanguage,

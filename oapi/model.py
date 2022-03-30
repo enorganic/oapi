@@ -1260,7 +1260,10 @@ class _Modeler:
         classes: List[str] = []
         imports: Set[str] = set()
         pointers_classes: List[str] = [
-            "POINTERS_CLASSES: "
+            "# The following is used to retain class names when "
+            "re-generating\n"
+            "# this model from an updated OpenAPI document\n"
+            "_POINTERS_CLASSES: "
             "typing.Dict[str, typing.Type[sob.abc.Model]] = {"
         ]
         for (
@@ -1365,7 +1368,7 @@ class _ModuleParser:
         self,
     ) -> Iterable[Tuple[str, str]]:
         pointers_classes: Dict[str, Type[sob.abc.Model]] = self.namespace.get(
-            "POINTERS_CLASSES", {}
+            "_POINTERS_CLASSES", {}
         )
         relative_url_pointer: str
         cls: Type[sob.abc.Model]
