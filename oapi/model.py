@@ -34,7 +34,6 @@ from sob.utilities.string import (
     class_name,
     split_long_docstring_lines,
 )
-from sob.utilities.string import split_long_comment_line
 from sob.utilities import qualified_name, url_relative_to
 from sob.utilities.types import Null
 
@@ -102,6 +101,10 @@ def get_default_class_name_from_pointer(pointer: str) -> str:
         (
             r"/properties/",
             "/",
+        ),
+        (
+            r"/items(/|$)",
+            "/item",
         ),
         (
             r"~1",
@@ -552,7 +555,7 @@ class _Modeler:
         ] = sob.model.from_meta(  # type: ignore
             name,
             object_meta,
-            docstring=self.get_docstring(next_schema, relative_url_pointer),
+            docstring=self.get_docstring(next_schema),
             module="__main__",
         )
         return object_class
@@ -687,10 +690,15 @@ class _Modeler:
             self.set_model_class_name(cls)
         return self.get_relative_url_pointer_model(relative_url_pointer)
 
-    def iter_model_classes(self) -> Iterable[Type[sob.abc.Model]]:
+    def iter_pointers_model_classes(
+        self,
+    ) -> Iterable[Tuple[str, Type[sob.abc.Model]]]:
         models_names: Dict[str, Type[sob.abc.Model]] = {}
         schema: Schema
         for schema in self.iter_schemas():
+            relative_url_pointer: str = self.get_model_relative_url_pointer(
+                schema
+            )
             model: Optional[Type[sob.abc.Model]] = self.get_model_class(schema)
             if model:
                 if model.__name__ in models_names:
@@ -714,7 +722,7 @@ class _Modeler:
                         )
                 elif model not in (sob.model.Array, sob.model.Dictionary):
                     models_names[model.__name__] = model
-                    yield model
+                    yield relative_url_pointer, model
 
     def get_schema_model_class(
         self,
@@ -927,7 +935,7 @@ class _Modeler:
                 array_class = sob.model.from_meta(  # type: ignore
                     name,
                     array_meta,
-                    docstring=self.get_docstring(schema, relative_url_pointer),
+                    docstring=self.get_docstring(schema),
                     module="__main__",
                 )
         else:
@@ -1014,24 +1022,15 @@ class _Modeler:
                 return sob.model.from_meta(  # type: ignore
                     name,
                     dictionary_meta,
-                    docstring=self.get_docstring(schema, relative_url_pointer),
+                    docstring=self.get_docstring(schema),
                     module="__main__",
                 )
         return sob.model.Dictionary
 
-    def get_docstring(self, schema: Schema, relative_url_pointer: str) -> str:
-        if relative_url_pointer is None:
-            relative_url_pointer = self.get_model_relative_url_pointer(schema)
-        if len(relative_url_pointer) > 116 and relative_url_pointer[0] != "#":
-            pointer_split = relative_url_pointer.split("#")
-            docstring_lines = [
-                f"{pointer_split[0]}\n#{'#'.join(pointer_split[1:])}"
-            ]
-        else:
-            docstring_lines = [relative_url_pointer]
-        if schema and schema.description:
-            docstring_lines.append(schema.description)
-        return split_long_docstring_lines("\n\n".join(docstring_lines))
+    def get_docstring(self, schema: Schema) -> Optional[str]:
+        if schema.description:
+            return split_long_docstring_lines(schema.description.strip())
+        return None
 
     def get_schema_object_class(
         self,
@@ -1236,11 +1235,7 @@ class _Modeler:
 
     def represent_model_meta(self, class_name_: str) -> str:
         meta_ = self._class_names_meta[class_name_]
-        relative_url_pointer = self.get_class_name_relative_url_pointer(
-            class_name_
-        )
-        lines = list()
-        lines.append(split_long_comment_line("# " + relative_url_pointer))
+        lines: List[str] = list()
         for property_name_, value in properties_values(meta_):
             if value is not None:
                 value = repr(value)
@@ -1254,13 +1249,24 @@ class _Modeler:
                         class_name_, property_name_, meta_
                     )
                 )
-        return "\n".join(lines) + "\n"
+        return "\n".join(lines)
 
     def get_module_source(self) -> str:
+        """
+        Return the source code for a model module.
+        """
+        relative_url_pointer: str
         class_names_sources: Dict[str, str] = OrderedDict()
         classes: List[str] = []
         imports: Set[str] = set()
-        for model_class in self.iter_model_classes():
+        pointers_classes: List[str] = [
+            "POINTERS_CLASSES: "
+            "typing.Dict[str, typing.Type[sob.abc.Model]] = {"
+        ]
+        for (
+            relative_url_pointer,
+            model_class,
+        ) in sorted(self.iter_pointers_model_classes()):
             class_name_: str = model_class.__name__
             class_imports: str
             class_source: str
@@ -1278,7 +1284,26 @@ class _Modeler:
                 map(imports.add, filter(None, class_imports.split("\n"))),
                 maxlen=0,
             )
+            # pointer -> class mapping
             classes.append(class_source)
+            key_value_separator: str = (
+                " "
+                if (9 + len(relative_url_pointer) + len(model_class.__name__))
+                < 80
+                else (
+                    "\n    "
+                    if (7 + len(relative_url_pointer)) < 80
+                    else "  # noqa\n    "
+                )
+            )
+            pointer_class: str = (
+                f'    "{relative_url_pointer}":'
+                f"{key_value_separator}{model_class.__name__},"
+            )
+            if len(pointer_class.split("\n")[-1]) > 79:
+                pointer_class = f"{pointer_class}  # noqa"
+            pointers_classes.append(pointer_class)
+        pointers_classes.append("}")
         return "\n".join(
             chain(
                 sorted(
@@ -1290,6 +1315,7 @@ class _Modeler:
                 ("\n",),
                 classes,
                 map(self.represent_model_meta, class_names_sources.keys()),
+                ("\n".join(pointers_classes), ""),
             )
         )
 
@@ -1338,13 +1364,21 @@ class _ModuleParser:
     def iter_relative_urls_pointers_class_names(
         self,
     ) -> Iterable[Tuple[str, str]]:
+        pointers_classes: Dict[str, Type[sob.abc.Model]] = self.namespace.get(
+            "POINTERS_CLASSES", {}
+        )
+        relative_url_pointer: str
         cls: Type[sob.abc.Model]
+        for relative_url_pointer, cls in pointers_classes.items():
+            yield relative_url_pointer, cls.__name__
         for cls in self.models:
             (
                 relative_url_pointer,
                 name,
             ) = _get_class_relative_url_pointer_and_name(cls)
-            if relative_url_pointer:
+            if relative_url_pointer and (
+                relative_url_pointer not in pointers_classes
+            ):
                 yield relative_url_pointer, name
 
 
