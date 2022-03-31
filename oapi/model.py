@@ -4,7 +4,6 @@ import re
 from itertools import chain, starmap
 from more_itertools import unique_everseen
 from typing import (
-    IO,
     Any,
     Callable,
     Dict,
