@@ -20,7 +20,6 @@ from typing import (
     List,
 )
 from collections import OrderedDict, deque
-from io import IOBase
 from urllib.parse import urlparse, urljoin
 from urllib.request import urlopen
 from sob.thesaurus import get_class_meta_attribute_assignment_source
@@ -1413,10 +1412,8 @@ class Module:
 
     Initialization Parameters:
 
-    - data (str|http.client.HTTPResponse|io.IOBase|oapi.oas.model.OpenAPI):
-
-      The input data can be a URL, file-path, an HTTP response
-      (`http.client.HTTPResponse`), a file object, or an
+    - open_api: An OpenAPI document. This can be a URL, file-path, an
+      HTTP response (`http.client.HTTPResponse`), a file object, or an
       instance of `oapi.oas.model.OpenAPI`.
 
     - get_class_name_from_pointer: This argument defaults to
@@ -1428,27 +1425,27 @@ class Module:
 
     def __init__(
         self,
-        data: Union[str, IOBase, OpenAPI],
+        open_api: Union[str, sob.abc.Readable, OpenAPI],
         get_class_name_from_pointer: Callable[
             [str], str
         ] = get_default_class_name_from_pointer,
     ) -> None:
         self._parser = _ModuleParser()
         self._modeler: _Modeler
-        if isinstance(data, str):
-            if os.path.exists(data):
-                self._modeler = _get_path_modeler(data)
+        if isinstance(open_api, str):
+            if os.path.exists(open_api):
+                self._modeler = _get_path_modeler(open_api)
             else:
-                self._modeler = _get_url_modeler(data)
-        elif isinstance(data, IO):
-            self._modeler = _get_io_modeler(data)
-        elif isinstance(data, OpenAPI):
-            self._modeler = _get_open_api_modeler(data)
+                self._modeler = _get_url_modeler(open_api)
+        elif isinstance(open_api, sob.abc.Readable):
+            self._modeler = _get_io_modeler(open_api)
+        elif isinstance(open_api, OpenAPI):
+            self._modeler = _get_open_api_modeler(open_api)
         else:
             raise TypeError(
                 f"`{calling_function_qualified_name()}` requires an instance "
                 f"of `str`, `{qualified_name(OpenAPI)}`, or a file-like "
-                f"object for the `data` parameter--not {repr(data)}"
+                f"object for the `open_api` parameter--not {repr(open_api)}"
             )
         self._modeler.get_class_name_from_pointer = get_class_name_from_pointer
 
@@ -1502,6 +1499,4 @@ class Module:
 
 
 # For backwards compatibility...
-Model = Module
-
-# endregion
+Model: type = Module

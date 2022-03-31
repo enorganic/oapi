@@ -13,6 +13,7 @@ venv
 **/*.dist-info
 pip-wheel-metadata
 schemas
+oapi/client.py
 !.github
 !.gitignore
 !.flake8
