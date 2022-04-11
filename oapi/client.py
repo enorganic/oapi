@@ -1872,8 +1872,7 @@ class Module:
                 parameter_doc: str
                 for parameter_doc in self._add_init_parameter_docs:
                     parameter_doc = sob.utilities.string.indent(
-                        parameter_doc.lstrip(' -'),
-                        number_of_spaces=6
+                        parameter_doc.lstrip(" -"), number_of_spaces=6
                     )
                     parameter_documentation = (
                         f"{parameter_documentation}\n    - {parameter_doc}"
