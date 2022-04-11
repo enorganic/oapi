@@ -2,7 +2,7 @@
 install:
 	{ python3.6 -m venv venv || python3 -m venv venv || \
 	py -3.6 -m venv venv || py -3 -m venv venv ; } && \
-	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && \
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	python3 -m pip install --upgrade pip && \
 	python3 -m pip install\
 	 -r requirements.txt\
@@ -12,19 +12,19 @@ install:
 
 # Activate our virtual environment
 activate:
-	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && \
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	echo "Success!"
 
 # Install dependencies locally where available
 editable:
-	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && \
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	daves-dev-tools install-editable --upgrade-strategy eager && \
 	make requirements && \
 	echo "Success!"
 
 # Cleanup unused packages, and Git-ignored files (such as build files)
 clean:
-	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && \
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	daves-dev-tools uninstall-all\
 	 -e .\
      -e pyproject.toml\
@@ -35,13 +35,13 @@ clean:
 
 # Distribute to PYPI
 distribute:
-	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && \
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	daves-dev-tools distribute --skip-existing && \
 	echo "Success!"
 
 # Upgrade
 upgrade:
-	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && \
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	daves-dev-tools requirements freeze\
 	 -nv '*' . pyproject.toml tox.ini \
 	 > .unversioned_requirements.txt && \
@@ -52,7 +52,7 @@ upgrade:
 
 # Update requirement version #'s to match the current environment
 requirements:
-	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && \
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	daves-dev-tools requirements update\
 	 -v\
 	 -aen all\
@@ -65,18 +65,18 @@ requirements:
 
 # Run all tests
 test:
-	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && tox -r -p && \
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && tox -r -p && \
 	echo "Success!"
 
 # Download specification schemas
 schemas:
-	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && \
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	python3 scripts/download_schemas.py && \
 	echo "Success!"
 
 # Rebuild the data model (to maintain consistency when/if changes are made
 # which affect formatting)
 remodel:
-	{ venv/Scripts/activate.bat || . venv/bin/activate ; } && \
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	python3 scripts/remodel.py && \
 	echo "Success!"
