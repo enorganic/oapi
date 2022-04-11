@@ -23,7 +23,7 @@ resolver.dereference()
 import sob
 from typing import Any, Callable, Dict, Optional, Sequence, Tuple, Union
 from urllib.error import HTTPError
-from urllib.parse import urljoin, urlparse
+from urllib.parse import ParseResult, urljoin, urlparse
 from urllib.request import urlopen as _urlopen
 from jsonpointer import resolve_pointer  # type: ignore
 from .model import OpenAPI, Reference
@@ -346,7 +346,9 @@ class Resolver:
     def resolve(
         self,
         pointer: str,
-        types: Sequence[Union[sob.abc.Property, type]] = (),
+        types: Union[
+            sob.abc.Types, Sequence[Union[type, sob.abc.Property]]
+        ] = (),
         dereference: bool = False,
     ) -> sob.abc.Model:
         """
@@ -356,3 +358,60 @@ class Resolver:
         return self.documents[url].resolve(
             pointer, types, dereference=dereference
         )
+
+    def resolve_reference(
+        self,
+        reference: Reference,
+        types: Union[
+            sob.abc.Types, Sequence[Union[type, sob.abc.Property]]
+        ] = (),
+    ) -> sob.abc.Model:
+        """
+        Retrieve a referenced object.
+
+        Parameters:
+
+        - reference (oapi.oas.model.Reference)
+        - types ([Union[type, sob.abc.Property]]) = ()
+        """
+        url: str = sob.meta.get_url(reference) or ""
+        assert reference.ref
+        pointer: str = urljoin(
+            sob.meta.get_pointer(reference) or "",
+            reference.ref,
+        )
+        resolved_model: sob.abc.Model = self.get_document(url).resolve(
+            pointer, types
+        )
+        if resolved_model is reference or (
+            isinstance(resolved_model, Reference)
+            and resolved_model.ref == reference.ref
+        ):
+            raise ReferenceLoopError(
+                f"`Reference` instance is self-referential: {pointer}"
+            )
+        if isinstance(resolved_model, Reference):
+            resolved_model = self.resolve_reference(
+                resolved_model, types=types
+            )
+        return resolved_model
+
+    def get_relative_url(self, url: str) -> str:
+        """
+        Given a URL, return that URL relative to the base document
+        """
+        relative_url: str = ""
+        if url:
+            parse_result: ParseResult = urlparse(url)
+            # Determine if the URL is absolute or relative
+            if parse_result.netloc or parse_result.scheme == "file":
+                # Only include the relative URL if it is not the root document
+                if url == self.url:
+                    relative_url = ""
+                else:
+                    relative_url = sob.utilities.string.url_relative_to(
+                        url, self.url
+                    )
+            else:
+                relative_url = url
+        return relative_url

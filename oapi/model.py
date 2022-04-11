@@ -19,7 +19,6 @@ from typing import (
     List,
 )
 from collections import OrderedDict, deque
-from urllib.parse import urlparse, urljoin
 from urllib.request import urlopen
 from sob.thesaurus import get_class_meta_attribute_assignment_source
 from sob.utilities.inspect import (
@@ -32,7 +31,7 @@ from sob.utilities.string import (
     class_name,
     split_long_docstring_lines,
 )
-from sob.utilities import qualified_name, url_relative_to
+from sob.utilities import qualified_name
 from sob.utilities.types import Null
 
 from .errors import DuplicateClassNameError
@@ -271,7 +270,7 @@ class _Modeler:
         instance of `Object`.
         """
         if isinstance(schema, Reference):
-            schema = self.resolve_reference(schema)  # type: ignore
+            schema = self.resolver.resolve_reference(schema)  # type: ignore
             assert isinstance(schema, Schema)
         if (
             (schema.properties and schema.type_ is None)
@@ -298,7 +297,7 @@ class _Modeler:
         indicate the schema also defines an instance of `Array`.
         """
         if isinstance(schema, Reference):
-            schema = self.resolve_reference(schema)  # type: ignore
+            schema = self.resolver.resolve_reference(schema)  # type: ignore
             assert isinstance(schema, Schema)
         if schema.type_ == "array" or schema.items:
             return True
@@ -323,7 +322,7 @@ class _Modeler:
         `sob.abc.Dictionary`.
         """
         if isinstance(schema, Reference):
-            schema = self.resolve_reference(schema)  # type: ignore
+            schema = self.resolver.resolve_reference(schema)  # type: ignore
             assert isinstance(schema, Schema)
         if schema.type_ == "object" and (
             schema.additional_properties or (not schema.properties)
@@ -452,7 +451,9 @@ class _Modeler:
         except StopIteration:
             return None
         if isinstance(next_schema, Reference):
-            next_schema = self.resolve_reference(next_schema)  # type: ignore
+            next_schema = self.resolver.resolve_reference(  # type: ignore
+                next_schema
+            )
             assert isinstance(next_schema, Schema)
         return next_schema
 
@@ -575,7 +576,7 @@ class _Modeler:
     ) -> sob.abc.Property:
         is_referenced: bool = isinstance(schema, Reference)
         if is_referenced:
-            schema = self.resolve_reference(schema)  # type: ignore
+            schema = self.resolver.resolve_reference(schema)  # type: ignore
         assert isinstance(schema, Schema)
         property_: sob.abc.Property = _get_type_property(
             schema.type_, format_=schema.format_, required=required
@@ -617,21 +618,6 @@ class _Modeler:
             property_.required = required
         return property_
 
-    def get_relative_url(self, url: str) -> str:
-        relative_url: str = ""
-        if url:
-            parse_result = urlparse(url)
-            # Determine if the URL is absolute or relative
-            if parse_result.netloc or parse_result.scheme == "file":
-                # Only include the relative URL if it is not the root document
-                if url == self.resolver.url:
-                    relative_url = ""
-                else:
-                    relative_url = url_relative_to(url, self.resolver.url)
-            else:
-                relative_url = url
-        return relative_url
-
     def get_model_relative_url_and_pointer(
         self, model: sob.abc.Model
     ) -> Tuple[str, str]:
@@ -641,7 +627,7 @@ class _Modeler:
         url: str = sob.meta.url(model) or ""
         pointer: Optional[str] = sob.meta.pointer(model)
         assert pointer
-        return self.get_relative_url(url), pointer
+        return self.resolver.get_relative_url(url), pointer
 
     def get_model_relative_url_pointer(self, model: sob.abc.Model) -> str:
         """
@@ -709,14 +695,10 @@ class _Modeler:
                     if existing_model_meta != new_model_meta:
                         raise RuntimeError(
                             "An attempt was made to define a model using an "
-                            'existing model name (`%s`)"\n\n'
-                            "Existing Module Metadata:\n\n%s\n\n"
-                            "New Module Metadata:\n\n%s"
-                            % (
-                                model.__name__,
-                                repr(existing_model_meta),
-                                repr(new_model_meta),
-                            )
+                            f'existing model name (`{model.__name__}`)"\n\n'
+                            "Existing Module Metadata:\n\n"
+                            f"{repr(existing_model_meta)}\n\n"
+                            f"New Module Metadata:\n\n{repr(new_model_meta)}"
                         )
                 elif model not in (sob.model.Array, sob.model.Dictionary):
                     models_names[model.__name__] = model
@@ -824,7 +806,7 @@ class _Modeler:
                 dereferenced_schemas = (schemas,)
             elif isinstance(schemas, Reference):
                 dereferenced_schemas = (
-                    self.resolve_reference(schemas),  # type: ignore
+                    self.resolver.resolve_reference(schemas),  # type: ignore
                 )
             else:
                 schema_or_reference: Union[Schema, Reference]
@@ -832,7 +814,7 @@ class _Modeler:
                     None,
                     map(
                         lambda schema_or_reference: (  # type: ignore
-                            self.resolve_reference(  # type: ignore
+                            self.resolver.resolve_reference(  # type: ignore
                                 schema_or_reference
                             )
                             if isinstance(schema_or_reference, Reference)
@@ -1089,43 +1071,6 @@ class _Modeler:
         for schema in self.iter_model_schemas(self.root, (OpenAPI,)):
             yield schema
 
-    def resolve_reference(
-        self,
-        reference: Reference,
-        types: Union[
-            sob.abc.Types, Sequence[Union[type, sob.abc.Property]]
-        ] = (),
-    ) -> sob.abc.Model:
-        """
-        If `model_instance` is a reference, get the referenced object.
-
-        Parameters:
-
-        - reference (oapi.oas.model.Reference)
-        - types ([Union[type, sob.abc.Property]]) = ()
-        """
-        url: str = sob.meta.get_url(reference) or ""
-        assert reference.ref
-        pointer: str = urljoin(
-            sob.meta.get_pointer(reference) or "",
-            reference.ref,
-        )
-        resolved_model: sob.abc.Model = self.resolver.get_document(
-            url
-        ).resolve(pointer, types)
-        if resolved_model is reference or (
-            isinstance(resolved_model, Reference)
-            and resolved_model.ref == reference.ref
-        ):
-            raise RuntimeError(
-                f"`Reference` instance is self-referential: {pointer}"
-            )
-        if isinstance(resolved_model, Reference):
-            resolved_model = self.resolve_reference(
-                resolved_model, types=types
-            )
-        return resolved_model
-
     def add_traversed(self, model: sob.abc.Model) -> None:
         self._traversed_relative_urls_pointers.add(
             self.get_model_relative_url_pointer(model)
@@ -1209,7 +1154,7 @@ class _Modeler:
         skip: bool = False,
     ) -> Iterable[Schema]:
         if isinstance(model, Reference):
-            model = self.resolve_reference(model, types)
+            model = self.resolver.resolve_reference(model, types)
             # Skipping logic doesn't apply to references objects
             skip = False
         if not self.is_traversed(model):
@@ -1343,7 +1288,7 @@ class _ModuleParser:
 
     def open(self, path: str) -> None:
         path = os.path.abspath(path)
-        current_directory = os.path.abspath(os.curdir)
+        current_directory: str = os.path.abspath(os.curdir)
         os.chdir(os.path.dirname(path))
         try:
             self.namespace["__file__"] = path
@@ -1475,7 +1420,7 @@ class Module:
             else:
                 url = url_pointer
                 pointer = ""
-            relative_url = self._modeler.get_relative_url(url)
+            relative_url = self._modeler.resolver.get_relative_url(url)
         return relative_url, pointer
 
     def save(self, path: str) -> None:

@@ -522,7 +522,7 @@ class Header(ExtensibleObject):
             bool
         ] = None,
         enum: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 typing.Optional[sob.abc.MarshallableTypes]
             ]
         ] = None,
@@ -658,6 +658,9 @@ class Info(ExtensibleObject):
 
 
 class Items(ExtensibleObject):
+    """
+    https://bit.ly/3K0BklW (OpenAPI/Swagger Version 2.0 Only)
+    """
 
     def __init__(
         self,
@@ -732,7 +735,7 @@ class Items(ExtensibleObject):
             bool
         ] = None,
         enum: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 typing.Optional[sob.abc.MarshallableTypes]
             ]
         ] = None,
@@ -1106,7 +1109,7 @@ class OpenAPI(ExtensibleObject):
             str
         ] = None,
         servers: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 "Server"
             ]
         ] = None,
@@ -1114,12 +1117,12 @@ class OpenAPI(ExtensibleObject):
             str
         ] = None,
         schemes: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 str
             ]
         ] = None,
         tags: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 "Tag"
             ]
         ] = None,
@@ -1130,7 +1133,7 @@ class OpenAPI(ExtensibleObject):
             "Components"
         ] = None,
         consumes: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 str
             ]
         ] = None,
@@ -1141,22 +1144,10 @@ class OpenAPI(ExtensibleObject):
             "Definitions"
         ] = None,
         security_definitions: typing.Optional[
-            typing.Union[
-                typing.Mapping[
-                    str,
-                    "SecurityScheme"
-                ],
-                typing.Mapping[
-                    str,
-                    typing.Union[
-                        "Reference",
-                        "SecurityScheme"
-                    ]
-                ]
-            ]
+            "SecuritySchemes"
         ] = None,
         produces: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 str
             ]
         ] = None,
@@ -1176,16 +1167,8 @@ class OpenAPI(ExtensibleObject):
             ]
         ] = None,
         security: typing.Optional[
-            typing.Union[
-                typing.Mapping[
-                    str,
-                    typing.Iterable[
-                        str
-                    ]
-                ],
-                typing.Iterable[
-                    typing.Optional[sob.abc.MarshallableTypes]
-                ]
+            typing.Sequence[
+                "SecurityRequirement"
             ]
         ] = None
     ) -> None:
@@ -1249,7 +1232,7 @@ class Operation(ExtensibleObject):
       response codes to response schemas.
     - callbacks ({str:{str:PathItem}|Reference})
     - deprecated (bool)
-    - security ([[str]])
+    - security ([SecurityRequirement])
     - servers ([Server])
 
     Version 2x Compatibility:
@@ -1277,7 +1260,7 @@ class Operation(ExtensibleObject):
             None,
         ] = None,
         tags: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 str
             ]
         ] = None,
@@ -1294,17 +1277,17 @@ class Operation(ExtensibleObject):
             str
         ] = None,
         consumes: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 str
             ]
         ] = None,
         produces: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 str
             ]
         ] = None,
         parameters: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 typing.Union[
                     "Reference",
                     "Parameter"
@@ -1324,7 +1307,7 @@ class Operation(ExtensibleObject):
             "Callbacks"
         ] = None,
         schemes: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 str
             ]
         ] = None,
@@ -1332,17 +1315,12 @@ class Operation(ExtensibleObject):
             bool
         ] = None,
         security: typing.Optional[
-            typing.Iterable[
-                typing.Mapping[
-                    str,
-                    typing.Iterable[
-                        str
-                    ]
-                ]
+            typing.Sequence[
+                "SecurityRequirement"
             ]
         ] = None,
         servers: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 "Server"
             ]
         ] = None
@@ -1387,21 +1365,17 @@ class Parameter(ExtensibleObject):
       is used, and if `behavior` is inapplicable (cannot be serialized),
       the value of `allow_empty_value` will be ignored.
     - style (str): Describes how the parameter value will be serialized,
-      depending on the type of the parameter value.
-      - "matrix": Path-style parameters defined by `RFC6570 <https://
-        tools.ietf.org/html/rfc6570#section-3.2.7>`.
-      - "label": Label-style parameters defined by `RFC6570 <https://
-        tools.ietf.org/html/rfc6570#section-3.2.5>`.
-      - "form": Form style parameters defined by
-        `RFC6570 <https://bit.ly/3NveyEK>`.
-      - "simple": Simple style parameters defined by
-        `RFC6570 <https://bit.ly/3iSoKcl>`.
-      - "spaceDelimited": Space separated array values.
-      - "pipeDelimited": Pipe separated array values.
-      - "deepObject": Provides a simple way of rendering nested objects
-        using form parameters. https://bit.ly/35qFggz
+      depending on the type of the parameter value (see:
+      https://swagger.io/docs/specification/serialization).
+      - "matrix"
+      - "label"
+      - "form"
+      - "simple"
+      - "spaceDelimited"
+      - "pipeDelimited"
+      - "deepObject"
 
-      Default values (based on value of `location`):
+      Default values:
       - query: "form"
       - path: "simple"
       - header: "simple"
@@ -1416,8 +1390,7 @@ class Parameter(ExtensibleObject):
       allow reserved characters :/?#[]@!$&'()*+,;= (as defined by
       `RFC3986 <https://tools.ietf.org/ html/rfc3986#section-2.2>`) to be
       included without percent-encoding. This property only applies to
-      parameters with a location value of "query". The
-      default value is `False`.
+      "query" parameters. The default value is `False`.
     - schema (Schema): The schema defining the type used for the parameter.
     - example (Any): Example of the media type. The example should match
       the specified schema and encoding properties if present. The `example`
@@ -1469,7 +1442,10 @@ class Parameter(ExtensibleObject):
             str
         ] = None,
         in_: typing.Optional[
-            str
+            typing.Union[
+                str,
+                str
+            ]
         ] = None,
         description: typing.Optional[
             str
@@ -1561,7 +1537,7 @@ class Parameter(ExtensibleObject):
             bool
         ] = None,
         enum: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 typing.Optional[sob.abc.MarshallableTypes]
             ]
         ] = None,
@@ -1701,12 +1677,12 @@ class PathItem(ExtensibleObject):
             "Operation"
         ] = None,
         servers: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 "Server"
             ]
         ] = None,
         parameters: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 typing.Union[
                     "Reference",
                     "Parameter"
@@ -1911,6 +1887,10 @@ class Response(ExtensibleObject):
       `MediaType` instances describing potential payloads.
     - links ({str:Link_|Reference}): A map of operations links that can be
       followed from the response.
+
+    ...for 2x compatibility:
+
+    - schema (oapi.oas.mode.Schema)
     """
 
     def __init__(
@@ -2057,13 +2037,13 @@ class Schema(ExtensibleObject):
       match this regular expression (ECMA 262).
     - items (Reference|Schema|[Schema]):
       - If `items` is a sub-schema--each item in the array instance
-      described by this schema should be valid as described by this
-      sub-schema.
+        described by this schema should be valid as described by this
+        sub-schema.
       - If `items` is a sequence of sub-schemas, the array instance
-      described by this schema should be equal in length to this
-      sequence, and each value should be valid as described by the
-      sub-schema at the corresponding index within this sequence of
-      sub-schemas.
+        described by this schema should be equal in length to this
+        sequence, and each value should be valid as described by the
+        sub-schema at the corresponding index within this sequence of
+        sub-schemas.
     - max_items (int): The array instance described by this schema should
       contain no more than this number of items.
     - min_items (int): The array instance described by this schema should
@@ -2085,16 +2065,17 @@ class Schema(ExtensibleObject):
       property matched in either `sob.properties`.
     - enum ([Any]): The value/instance described by this schema should be
       among those in this sequence.
-    - type_ (str|[str]): The value/instance described by this schema should
-      be of the value_types indicated (if this is a string), or *one of*
-      the value_types indicated (if this is a sequence).
-      - "null"
+    - type_ (str): See https://bit.ly/35xdE9N, https://bit.ly/3j3iJJP and
+      https://bit.ly/3DzLF60
       - "boolean"
       - "object"
       - "array"
       - "number"
       - "string"
-    - format_ (str|[str]):
+      - "integer"
+      - "file"
+    - format_ (str): See https://bit.ly/35xdE9N, https://bit.ly/3j3iJJP and
+      https://bit.ly/3DzLF60
       - "date-time":
         A date and time in the format YYYY-MM-DDThh:mm:ss.sTZD
         (eg 1997-07-16T19:20:30.45+01:00),
@@ -2220,7 +2201,7 @@ class Schema(ExtensibleObject):
             typing.Union[
                 "Reference",
                 "Schema",
-                typing.Iterable[
+                typing.Sequence[
                     typing.Union[
                         "Reference",
                         "Schema"
@@ -2245,7 +2226,7 @@ class Schema(ExtensibleObject):
             ]
         ] = None,
         enum: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 typing.Optional[sob.abc.MarshallableTypes]
             ]
         ] = None,
@@ -2256,12 +2237,12 @@ class Schema(ExtensibleObject):
             str
         ] = None,
         required: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 str
             ]
         ] = None,
         all_of: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 typing.Union[
                     "Reference",
                     "Schema"
@@ -2269,7 +2250,7 @@ class Schema(ExtensibleObject):
             ]
         ] = None,
         any_of: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 typing.Union[
                     "Reference",
                     "Schema"
@@ -2277,7 +2258,7 @@ class Schema(ExtensibleObject):
             ]
         ] = None,
         one_of: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 typing.Union[
                     "Reference",
                     "Schema"
@@ -2321,7 +2302,7 @@ class Schema(ExtensibleObject):
             bool
         ] = None,
         links: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 "Link"
             ]
         ] = None,
@@ -2400,11 +2381,38 @@ class Schemas(sob.model.Dictionary):
         super().__init__(items)
 
 
+class SecurityRequirement(sob.model.Dictionary):
+
+    def __init__(
+        self,
+        items: typing.Union[
+            sob.abc.Dictionary,
+            typing.Mapping[
+                str,
+                typing.Sequence[
+                    str
+                ]
+            ],
+            typing.Iterable[
+                typing.Tuple[
+                    str,
+                    typing.Sequence[
+                        str
+                    ]
+                ]
+            ],
+            sob.abc.Readable,
+            str,
+            bytes,
+            None,
+        ] = None,
+    ) -> None:
+        super().__init__(items)
+
+
 class SecurityScheme(ExtensibleObject):
     """
-    https://bit.ly/3qRtjIm
-
-    Properties:
+    Properties (https://bit.ly/3qRtjIm):
 
     - type_ (str): https://tools.ietf.org/html/rfc7235#section-4
     - description (str)
@@ -2414,6 +2422,13 @@ class SecurityScheme(ExtensibleObject):
     - bearer_format (str)
     - flows (OAuthFlows)
     - open_id_connect_url (str)
+    - scopes
+
+    OpenAPI 2x Only Properties (https://bit.ly/3Jpx3aA):
+
+    - flow (str): "implicit", "password", "application" or "accessCode"
+    - authorization_url (str)
+    - token_url (str)
     """
 
     def __init__(
@@ -2592,7 +2607,7 @@ class ServerVariable(ExtensibleObject):
             None,
         ] = None,
         enum: typing.Optional[
-            typing.Iterable[
+            typing.Sequence[
                 str
             ]
         ] = None,
@@ -3734,24 +3749,11 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             name="securityDefinitions",
             types=sob.types.MutableTypes([
-                sob.properties.Dictionary(
-                    value_types=sob.types.MutableTypes([
-                        SecurityScheme
-                    ]),
-                    versions=(
-                        'openapi<3.0',
-                    )
-                ),
-                sob.properties.Dictionary(
-                    value_types=sob.types.MutableTypes([
-                        Reference,
-                        SecurityScheme
-                    ]),
-                    versions=(
-                        'openapi>=3.0',
-                    )
-                )
-            ])
+                SecuritySchemes
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
         )
     ),
     (
@@ -3798,25 +3800,9 @@ sob.meta.object_writable(  # type: ignore
     ),
     (
         'security',
-        sob.properties.Property(
-            types=sob.types.MutableTypes([
-                sob.properties.Dictionary(
-                    value_types=sob.types.MutableTypes([
-                        sob.properties.Array(
-                            item_types=sob.types.MutableTypes([
-                                str
-                            ])
-                        )
-                    ]),
-                    versions=(
-                        'openapi<3.0',
-                    )
-                ),
-                sob.properties.Array(
-                    versions=(
-                        'openapi>=3.0',
-                    )
-                )
+        sob.properties.Array(
+            item_types=sob.types.MutableTypes([
+                SecurityRequirement
             ])
         )
     )
@@ -3929,15 +3915,7 @@ sob.meta.object_writable(  # type: ignore
         'security',
         sob.properties.Array(
             item_types=sob.types.MutableTypes([
-                sob.properties.Dictionary(
-                    value_types=sob.types.MutableTypes([
-                        sob.properties.Array(
-                            item_types=sob.types.MutableTypes([
-                                str
-                            ])
-                        )
-                    ])
-                )
+                SecurityRequirement
             ])
         )
     ),
@@ -3964,19 +3942,40 @@ sob.meta.object_writable(  # type: ignore
     ),
     (
         'in_',
-        sob.properties.Enumerated(
+        sob.properties.Property(
             name="in",
             required=True,
             types=sob.types.Types([
-                str
-            ]),
-            values={
-                "body",
-                "formData",
-                "header",
-                "path",
-                "query"
-            }
+                sob.properties.Enumerated(
+                    types=sob.types.Types([
+                        str
+                    ]),
+                    values={
+                        "cookie",
+                        "header",
+                        "path",
+                        "query"
+                    },
+                    versions=(
+                        'openapi>=3.0',
+                    )
+                ),
+                sob.properties.Enumerated(
+                    types=sob.types.Types([
+                        str
+                    ]),
+                    values={
+                        "body",
+                        "formData",
+                        "header",
+                        "path",
+                        "query"
+                    },
+                    versions=(
+                        'openapi<3.0',
+                    )
+                )
+            ])
         )
     ),
     ('description', sob.properties.String()),
@@ -4744,6 +4743,15 @@ sob.meta.dictionary_writable(  # type: ignore
 ).value_types = sob.types.MutableTypes([
     Reference,
     Schema
+])
+sob.meta.dictionary_writable(  # type: ignore
+    SecurityRequirement
+).value_types = sob.types.MutableTypes([
+    sob.properties.Array(
+        item_types=sob.types.MutableTypes([
+            str
+        ])
+    )
 ])
 sob.meta.object_writable(  # type: ignore
     SecurityScheme
