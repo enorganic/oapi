@@ -41,7 +41,7 @@ class CheckPostResponse(sob.model.Object):
 
 class CheckPostResponseLanguage(sob.model.Object):
     """
-    The language used for checking the text.
+The language used for checking the text.
     """
 
     def __init__(
@@ -90,8 +90,8 @@ class CheckPostResponseLanguage(sob.model.Object):
 
 class CheckPostResponseLanguageDetectedLanguage(sob.model.Object):
     """
-    The automatically detected text language (might be different from the
-    language actually used for checking).
+The automatically detected text language (might be different from the language
+actually used for checking).
     """
 
     def __init__(
@@ -271,8 +271,8 @@ class CheckPostResponseMatchesItemcontext(sob.model.Object):
 
 class CheckPostResponseMatchesItemreplacements(sob.model.Array):
     """
-    Replacements that might correct the error. The array can be empty, in this
-    case there is no suggested replacement.
+Replacements that might correct the error. The array can be empty, in this case
+there is no suggested replacement.
     """
 
     def __init__(
@@ -412,7 +412,7 @@ class CheckPostResponseMatchesItemruleCategory(sob.model.Object):
 
 class CheckPostResponseMatchesItemruleUrls(sob.model.Array):
     """
-    An optional array of URLs with a more detailed description of the error.
+An optional array of URLs with a more detailed description of the error.
     """
 
     def __init__(
@@ -614,7 +614,7 @@ class WordsGetResponse(sob.model.Object):
 
 class WordsGetResponseWords(sob.model.Array):
     """
-    array of words
+array of words
     """
 
     def __init__(
