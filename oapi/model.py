@@ -1235,10 +1235,11 @@ class _Modeler:
             key_value_separator: str = (
                 " "
                 if (9 + len(relative_url_pointer) + len(model_class.__name__))
-                < 80
+                <= sob.utilities.string.MAX_LINE_LENGTH
                 else (
                     "\n    "
-                    if (7 + len(relative_url_pointer)) < 80
+                    if (7 + len(relative_url_pointer))
+                    <= sob.utilities.string.MAX_LINE_LENGTH
                     else "  # noqa\n    "
                 )
             )
@@ -1246,7 +1247,10 @@ class _Modeler:
                 f'    "{relative_url_pointer}":'
                 f"{key_value_separator}{model_class.__name__},"
             )
-            if len(pointer_class.split("\n")[-1]) > 79:
+            if (
+                len(pointer_class.split("\n")[-1])
+                > sob.utilities.string.MAX_LINE_LENGTH
+            ):
                 pointer_class = f"{pointer_class}  # noqa"
             pointers_classes.append(pointer_class)
         pointers_classes.append("}")

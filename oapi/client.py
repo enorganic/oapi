@@ -1286,20 +1286,46 @@ def _schema_defines_model(schema: Schema) -> bool:
 
 @dataclass
 class _Parameter:
+    index: int = 0
     name: str = ""
     types: sob.abc.Types = field(default_factory=sob.types.Types)
     explode: bool = False
     style: str = ""
+    description: str = ""
 
 
 @dataclass
 class _ParameterLocations:
+    total_count: int = 0
     header: Dict[str, _Parameter] = field(default_factory=OrderedDict)
     body: Optional[_Parameter] = None
     path: Dict[str, _Parameter] = field(default_factory=OrderedDict)
     query: Dict[str, _Parameter] = field(default_factory=OrderedDict)
     form_data: Dict[str, _Parameter] = field(default_factory=OrderedDict)
     cookie: Dict[str, _Parameter] = field(default_factory=OrderedDict)
+
+
+def _iter_parameters(
+    parameter_locations: _ParameterLocations,
+) -> Iterable[Tuple[str, _Parameter]]:
+    if parameter_locations.body:
+        yield parameter_locations.body.name, parameter_locations.body
+    yield from chain(
+        parameter_locations.header.items(),
+        parameter_locations.path.items(),
+        parameter_locations.query.items(),
+        parameter_locations.form_data.items(),
+        parameter_locations.cookie.items(),
+    )
+
+
+def _iter_sorted_parameters(
+    parameter_locations: _ParameterLocations,
+) -> Iterable[Tuple[str, _Parameter]]:
+    item: Tuple[str, _Parameter]
+    return sorted(
+        _iter_parameters(parameter_locations), key=lambda item: item[1].index
+    )
 
 
 def _iter_request_path_representation(
@@ -1408,7 +1434,10 @@ def _iter_request_form_data_representation(
             parameter_representation = (
                 f'                "{parameter.name}": {name},'
             )
-            if len(parameter_representation) > 79:
+            if (
+                len(parameter_representation)
+                > sob.utilities.string.MAX_LINE_LENGTH
+            ):
                 parameter_representation = (
                     f'                "{parameter.name}":\n'
                     f"                {name},"
@@ -1890,7 +1919,7 @@ class Module:
             f"class {self._class_name}"
             f"({self._get_client_base_class_name()}):"
         )
-        if len(class_declaration) > 79:
+        if len(class_declaration) > sob.utilities.string.MAX_LINE_LENGTH:
             class_declaration = (
                 f"class {self._class_name}(\n"
                 f"    {self._get_client_base_class_name()}\n"
@@ -2120,7 +2149,10 @@ class Module:
                     # See: https://bit.ly/3JaCXMF
                     explode=explode,
                     style=style,
+                    description=parameter.description or "",
+                    index=parameter_locations.total_count,
                 )
+                parameter_locations.total_count += 1
                 type_hint: str = self._get_parameter_type_hint(parameter)
                 yield f"        {parameter_name}: {type_hint},"
 
@@ -2165,6 +2197,50 @@ class Module:
             yield "        )"
         yield ""
 
+    def _iter_operation_method_docstring(
+        self, operation: Operation, parameter_locations: _ParameterLocations
+    ) -> Iterable[str]:
+        yield '        """'
+        if operation.description or operation.summary:
+            yield sob.utilities.string.split_long_docstring_lines(
+                "\n{}        ".format(
+                    sob.utilities.string.indent(
+                        (
+                            operation.description or operation.summary or ""
+                        ).strip(),
+                        number_of_spaces=8,
+                        start=0,
+                    )
+                )
+            ).lstrip("\n")
+        sorted_parameters: Tuple[Tuple[str, _Parameter], ...] = tuple(
+            _iter_sorted_parameters(parameter_locations)
+        )
+        if sorted_parameters:
+            if operation.description or operation.summary:
+                yield ""
+            yield "        Parameters:"
+            yield ""
+            name: str
+            parameter: _Parameter
+            for name, parameter in sorted_parameters:
+                parameter_docstring: str = f"        - {name}"
+                if parameter.description:
+                    description: str = parameter.description.strip()
+                    description = sob.utilities.string.indent(
+                        description, 10, start=0
+                    )
+                    description = (
+                        sob.utilities.string.split_long_docstring_lines(
+                            description
+                        )
+                    )
+                    parameter_docstring = (
+                        f"{parameter_docstring}:\n{description}"
+                    )
+                yield parameter_docstring
+        yield '        """'
+
     def _iter_operation_method_source(
         self,
         path: str,
@@ -2182,6 +2258,9 @@ class Module:
             operation=operation,
             path_item=path_item,
             parameter_locations=parameter_locations,
+        )
+        yield from self._iter_operation_method_docstring(
+            operation, parameter_locations
         )
         yield from self._iter_operation_method_definition(
             path=path,
@@ -2221,7 +2300,9 @@ class Module:
                     parameter_locations.body = _Parameter(
                         name=parameter_name,
                         types=sob.types.Types([schema_type]),
+                        index=parameter_locations.total_count,
                     )
+                    parameter_locations.total_count += 1
                     type_hint = self._get_schema_type_hint(
                         schema, required=bool(request_body.required)
                     )
