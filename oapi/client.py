@@ -2220,13 +2220,15 @@ class Module:
             if operation.description or operation.summary:
                 yield ""
             yield "        Parameters:"
+            yield ""
             name: str
             parameter: _Parameter
             for name, parameter in sorted_parameters:
-                yield ""
                 parameter_docstring: str = f"        - {name}"
                 if parameter.description:
-                    description: str = parameter.description.strip()
+                    description: str = re.sub(
+                        r"\n[\s\n]*\n+", "\n", parameter.description.strip()
+                    )
                     description = sob.utilities.string.indent(
                         description, 10, start=0
                     )
