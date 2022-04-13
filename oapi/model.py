@@ -1,6 +1,8 @@
 import sob
 import os
 import re
+from copy import copy
+from datetime import date, datetime
 from itertools import chain, starmap
 from more_itertools import unique_everseen
 from typing import (
@@ -174,7 +176,11 @@ def _types_from_enum_values(
     types: sob.abc.MutableTypes = sob.types.MutableTypes()
 
     def add_value_type(value: sob.abc.MarshallableTypes) -> None:
-        type_: type = type(value)
+        type_: Union[type, sob.abc.Property] = type(value)
+        if isinstance(value, datetime):
+            type_ = sob.properties.DateTime()
+        elif isinstance(value, date):
+            type_ = sob.properties.Date()
         if type_ not in types:
             types.append(type_)
 
@@ -185,6 +191,10 @@ def _types_from_enum_values(
 def _append_property_type(
     property_: sob.abc.Property, type_: Union[type, sob.abc.Property]
 ) -> sob.abc.Property:
+    if type_ is datetime:
+        type_ = sob.properties.DateTime()
+    elif type_ is date:
+        type_ = sob.properties.Date()
     # Representations are used in lieu of comparing classes directly
     # because in the course of type generation it is possible to create
     # an identical class more than once
@@ -208,8 +218,14 @@ def _append_property_type(
                 and issubclass(type_, property_.types[0])
             ):
                 types = sob.types.MutableTypes()
-            else:
+            elif type(property_) is sob.properties.Property:
                 types = sob.types.MutableTypes(property_.types or ())
+            else:
+                new_property: sob.abc.Property = copy(property_)
+                new_property.name = None
+                new_property.required = False
+                new_property.versions = None  # type: ignore
+                types = sob.types.MutableTypes((new_property,))
             property_ = sob.properties.Property(
                 name=property_.name,
                 types=types,
@@ -426,7 +442,11 @@ class _Modeler:
             property_.types = sob.types.MutableTypes()  # type: ignore
         elif not isinstance(property_.types, sob.abc.MutableTypes):
             property_ = sob.properties.Property(
-                types=sob.types.MutableTypes(property_.types)  # type: ignore
+                types=sob.types.MutableTypes(
+                    (property_,)
+                    if isinstance(property_, (sob.abc.Date, sob.abc.DateTime))
+                    else property_.types
+                )  # type: ignore
             )
         child_property_ = self.get_property(next_schema)
         if child_property_.types:
