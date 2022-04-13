@@ -726,7 +726,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -736,7 +736,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -761,7 +761,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -771,7 +771,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -790,7 +790,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -806,7 +806,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                int,
+                sob.properties.Integer(),
                 sob.utilities.types.Null
             ])
         )
@@ -816,7 +816,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                int,
+                sob.properties.Integer(),
                 sob.utilities.types.Null
             ])
         )
@@ -846,7 +846,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -868,7 +868,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -878,7 +878,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                int,
+                sob.properties.Integer(),
                 sob.utilities.types.Null
             ])
         )
@@ -888,7 +888,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                int,
+                sob.properties.Integer(),
                 sob.utilities.types.Null
             ])
         )
@@ -913,7 +913,7 @@ sob.meta.object_writable(  # type: ignore
             name="id",
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -929,7 +929,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -988,7 +988,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -998,7 +998,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -1009,7 +1009,7 @@ sob.meta.object_writable(  # type: ignore
             name="buildDate",
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -1020,7 +1020,7 @@ sob.meta.object_writable(  # type: ignore
             name="apiVersion",
             required=True,
             types=sob.types.MutableTypes([
-                int,
+                sob.properties.Integer(),
                 sob.utilities.types.Null
             ])
         )
@@ -1041,7 +1041,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -1051,7 +1051,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
@@ -1062,7 +1062,7 @@ sob.meta.object_writable(  # type: ignore
             name="longCode",
             required=True,
             types=sob.types.MutableTypes([
-                str,
+                sob.properties.String(),
                 sob.utilities.types.Null
             ])
         )
