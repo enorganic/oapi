@@ -1027,10 +1027,60 @@ class _Modeler:
                 )
         return sob.model.Dictionary
 
+    def _iter_schema_property_schemas(
+        self, schema: Schema
+    ) -> Iterable[Tuple[str, Schema]]:
+        if schema.properties:
+            name: str
+            property_schema: Union[Schema, Reference]
+            for name, property_schema in schema.properties.items():
+                if isinstance(property_schema, Reference):
+                    property_schema = (
+                        self.resolver.resolve_reference(  # type: ignore
+                            property_schema, (Schema,)
+                        )
+                    )
+                assert isinstance(property_schema, Schema)
+                yield name, property_schema
+
+    def _iter_sorted_schema_property_schemas(
+        self, schema: Schema
+    ) -> Iterable[Tuple[str, Schema]]:
+        yield from sorted(
+            self._iter_schema_property_schemas(schema),
+            key=lambda item: (0 if item[1].required else 1, item[0]),
+        )
+
     def get_docstring(self, schema: Schema) -> Optional[str]:
+        docstring: List[str] = []
         if schema.description:
-            return split_long_docstring_lines(schema.description.strip())
-        return None
+            docstring.append(
+                split_long_docstring_lines(schema.description.strip())
+            )
+        is_first_property: bool = True
+        name: str
+        property_schema: Schema
+        for name, property_schema in self._iter_schema_property_schemas(
+            schema
+        ):
+            if is_first_property:
+                docstring.append(("\n    Properties:\n"))
+                is_first_property = False
+            name = sob.utilities.string.property_name(name)
+            property_docstring: str = f"    - {name}"
+            if property_schema.description:
+                description: str = re.sub(
+                    r"\n[\s\n]*\n+", "\n", property_schema.description.strip()
+                )
+                description = sob.utilities.string.indent(
+                    description, 6, start=0
+                )
+                description = sob.utilities.string.split_long_docstring_lines(
+                    description
+                )
+                property_docstring = f"{property_docstring}:\n{description}"
+            docstring.append(property_docstring)
+        return "\n".join(docstring) if docstring else None
 
     def get_schema_object_class(
         self,
