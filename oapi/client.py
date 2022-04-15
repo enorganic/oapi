@@ -3,7 +3,7 @@ import decimal
 import gzip
 import inspect
 import json
-import pipes
+import shlex
 import re
 import threading
 import time
@@ -423,7 +423,7 @@ def get_request_curl(
         key, value = item
         if key.lower() in lowercase_excluded_headers:
             value = "***"
-        return "-H {}".format(pipes.quote(f"{key}: {value}"))
+        return "-H {}".format(shlex.quote(f"{key}: {value}"))
 
     return " ".join(
         filter(
@@ -438,13 +438,38 @@ def get_request_curl(
                     )
                 ),
                 (
-                    f"-d {pipes.quote(request.data.decode('utf-8'))}"
+                    f"-d {shlex.quote(request.data.decode('utf-8'))}"
                     if request.data
                     else ""
                 ),
-                pipes.quote(request.full_url),
+                shlex.quote(request.full_url),
             ),
         )
+    )
+
+
+def _represent_http_response(
+    response: HTTPResponse, data: Optional[bytes] = None
+) -> str:
+    data = HTTPResponse.read(response) if data is None else data
+    content_encoding: str
+    for content_encoding in response.getheader("Contents-encoding", "").split(
+        ","
+    ):
+        content_encoding = content_encoding.strip().lower()
+        if content_encoding and content_encoding == "gzip":
+            data = gzip.decompress(data)
+    headers: str = "\n".join(
+        f"{key}: {value}" for key, value in response.headers.items()
+    )
+    body: str = (
+        f'\n\n{str(data, encoding="utf-8", errors="ignore")}' if data else ""
+    )
+    return (
+        f"{response.geturl()}\n"
+        f"{response.getcode()}\n"
+        f"{headers}"
+        f"{body}"
     )
 
 
@@ -455,29 +480,10 @@ def _set_response_callback(
     Perform a callback on an HTTP response at the time it is read
     """
 
+    @functools.wraps(response.read)
     def response_read(amt: Optional[int] = None) -> bytes:
         data: bytes = HTTPResponse.read(response, amt)
-        content_encoding: str
-        for content_encoding in response.getheader(
-            "Contents-encoding", ""
-        ).split(","):
-            content_encoding = content_encoding.strip().lower()
-            if content_encoding and content_encoding == "gzip":
-                data = gzip.decompress(data)
-        headers: str = "\n".join(
-            f"{key}: {value}" for key, value in response.headers.items()
-        )
-        body: str = (
-            f'\n\n{str(data, encoding="utf-8", errors="ignore")}'
-            if data
-            else ""
-        )
-        callback(
-            f"{response.geturl()}\n"
-            f"Status: {response.getcode()}\n"
-            f"{headers}"
-            f"{body}"
-        )
+        callback(_represent_http_response(response, data))
         return data
 
     response.read = response_read  # type: ignore
@@ -582,13 +588,32 @@ def _make_thread_locks_pickleable() -> None:
     """
     LockType: type = type(threading.Lock())
     RLockType: type = type(threading.RLock())
-    copyreg.pickle(LockType, lambda self: (threading.Lock, ()))  # type: ignore
+    copyreg.pickle(LockType, lambda lock: (threading.Lock, ()))  # type: ignore
     copyreg.pickle(
-        RLockType, lambda self: (threading.RLock, ())  # type: ignore
+        RLockType, lambda rlock: (threading.RLock, ())  # type: ignore
     )
 
 
 _make_thread_locks_pickleable()
+
+
+def _make_http_errors_pickleable() -> None:
+    copyreg.pickle(
+        HTTPError,
+        lambda error: (  # type: ignore
+            HTTPError,  # type: ignore
+            (
+                error.filename,
+                error.code,
+                error.msg,  # type: ignore
+                error.hdrs,  # type: ignore
+                error.fp,
+            ),
+        ),
+    )
+
+
+_make_http_errors_pickleable()
 
 
 DEFAULT_RETRY_FOR_EXCEPTIONS: Tuple[Type[Exception], ...] = (
@@ -1196,14 +1221,19 @@ class Client(ABC):
                 response, self._get_request_response_callback()
             )
         except HTTPError as error:
-            response = getattr(error, "file")
-            # Add callback
-            _set_response_callback(
-                response, self._get_request_response_callback(error=error)
+            error_response: Optional[HTTPResponse] = getattr(
+                error, "file", None
             )
-            # Invoke callback
-            response.read()
-            raise
+            if error_response is not None:
+                sob.errors.append_exception_text(
+                    error,
+                    "\n\n{}".format(
+                        _censor_long_json_strings(
+                            _represent_http_response(error_response)
+                        )
+                    ),
+                )
+            raise error
         assert isinstance(response, sob.abc.Readable)
         return response
 
