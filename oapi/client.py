@@ -1006,10 +1006,9 @@ class Client(ABC):
                 raise
 
     def _get_oauth2_client_credentials_authorization(self) -> str:
-        """
-        This property is an authorization header
-        """
-        if self._oauth2_authorization_expires < int(time.time()):
+        if self._oauth2_authorization_expires < int(time.time()) or (
+            "Authorization" not in self.headers
+        ):
             # If our authorization has expired, get a new token
             with (
                 self._request_oauth2_client_credentials_authorization()
