@@ -6,7 +6,7 @@ charset-normalizer==2.0.12
 click==8.0.4
 colorama==0.4.4
 dataclasses==0.8; python_version == "3.6"
-daves-dev-tools==1.24.0
+daves-dev-tools==1.26.0
 distlib==0.3.4
 docutils==0.18.1
 filelock
@@ -48,7 +48,7 @@ tomli==1.2.3
 tox==3.25.0
 tqdm==4.63.1
 twine==3.8.0
-typed-ast==1.5.2
+typed-ast==1.5.3
 typing-extensions==4.1.1
 urllib3==1.26.9
 virtualenv==20.14.1

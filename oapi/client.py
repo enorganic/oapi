@@ -37,6 +37,7 @@ from typing import (
     Tuple,
     Type,
     Union,
+    Pattern,
 )
 from urllib.error import HTTPError, URLError
 from urllib.parse import (
@@ -1510,6 +1511,12 @@ class Module:
       decorator which utilizes the additional parameters, so use of this
       parameter should be accompanied by an `init_decorator`.
     - add_init_parameter_docs ([str])
+    - set_init_parameter_defaults ({str: typing.Any}): A mapping of
+      parameter names to default values for the parameter.
+    - set_init_parameter_defaults_source ({str: str}): A mapping of
+      parameter names to default values for the parameter *expressed as
+      source code*. This is to allow for the passing of imported constants,
+      expressions, etc.
     """
 
     def __init__(
@@ -1523,6 +1530,12 @@ class Module:
         include_init_parameters: Union[str, Tuple[str, ...]] = (),
         add_init_parameters: Union[str, Tuple[str, ...]] = (),
         add_init_parameter_docs: Union[str, Tuple[str, ...]] = (),
+        init_parameter_defaults: Union[
+            Mapping[str, Any], Sequence[Tuple[str, Any]]
+        ] = (),
+        init_parameter_defaults_source: Union[
+            Mapping[str, Any], Sequence[Tuple[str, Any]]
+        ] = (),
     ) -> None:
         # Ensure a valid model path has been provided
         assert os.path.exists(model_path)
@@ -1564,6 +1577,12 @@ class Module:
             (add_init_parameter_docs,)
             if isinstance(add_init_parameter_docs, str)
             else add_init_parameter_docs
+        )
+        self._init_parameter_defaults: Dict[str, Any] = dict(
+            init_parameter_defaults
+        )
+        self._init_parameter_defaults_source: Dict[str, Any] = dict(
+            init_parameter_defaults_source
         )
         self._resolver: Resolver = Resolver(open_api)
         self._model_path: str = model_path
@@ -2508,6 +2527,49 @@ class Module:
             )
         return init_declaration_source
 
+    def _replace_init_parameter_defaults(
+        self, init_declaration_source: str
+    ) -> str:
+        default_representation: str
+        parameter_name: str
+        item: Tuple[str, Any]
+        for parameter_name, default_representation in chain(
+            map(
+                lambda item: (
+                    item[0],
+                    sob.utilities.inspect.represent(item[1]),
+                ),
+                self._init_parameter_defaults.items(),
+            ),
+            self._init_parameter_defaults_source.items(),
+        ):
+            pattern: Pattern = re.compile(
+                f"(\\n\\s*{parameter_name}:"
+                r"(?:.|\n)*?=\s*)((?:.|\n)*?)"
+                r"(,?\n\s*(?:[\w_]+|\)):)"
+            )
+            matched: Optional[Match] = pattern.search(init_declaration_source)
+            if matched:
+                if (
+                    sum(map(len, matched.groups()[:-1]))
+                    + len(default_representation)
+                ) > sob.utilities.string.MAX_LINE_LENGTH:
+                    default_representation = sob.utilities.string.indent(
+                        default_representation, number_of_spaces=12, start=0
+                    )
+                    default_representation = (
+                        f"(\n{default_representation}\n        )"
+                    )
+                else:
+                    default_representation = sob.utilities.string.indent(
+                        default_representation, number_of_spaces=8
+                    )
+                init_declaration_source = pattern.sub(
+                    f"\\1{default_representation}\\3",
+                    init_declaration_source,
+                )
+        return init_declaration_source
+
     def _insert_add_init_parameters(self, init_source: str) -> str:
         if self._add_init_parameters:
             assert "\n    ) -> None:" in init_source
@@ -2594,7 +2656,9 @@ class Module:
                     init_declaration_source,
                 )
         yield self._insert_add_init_parameters(
-            self._remove_unused_init_parameters(init_declaration_source)
+            self._replace_init_parameter_defaults(
+                self._remove_unused_init_parameters(init_declaration_source)
+            )
         )
         yield "        super().__init__("
         for parameter_name in inspect.signature(Client).parameters.keys():
