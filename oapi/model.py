@@ -1053,9 +1053,10 @@ class _Modeler:
 
     def get_docstring(self, schema: Schema) -> Optional[str]:
         docstring: List[str] = []
-        if schema.description:
+        schema_description: str = (schema.description or "").strip()
+        if schema_description:
             docstring.append(
-                split_long_docstring_lines(schema.description.strip())
+                split_long_docstring_lines(schema_description)
             )
         is_first_property: bool = True
         name: str
@@ -1064,7 +1065,9 @@ class _Modeler:
             schema
         ):
             if is_first_property:
-                docstring.append(("\n    Properties:\n"))
+                if schema_description:
+                    docstring.append("")
+                docstring.append(("    Properties:\n"))
                 is_first_property = False
             name = sob.utilities.string.property_name(name)
             property_docstring: str = f"    - {name}"
