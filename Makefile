@@ -65,7 +65,7 @@ requirements:
 # Run all tests
 test:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
-	tox -r -p && \
+	python3 -m tox -r -p && \
 	echo "Success!"
 
 # Download specification schemas
