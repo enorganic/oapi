@@ -2465,12 +2465,19 @@ class Module:
             ):
                 assert parameter.name
                 if parameter.name not in traversed_parameters:
-                    if previous_parameter_required and not parameter.required:
-                        yield "        *,"
-                    yield from self._iter_parameter_method_source(
-                        parameter,
-                        parameter_locations=parameter_locations,
+                    parameter_method_source: Tuple[str, ...] = tuple(
+                        self._iter_parameter_method_source(
+                            parameter,
+                            parameter_locations=parameter_locations,
+                        )
                     )
+                    if (
+                        parameter_method_source
+                        and previous_parameter_required
+                        and not parameter.required
+                    ):
+                        yield "        *,"
+                    yield from parameter_method_source
                     traversed_parameters.add(parameter.name)
                     previous_parameter_required = bool(parameter.required)
         # If the request body is not *required*, yield it last instead of first

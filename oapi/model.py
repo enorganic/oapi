@@ -1055,9 +1055,7 @@ class _Modeler:
         docstring: List[str] = []
         schema_description: str = (schema.description or "").strip()
         if schema_description:
-            docstring.append(
-                split_long_docstring_lines(schema_description)
-            )
+            docstring.append(split_long_docstring_lines(schema_description))
         is_first_property: bool = True
         name: str
         property_schema: Schema
