@@ -38,12 +38,7 @@ from sob.utilities.types import Null
 
 from .errors import DuplicateClassNameError
 from .oas.references import Resolver
-from .oas.model import (
-    OpenAPI,
-    Properties,
-    Schema,
-    Reference,
-)
+from .oas.model import OpenAPI, Parameter, Properties, Schema, Reference, Items
 
 _META_PROPERTIES_QAULIFIED_NAME = qualified_name(sob.meta.Properties)
 _META_PROPERTIES_QAULIFIED_NAME_LENGTH = len(_META_PROPERTIES_QAULIFIED_NAME)
@@ -288,6 +283,9 @@ class _Modeler:
         if isinstance(schema, Reference):
             schema = self.resolver.resolve_reference(schema)  # type: ignore
             assert isinstance(schema, Schema)
+        if not isinstance(schema, Schema):
+            # Version 2x parameters can't be objects/dictionaries
+            return False
         if (
             (schema.properties and schema.type_ is None)
             or schema.type_ == "object"
@@ -305,7 +303,9 @@ class _Modeler:
                 )
             )
 
-    def schema_defines_array(self, schema: Union[Schema, Reference]) -> bool:
+    def schema_defines_array(
+        self, schema: Union[Schema, Parameter, Reference, Items]
+    ) -> bool:
         """
         Schemas of the type `array` translate to an `Array`. Incorrectly
         implemented schemas may also neglect this, however use of the attribute
@@ -315,6 +315,7 @@ class _Modeler:
         if isinstance(schema, Reference):
             schema = self.resolver.resolve_reference(schema)  # type: ignore
             assert isinstance(schema, Schema)
+        assert isinstance(schema, (Schema, Parameter, Items)), repr(schema)
         if schema.type_ == "array" or schema.items:
             return True
         else:
@@ -340,6 +341,9 @@ class _Modeler:
         if isinstance(schema, Reference):
             schema = self.resolver.resolve_reference(schema)  # type: ignore
             assert isinstance(schema, Schema)
+        if not isinstance(schema, Schema):
+            # Version 2x parameters can't be objects/dictionaries
+            return False
         if schema.type_ == "object" and (
             schema.additional_properties or (not schema.properties)
         ):
@@ -356,11 +360,16 @@ class _Modeler:
                 )
             )
 
-    def schema_defines_model(self, schema: Schema) -> bool:
-        return (
-            self.schema_defines_array(schema)
-            or self.schema_defines_object(schema)
-            or self.schema_defines_dictionary(schema)
+    def schema_defines_model(
+        self, schema: Union[Schema, Parameter, Items]
+    ) -> bool:
+        assert isinstance(schema, (Schema, Parameter, Items)), repr(schema)
+        return self.schema_defines_array(schema) or (
+            isinstance(schema, Schema)
+            and (
+                self.schema_defines_object(schema)
+                or self.schema_defines_dictionary(schema)
+            )
         )
 
     def get_relative_url_pointer_model(
@@ -590,14 +599,14 @@ class _Modeler:
 
     def get_property(
         self,
-        schema: Union[Schema, Reference],
+        schema: Union[Schema, Parameter, Reference, Items],
         name: Optional[str] = None,
         required: bool = False,
     ) -> sob.abc.Property:
         is_referenced: bool = isinstance(schema, Reference)
         if is_referenced:
             schema = self.resolver.resolve_reference(schema)  # type: ignore
-        assert isinstance(schema, Schema)
+        assert isinstance(schema, (Schema, Items))
         property_: sob.abc.Property = _get_type_property(
             schema.type_, format_=schema.format_, required=required
         )
@@ -607,7 +616,7 @@ class _Modeler:
             )
             if model_class:
                 property_ = _append_property_type(property_, model_class)
-        if schema.any_of or schema.one_of:
+        if isinstance(schema, Schema) and (schema.any_of or schema.one_of):
             property_ = self.polymorph_property(property_, schema)
         if schema.enum:
             property_ = sob.properties.Enumerated(
@@ -622,7 +631,7 @@ class _Modeler:
         if name is not None:
             property_.name = name
         if (
-            schema.nullable
+            (isinstance(schema, Schema) and schema.nullable)
             or
             # Swagger/OpenAPI versions prior to 3.0 do not support `nullable`,
             # so it must be assumed that null values are acceptable for
@@ -630,7 +639,10 @@ class _Modeler:
             (
                 (self.major_version < 3)
                 and (required is True)
-                and (schema.nullable is not False)
+                and (
+                    (not isinstance(schema, Schema))
+                    or (schema.nullable is not False)
+                )
             )
         ):
             property_ = _append_property_type(property_, Null)
@@ -674,7 +686,7 @@ class _Modeler:
 
     def get_model_class(
         self,
-        definition: Schema,
+        definition: Union[Schema, Parameter, Items],
     ) -> Optional[Type[sob.abc.Model]]:
         """
         Get a model class from a schema. This method may also return `None`
@@ -698,7 +710,7 @@ class _Modeler:
         self,
     ) -> Iterable[Tuple[str, Type[sob.abc.Model]]]:
         models_names: Dict[str, Type[sob.abc.Model]] = {}
-        schema: Schema
+        schema: Union[Schema, Parameter]
         for schema in self.iter_schemas():
             relative_url_pointer: str = self.get_model_relative_url_pointer(
                 schema
@@ -726,7 +738,7 @@ class _Modeler:
 
     def get_schema_model_class(
         self,
-        schema: Schema,
+        schema: Union[Schema, Parameter, Items],
         name: Optional[str] = None,
         relative_url_pointer: Optional[str] = None,
         required: bool = False,
@@ -742,19 +754,24 @@ class _Modeler:
                 relative_url_pointer=relative_url_pointer,
                 required=required,
             )
-        elif self.schema_defines_object(schema):
-            return self.get_schema_object_class(
-                schema,
-                name=name,
-                relative_url_pointer=relative_url_pointer,
-            )
-        elif self.schema_defines_dictionary(schema):
-            return self.get_schema_dictionary_class(
-                schema,
-                name=name,
-                relative_url_pointer=relative_url_pointer,
-                required=required,
-            )
+        elif isinstance(schema, Schema):
+            if self.schema_defines_object(schema):
+                assert isinstance(schema, Schema)
+                return self.get_schema_object_class(
+                    schema,
+                    name=name,
+                    relative_url_pointer=relative_url_pointer,
+                )
+            elif self.schema_defines_dictionary(schema):
+                assert isinstance(schema, Schema)
+                return self.get_schema_dictionary_class(
+                    schema,
+                    name=name,
+                    relative_url_pointer=relative_url_pointer,
+                    required=required,
+                )
+            else:
+                return None
         else:
             return None
 
@@ -866,10 +883,11 @@ class _Modeler:
 
     def get_schema_model_or_property(
         self,
-        schema: Schema,
+        schema: Union[Schema, Parameter, Items],
         required: bool = False,
     ) -> Union[sob.abc.Property, Type[sob.abc.Model], None]:
         type_: Union[Type[sob.abc.Model], sob.abc.Property, None]
+        assert isinstance(schema, (Schema, Parameter, Items)), repr(schema)
         if self.schema_defines_model(schema):
             type_ = self.get_model_class(schema)
         else:
@@ -878,7 +896,7 @@ class _Modeler:
 
     def get_schema_array_class(
         self,
-        schema: Schema,
+        schema: Union[Schema, Parameter, Items],
         name: Optional[str] = None,
         relative_url_pointer: Optional[str] = None,
         required: bool = False,
@@ -886,6 +904,7 @@ class _Modeler:
         """
         Get all applicable items schemas
         """
+        assert isinstance(schema, (Schema, Parameter, Items)), repr(schema)
         array_class: Type[sob.abc.Array]
         item_types: Tuple[
             Union[Type[sob.abc.Model], sob.abc.Property], ...
@@ -898,9 +917,13 @@ class _Modeler:
                         if required
                         else self.get_schema_model_or_property
                     ),
-                    unique_everseen(
-                        self.iter_dereferenced_schemas(
-                            schema.items  # type: ignore
+                    (
+                        (schema.items,)
+                        if isinstance(schema.items, Items)
+                        else unique_everseen(
+                            self.iter_dereferenced_schemas(
+                                schema.items  # type: ignore
+                            )
                         )
                     ),
                 ),
@@ -1051,36 +1074,47 @@ class _Modeler:
             key=lambda item: (0 if item[1].required else 1, item[0]),
         )
 
-    def get_docstring(self, schema: Schema) -> Optional[str]:
+    def get_docstring(
+        self, schema: Union[Schema, Parameter, Items]
+    ) -> Optional[str]:
         docstring: List[str] = []
-        schema_description: str = (schema.description or "").strip()
+        schema_description: str = ""
+        if isinstance(schema, (Schema, Parameter)):
+            schema_description = (schema.description or "").strip()
         if schema_description:
             docstring.append(split_long_docstring_lines(schema_description))
-        is_first_property: bool = True
-        name: str
-        property_schema: Schema
-        for name, property_schema in self._iter_schema_property_schemas(
-            schema
-        ):
-            if is_first_property:
-                if schema_description:
-                    docstring.append("")
-                docstring.append(("    Properties:\n"))
-                is_first_property = False
-            name = sob.utilities.string.property_name(name)
-            property_docstring: str = f"    - {name}"
-            if property_schema.description:
-                description: str = re.sub(
-                    r"\n[\s\n]*\n+", "\n", property_schema.description.strip()
-                )
-                description = sob.utilities.string.indent(
-                    description, 6, start=0
-                )
-                description = sob.utilities.string.split_long_docstring_lines(
-                    description
-                )
-                property_docstring = f"{property_docstring}:\n{description}"
-            docstring.append(property_docstring)
+        if isinstance(schema, Schema):
+            is_first_property: bool = True
+            name: str
+            property_schema: Schema
+            for name, property_schema in self._iter_schema_property_schemas(
+                schema
+            ):
+                if is_first_property:
+                    if schema_description:
+                        docstring.append("")
+                    docstring.append(("    Properties:\n"))
+                    is_first_property = False
+                name = sob.utilities.string.property_name(name)
+                property_docstring: str = f"    - {name}"
+                if property_schema.description:
+                    description: str = re.sub(
+                        r"\n[\s\n]*\n+",
+                        "\n",
+                        property_schema.description.strip(),
+                    )
+                    description = sob.utilities.string.indent(
+                        description, 6, start=0
+                    )
+                    description = (
+                        sob.utilities.string.split_long_docstring_lines(
+                            description
+                        )
+                    )
+                    property_docstring = (
+                        f"{property_docstring}:\n{description}"
+                    )
+                docstring.append(property_docstring)
         return "\n".join(docstring) if docstring else None
 
     def get_schema_object_class(
@@ -1109,7 +1143,9 @@ class _Modeler:
         assert cls
         return cls
 
-    def get_schema_class_name(self, schema: Schema) -> str:
+    def get_schema_class_name(
+        self, schema: Union[Schema, Parameter, Items]
+    ) -> str:
         """
         Derive a model's class name from a `Schema` object
         """
@@ -1136,9 +1172,9 @@ class _Modeler:
 
     def iter_schemas(
         self,
-    ) -> Iterable[Schema]:
+    ) -> Iterable[Union[Schema, Parameter]]:
         self._traversed_relative_urls_pointers = set()
-        schema: Schema
+        schema: Union[Schema, Parameter]
         for schema in self.iter_model_schemas(self.root, (OpenAPI,)):
             yield schema
 
@@ -1155,7 +1191,7 @@ class _Modeler:
         self,
         array: sob.abc.Array,
         skip: bool = False,
-    ) -> Iterable[Schema]:
+    ) -> Iterable[Union[Schema, Parameter]]:
         meta_: Optional[sob.abc.ArrayMeta] = sob.meta.array_read(array)
         item: sob.abc.MarshallableTypes
         for item in array:
@@ -1175,14 +1211,14 @@ class _Modeler:
         )
         for value in dictionary.values():
             if isinstance(value, sob.abc.Model):
-                yield from self.iter_model_schemas(
+                yield from self.iter_model_schemas(  # type: ignore
                     value, (meta_.value_types or () if meta_ else ())
                 )
 
     def iter_object_schemas(
         self,
         object_: sob.abc.Object,
-    ) -> Iterable[Schema]:
+    ) -> Iterable[Union[Schema, Parameter]]:
         meta_: Optional[sob.abc.ObjectMeta] = sob.meta.object_read(object_)
         if meta_ and meta_.properties:
             name: str
@@ -1208,13 +1244,7 @@ class _Modeler:
                         # be merged, and if under "oneOf" or "anyOf",
                         # it will already have been yielded
                         skip=(
-                            isinstance(object_, Schema)
-                            and name
-                            in (
-                                "all_of",
-                                # "any_of",
-                                # "one_of"
-                            )
+                            isinstance(object_, Schema) and name == "all_of"
                         ),
                     )
 
@@ -1223,7 +1253,7 @@ class _Modeler:
         model: sob.abc.Model,
         types: Union[Sequence[type], sob.abc.Types] = (),
         skip: bool = False,
-    ) -> Iterable[Schema]:
+    ) -> Iterable[Union[Schema, Parameter]]:
         if isinstance(model, Reference):
             model = self.resolver.resolve_reference(model, types)
             # Skipping logic doesn't apply to references objects
@@ -1234,7 +1264,11 @@ class _Modeler:
             if isinstance(model, sob.abc.Object):
                 # If this is a schema defining a model,
                 # include it in the returned results
-                if isinstance(model, Schema):
+                if (
+                    isinstance(model, Schema)
+                    # Version 2x compatibility
+                    or (isinstance(model, Parameter) and model.schema is None)
+                ):
                     if skip:
                         skip = False
                     elif self.schema_defines_model(model):

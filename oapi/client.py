@@ -1307,7 +1307,7 @@ def _get_relative_module_import(from_path: str, to_path: str) -> str:
     return f"from {groups[0] or ''}{groups[1] or ''} import {groups[2]}"
 
 
-def _schema_defines_model(schema: Schema) -> bool:
+def _schema_defines_model(schema: Union[Schema, Parameter]) -> bool:
     return schema.type_ in (
         "object",
         "array",
@@ -1373,15 +1373,20 @@ def _iter_request_path_representation(
         yield f"            {path_representation},"
 
 
-def _represent_dictionary_parameter(name: str, parameter: _Parameter) -> str:
+def _represent_dictionary_parameter(
+    name: str, parameter: _Parameter, use_kwargs: bool = False
+) -> str:
     represent_style: str = sob.utilities.inspect.represent(parameter.style)
     represent_explode: str = sob.utilities.inspect.represent(parameter.explode)
+    parameter_name: str = parameter.name
     if parameter.style == "matrix":
-        name = f";{name}"
+        parameter_name = f";{parameter_name}"
+    if use_kwargs:
+        name = f'kwargs.get("{name}", None)'
     return (
-        f'                "{parameter.name}": '
+        f'                "{parameter_name}": '
         "oapi.client.format_argument_value(\n"
-        f'                    "{parameter.name}",\n'
+        f'                    "{parameter_name}",\n'
         f"                    {name},\n"
         f"                    style={represent_style},\n"
         f"                    explode={represent_explode}\n"
@@ -1416,7 +1421,7 @@ def _iter_cookie_dictionary_parameter_representation(
 
 
 def _iter_request_headers_representation(
-    parameter_locations: _ParameterLocations,
+    parameter_locations: _ParameterLocations, use_kwargs: bool = False
 ) -> Iterable[str]:
     if parameter_locations.header or parameter_locations.cookie:
         yield "            headers={"
@@ -1424,7 +1429,9 @@ def _iter_request_headers_representation(
             name: str
             parameter: _Parameter
             for name, parameter in parameter_locations.header.items():
-                yield _represent_dictionary_parameter(name, parameter)
+                yield _represent_dictionary_parameter(
+                    name, parameter, use_kwargs=use_kwargs
+                )
         if parameter_locations.cookie:
             yield from _iter_cookie_dictionary_parameter_representation(
                 parameter_locations.cookie
@@ -1433,34 +1440,41 @@ def _iter_request_headers_representation(
 
 
 def _iter_request_body_representation(
-    parameter_locations: _ParameterLocations,
+    parameter_locations: _ParameterLocations, use_kwargs: bool = False
 ) -> Iterable[str]:
     if parameter_locations.body:
         # Form data and a request body cannot co-exist
         assert not parameter_locations.form_data
-        yield (f"            data={parameter_locations.body.name},")
+        name: str = parameter_locations.body.name
+        if use_kwargs:
+            name = f'kwargs.get("{name}", None)'
+        yield (f"            data={name},")
 
 
 def _iter_request_query_representation(
-    parameter_locations: _ParameterLocations,
+    parameter_locations: _ParameterLocations, use_kwargs: bool = False
 ) -> Iterable[str]:
     if parameter_locations.query:
         yield "            query={"
         name: str
         parameter: _Parameter
         for name, parameter in parameter_locations.query.items():
-            yield _represent_dictionary_parameter(name, parameter)
+            yield _represent_dictionary_parameter(
+                name, parameter, use_kwargs=use_kwargs
+            )
         yield "            },"
 
 
 def _iter_request_form_data_representation(
-    parameter_locations: _ParameterLocations,
+    parameter_locations: _ParameterLocations, use_kwargs: bool = False
 ) -> Iterable[str]:
     if parameter_locations.form_data:
         yield "            form_data={"
         name: str
         parameter: _Parameter
         for name, parameter in parameter_locations.form_data.items():
+            if use_kwargs:
+                name = f'kwargs.get("{name}", None)'
             parameter_representation = (
                 f'                "{parameter.name}": {name},'
             )
@@ -1511,9 +1525,9 @@ class Module:
       decorator which utilizes the additional parameters, so use of this
       parameter should be accompanied by an `init_decorator`.
     - add_init_parameter_docs ([str])
-    - set_init_parameter_defaults ({str: typing.Any}): A mapping of
+    - init_parameter_defaults ({str: typing.Any}): A mapping of
       parameter names to default values for the parameter.
-    - set_init_parameter_defaults_source ({str: str}): A mapping of
+    - init_parameter_defaults_source ({str: str}): A mapping of
       parameter names to default values for the parameter *expressed as
       source code*. This is to allow for the passing of imported constants,
       expressions, etc.
@@ -1986,7 +2000,9 @@ class Module:
         )
         yield ""
 
-    def _get_schema_class(self, schema: Schema) -> Type[sob.abc.Model]:
+    def _get_schema_class(
+        self, schema: Union[Schema, Parameter]
+    ) -> Type[sob.abc.Model]:
         relative_url: str = self._resolver.get_relative_url(
             sob.meta.get_url(schema) or ""
         )
@@ -1995,7 +2011,7 @@ class Module:
         return self._pointers_classes[relative_url_pointer]
 
     def _get_schema_type(
-        self, schema: Schema
+        self, schema: Union[Schema, Parameter]
     ) -> Union[Type[sob.abc.Model], sob.abc.Property]:
         try:
             return self._get_schema_class(schema)
@@ -2067,7 +2083,9 @@ class Module:
             model_module_name: str = self._get_model_module_name()
             yield f"{model_module_name}.{type_.__name__}"
 
-    def _iter_schema_type_names(self, schema: Schema) -> Iterable[str]:
+    def _iter_schema_type_names(
+        self, schema: Union[Schema, Parameter]
+    ) -> Iterable[str]:
         yield from self._iter_type_names(self._get_schema_type(schema))
 
     def _get_simple_schema_type_hint(self, type_: Optional[str]) -> str:
@@ -2092,7 +2110,7 @@ class Module:
             raise ValueError(type_)
 
     def _get_schema_type_hint(
-        self, schema: Schema, required: bool = False
+        self, schema: Union[Schema, Parameter], required: bool = False
     ) -> str:
         type_names: Tuple[str, ...] = tuple(
             self._iter_schema_type_names(schema)
@@ -2125,8 +2143,9 @@ class Module:
         return type_hint
 
     def _get_parameter_type_hint(self, parameter: Parameter) -> str:
-        assert parameter.schema
-        schema: Schema = self._resolve_schema(parameter.schema)
+        schema: Union[Parameter, Schema] = parameter
+        if parameter.schema:
+            schema = self._resolve_schema(parameter.schema)
         return self._get_schema_type_hint(
             schema, required=bool(parameter.required)
         )
@@ -2139,16 +2158,16 @@ class Module:
         """
         Yield lines for a parameter declaration
         """
-        if parameter.name and parameter.schema:
+        if parameter.name:
             parameter_name: str = sob.utilities.string.property_name(
                 parameter.name
             ).rstrip("_")
             if parameter.in_ and not (
                 (
-                    # See: https://bit.ly/3iUmvVZ
                     parameter.in_ == "header"
-                    and parameter_name.lower()
+                    and parameter.name.lower()
                     in (
+                        # See: https://bit.ly/3iUmvVZ
                         "accept",
                         "content-type",
                         "authorization",
@@ -2158,7 +2177,7 @@ class Module:
                 # should not be included in the method parameters
                 or (
                     parameter.in_ in ("header", "query", "cookie")
-                    and parameter_name.lower()
+                    and parameter.name.lower()
                     == self._get_api_key_name().lower()
                 )
             ):
@@ -2194,6 +2213,8 @@ class Module:
                         [
                             self._get_schema_type(
                                 self._resolve_schema(parameter.schema)
+                                if parameter.schema
+                                else parameter
                             )
                         ]
                         if parameter.schema
@@ -2233,10 +2254,22 @@ class Module:
             yield "        self.request("
         yield from _iter_request_path_representation(path, parameter_locations)
         yield f'            method="{method.upper()}",'
-        yield from _iter_request_headers_representation(parameter_locations)
-        yield from _iter_request_query_representation(parameter_locations)
-        yield from _iter_request_form_data_representation(parameter_locations)
-        yield from _iter_request_body_representation(parameter_locations)
+        # If more than 254 arguments are needed, we must use `**kwargs``
+        use_kwargs: bool = (
+            len(tuple(_iter_parameters(parameter_locations))) > 254
+        )
+        yield from _iter_request_headers_representation(
+            parameter_locations, use_kwargs=use_kwargs
+        )
+        yield from _iter_request_query_representation(
+            parameter_locations, use_kwargs=use_kwargs
+        )
+        yield from _iter_request_form_data_representation(
+            parameter_locations, use_kwargs=use_kwargs
+        )
+        yield from _iter_request_body_representation(
+            parameter_locations, use_kwargs=use_kwargs
+        )
         yield "        )"
         if operation_response_types:
             response_types_representation: str = ",\n                ".join(
@@ -2307,13 +2340,29 @@ class Module:
         # `self._iter_operation_method_declaration()`
         # in order to capture information about the parameters
         parameter_locations: _ParameterLocations = _ParameterLocations()
-        yield from self._iter_operation_method_declaration(
-            path=path,
-            method=method,
-            operation=operation,
-            path_item=path_item,
-            parameter_locations=parameter_locations,
+        operation_method_declaration: Tuple[str, ...] = tuple(
+            self._iter_operation_method_declaration(
+                path=path,
+                method=method,
+                operation=operation,
+                path_item=path_item,
+                parameter_locations=parameter_locations,
+            )
         )
+        # Functions can only have up to 255 arguments
+        # (one is taken by `self`, but 4 lines are not arguments)
+        if len(operation_method_declaration) > 258:
+            try:
+                star_index: int = operation_method_declaration.index(
+                    "        *,"
+                )
+                yield from operation_method_declaration[:star_index]
+            except ValueError:
+                yield from operation_method_declaration[:2]
+            yield "        **kwargs: typing.Any,"
+            yield operation_method_declaration[-1]
+        else:
+            yield from operation_method_declaration
         yield from self._iter_operation_method_docstring(
             operation, parameter_locations
         )
@@ -2550,16 +2599,28 @@ class Module:
             ),
             self._init_parameter_defaults_source.items(),
         ):
-            pattern: Pattern = re.compile(
-                f"(\\n\\s*{parameter_name}:"
-                r"(?:.|\n)*?=\s*)((?:.|\n)*?)"
-                r"(,?\n\s*(?:[\w_]+|\)):)"
-            )
+            pattern: Pattern
+            if parameter_name == "url":
+                # The `url` is our only *positional* argument
+                pattern = re.compile(
+                    f"(\\n\\s*{parameter_name}:"
+                    r"(?:.|\n)*?)()"
+                    r"(,?\n\s*(?:[\w_]+|\)):)"
+                )
+            else:
+                pattern = re.compile(
+                    f"(\\n\\s*{parameter_name}:"
+                    r"(?:.|\n)*?=\s*)((?:.|\n)*?)"
+                    r"(,?\n\s*(?:[\w_]+|\)):)"
+                )
             matched: Optional[Match] = pattern.search(init_declaration_source)
             if matched:
                 if (
                     sum(map(len, matched.groups()[:-1]))
+                    # Characters needed for the default value
                     + len(default_representation)
+                    # Characters needed for the assignment operator
+                    + (3 if parameter_name == "url" else 0)
                 ) > sob.utilities.string.MAX_LINE_LENGTH:
                     default_representation = sob.utilities.string.indent(
                         default_representation, number_of_spaces=12, start=0
@@ -2571,6 +2632,11 @@ class Module:
                     default_representation = sob.utilities.string.indent(
                         default_representation, number_of_spaces=8
                     )
+                if parameter_name == "url":
+                    # The assignment operator will not have been included
+                    # in the pattern match for `url`, since it is a
+                    # positional argument
+                    default_representation = f" = {default_representation}"
                 init_declaration_source = pattern.sub(
                     f"\\1{default_representation}\\3",
                     init_declaration_source,
