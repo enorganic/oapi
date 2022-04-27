@@ -5,6 +5,7 @@ import inspect
 import json
 import shlex
 import re
+import sys
 import threading
 import time
 import sob
@@ -1281,6 +1282,34 @@ def _iter_path_item_operations(
             yield name, value
 
 
+def _get_relative_module_path(from_path: str, to_path: str) -> str:
+    """
+    Get a relative import based on module file paths
+
+    Examples:
+
+    >>> _get_relative_module_path("a/b/c.py", "d/e/f.py")
+    ...a.b.c
+
+    >>> _get_relative_module_path("a/b/c.py", "a/b/f.py")
+    .c
+    """
+    return re.sub(
+        r".py$",
+        "",
+        re.sub(
+            "^../",
+            ".",
+            os.path.relpath(
+                from_path.replace("/__init__.py", ".py"),
+                to_path,
+            ),
+        )
+        .replace("../", ".")
+        .replace("/", "."),
+    )
+
+
 def _get_relative_module_import(from_path: str, to_path: str) -> str:
     """
     Get a relative import based on module file paths
@@ -1293,12 +1322,8 @@ def _get_relative_module_import(from_path: str, to_path: str) -> str:
     >>> _get_relative_module_import("a/b/c.py", "a/b/f.py")
     from . import c
     """
-    relative_module_path: str = re.sub(
-        r".py$",
-        "",
-        re.sub("^../", ".", os.path.relpath(from_path, to_path))
-        .replace("../", ".")
-        .replace("/", "."),
+    relative_module_path: str = _get_relative_module_path(
+        from_path=from_path, to_path=to_path
     )
     groups: Tuple[str, str, str] = re.match(  # type: ignore
         r"^(\.*)(?:(.*)\.)?([^.]+)", relative_module_path
@@ -1616,7 +1641,6 @@ class Module:
                 None,
                 (
                     (
-                        self._get_client_base_class_import(),
                         "import typing",
                         "import sob",
                         "import oapi",
@@ -1782,7 +1806,7 @@ class Module:
         return base_class_name
 
     @_str_lru_cache()
-    def _get_client_base_class_import(self) -> str:
+    def _get_client_base_class_import(self, client_module_path: str) -> str:
         if self._base_class is Client:
             return ""
         base_class_name: str = self._get_client_base_class_name()
@@ -1791,8 +1815,23 @@ class Module:
             if base_class_name == self._base_class.__name__
             else f" as {base_class_name}"
         )
+        base_class_module: str = self._base_class.__module__
+        if base_class_module in sys.modules:
+            base_class_path: str = inspect.getfile(
+                sys.modules[base_class_module]
+            )
+            try:
+                relative_base_class_module: str = _get_relative_module_path(
+                    base_class_path, client_module_path
+                )
+                # If these are in the same package, the relative module path
+                # should be more succinct than the absolute module path
+                if len(relative_base_class_module) < len(base_class_module):
+                    base_class_module = relative_base_class_module
+            except Exception:
+                pass
         return (
-            f"from {self._base_class.__module__} "
+            f"from {base_class_module} "
             f"import {self._base_class.__name__}{as_}"
         )
 
@@ -2787,7 +2826,10 @@ class Module:
         )
         # The model module import couldn't be generated until we
         # knew the client module path, so we add it now
-        self._imports.add(self._get_model_module_import(path))
+        self._imports |= {
+            self._get_model_module_import(path),
+            self._get_client_base_class_import(path),
+        }
         # Imports need to be generated last
         imports: str = "\n".join(self._iter_imports())
         return sob.utilities.string.suffix_long_lines(
