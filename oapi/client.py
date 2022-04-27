@@ -427,6 +427,15 @@ def get_request_curl(
             value = "***"
         return "-H {}".format(shlex.quote(f"{key}: {value}"))
 
+    data: bytes = (
+        request.data
+        if isinstance(request.data, bytes)
+        else request.data.read()  # type: ignore
+        if isinstance(request.data, sob.abc.Readable)
+        else b"".join(request.data)  # type: ignore
+        if request.data
+        else b""
+    )
     return " ".join(
         filter(
             None,
@@ -439,11 +448,7 @@ def get_request_curl(
                         sorted(request.headers.items()),  # type: ignore
                     )
                 ),
-                (
-                    f"-d {shlex.quote(request.data.decode('utf-8'))}"
-                    if request.data
-                    else ""
-                ),
+                (f"-d {shlex.quote(data.decode('utf-8'))}" if data else ""),
                 shlex.quote(request.full_url),
             ),
         )
