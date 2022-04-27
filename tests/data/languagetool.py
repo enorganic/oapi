@@ -4,7 +4,6 @@ import sob
 
 class CheckPostResponse(sob.model.Object):
     """
-
     Properties:
 
     - software
@@ -176,7 +175,6 @@ class CheckPostResponseMatches(sob.model.Array):
 
 class CheckPostResponseMatchesItem(sob.model.Object):
     """
-
     Properties:
 
     - message:
@@ -271,7 +269,6 @@ class CheckPostResponseMatchesItem(sob.model.Object):
 
 class CheckPostResponseMatchesItemcontext(sob.model.Object):
     """
-
     Properties:
 
     - text:
@@ -350,7 +347,6 @@ class CheckPostResponseMatchesItemreplacements(sob.model.Array):
 
 class CheckPostResponseMatchesItemreplacementsItem(sob.model.Object):
     """
-
     Properties:
 
     - value:
@@ -386,7 +382,6 @@ class CheckPostResponseMatchesItemreplacementsItem(sob.model.Object):
 
 class CheckPostResponseMatchesItemrule(sob.model.Object):
     """
-
     Properties:
 
     - id_:
@@ -463,7 +458,6 @@ class CheckPostResponseMatchesItemrule(sob.model.Object):
 
 class CheckPostResponseMatchesItemruleCategory(sob.model.Object):
     """
-
     Properties:
 
     - id_:
@@ -525,7 +519,6 @@ class CheckPostResponseMatchesItemruleUrls(sob.model.Array):
 
 class CheckPostResponseMatchesItemruleUrlsItem(sob.model.Object):
     """
-
     Properties:
 
     - value:
@@ -561,7 +554,6 @@ class CheckPostResponseMatchesItemruleUrlsItem(sob.model.Object):
 
 class CheckPostResponseSoftware(sob.model.Object):
     """
-
     Properties:
 
     - name:
@@ -658,7 +650,6 @@ class LanguagesGetResponse(sob.model.Array):
 
 class LanguagesGetResponseItem(sob.model.Object):
     """
-
     Properties:
 
     - name:
@@ -715,7 +706,6 @@ class LanguagesGetResponseItem(sob.model.Object):
 
 class WordsGetResponse(sob.model.Object):
     """
-
     Properties:
 
     - words:
@@ -771,7 +761,6 @@ class WordsGetResponseWords(sob.model.Array):
 
 class WordsAddPostResponse(sob.model.Object):
     """
-
     Properties:
 
     - added:
@@ -808,7 +797,6 @@ class WordsAddPostResponse(sob.model.Object):
 
 class WordsDeletePostResponse(sob.model.Object):
     """
-
     Properties:
 
     - deleted:
