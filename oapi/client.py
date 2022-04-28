@@ -5,6 +5,7 @@ import inspect
 import json
 import shlex
 import re
+import ssl
 import sys
 import threading
 import time
@@ -659,6 +660,28 @@ CLIENT_SLOTS: Tuple[str, ...] = (
 )
 
 
+class _SSLContext(ssl.SSLContext):
+    """
+    This class is a wrapper for `ssl.SSLContext` which makes it possible to
+    connect to hosts which have an unverified SSL certificate.
+    """
+
+    def __init__(self, check_hostname: bool = True) -> None:
+        if check_hostname:
+            self.load_default_certs()
+        else:
+            self.check_hostname: bool = False
+            self.verify_mode: ssl.VerifyMode = ssl.CERT_NONE
+        super().__init__()
+
+    def __reduce__(self) -> Tuple:
+        """
+        A pickled instance of this class will just be an entirely new
+        instance.
+        """
+        return _SSLContext, (self.check_hostname,)
+
+
 class Client(ABC):
     """
     A base class for OpenAPI clients.
@@ -810,7 +833,9 @@ class Client(ABC):
         # Support for persisting cookies
         self._cookie_jar: CookieJar = CookieJar()
         self._opener: OpenerDirector = build_opener(
-            HTTPSHandler(check_hostname=verify_ssl_certificate),
+            HTTPSHandler(
+                context=_SSLContext(check_hostname=verify_ssl_certificate)
+            ),
             HTTPCookieProcessor(self._cookie_jar),
         )
         self._oauth2_authorization_expires: int = 0
