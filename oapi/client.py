@@ -2667,8 +2667,24 @@ class Module:
     def _replace_init_parameter_defaults(
         self, init_declaration_source: str
     ) -> str:
-        default_representation: str
+        # Infer some defaults from the spec, if no explicit default is
+        # provided for the same parameter
+        default_value: Any
         parameter_name: str
+        for parameter_name, default_value in (
+            ("oauth2_authorization_url", self._get_oauth2_authorization_url()),
+            ("oauth2_token_url", self._get_oauth2_token_url()),
+            ("oauth2_refresh_url", self._get_oauth2_refresh_url()),
+            ("oauth2_flows", self._get_oauth2_flow_names()),
+            ("open_id_connect_url", self._get_open_id_connect_url()),
+            ("api_key_in", self._get_api_key_in()),
+            ("api_key_name", self._get_api_key_name()),
+        ):
+            if default_value and (
+                parameter_name not in self._init_parameter_defaults
+            ):
+                self._init_parameter_defaults[parameter_name] = default_value
+        default_representation: str
         item: Tuple[str, Any]
         for parameter_name, default_representation in chain(
             map(
@@ -2784,31 +2800,6 @@ class Module:
         init_declaration_source = "".join(
             init_declaration_source.rpartition(declaration_end_marker)[:-1]
         )
-        # Apply defaults
-        parameter_name: str
-        for parameter_name, default_value in (
-            ("oauth2_authorization_url", self._get_oauth2_authorization_url()),
-            ("oauth2_token_url", self._get_oauth2_token_url()),
-            ("oauth2_refresh_url", self._get_oauth2_refresh_url()),
-            ("oauth2_flows", self._get_oauth2_flow_names()),
-            ("open_id_connect_url", self._get_open_id_connect_url()),
-            ("api_key_in", self._get_api_key_in()),
-            ("api_key_name", self._get_api_key_name()),
-        ):
-            if default_value:
-                default_value_representation: str = (
-                    sob.utilities.inspect.represent(default_value)
-                )
-                if len(default_value) + len(parameter_name) > 60:
-                    default_value_representation = (
-                        f"(\n            {default_value_representation}\n"
-                        "        )"
-                    )
-                init_declaration_source = re.sub(
-                    (f"(\n\\s*{parameter_name}:.*?=\\s*)" '(?:""|\\(\\))(,)'),
-                    f"\\1{default_value_representation}\\2",
-                    init_declaration_source,
-                )
         yield self._insert_add_init_parameters(
             self._replace_init_parameter_defaults(
                 self._remove_unused_init_parameters(init_declaration_source)
