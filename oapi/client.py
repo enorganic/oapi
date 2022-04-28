@@ -2692,7 +2692,11 @@ class Module:
                     item[0],
                     sob.utilities.inspect.represent(item[1]),
                 ),
-                self._init_parameter_defaults.items(),
+                # Both key and value must resolve to `True` when cast as `bool`
+                filter(
+                    all,
+                    self._init_parameter_defaults.items(),
+                ),
             ),
             self._init_parameter_defaults_source.items(),
         ):
@@ -2735,7 +2739,7 @@ class Module:
                     # positional argument
                     default_representation = f" = {default_representation}"
                 init_declaration_source = pattern.sub(
-                    f"\\1{default_representation}\\3",
+                    f"\\g<1>{default_representation}\\g<3>",
                     init_declaration_source,
                 )
         return init_declaration_source
