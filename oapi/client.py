@@ -670,7 +670,7 @@ class Client(ABC):
     - password (str) = "":  A password for use with HTTP basic authentication.
     - bearer_token (str) = "": A token for use with HTTP bearer authentication.
     - api_key (str) = "": An API key with which to authenticate requests.
-    - api_key_in (str) = "": Where the API key should be conveyed:
+    - api_key_in (str) = "header": Where the API key should be conveyed:
       "header", "query" or "cookie".
     - api_key_name (str) = "": The name of the header, query parameter, or
       cookie parameter in which to convey the API key.
@@ -721,8 +721,8 @@ class Client(ABC):
         password: str = "",
         bearer_token: str = "",
         api_key: str = "",
-        api_key_in: str = "",
-        api_key_name: str = "",
+        api_key_in: str = "header",
+        api_key_name: str = "X-API-KEY",
         oauth2_client_id: str = "",
         oauth2_client_secret: str = "",
         oauth2_authorization_url: str = "",
@@ -749,7 +749,7 @@ class Client(ABC):
         echo: bool = False,
     ) -> None:
         # Ensure the API key location is valid
-        assert api_key_in in ("header", "query", "cookie", ""), (
+        assert api_key_in in ("header", "query", "cookie"), (
             f"Invalid input for `api_key_in`:  {repr(api_key_in)}\n"
             'Valid values are "header", "query" or "cookie".'
         )
@@ -1109,7 +1109,7 @@ class Client(ABC):
                 ParseResult(**parse_result_dictionary)
             )
         else:
-            assert self.api_key_in == "header"
+            assert self.api_key_in == "header", repr(self.api_key_in)
             request.add_header(self.api_key_name, self.api_key)
 
     def _authenticate_request(self, request: Request) -> None:
@@ -1201,7 +1201,19 @@ class Client(ABC):
             url = f"{self.url}{path}"
         request_headers: Dict[str, str] = dict(self.headers)
         if headers:
-            request_headers.update(**dict(headers))  # type: ignore
+            key: str
+            value: str
+            request_headers.update(
+                **{  # type: ignore
+                    key: value
+                    for key, value in (
+                        headers.items()
+                        if isinstance(headers, Mapping)
+                        else headers
+                    )
+                    if key and value
+                }
+            )
         # Assemble the request
         request = Request(
             url,
