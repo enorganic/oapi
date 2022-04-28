@@ -13,6 +13,7 @@ from typing import (
     Iterator,
     Match,
     Optional,
+    Pattern,
     Sequence,
     Set,
     Tuple,
@@ -54,21 +55,38 @@ _DOC_POINTER_RE = re.compile(
 _SPACES_RE = re.compile(r"[\s\n]")
 
 
-def get_default_class_name_from_pointer(pointer: str) -> str:
+def get_default_class_name_from_pointer(pointer: str, name: str = "") -> str:
     """
-    This function infers a class name from a JSON pointer, or from a
-    relative URL concatenated with a JSON pointer. This function is
+    This function infers a class name from a JSON pointer (or from a
+    relative URL concatenated with a JSON pointer) + parameter name (or
+    empty string when a parameter name is not applicable). This function is
     the default naming function used by `oapi.model.Module`.
 
     Parameters:
 
     - pointer (str): A JSON pointer referencing a schema within an OpenAPI
       document, or a concatenation of a relative URL + "#" + a JSON pointer.
+    - name (str) = "": The parameter name, or "" if the element is not a
+      parameter.
+
+    Examples:
+
+    >>> get_default_class_name_from_pointer(
+    ...     "#/paths/~1directory~1sub-directory~1name/get/parameters/1",
+    ...     name="argument-name",
+    ... )
+    DirectorySubDirectoryNameGetArgumentName
+
+    >>> get_default_class_name_from_pointer(
+    ...     "#/paths/~1directory~1sub-directory~1name/get/parameters/1/item",
+    ...     name="argument-name",
+    ... )
+    DirectorySubDirectoryNameGetArgumentNameItem
     """
     relative_url: str = ""
     if "#" in pointer:
         relative_url, pointer = pointer.split("#", 1)
-    name: str = pointer.lstrip("/")
+    class_name_: str = pointer.lstrip("/")
     pattern: str
     repl: str
     for pattern, repl in (
@@ -109,12 +127,26 @@ def get_default_class_name_from_pointer(pointer: str) -> str:
             "~",
         ),
     ):
-        name = re.sub(pattern, repl, name)
+        class_name_ = re.sub(pattern, repl, class_name_)
+    # For parameters, include the parameter name in the class name *if* the
+    # parameter is defined inline (if it's not defined inline, the path to
+    # the parameter definition will usually be sufficiently descriptive),
+    # and don't include "/parameters/" or the parameter # in the class
+    # name.
+    if name and not (
+        pointer.startswith("/components/parameters/")
+        or pointer.startswith("/definitions/")
+    ):
+        parameters_pattern: Pattern = re.compile(r"/parameters/\d+((?:/.+)?)$")
+        if parameters_pattern.search(class_name_):
+            class_name_ = parameters_pattern.sub(f"/{name}/\\1", class_name_)
+        else:
+            class_name_ = f"{class_name_}/{name}"
     if relative_url:
-        name = f"{relative_url}/{name}"
-    name = class_name(name)
-    print(f"{pointer} -> {name} (JSON Pointer -> Class Name)")
-    return name
+        class_name_ = f"{relative_url}/{class_name_}"
+    class_name_ = class_name(class_name_)
+    print(f"{pointer} -> {class_name_} (JSON Pointer -> Class Name)")
+    return class_name_
 
 
 # endregion
@@ -247,7 +279,7 @@ class _Modeler:
         self,
         root: OpenAPI,
         get_class_name_from_pointer: Callable[
-            [str], str
+            [str, str], str
         ] = get_default_class_name_from_pointer,
     ) -> None:
         # This ensures all elements have URLs and JSON pointers
@@ -272,7 +304,7 @@ class _Modeler:
             .strip()
         )
         self.get_class_name_from_pointer: Callable[
-            [str], str
+            [str, str], str
         ] = get_class_name_from_pointer
 
     def schema_defines_object(self, schema: Union[Schema, Reference]) -> bool:
@@ -1144,21 +1176,22 @@ class _Modeler:
         return cls
 
     def get_schema_class_name(
-        self, schema: Union[Schema, Parameter, Items]
+        self, schema: Union[Schema, Parameter, Items], name: str = ""
     ) -> str:
         """
         Derive a model's class name from a `Schema` object
         """
+        relative_url: str
+        pointer: str
         relative_url, pointer = self.get_model_relative_url_and_pointer(schema)
-        return self.get_relative_url_and_pointer_class_name(
-            relative_url, pointer
-        )
-
-    def get_relative_url_and_pointer_class_name(
-        self,
-        relative_url: str,
-        pointer: str,
-    ) -> str:
+        if isinstance(schema, Parameter):
+            if name:
+                if schema.name:
+                    # If a name was provided, but there is also
+                    # a parameter name, concatenate the two
+                    name = f"{name}/{schema.name}"
+            else:
+                name = schema.name or ""
         relative_url_pointer: str = f"{relative_url}{pointer}"
         if not self.relative_url_pointer_class_name_exists(
             relative_url_pointer
@@ -1166,8 +1199,21 @@ class _Modeler:
             # Cache the result
             self.set_relative_url_pointer_class_name(
                 relative_url_pointer,
-                self.get_class_name_from_pointer(relative_url_pointer),
+                self.get_class_name_from_pointer(relative_url_pointer, name),
             )
+            # Cache the items as well, if this is a parameter, so that we
+            # can pass along the parameter name
+            if isinstance(schema, Parameter) and name:
+                if schema.items:
+                    self.get_schema_class_name(schema.items, name)
+                if schema.schema:
+                    parameter_schema: sob.abc.Model
+                    if isinstance(schema.schema, Reference):
+                        parameter_schema = self.resolver.resolve_reference(
+                            schema.schema
+                        )
+                    assert isinstance(parameter_schema, Schema)
+                    self.get_schema_class_name(parameter_schema, name)
         return self.get_relative_url_pointer_class_name(relative_url_pointer)
 
     def iter_schemas(
@@ -1471,8 +1517,10 @@ class Module:
 
     - get_class_name_from_pointer: This argument defaults to
       `oapi.model.get_default_class_name_from_pointer`. If an alternate
-      function is provided, it should accept a `str` (a JSON pointer
-      or concatenated relative URL + JSON pointer), and should return
+      function is provided, it should accept two arguments, both being `str`
+      instances. The first argument is a JSON pointer, or concatenated
+      relative URL + JSON pointer, and the second being either an empty string
+      or a parameter name, where applicable. The function should return
       a `str` which is a valid, unique, class name.
     """
 
@@ -1480,7 +1528,7 @@ class Module:
         self,
         open_api: Union[str, sob.abc.Readable, OpenAPI],
         get_class_name_from_pointer: Callable[
-            [str], str
+            [str, str], str
         ] = get_default_class_name_from_pointer,
     ) -> None:
         self._parser = _ModuleParser()
