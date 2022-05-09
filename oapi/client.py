@@ -1770,7 +1770,8 @@ class Module:
                     request_body, types=(RequestBody,)
                 )
             )
-            assert isinstance(resolved_request_body, RequestBody)
+            if not isinstance(resolved_request_body, RequestBody):
+                raise TypeError(resolved_request_body)
             request_body = resolved_request_body
         return request_body
 
