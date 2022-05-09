@@ -2035,7 +2035,6 @@ class Module:
                 prefix, parameter_documentation, suffix = matched.groups()
                 parameter_name: str
                 for parameter_name in self._iter_excluded_parameter_names():
-                    print(f"!{parameter_name}")
                     pattern: str = (
                         f"\\n    - {parameter_name}\\b(?:.|\\n)*?"
                         r"(\n    - |(\n|\s)*$)"
