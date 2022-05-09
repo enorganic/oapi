@@ -697,6 +697,8 @@ class Client(ABC):
       "header", "query" or "cookie".
     - api_key_name (str) = "": The name of the header, query parameter, or
       cookie parameter in which to convey the API key.
+    - oauth2_client_id (str): An OAuth2 client ID.
+    - oauth2_client_secret (str): An OAuth2 client secret.
     - oauth2_authorization_url (str) = "": The authorization URL to use for an
       OAuth2 flow. Can be relative to `url`.
     - oauth2_token_url (str) = "": The token URL to use for OAuth2
@@ -2033,6 +2035,7 @@ class Module:
                 prefix, parameter_documentation, suffix = matched.groups()
                 parameter_name: str
                 for parameter_name in self._iter_excluded_parameter_names():
+                    print(f"!{parameter_name}")
                     pattern: str = (
                         f"\\n    - {parameter_name}\\b(?:.|\\n)*?"
                         r"(\n    - |(\n|\s)*$)"
