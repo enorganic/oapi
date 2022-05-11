@@ -10,11 +10,6 @@ install:
 	mypy --install-types --non-interactive ; \
 	echo "Success!"
 
-# Activate our virtual environment
-activate:
-	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
-	echo "Success!"
-
 # Install dependencies locally where available
 editable:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
@@ -62,10 +57,6 @@ requirements:
 	 > requirements.txt && \
 	echo "Success!"
 
-# Run all tests
-test:
-	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && tox -r -p
-
 # Download specification schemas
 schemas:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
@@ -78,3 +69,7 @@ remodel:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	python3 scripts/remodel.py && \
 	echo "Success!"
+
+# Run all tests
+test:
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && tox -r -p
