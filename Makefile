@@ -64,9 +64,7 @@ requirements:
 
 # Run all tests
 test:
-	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
-	tox -r -p && \
-	echo "Success!"
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && tox -r -p
 
 # Download specification schemas
 schemas:
