@@ -1345,9 +1345,11 @@ def _get_relative_module_path(from_path: str, to_path: str) -> str:
             "^../",
             ".",
             os.path.relpath(
-                from_path.replace("/__init__.py", ".py"),
+                from_path.replace("/__init__.py", ".py").replace(
+                    "\\__init__.py", ".py"
+                ),
                 to_path,
-            ),
+            ).replace("\\", "/"),
         )
         .replace("../", ".")
         .replace("/", "."),
