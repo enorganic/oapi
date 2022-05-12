@@ -6,7 +6,7 @@ install:
 	python3 -m pip install --upgrade pip && \
 	python3 -m pip install\
 	 -r requirements.txt\
-	 -e . && \
+	 -e . tox && \
 	mypy --install-types --non-interactive ; \
 	echo "Success!"
 
@@ -72,4 +72,4 @@ remodel:
 
 # Run all tests
 test:
-	{ venv/Scripts/activate.bat || . venv/bin/activate; } && python3 -m tox -r -p
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && tox -r -p
