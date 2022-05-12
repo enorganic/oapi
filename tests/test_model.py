@@ -23,19 +23,19 @@ class TestModel(unittest.TestCase):
 
     @staticmethod
     def test_get_default_class_name_from_pointer() -> None:
-        print(get_default_class_name_from_pointer(
+        get_default_class_name_from_pointer(
             pointer=(
                 "#/paths/~1directory~1sub-directory~1name/get/parameters/1"
             ),
             name="argument-name",
-        )) == "DirectorySubDirectoryNameGetArgumentName"
-        print(get_default_class_name_from_pointer(
+        ) == "DirectorySubDirectoryNameGetArgumentName"
+        get_default_class_name_from_pointer(
             pointer=(
                 "#/paths/~1directory~1sub-directory~1name/get/parameters/1"
                 "/item"
             ),
             name="argument-name",
-        )) == "DirectorySubDirectoryNameGetArgumentNameItem"
+        ) == "DirectorySubDirectoryNameGetArgumentNameItem"
 
     @staticmethod
     def test_openapi_examples() -> None:

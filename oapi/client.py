@@ -1333,10 +1333,10 @@ def _get_relative_module_path(from_path: str, to_path: str) -> str:
     Examples:
 
     >>> _get_relative_module_path("a/b/c.py", "d/e/f.py")
-    ...a.b.c
+    '...a.b.c'
 
     >>> _get_relative_module_path("a/b/c.py", "a/b/f.py")
-    .c
+    '.c'
     """
     return re.sub(
         r".py$",
@@ -1361,10 +1361,10 @@ def _get_relative_module_import(from_path: str, to_path: str) -> str:
     Examples:
 
     >>> _get_relative_module_import("a/b/c.py", "d/e/f.py")
-    from ...a.b import c
+    'from ...a.b import c'
 
     >>> _get_relative_module_import("a/b/c.py", "a/b/f.py")
-    from . import c
+    'from . import c'
     """
     relative_module_path: str = _get_relative_module_path(
         from_path=from_path, to_path=to_path

@@ -71,13 +71,13 @@ def get_default_class_name_from_pointer(pointer: str, name: str = "") -> str:
 
     Examples:
 
-    >>> get_default_class_name_from_pointer(
+    >>> get_default_class_name_from_pointer(  # doctest: +SKIP
     ...     "#/paths/~1directory~1sub-directory~1name/get/parameters/1",
     ...     name="argument-name",
     ... )
     DirectorySubDirectoryNameGetArgumentName
 
-    >>> get_default_class_name_from_pointer(
+    >>> get_default_class_name_from_pointer(  # doctest: +SKIP
     ...     "#/paths/~1directory~1sub-directory~1name/get/parameters/1/item",
     ...     name="argument-name",
     ... )
