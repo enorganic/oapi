@@ -72,4 +72,4 @@ remodel:
 
 # Run all tests
 test:
-	{ venv/Scripts/activate.bat || . venv/bin/activate; } && tox -r -p
+	{ venv/Scripts/activate.bat || . venv/bin/activate; } && python3 -m tox -r -p
