@@ -23,7 +23,7 @@ from dataclasses import field, dataclass
 from warnings import warn
 from abc import ABC
 from http.client import HTTPResponse
-from logging import Logger
+from logging import Logger, getLogger
 from time import sleep
 from typing import (
     Any,
@@ -622,6 +622,17 @@ def _make_http_errors_pickleable() -> None:
 
 
 _make_http_errors_pickleable()
+
+
+def _make_loggers_pickleable() -> None:
+    """
+    This makes it so that loggers can be pickled
+    """
+    logger: Logger
+    copyreg.pickle(Logger, lambda logger: (getLogger, (logger.name,)))
+
+
+_make_loggers_pickleable()
 
 
 DEFAULT_RETRY_FOR_EXCEPTIONS: Tuple[Type[Exception], ...] = (
