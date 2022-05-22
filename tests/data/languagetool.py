@@ -32,13 +32,22 @@ class CheckPostResponse(sob.model.Object):
             None,
         ] = None,
         software: typing.Optional[
-            "CheckPostResponseSoftware"
+            typing.Union[
+                "CheckPostResponseSoftware",
+                sob.utilities.types.Null
+            ]
         ] = None,
         language: typing.Optional[
-            "CheckPostResponseLanguage"
+            typing.Union[
+                "CheckPostResponseLanguage",
+                sob.utilities.types.Null
+            ]
         ] = None,
         matches: typing.Optional[
-            "CheckPostResponseMatches"
+            typing.Union[
+                "CheckPostResponseMatches",
+                sob.utilities.types.Null
+            ]
         ] = None
     ) -> None:
         self.software = software
@@ -220,7 +229,10 @@ class CheckPostResponseMatchesItem(sob.model.Object):
             ]
         ] = None,
         short_message: typing.Optional[
-            str
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
         ] = None,
         offset: typing.Optional[
             typing.Union[
@@ -253,7 +265,10 @@ class CheckPostResponseMatchesItem(sob.model.Object):
             ]
         ] = None,
         rule: typing.Optional[
-            "CheckPostResponseMatchesItemrule"
+            typing.Union[
+                "CheckPostResponseMatchesItemrule",
+                sob.utilities.types.Null
+            ]
         ] = None
     ) -> None:
         self.message = message
@@ -373,7 +388,10 @@ class CheckPostResponseMatchesItemreplacementsItem(sob.model.Object):
             None,
         ] = None,
         value: typing.Optional[
-            str
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
         ] = None
     ) -> None:
         self.value = value
@@ -426,7 +444,10 @@ class CheckPostResponseMatchesItemrule(sob.model.Object):
             ]
         ] = None,
         sub_id: typing.Optional[
-            str
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
         ] = None,
         description: typing.Optional[
             typing.Union[
@@ -435,10 +456,16 @@ class CheckPostResponseMatchesItemrule(sob.model.Object):
             ]
         ] = None,
         urls: typing.Optional[
-            "CheckPostResponseMatchesItemruleUrls"
+            typing.Union[
+                "CheckPostResponseMatchesItemruleUrls",
+                sob.utilities.types.Null
+            ]
         ] = None,
         issue_type: typing.Optional[
-            str
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
         ] = None,
         category: typing.Optional[
             typing.Union[
@@ -486,10 +513,16 @@ class CheckPostResponseMatchesItemruleCategory(sob.model.Object):
             None,
         ] = None,
         id_: typing.Optional[
-            str
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
         ] = None,
         name: typing.Optional[
-            str
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
         ] = None
     ) -> None:
         self.id_ = id_
@@ -545,7 +578,10 @@ class CheckPostResponseMatchesItemruleUrlsItem(sob.model.Object):
             None,
         ] = None,
         value: typing.Optional[
-            str
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
         ] = None
     ) -> None:
         self.value = value
@@ -616,10 +652,16 @@ class CheckPostResponseSoftware(sob.model.Object):
             ]
         ] = None,
         status: typing.Optional[
-            str
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
         ] = None,
         premium: typing.Optional[
-            bool
+            typing.Union[
+                bool,
+                sob.utilities.types.Null
+            ]
         ] = None
     ) -> None:
         self.name = name
@@ -732,7 +774,10 @@ class WordsGetResponse(sob.model.Object):
             None,
         ] = None,
         words: typing.Optional[
-            "WordsGetResponseWords"
+            typing.Union[
+                "WordsGetResponseWords",
+                sob.utilities.types.Null
+            ]
         ] = None
     ) -> None:
         self.words = words
@@ -748,7 +793,10 @@ class WordsGetResponseWords(sob.model.Array):
         self,
         items: typing.Union[
             typing.Iterable[
-                str
+                typing.Union[
+                    str,
+                    sob.utilities.types.Null
+                ]
             ],
             sob.abc.Readable,
             str,
@@ -788,7 +836,10 @@ class WordsAddPostResponse(sob.model.Object):
             None,
         ] = None,
         added: typing.Optional[
-            bool
+            typing.Union[
+                bool,
+                sob.utilities.types.Null
+            ]
         ] = None
     ) -> None:
         self.added = added
@@ -824,7 +875,10 @@ class WordsDeletePostResponse(sob.model.Object):
             None,
         ] = None,
         deleted: typing.Optional[
-            bool
+            typing.Union[
+                bool,
+                sob.utilities.types.Null
+            ]
         ] = None
     ) -> None:
         self.deleted = deleted
@@ -838,7 +892,8 @@ sob.meta.object_writable(  # type: ignore
         'software',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                CheckPostResponseSoftware
+                CheckPostResponseSoftware,
+                sob.utilities.types.Null
             ])
         )
     ),
@@ -846,7 +901,8 @@ sob.meta.object_writable(  # type: ignore
         'language',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                CheckPostResponseLanguage
+                CheckPostResponseLanguage,
+                sob.utilities.types.Null
             ])
         )
     ),
@@ -854,7 +910,8 @@ sob.meta.object_writable(  # type: ignore
         'matches',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                CheckPostResponseMatches
+                CheckPostResponseMatches,
+                sob.utilities.types.Null
             ])
         )
     )
@@ -938,8 +995,12 @@ sob.meta.object_writable(  # type: ignore
     ),
     (
         'short_message',
-        sob.properties.String(
-            name="shortMessage"
+        sob.properties.Property(
+            name="shortMessage",
+            types=sob.types.MutableTypes([
+                sob.properties.String(),
+                sob.utilities.types.Null
+            ])
         )
     ),
     (
@@ -996,7 +1057,8 @@ sob.meta.object_writable(  # type: ignore
         'rule',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                CheckPostResponseMatchesItemrule
+                CheckPostResponseMatchesItemrule,
+                sob.utilities.types.Null
             ])
         )
     )
@@ -1043,7 +1105,15 @@ sob.meta.array_writable(  # type: ignore
 sob.meta.object_writable(  # type: ignore
     CheckPostResponseMatchesItemreplacementsItem
 ).properties = sob.meta.Properties([
-    ('value', sob.properties.String())
+    (
+        'value',
+        sob.properties.Property(
+            types=sob.types.MutableTypes([
+                sob.properties.String(),
+                sob.utilities.types.Null
+            ])
+        )
+    )
 ])
 sob.meta.object_writable(  # type: ignore
     CheckPostResponseMatchesItemrule
@@ -1061,8 +1131,12 @@ sob.meta.object_writable(  # type: ignore
     ),
     (
         'sub_id',
-        sob.properties.String(
-            name="subId"
+        sob.properties.Property(
+            name="subId",
+            types=sob.types.MutableTypes([
+                sob.properties.String(),
+                sob.utilities.types.Null
+            ])
         )
     ),
     (
@@ -1079,14 +1153,19 @@ sob.meta.object_writable(  # type: ignore
         'urls',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                CheckPostResponseMatchesItemruleUrls
+                CheckPostResponseMatchesItemruleUrls,
+                sob.utilities.types.Null
             ])
         )
     ),
     (
         'issue_type',
-        sob.properties.String(
-            name="issueType"
+        sob.properties.Property(
+            name="issueType",
+            types=sob.types.MutableTypes([
+                sob.properties.String(),
+                sob.utilities.types.Null
+            ])
         )
     ),
     (
@@ -1105,11 +1184,23 @@ sob.meta.object_writable(  # type: ignore
 ).properties = sob.meta.Properties([
     (
         'id_',
-        sob.properties.String(
-            name="id"
+        sob.properties.Property(
+            name="id",
+            types=sob.types.MutableTypes([
+                sob.properties.String(),
+                sob.utilities.types.Null
+            ])
         )
     ),
-    ('name', sob.properties.String())
+    (
+        'name',
+        sob.properties.Property(
+            types=sob.types.MutableTypes([
+                sob.properties.String(),
+                sob.utilities.types.Null
+            ])
+        )
+    )
 ])
 sob.meta.array_writable(  # type: ignore
     CheckPostResponseMatchesItemruleUrls
@@ -1119,7 +1210,15 @@ sob.meta.array_writable(  # type: ignore
 sob.meta.object_writable(  # type: ignore
     CheckPostResponseMatchesItemruleUrlsItem
 ).properties = sob.meta.Properties([
-    ('value', sob.properties.String())
+    (
+        'value',
+        sob.properties.Property(
+            types=sob.types.MutableTypes([
+                sob.properties.String(),
+                sob.utilities.types.Null
+            ])
+        )
+    )
 ])
 sob.meta.object_writable(  # type: ignore
     CheckPostResponseSoftware
@@ -1166,8 +1265,24 @@ sob.meta.object_writable(  # type: ignore
             ])
         )
     ),
-    ('status', sob.properties.String()),
-    ('premium', sob.properties.Boolean())
+    (
+        'status',
+        sob.properties.Property(
+            types=sob.types.MutableTypes([
+                sob.properties.String(),
+                sob.utilities.types.Null
+            ])
+        )
+    ),
+    (
+        'premium',
+        sob.properties.Property(
+            types=sob.types.MutableTypes([
+                sob.properties.Boolean(),
+                sob.utilities.types.Null
+            ])
+        )
+    )
 ])
 sob.meta.array_writable(  # type: ignore
     LanguagesGetResponse
@@ -1216,7 +1331,8 @@ sob.meta.object_writable(  # type: ignore
         'words',
         sob.properties.Property(
             types=sob.types.MutableTypes([
-                WordsGetResponseWords
+                WordsGetResponseWords,
+                sob.utilities.types.Null
             ])
         )
     )
@@ -1224,17 +1340,38 @@ sob.meta.object_writable(  # type: ignore
 sob.meta.array_writable(  # type: ignore
     WordsGetResponseWords
 ).item_types = sob.types.MutableTypes([
-    sob.properties.String()
+    sob.properties.Property(
+        types=sob.types.MutableTypes([
+            sob.properties.String(),
+            sob.utilities.types.Null
+        ])
+    )
 ])
 sob.meta.object_writable(  # type: ignore
     WordsAddPostResponse
 ).properties = sob.meta.Properties([
-    ('added', sob.properties.Boolean())
+    (
+        'added',
+        sob.properties.Property(
+            types=sob.types.MutableTypes([
+                sob.properties.Boolean(),
+                sob.utilities.types.Null
+            ])
+        )
+    )
 ])
 sob.meta.object_writable(  # type: ignore
     WordsDeletePostResponse
 ).properties = sob.meta.Properties([
-    ('deleted', sob.properties.Boolean())
+    (
+        'deleted',
+        sob.properties.Property(
+            types=sob.types.MutableTypes([
+                sob.properties.Boolean(),
+                sob.utilities.types.Null
+            ])
+        )
+    )
 ])
 # The following is used to retain class names when re-generating
 # this model from an updated OpenAPI document
