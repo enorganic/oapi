@@ -667,12 +667,18 @@ class _Modeler:
             or
             # Swagger/OpenAPI versions prior to 3.0 do not support `nullable`,
             # so it must be assumed that null values are acceptable for
-            # all attributes
+            # all attributes. Some specs use the "x-nullable" extension
+            # attribute, so we check for this as well, but in the absence
+            # of a `False` value for `Schema.x_nullable`, we assume all fields
+            # are nullable.
             (
                 (self.major_version < 3)
                 and (
                     (not isinstance(schema, Schema))
-                    or (schema.nullable is not False)
+                    or (
+                        (schema.nullable is not False)
+                        and (getattr(schema, "x_nullable", None) is not False)
+                    )
                 )
             )
         ):
