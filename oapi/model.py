@@ -667,10 +667,9 @@ class _Modeler:
             or
             # Swagger/OpenAPI versions prior to 3.0 do not support `nullable`,
             # so it must be assumed that null values are acceptable for
-            # required attributes
+            # all attributes
             (
                 (self.major_version < 3)
-                and (required is True)
                 and (
                     (not isinstance(schema, Schema))
                     or (schema.nullable is not False)

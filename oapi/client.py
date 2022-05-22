@@ -160,7 +160,7 @@ def _format_primitive_value(value: _PrimitiveValueTypes) -> Optional[str]:
     elif isinstance(value, (int, float, decimal.Decimal)):
         return str(value)
     else:
-        assert isinstance(value, (datetime, date))
+        assert isinstance(value, (datetime, date)), repr(value)
         return value.isoformat()
 
 
