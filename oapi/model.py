@@ -116,7 +116,7 @@ def get_default_class_name_from_pointer(pointer: str, name: str = "") -> str:
         ),
         (
             r"/items(/|$)",
-            "/item",
+            r"/item\1",
         ),
         (
             r"~1",
@@ -718,8 +718,8 @@ class _Modeler:
     ) -> None:
         if model and not class_name_:
             class_name_ = model.__name__
-        assert class_name_
-        self._class_names_models[class_name_] = model
+        if class_name_:
+            self._class_names_models[class_name_] = model
 
     def get_model_class(
         self,
@@ -794,6 +794,13 @@ class _Modeler:
         elif isinstance(schema, Schema):
             if self.schema_defines_object(schema):
                 assert isinstance(schema, Schema)
+                # If the schema has no properties, but defines "anyOf",
+                # or "oneOf" properties, it is just a container
+                # for referencing other schemas
+                if (not schema.properties) and (
+                    schema.any_of or schema.one_of
+                ):
+                    return None
                 return self.get_schema_object_class(
                     schema,
                     name=name,
@@ -904,13 +911,13 @@ class _Modeler:
                     yield from self.iter_dereferenced_schemas(
                         dereferenced_schema.any_of
                     )
-                if dereferenced_schema.all_of:
-                    yield from self.iter_dereferenced_schemas(
-                        dereferenced_schema.all_of, skip=True
-                    )
                 if dereferenced_schema.one_of:
                     yield from self.iter_dereferenced_schemas(
                         dereferenced_schema.one_of
+                    )
+                if dereferenced_schema.all_of:
+                    yield from self.iter_dereferenced_schemas(
+                        dereferenced_schema.all_of, skip=True
                     )
 
     def get_required_schema_model_or_property(
