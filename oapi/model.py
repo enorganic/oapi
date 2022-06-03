@@ -627,6 +627,8 @@ class _Modeler:
             property_ = self.extend_property_schemas(property_, schema.any_of)
         if schema.one_of:
             property_ = self.extend_property_schemas(property_, schema.one_of)
+        if schema.all_of and len(schema.all_of) == 1:
+            property_ = self.extend_property_schemas(property_, schema.all_of)
         return property_
 
     def get_property(
@@ -648,7 +650,11 @@ class _Modeler:
             )
             if model_class:
                 property_ = _append_property_type(property_, model_class)
-        if isinstance(schema, Schema) and (schema.any_of or schema.one_of):
+        if isinstance(schema, Schema) and (
+            schema.any_of
+            or schema.one_of
+            or (schema.all_of and len(schema.all_of) == 1)
+        ):
             property_ = self.polymorph_property(property_, schema)
         if schema.enum:
             property_ = sob.properties.Enumerated(
@@ -798,7 +804,9 @@ class _Modeler:
                 # or "oneOf" properties, it is just a container
                 # for referencing other schemas
                 if (not schema.properties) and (
-                    schema.any_of or schema.one_of
+                    schema.any_of
+                    or schema.one_of
+                    or (schema.all_of and len(schema.all_of) == 1)
                 ):
                     return None
                 return self.get_schema_object_class(
@@ -917,7 +925,10 @@ class _Modeler:
                     )
                 if dereferenced_schema.all_of:
                     yield from self.iter_dereferenced_schemas(
-                        dereferenced_schema.all_of, skip=True
+                        dereferenced_schema.all_of,
+                        # If there is only 1 schema in "allOf",
+                        # treat it the same as "anyOf" or "oneOf"...
+                        skip=dereferenced_schema.all_of != 1,
                     )
 
     def get_required_schema_model_or_property(
@@ -1302,7 +1313,11 @@ class _Modeler:
                         # be merged, and if under "oneOf" or "anyOf",
                         # it will already have been yielded
                         skip=(
-                            isinstance(object_, Schema) and name == "all_of"
+                            isinstance(object_, Schema)
+                            and name == "all_of"
+                            # If there is only one schema in "allOf",
+                            # it is no different form "anyOf" or "oneOf"
+                            and len(value) != 1  # type: ignore
                         ),
                     )
 
