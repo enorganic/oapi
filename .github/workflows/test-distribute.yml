@@ -32,7 +32,7 @@ jobs:
     - name: test
       run: make test
   distribute:
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     needs:
       - test
     runs-on: ubuntu-latest
