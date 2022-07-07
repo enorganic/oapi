@@ -7,7 +7,7 @@ install:
 	python3 -m pip install\
 	 -r requirements.txt\
 	 -e . && \
-	{ mypy --install-types --non-interactive || echo "" ; } \
+	{ mypy --install-types --non-interactive || echo "" ; } && \
 	echo "Success!"
 
 # Install dependencies locally where available
