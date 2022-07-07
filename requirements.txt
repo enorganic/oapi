@@ -6,7 +6,7 @@ charset-normalizer==2.0.12
 click==8.0.4
 colorama==0.4.4
 dataclasses==0.8; python_version == "3.6"
-daves-dev-tools==1.26.0
+daves-dev-tools==1.28.0
 distlib==0.3.4
 docutils==0.18.1
 filelock

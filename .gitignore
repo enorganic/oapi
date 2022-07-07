@@ -16,3 +16,4 @@ schemas
 !.github
 !.gitignore
 !.flake8
+!.devcontainer.json

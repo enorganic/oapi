@@ -318,9 +318,9 @@ class _Modeler:
         if not isinstance(schema, Schema):
             # Version 2x parameters can't be objects/dictionaries
             return False
-        if (schema.properties and (schema.type_ in (None, "object"))) and (
-            not schema.additional_properties
-        ):
+        if self.schema_defines_dictionary(schema):
+            return False
+        elif schema.properties and schema.type_ in ("object", None):
             return True
         else:
             return any(
@@ -375,11 +375,9 @@ class _Modeler:
         if not isinstance(schema, Schema):
             # Version 2x parameters can't be objects/dictionaries
             return False
-        if self.schema_defines_object(schema):
-            return False
-        elif schema.type_ == "object" and (
-            schema.additional_properties or (not schema.properties)
-        ):
+        if (
+            schema.additional_properties and schema.type_ in ("object", None)
+        ) or (schema.type_ == "object" and not schema.properties):
             return True
         else:
             return any(
