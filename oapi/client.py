@@ -2409,7 +2409,9 @@ class Module:
         yield "        )"
         if operation_response_types:
             response_types_representation: str = ",\n                ".join(
-                map(self._represent_type, operation_response_types)
+                unique_everseen(
+                    map(self._represent_type, operation_response_types)
+                )
             )
             yield "        return sob.model.unmarshal(  # type: ignore"
             yield "            sob.model.deserialize(response),"
@@ -2579,7 +2581,9 @@ class Module:
         ] = tuple(self._iter_operation_response_types(operation))
         if response_types:
             response_type_names: Tuple[str, ...] = tuple(
-                chain(*map(self._iter_type_names, response_types))
+                unique_everseen(
+                    chain(*map(self._iter_type_names, response_types))
+                )
             )
             assert response_type_names
             if len(response_type_names) > 1:
