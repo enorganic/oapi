@@ -1,10 +1,10 @@
 attrs==21.4.0
-black==22.3.0
+black==22.6.0
 bleach==4.1.0
-certifi==2022.5.18.1
+certifi==2022.6.15
 charset-normalizer==2.0.12
 click==8.0.4
-colorama==0.4.4
+colorama==0.4.5
 dataclasses==0.8; python_version == "3.6"
 daves-dev-tools==1.28.0
 distlib==0.3.4
@@ -45,13 +45,13 @@ sob==1.47.0
 toml==0.10.2
 tomli-w==0.4.0
 tomli==1.2.3
-tox==3.25.0
+tox==3.25.1
 tqdm==4.64.0
 twine==3.8.0
 typed-ast==1.5.4
 typing-extensions==4.1.1
 urllib3==1.26.9
-virtualenv==20.14.1
+virtualenv==20.15.1
 webencodings==0.5.1
 wheel==0.37.1
 zipp==3.6.0

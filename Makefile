@@ -3,11 +3,11 @@ install:
 	{ python3.6 -m venv venv || python3 -m venv venv || \
 	py -3.6 -m venv venv || py -3 -m venv venv ; } && \
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
-	python3 -m pip install --upgrade pip && \
+	{ python3 -m pip install --upgrade pip || echo "" ; } && \
 	python3 -m pip install\
 	 -r requirements.txt\
 	 -e . && \
-	mypy --install-types --non-interactive ; \
+	{ mypy --install-types --non-interactive || echo "" ; } \
 	echo "Success!"
 
 # Install dependencies locally where available
@@ -38,11 +38,13 @@ distribute:
 upgrade:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	daves-dev-tools requirements freeze\
+	 -e pip\
+	 -e wheel\
 	 -nv '*' . pyproject.toml tox.ini \
-	 > .unversioned_requirements.txt && \
+	 > .requirements.txt && \
 	python3 -m pip install --upgrade --upgrade-strategy eager\
-	 -r .unversioned_requirements.txt && \
-	rm .unversioned_requirements.txt && \
+	 -r .requirements.txt && \
+	rm .requirements.txt && \
 	make requirements
 
 # Update requirement version #'s to match the current environment
