@@ -1435,9 +1435,13 @@ class _Modeler:
             chain(
                 sorted(
                     imports,
-                    key=lambda sort_line: 1
-                    if sort_line == "import sob"
-                    else 0,
+                    key=lambda sort_line: (
+                        (1, sort_line)
+                        if sort_line == "import sob"
+                        else (0, sort_line)
+                        if sort_line.startswith("import")
+                        else (2, sort_line)
+                    ),
                 ),
                 ("\n",),
                 classes,
