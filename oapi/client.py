@@ -2369,7 +2369,10 @@ class Module:
         if isinstance(type_, sob.abc.Property):
             return sob.utilities.inspect.represent(type_)
         assert isinstance(type_, type) and issubclass(type_, sob.abc.Model)
-        return f"{self._get_model_module_name()}.{type_.__name__}"
+        if type_.__module__.startswith("sob."):
+            return f"{type_.__module__}.{type_.__name__}"
+        else:
+            return f"{self._get_model_module_name()}.{type_.__name__}"
 
     def _iter_operation_method_definition(
         self,
