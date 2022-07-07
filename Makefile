@@ -41,7 +41,7 @@ upgrade:
 	 -nv '*' . pyproject.toml tox.ini \
 	 > .unversioned_requirements.txt && \
 	python3 -m pip install --upgrade --upgrade-strategy eager\
-	 -r .unversioned_requirements.txt -e . && \
+	 -r .unversioned_requirements.txt && \
 	rm .unversioned_requirements.txt && \
 	make requirements
 
@@ -57,6 +57,12 @@ requirements:
 	 > requirements.txt && \
 	echo "Success!"
 
+# Run all tests
+test:
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
+	pip3 install tox && \
+	tox -r -p
+
 # Download specification schemas
 schemas:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
@@ -69,9 +75,3 @@ remodel:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	python3 scripts/remodel.py && \
 	echo "Success!"
-
-# Run all tests
-test:
-	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
-	pip3 install tox && \
-	tox -r -p

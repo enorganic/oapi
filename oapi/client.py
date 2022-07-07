@@ -1708,6 +1708,13 @@ class Module:
             )
         )
 
+    def _get_open_api_major_version(self) -> int:
+        return int(
+            (self.open_api.swagger or self.open_api.openapi or "0")
+            .split(".")[0]
+            .strip()
+        )
+
     def _resolve_media_type(
         self, media_type: Union[MediaType, Reference]
     ) -> MediaType:
@@ -2105,7 +2112,18 @@ class Module:
         )
         pointer: str = (sob.meta.get_pointer(schema) or "").lstrip("#")
         relative_url_pointer: str = f"{relative_url}#{pointer}"
-        return self._pointers_classes[relative_url_pointer]
+        try:
+            return self._pointers_classes[relative_url_pointer]
+        except KeyError:
+            if schema.type_ == "object" or (
+                isinstance(schema, Schema)
+                and (schema.properties or schema.additional_properties)
+            ):
+                return sob.model.Dictionary
+            elif schema.type_ == "array" or schema.items:
+                return sob.model.Array
+            else:
+                raise
 
     def _get_schema_type(
         self, schema: Union[Schema, Parameter]
@@ -2113,9 +2131,17 @@ class Module:
         try:
             return self._get_schema_class(schema)
         except KeyError:
-            if _schema_defines_model(schema):
-                raise
-            if schema.type_ == "number":
+            if schema.type_ == "object" or (
+                isinstance(schema, Schema)
+                and schema.type_ is None
+                and (schema.properties or schema.additional_properties)
+            ):
+                return sob.model.Dictionary
+            elif schema.type_ == "array" or (
+                (schema.type_ is None) and schema.items
+            ):
+                return sob.model.Array
+            elif schema.type_ == "number":
                 self._imports.add("import decimal")
                 return sob.properties.Number()
             elif schema.type_ == "string":
@@ -2177,7 +2203,11 @@ class Module:
             yield "bytes"
         else:
             assert isinstance(type_, type) and issubclass(type_, sob.abc.Model)
-            model_module_name: str = self._get_model_module_name()
+            model_module_name: str = (
+                "sob.abc"
+                if type_.__module__ in ("sob.model", "sob.abc")
+                else self._get_model_module_name()
+            )
             yield f"{model_module_name}.{type_.__name__}"
 
     def _iter_schema_type_names(
@@ -2301,6 +2331,12 @@ class Module:
                 elif parameter.collection_format == "multi":
                     style = "form"
                     explode = True
+                elif parameter.collection_format == "csv" or (
+                    parameter.collection_format is None
+                    and self._get_open_api_major_version() == 2
+                ):
+                    style = "form"
+                    explode = False
                 getattr(
                     parameter_locations,
                     sob.utilities.string.property_name(parameter.in_),
