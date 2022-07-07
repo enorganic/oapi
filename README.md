@@ -56,4 +56,4 @@ Notable features of an `oapi` generated client/model library include:
   hook to the *get_class_name_from_pointer* parameter for
   `oapi.model.Module` or `oapi.model.create`.
 
-TODO: Finish README.md :-)
+TODO: Finish README.md
