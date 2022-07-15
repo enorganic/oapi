@@ -662,7 +662,7 @@ CLIENT_SLOTS: Tuple[str, ...] = (
     "headers",
     "timeout",
     "retry_number_of_attempts",
-    "retry_for_exceptions",
+    "retry_for_errors",
     "retry_hook",
     "_verify_ssl_certificate",
     "logger",
@@ -737,14 +737,14 @@ class Client(ABC):
       timeout will be used.
     - retry_number_of_attempts (int) = 1: The number of times to retry
       a request which results in an error.
-    - retry_for_exceptions: A tuple of one or more exception types
+    - retry_for_errors: A tuple of one or more exception types
       on which to retry a request. To retry for *all* errors,
       pass `(Exception,)` for this argument.
     - retry_hook: A function, accepting one argument (an Exception),
       and returning a boolean value indicating whether to retry the
       request (if retries have not been exhausted). This hook applies
       *only* for exceptions which are a sub-class of an exception
-      included in `retry_for_exceptions`.
+      included in `retry_for_errors`.
     - verify_ssl_certificate (bool) = True: If `True`, SSL certificates
       are verified, per usual. If `False`, SSL certificates are *not*
       verified.
@@ -782,7 +782,7 @@ class Client(ABC):
         ),
         timeout: int = 0,
         retry_number_of_attempts: int = 1,
-        retry_for_exceptions: Tuple[
+        retry_for_errors: Tuple[
             Type[Exception], ...
         ] = DEFAULT_RETRY_FOR_EXCEPTIONS,
         retry_hook: Callable[  # Force line-break retention
@@ -848,7 +848,7 @@ class Client(ABC):
         self.headers: Dict[str, str] = dict(headers)
         self.timeout = timeout
         self.retry_number_of_attempts = retry_number_of_attempts
-        self.retry_for_errors = retry_for_exceptions
+        self.retry_for_errors = retry_for_errors
         self.retry_hook = retry_hook
         self._verify_ssl_certificate = verify_ssl_certificate
         self.logger = logger
@@ -895,6 +895,8 @@ class Client(ABC):
             self.api_key_name,
             self.oauth2_client_id,
             self.oauth2_client_secret,
+            self.oauth2_username,
+            self.oauth2_password,
             self.oauth2_authorization_url,
             self.oauth2_token_url,
             self.oauth2_refresh_url,
@@ -1260,6 +1262,10 @@ class Client(ABC):
         # OAuth2 Authentication schemes
         if (
             self.oauth2_client_id and self.oauth2_client_secret
+        ) or (
+            self.oauth2_client_id
+            and self.oauth2_username
+            and self.oauth2_password
         ) or self.oauth2_flows:
             self._oauth2_authenticate_request(request)
 
