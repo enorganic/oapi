@@ -1261,12 +1261,14 @@ class Client(ABC):
             self._api_key_authenticate_request(request)
         # OAuth2 Authentication schemes
         if (
-            self.oauth2_client_id and self.oauth2_client_secret
-        ) or (
-            self.oauth2_client_id
-            and self.oauth2_username
-            and self.oauth2_password
-        ) or self.oauth2_flows:
+            (self.oauth2_client_id and self.oauth2_client_secret)
+            or (
+                self.oauth2_client_id
+                and self.oauth2_username
+                and self.oauth2_password
+            )
+            or self.oauth2_flows
+        ):
             self._oauth2_authenticate_request(request)
 
     def _request(
