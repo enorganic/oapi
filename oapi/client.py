@@ -652,6 +652,8 @@ CLIENT_SLOTS: Tuple[str, ...] = (
     "api_key_name",
     "oauth2_client_id",
     "oauth2_client_secret",
+    "oauth2_username",
+    "oauth2_password",
     "oauth2_authorization_url",
     "oauth2_token_url",
     "oauth2_refresh_url",
