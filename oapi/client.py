@@ -708,8 +708,12 @@ class Client(ABC):
       "header", "query" or "cookie".
     - api_key_name (str) = "": The name of the header, query parameter, or
       cookie parameter in which to convey the API key.
-    - oauth2_client_id (str): An OAuth2 client ID.
-    - oauth2_client_secret (str): An OAuth2 client secret.
+    - oauth2_client_id (str) = "": An OAuth2 client ID.
+    - oauth2_client_secret (str) = "": An OAuth2 client secret.
+    - oauth2_username (str) = "": A *username* for the "password" OAuth2 grant
+      type.
+    - oauth2_password (str) = "": A *password* for the "password" OAuth2 grant
+      type.
     - oauth2_authorization_url (str) = "": The authorization URL to use for an
       OAuth2 flow. Can be relative to `url`.
     - oauth2_token_url (str) = "": The token URL to use for OAuth2
@@ -761,6 +765,8 @@ class Client(ABC):
         api_key_name: str = "X-API-KEY",
         oauth2_client_id: str = "",
         oauth2_client_secret: str = "",
+        oauth2_username: str = "",
+        oauth2_password: str = "",
         oauth2_authorization_url: str = "",
         oauth2_token_url: str = "",
         oauth2_refresh_url: str = "",
@@ -830,6 +836,8 @@ class Client(ABC):
         self.api_key_name = api_key_name
         self.oauth2_client_id = oauth2_client_id
         self.oauth2_client_secret = oauth2_client_secret
+        self.oauth2_username = oauth2_username
+        self.oauth2_password = oauth2_password
         self.oauth2_authorization_url = oauth2_authorization_url
         self.oauth2_token_url = oauth2_token_url
         self.oauth2_refresh_url = oauth2_refresh_url
@@ -1044,6 +1052,38 @@ class Client(ABC):
             get_request_curl(request, options=curl_options)
         )
 
+    def _request_oauth2_password_authorization(
+        self,
+    ) -> sob.abc.Readable:
+        try:
+            return self._opener.open(  # type: ignore
+                Request(
+                    self.oauth2_token_url,
+                    headers={"Host": urlparse(self.oauth2_token_url).netloc},
+                    method="POST",
+                    data=bytes(
+                        urlencode(
+                            dict(
+                                grant_type="password",
+                                client_id=self.oauth2_client_id,
+                                username=self.oauth2_username,
+                                password=self.oauth2_password,
+                            )
+                        ),
+                        encoding="ascii",
+                    ),
+                )
+            )
+        except HTTPError as error:
+            location: str = error.headers.get(
+                "Location", self.oauth2_token_url
+            )
+            if location != self.oauth2_token_url:
+                self.oauth2_token_url = location
+                return self._request_oauth2_password_authorization()
+            else:
+                raise
+
     def _request_oauth2_client_credentials_authorization(
         self,
     ) -> sob.abc.Readable:
@@ -1095,6 +1135,24 @@ class Client(ABC):
                 )
         return self.headers["Authorization"]
 
+    def _get_oauth2_password_authorization(self) -> str:
+        if self._oauth2_authorization_expires < int(time.time()) or (
+            "Authorization" not in self.headers
+        ):
+            # If our authorization has expired, get a new token
+            with (self._request_oauth2_password_authorization()) as response:
+                response_data: Dict[str, str] = json.loads(
+                    str(response.read(), encoding="utf-8")
+                )
+                self._oauth2_authorization_expires = (
+                    int(time.time()) + int(response_data["expires_in"]) - 1
+                )
+                self.headers["Authorization"] = (
+                    f'{response_data["token_type"]} '
+                    f'{response_data["access_token"]}'
+                )
+        return self.headers["Authorization"]
+
     def _oauth2_authenticate_request(self, request: Request) -> None:
         if self.oauth2_client_id and self.oauth2_client_secret:
             # A client ID and client secret are only applicable to the
@@ -1104,6 +1162,18 @@ class Client(ABC):
                 "Authorization",
                 self._get_oauth2_client_credentials_authorization(),
             )
+        elif (
+            self.oauth2_client_id
+            and self.oauth2_username
+            and self.oauth2_password
+        ):
+            # A client ID and client secret are only applicable to the
+            # client credentials flow, so we can infer that is the correct
+            # flow to use (regardless of whether it is specified in the flows).
+            request.add_header(
+                "Authorization",
+                self._get_oauth2_password_authorization(),
+            )
         elif self.oauth2_flows:
             if "implicit" in self.oauth2_flows:
                 # TODO implicit OAuth2 flow
@@ -1111,9 +1181,17 @@ class Client(ABC):
                     'The "implicit" OAuth2 flow is not currently implemented.'
                 )
             if "password" in self.oauth2_flows:
+                warn(
+                    'The "password" OAuth2 flow requires the client be '
+                    "initialized with `oauth2_client_id`, `oauth2_username`, "
+                    "and `oauth2_password` arguments."
+                )
+            if "clientCredentials" in self.oauth2_flows:
                 # TODO password OAuth2 flow
                 warn(
-                    'The "password" OAuth2 flow is not currently implemented.'
+                    'The "clientCredentials" OAuth2 flow requires the client '
+                    "be initialized with `oauth2_client_id`, "
+                    "`oauth2_username`, and `oauth2_password` arguments."
                 )
             if "authorizationCode" in self.oauth2_flows:
                 # TODO authorizationCode OAuth2 flow
