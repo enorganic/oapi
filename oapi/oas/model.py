@@ -1883,7 +1883,7 @@ class Response(ExtensibleObject):
       representation.
     - headers ({str:Header|Reference}): Maps a header name to its
       definition (mappings are case-insensitive).
-    - content ({str:Content|Reference}): A mapping of media value_types to
+    - content ({str:MediaType|Reference}): A mapping of media value_types to
       `MediaType` instances describing potential payloads.
     - links ({str:Link_|Reference}): A map of operations links that can be
       followed from the response.
