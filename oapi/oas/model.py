@@ -1228,8 +1228,8 @@ class Operation(ExtensibleObject):
       `RFC7231 <https://tools.ietf.org/html/rfc7231#section-4.3.1>` has
       explicitly defined semantics for request
       bodies.
-    - responses (typing.Mapping[str, Response]): A mapping of HTTP
-      response codes to response schemas.
+    - responses (Responses): A mapping of HTTP
+      response codes to `Response` objects.
     - callbacks ({str:{str:PathItem}|Reference})
     - deprecated (bool)
     - security ([SecurityRequirement])

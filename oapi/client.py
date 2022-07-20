@@ -2241,7 +2241,26 @@ class Module:
             elif schema.type_ == "file":
                 return sob.properties.Bytes()
             else:
-                raise ValueError(schema.type_)
+                raise ValueError(f"Missing `type_`: {repr(schema)}")
+
+    def _get_parameter_or_schema_type(
+        self, schema: Union[Schema, Parameter]
+    ) -> Union[Type[sob.abc.Model], sob.abc.Property]:
+        if isinstance(schema, Parameter):
+            if schema.schema:
+                return self._get_parameter_or_schema_type(
+                    self._resolve_schema(schema.schema)
+                )
+            else:
+                if schema.content:
+                    media_type: MediaType = next(  # type: ignore
+                        iter(schema.content.values())
+                    )
+                    if media_type.schema:
+                        return self._get_parameter_or_schema_type(
+                            self._resolve_schema(media_type.schema)
+                        )
+        return self._get_schema_type(schema)
 
     def _iter_response_types(
         self, response: Response
@@ -2250,7 +2269,7 @@ class Module:
         resolved_schema: sob.abc.Model
         if response.schema:
             schema = self._resolve_schema(response.schema)
-            yield self._get_schema_type(schema)
+            yield self._get_parameter_or_schema_type(schema)
         if response.content:
             media_type_name: str
             media_type: Union[MediaType, Reference]
@@ -2258,7 +2277,7 @@ class Module:
                 media_type = self._resolve_media_type(media_type)
                 if media_type.schema:
                     schema = self._resolve_schema(media_type.schema)
-                    yield self._get_schema_type(schema)
+                    yield self._get_parameter_or_schema_type(schema)
 
     def _iter_operation_response_types(
         self, operation: Operation
@@ -2301,7 +2320,9 @@ class Module:
     def _iter_schema_type_names(
         self, schema: Union[Schema, Parameter]
     ) -> Iterable[str]:
-        yield from self._iter_type_names(self._get_schema_type(schema))
+        yield from self._iter_type_names(
+            self._get_parameter_or_schema_type(schema)
+        )
 
     def _get_simple_schema_type_hint(self, type_: Optional[str]) -> str:
         if type_ == "number":
@@ -2431,15 +2452,7 @@ class Module:
                 )[parameter_name] = _Parameter(
                     name=parameter.name,
                     types=sob.types.Types(
-                        [
-                            self._get_schema_type(
-                                self._resolve_schema(parameter.schema)
-                                if parameter.schema
-                                else parameter
-                            )
-                        ]
-                        if parameter.schema
-                        else []
+                        [self._get_parameter_or_schema_type(parameter)]
                     ),
                     # See: https://bit.ly/3JaCXMF
                     explode=explode,
@@ -2617,7 +2630,7 @@ class Module:
                     schema = self._resolve_schema(media_type.schema)
                     schema_type: Union[
                         Type[sob.abc.Model], sob.abc.Property
-                    ] = self._get_schema_type(schema)
+                    ] = self._get_parameter_or_schema_type(schema)
                     parameter_name: str
                     if isinstance(schema_type, type):
                         parameter_name = sob.utilities.string.property_name(
