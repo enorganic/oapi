@@ -73,6 +73,7 @@ from .oas.model import (
     SecuritySchemes,
     SecurityScheme,
 )
+from ._utilities import rename_parameters
 
 _str_lru_cache: Callable[
     [], Callable[..., Callable[..., str]]
@@ -635,13 +636,17 @@ def _make_loggers_pickleable() -> None:
 _make_loggers_pickleable()
 
 
-DEFAULT_RETRY_FOR_EXCEPTIONS: Tuple[Type[Exception], ...] = (
+DEFAULT_RETRY_FOR_ERRORS: Tuple[Type[Exception], ...] = (
     HTTPError,
     SSLError,
     URLError,
     ConnectionError,
     TimeoutError,
 )
+# For backwards-compatibility...
+DEFAULT_RETRY_FOR_EXCEPTIONS: Tuple[
+    Type[Exception], ...
+] = DEFAULT_RETRY_FOR_ERRORS
 CLIENT_SLOTS: Tuple[str, ...] = (
     "url",
     "user",
@@ -756,6 +761,7 @@ class Client(ABC):
 
     __slots__: Tuple[str, ...] = CLIENT_SLOTS
 
+    @rename_parameters(retry_for_exceptions="retry_for_errors")
     def __init__(
         self,
         url: str,
@@ -784,7 +790,7 @@ class Client(ABC):
         retry_number_of_attempts: int = 1,
         retry_for_errors: Tuple[
             Type[Exception], ...
-        ] = DEFAULT_RETRY_FOR_EXCEPTIONS,
+        ] = DEFAULT_RETRY_FOR_ERRORS,
         retry_hook: Callable[  # Force line-break retention
             [Exception], bool
         ] = default_retry_hook,
@@ -2932,7 +2938,7 @@ class Module:
             (
                 r'(?:"|\b)('
                 "SSLContext|default_retry_hook|DEFAULT_RETRY_FOR_EXCEPTIONS|"
-                "Client"
+                "DEFAULT_RETRY_FOR_ERRORS|Client"
                 r')(?:"|\b)'
             ),
             r"oapi.client.\1",
