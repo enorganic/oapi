@@ -1666,6 +1666,10 @@ def _iter_request_form_data_representation(
         yield "            },"
 
 
+def _strip_def_decorators(source: str) -> str:
+    return re.sub(r"^(\s*)@(?:.|\n)*?(\bdef )", r"\1\2", source)
+
+
 class Module:
     """
     This class parses an Open API document and outputs a module defining
@@ -2961,7 +2965,9 @@ class Module:
         # generated client module
         init_declaration_source: str = (
             self._resolve_source_namespace_discrepancies(
-                sob.utilities.inspect.get_source(Client.__init__)
+                _strip_def_decorators(
+                    sob.utilities.inspect.get_source(Client.__init__)
+                )
             )
         )
         declaration_end_marker: str = (
