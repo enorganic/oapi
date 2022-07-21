@@ -318,9 +318,9 @@ class _Modeler:
         if not isinstance(schema, Schema):
             # Version 2x parameters can't be objects/dictionaries
             return False
-        if self.schema_defines_dictionary(schema):
-            return False
-        elif schema.properties and schema.type_ in ("object", None):
+        if (schema.properties and schema.type_ in ("object", None)) and (
+            not schema.additional_properties
+        ):
             return True
         else:
             return any(
