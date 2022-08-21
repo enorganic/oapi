@@ -1413,10 +1413,20 @@ class Parameter(ExtensibleObject):
       the parameter. The name is the media type and the value describing it.
       The map must only contain one entry.
 
-    ...for version 2x compatibility:
+    ...for [version 2x compatibility](https://bit.ly/3A45Mrw):
 
     - type_ (str)
     - enum ([Any])
+    - collection_format (str) = "csv":
+      Determines the format of the array if type array is used. Possible
+      values are:
+      - csv: comma separated values foo,bar.
+      - ssv: space separated values foo bar.
+      - tsv: tab separated values foo    bar.
+      - pipes: pipe separated values foo|bar.
+      - multi: corresponds to multiple parameter instances instead of multiple
+        values for a single instance foo=bar&foo=baz. This is valid only for
+        parameters in "query" or "formData".
     """
 
     def __init__(
@@ -5059,6 +5069,7 @@ def _schema_after_validate(
         "float",
         "double",  # type_ == 'number'
         "byte",
+        "base64",
         "binary",
         "date",
         "date-time",
@@ -5086,14 +5097,22 @@ def _schema_after_validate(
             )
         elif schema.type_ == "string" and (
             schema.format_
-            not in ("byte", "binary", "date", "date-time", "password", None)
+            not in (
+                "base64",
+                "byte",
+                "binary",
+                "date",
+                "date-time",
+                "password",
+                None
+            )
         ):
             qualified_class_name = sob.utilities.qualified_name(type(schema))
             raise sob.errors.ValidationError(
                 f'"{schema.format_}" in not a valid value for '
                 f"`{qualified_class_name}.format_` in this circumstance. "
                 f'`{qualified_class_name}.format_` may be "byte", "binary", '
-                '"date", "date-time" or "password" when '
+                '"date", "date-time", "base64" or "password" when '
                 f'`{qualified_class_name}.type_` is "string".'
             )
 

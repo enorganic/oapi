@@ -36,10 +36,10 @@ from sob.utilities.string import (
 )
 from sob.utilities import qualified_name
 from sob.utilities.types import Null
-
 from .errors import DuplicateClassNameError
 from .oas.references import Resolver
 from .oas.model import OpenAPI, Parameter, Properties, Schema, Reference, Items
+from ._utilities import get_type_format_property
 
 _META_PROPERTIES_QAULIFIED_NAME = qualified_name(sob.meta.Properties)
 _META_PROPERTIES_QAULIFIED_NAME_LENGTH = len(_META_PROPERTIES_QAULIFIED_NAME)
@@ -53,6 +53,18 @@ _DOC_POINTER_RE = re.compile(
     re.DOTALL,
 )
 _SPACES_RE = re.compile(r"[\s\n]")
+
+
+def _get_schema_type(schema: Union[Schema, Items]) -> Optional[str]:
+    schema_type: Optional[str] = schema.type_
+    if schema_type is None:
+        if isinstance(schema, Schema) and (
+            schema.properties or schema.additional_properties
+        ):
+            schema_type = "object"
+        elif schema.items:
+            schema_type = "array"
+    return schema_type
 
 
 def get_default_class_name_from_pointer(pointer: str, name: str = "") -> str:
@@ -161,40 +173,6 @@ def _get_model_import_class_source(
     model_source: str = get_source(model)
     partitions: Tuple[str, str, str] = model_source.partition("\n\n\n")
     return partitions[0], partitions[2]
-
-
-def _get_string_property(
-    format_: Optional[str], required: bool
-) -> sob.abc.Property:
-    if format_ == "date-time":
-        return sob.properties.DateTime(required=required)
-    elif format_ == "date":
-        return sob.properties.Date(required=required)
-    elif format_ == "byte":
-        return sob.properties.Bytes(required=required)
-    else:
-        return sob.properties.String(required=required)
-
-
-def _get_type_property(
-    type_: Optional[str], format_: Optional[str], required: bool
-) -> sob.abc.Property:
-    if type_ == "number":
-        return sob.properties.Number(required=required)
-    elif type_ == "integer":
-        return sob.properties.Integer(required=required)
-    elif type_ == "string":
-        return _get_string_property(format_, required)
-    elif type_ == "boolean":
-        return sob.properties.Boolean(required=required)
-    elif type_ == "file":
-        return sob.properties.Bytes(required=required)
-    elif type_ == "array":
-        return sob.properties.Array(required=required)
-    else:
-        if type_ and type_ != "object":
-            raise ValueError(f"Unknown schema type: {type_}")
-        return sob.properties.Property(required=required)
 
 
 def _types_from_enum_values(
@@ -640,8 +618,19 @@ class _Modeler:
         if is_referenced:
             schema = self.resolver.resolve_reference(schema)  # type: ignore
         assert isinstance(schema, (Schema, Items))
-        property_: sob.abc.Property = _get_type_property(
-            schema.type_, format_=schema.format_, required=required
+        schema_type: Optional[str] = _get_schema_type(schema)
+        property_: sob.abc.Property = get_type_format_property(
+            schema_type,
+            format_=schema.format_,
+            required=required,
+            default_type=(
+                sob.properties.Property  # type: ignore
+                if (
+                    isinstance(schema, Schema)
+                    and (schema.any_of or schema.one_of or schema.all_of)
+                )
+                else sob.properties.Bytes
+            ),
         )
         if self.schema_defines_model(schema):
             model_class: Optional[Type[sob.abc.Model]] = self.get_model_class(

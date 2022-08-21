@@ -26,6 +26,7 @@ from http.client import HTTPResponse
 from logging import Logger, getLogger
 from time import sleep
 from typing import (
+    IO,
     Any,
     Callable,
     Dict,
@@ -40,6 +41,7 @@ from typing import (
     Type,
     Union,
     Pattern,
+    MutableMapping,
 )
 from urllib.error import HTTPError, URLError
 from urllib.parse import (
@@ -59,12 +61,14 @@ from urllib.request import (
 )
 from .oas.references import Resolver
 from .oas.model import (
+    Header,
     MediaType,
     OAuthFlow,
     OpenAPI,
     Operation,
     Parameter,
     PathItem,
+    Properties,
     Reference,
     RequestBody,
     Response,
@@ -73,7 +77,8 @@ from .oas.model import (
     SecuritySchemes,
     SecurityScheme,
 )
-from ._utilities import rename_parameters
+from ._utilities import rename_parameters, get_type_format_property
+from ._multipart_request import MultipartRequest, Part
 
 _str_lru_cache: Callable[
     [], Callable[..., Callable[..., str]]
@@ -149,17 +154,24 @@ _PRIMITIVE_VALUE_TYPES: Tuple[type, ...] = (
     datetime,
 )
 _PrimitiveValueTypes = Union[
-    None, str, bool, int, float, decimal.Decimal, date, datetime
+    None, str, bool, int, float, decimal.Decimal, date, datetime, bytes
 ]
 
 
-def _format_primitive_value(value: _PrimitiveValueTypes) -> Optional[str]:
+def _format_primitive_value(
+    value: _PrimitiveValueTypes,
+) -> Optional[str]:
     if value is None or isinstance(value, str):
         return value
     elif isinstance(value, bool):
         return str(value).lower()
     elif isinstance(value, (int, float, decimal.Decimal)):
         return str(value)
+    elif isinstance(value, bytes):
+        return str(
+            b64encode(value),
+            encoding="ascii",
+        )
     else:
         assert isinstance(value, (datetime, date)), repr(value)
         return value.isoformat()
@@ -363,10 +375,20 @@ def _format_deep_object_argument_value(
 
 def format_argument_value(
     name: str,
-    value: sob.abc.MarshallableTypes,
+    value: Union[sob.abc.MarshallableTypes, IO[bytes]],
     style: str,
     explode: bool = False,
-) -> Union[str, Dict[str, str], Sequence[str], None]:
+    multipart: bool = False,
+) -> Union[
+    str,
+    Dict[str, str],
+    Sequence[str],
+    Sequence[bytes],
+    bytes,
+    Sequence[IO[bytes]],
+    IO[bytes],
+    None,
+]:
     """
     Format an argument value for use in a path, query, cookie, header, etc.
 
@@ -377,10 +399,23 @@ def format_argument_value(
       )
     - style (str)
     - explode (bool) = False
-    - in_ (str) = ""
+    - multipart (bool) = False: Indicates the argument will be part of a
+      multipart request
 
     See: https://swagger.io/docs/specification/serialization/
     """
+    if multipart and (
+        isinstance(value, (bytes, sob.abc.Readable))
+        or (
+            value
+            and (not isinstance(value, str))
+            and isinstance(value, Sequence)
+            and isinstance(value[0], (bytes, sob.abc.Readable))
+        )
+    ):
+        # For multipart requests, we don't apply any formatting to `bytes`
+        # objects, as they will be sent in binary format
+        return value
     if isinstance(value, sob.abc.Model):
         value = sob.model.marshal(value)  # type: ignore
     if style == "simple":
@@ -438,6 +473,14 @@ def get_request_curl(
         if request.data
         else b""
     )
+    repr_data: str = ""
+    if data:
+        try:
+            repr_data = shlex.quote(data.decode("utf-8"))
+        except UnicodeDecodeError:
+            # If the data can't be represented as a command-line argument,
+            # use a placeholder
+            repr_data = "***"
     return " ".join(
         filter(
             None,
@@ -450,7 +493,7 @@ def get_request_curl(
                         sorted(request.headers.items()),  # type: ignore
                     )
                 ),
-                (f"-d {shlex.quote(data.decode('utf-8'))}" if data else ""),
+                (f"-d {repr_data}" if data else ""),
                 shlex.quote(request.full_url),
             ),
         )
@@ -569,25 +612,37 @@ def _remove_none(
 
 
 def _format_request_data(
-    data: Union[str, bytes, sob.abc.Model, None],
-    form_data: Union[Mapping[str, Any], Sequence[Tuple[str, Any]]],
+    json: Union[str, bytes, sob.abc.Model, None],
+    data: Union[Mapping[str, Any], Sequence[Tuple[str, Any]]],
 ) -> Optional[bytes]:
-    if form_data:
-        form_data = _remove_none(form_data)
     formatted_data: Optional[bytes] = None
-    if data:
-        assert not form_data
+    if json:
+        assert not data
         # Cast `data` as a `str`
-        if isinstance(data, sob.abc.Model):
-            data = sob.model.serialize(data)
+        if isinstance(json, sob.abc.Model):
+            json = sob.model.serialize(json)
         # Convert `str` data to `bytes`
-        if isinstance(data, str):
-            formatted_data = bytes(data, encoding="utf-8")
+        if isinstance(json, str):
+            formatted_data = bytes(json, encoding="utf-8")
         else:
-            formatted_data = data
-    elif form_data:
-        assert form_data
-        formatted_data = bytes(urlencode(form_data), encoding="utf-8")
+            formatted_data = json
+    elif data:
+        data = _remove_none(data)
+        data = dict(data)
+        assert isinstance(data, MutableMapping), repr(data)
+        # Convert bytes to base64-encoded strings
+        key: str
+        value: Any
+        for key, value in tuple(data.items()):
+            if isinstance(value, sob.abc.Readable):
+                value = value.read()
+                assert isinstance(value, bytes)
+            if isinstance(value, bytes):
+                data[key] = str(
+                    b64encode(value),
+                    encoding="ascii",
+                )
+        formatted_data = bytes(urlencode(data), encoding="utf-8")
     return formatted_data
 
 
@@ -698,6 +753,92 @@ class _SSLContext(ssl.SSLContext):
         instance.
         """
         return _SSLContext, (self.check_hostname,)
+
+
+def _get_file_name(file: IO, default: str = "") -> str:
+    """
+    Get the file name from a file's URL or file path
+    """
+    name: str = ""
+    if hasattr(file, "url"):
+        name = getattr(file, "url")
+    elif hasattr(file, "name"):
+        name = getattr(file, "name")
+    if name:
+        return name.rstrip("/\\").split("/")[-1].split("\\")[-1]
+    return default
+
+
+def _assemble_request(
+    url: str,
+    method: str,
+    json: Union[str, bytes, sob.abc.Model, None],
+    data: Mapping[str, Union[sob.abc.MarshallableTypes, IO[bytes]]],
+    multipart: bool,
+    headers: MutableMapping[
+        str,
+        str,
+    ],
+    multipart_data_headers: Mapping[
+        str,
+        MutableMapping[
+            str,
+            str,
+        ],
+    ],
+) -> Request:
+    if multipart:
+        assert data and not json
+        parts: List[Part] = []
+        name: str
+        part_data: sob.abc.MarshallableTypes
+        for name, part_data in data.items():
+            if not (
+                isinstance(part_data, Sequence)
+                and (not isinstance(part_data, bytes))
+                and part_data
+                and isinstance(part_data[0], (bytes, sob.abc.Readable))
+            ):
+                part_data = (part_data,)
+            datum: sob.abc.MarshallableTypes
+            for datum in part_data:
+                part_headers: MutableMapping = multipart_data_headers.get(
+                    name, {}
+                )
+                if "Content-disposition" not in part_headers:
+                    filename: str = ""
+                    if isinstance(datum, sob.abc.Readable):
+                        filename = _get_file_name(datum, name)
+                        datum = datum.read()  # type: ignore
+                    repr_filename: str = (
+                        f'; filename="{filename}"' if filename else ""
+                    )
+                    part_headers[
+                        "Content-disposition"
+                    ] = f'form-data; name="{name}"{repr_filename}'
+                if "Content-type" not in part_headers:
+                    if isinstance(datum, bytes):
+                        part_headers[
+                            "Content-type"
+                        ] = "application/octet-stream"
+                    elif isinstance(datum, str):
+                        part_headers["Content-type"] = "text/plain"
+                    else:
+                        part_headers["Content-type"] = "application/json"
+                parts.append(Part(data=datum, headers=part_headers))
+        return MultipartRequest(
+            url=url,
+            method=method.upper(),
+            headers=headers,
+            parts=parts,
+        )
+    else:
+        return Request(
+            url,
+            data=_format_request_data(json, data),
+            method=method.upper(),
+            headers=headers,
+        )
 
 
 class Client(ABC):
@@ -938,12 +1079,13 @@ class Client(ABC):
 
         return callback
 
+    @rename_parameters(form_data="data")
     def request(
         self,
         path: str,
         method: str,
-        data: Union[str, bytes, sob.abc.Model, None] = None,
-        form_data: Union[
+        json: Union[str, bytes, sob.abc.Model, None] = None,
+        data: Union[
             Mapping[
                 str,
                 sob.abc.MarshallableTypes,
@@ -979,6 +1121,11 @@ class Client(ABC):
                 ]
             ],
         ] = (),
+        multipart: bool = False,
+        multipart_data_headers: Union[
+            Mapping[str, MutableMapping[str, str]],
+            Sequence[Tuple[str, MutableMapping[str, str]]],
+        ] = (),
         timeout: int = 0,
     ) -> sob.abc.Readable:
         """
@@ -990,9 +1137,21 @@ class Client(ABC):
         - path (str): This is the path of the request, relative to the server
           base URL
         - query ({str: str}|[(str,str)])
-        - data (str): This the data to be conveyed in the body of the request
+        - json (str): JSON data to be conveyed in the body of the request
+        - data ({str: str|[str]|bytes|[bytes]}): Form data to be conveyed
+          in the body of the request
+        - multipart (bool) = False: If `True`, `data` should be conveyed
+          as a multipart request.
+        - query ({str: str|[str]}): A dictionary from which to assemble the
+          query string.
+        - headers ({str: str})
+        - multipart_data_headers ({str: str})
         - timeout (int)
         """
+        # For backwards compatibility...
+        if isinstance(data, (str, bytes, sob.abc.Model)) or (data is None):
+            json = data
+            data = ()
         request: Callable[
             [
                 str,
@@ -1034,6 +1193,25 @@ class Client(ABC):
                         ]
                     ],
                 ],
+                bool,
+                Union[
+                    Mapping[
+                        str,
+                        MutableMapping[
+                            str,
+                            str,
+                        ],
+                    ],
+                    Sequence[
+                        Tuple[
+                            str,
+                            MutableMapping[
+                                str,
+                                str,
+                            ],
+                        ]
+                    ],
+                ],
                 int,
             ],
             sob.abc.Readable,
@@ -1047,7 +1225,17 @@ class Client(ABC):
                 retry_hook=self.retry_hook,
                 logger=self.logger,
             )(self._request)
-        return request(path, method, data, form_data, query, headers, timeout)
+        return request(
+            path,
+            method,
+            json,
+            data,
+            query,
+            headers,
+            multipart,
+            multipart_data_headers,
+            timeout,
+        )
 
     def _request_callback(self, request: Request) -> None:
         curl_options: str = "-i"
@@ -1281,8 +1469,8 @@ class Client(ABC):
         self,
         path: str,
         method: str,
-        data: Union[str, bytes, sob.abc.Model, None] = None,
-        form_data: Union[
+        json: Union[str, bytes, sob.abc.Model, None] = None,
+        data: Union[
             Mapping[
                 str,
                 sob.abc.MarshallableTypes,
@@ -1318,6 +1506,25 @@ class Client(ABC):
                 ]
             ],
         ] = (),
+        multipart: bool = False,
+        multipart_data_headers: Union[
+            Mapping[
+                str,
+                MutableMapping[
+                    str,
+                    str,
+                ],
+            ],
+            Sequence[
+                Tuple[
+                    str,
+                    MutableMapping[
+                        str,
+                        str,
+                    ],
+                ]
+            ],
+        ] = (),
         timeout: int = 0,
     ) -> sob.abc.Readable:
         if query:
@@ -1347,11 +1554,14 @@ class Client(ABC):
                 }
             )
         # Assemble the request
-        request = Request(
-            url,
-            data=_format_request_data(data, form_data),
-            method=method.upper(),
+        request = _assemble_request(
+            url=url,
+            method=method,
             headers=request_headers,
+            json=json,
+            data=dict(data),
+            multipart=multipart,
+            multipart_data_headers=dict(multipart_data_headers),
         )
         # Authenticate the request
         self._authenticate_request(request)
@@ -1498,16 +1708,40 @@ class _Parameter:
     explode: bool = False
     style: str = ""
     description: str = ""
+    content_type: str = ""
+    headers: Mapping[str, Union[Header, Reference]] = field(
+        default_factory=OrderedDict
+    )
 
 
 @dataclass
 class _ParameterLocations:
+    """
+    Properties:
+
+    - total_count (int) = 0: The total number of parameters accounted for.
+    - header ({str: oapi.client._Parameter}): A mapping of header parameter
+      names to information about each parameter.
+    - body (oapi.client._Parameter|None): A parameter representing the body
+      of a request in JSON format.
+    - form_data ({str: oapi.client._Parameter}): A mapping of form data
+      parameter names to information about the parameter.
+    - multipart (bool): Indicates that the form data is multipart.
+    - path ({str:oapi.client._Parameter}): A mapping of path
+      parameter names to information about each parameter.
+    - query ({str:oapi.client._Parameter}): A mapping of query string
+      parameter names to information about each parameter.
+    - cookie ({str:oapi.client._Parameter}): A mapping of cookie
+      parameter names to information about each parameter.
+    """
+
     total_count: int = 0
     header: Dict[str, _Parameter] = field(default_factory=OrderedDict)
     body: Optional[_Parameter] = None
     path: Dict[str, _Parameter] = field(default_factory=OrderedDict)
     query: Dict[str, _Parameter] = field(default_factory=OrderedDict)
     form_data: Dict[str, _Parameter] = field(default_factory=OrderedDict)
+    multipart: bool = False
     cookie: Dict[str, _Parameter] = field(default_factory=OrderedDict)
 
 
@@ -1543,31 +1777,41 @@ def _iter_request_path_representation(
         name: str
         parameter: _Parameter
         for name, parameter in parameter_locations.path.items():
-            yield _represent_dictionary_parameter(name, parameter)
+            yield _represent_dictionary_parameter(
+                name, parameter, value_type="str"
+            )
         yield "            }),"
     else:
         yield f"            {path_representation},"
 
 
 def _represent_dictionary_parameter(
-    name: str, parameter: _Parameter, use_kwargs: bool = False
+    name: str,
+    parameter: _Parameter,
+    use_kwargs: bool = False,
+    multipart: bool = False,
+    value_type: str = "",
 ) -> str:
     represent_style: str = sob.utilities.inspect.represent(parameter.style)
-    represent_explode: str = sob.utilities.inspect.represent(parameter.explode)
     parameter_name: str = parameter.name
     if parameter.style == "matrix":
         parameter_name = f";{parameter_name}"
     if use_kwargs:
         name = f'kwargs.get("{name}", None)'
+    represent_multipart_argument: str = ""
+    if multipart:
+        represent_multipart_argument = "                    multipart=True,\n"
+
     return (
         f'                "{parameter_name}": '
-        "oapi.client.format_argument_value(\n"
+        "{}oapi.client.format_argument_value(\n"
         f'                    "{parameter_name}",\n'
         f"                    {name},\n"
         f"                    style={represent_style},\n"
-        f"                    explode={represent_explode}\n"
-        "                ),"
-    )
+        f"                    explode={repr(parameter.explode)},\n"
+        f"{represent_multipart_argument}"
+        "                ){},"
+    ).format(f"{value_type}(" if value_type else "", ")" if value_type else "")
 
 
 def _iter_cookie_dictionary_parameter_representation(
@@ -1619,12 +1863,10 @@ def _iter_request_body_representation(
     parameter_locations: _ParameterLocations, use_kwargs: bool = False
 ) -> Iterable[str]:
     if parameter_locations.body:
-        # Form data and a request body cannot co-exist
-        assert not parameter_locations.form_data
         name: str = parameter_locations.body.name
         if use_kwargs:
             name = f'kwargs.get("{name}", None)'
-        yield (f"            data={name},")
+        yield (f"            json={name},")
 
 
 def _iter_request_query_representation(
@@ -1642,27 +1884,20 @@ def _iter_request_query_representation(
 
 
 def _iter_request_form_data_representation(
-    parameter_locations: _ParameterLocations, use_kwargs: bool = False
+    parameter_locations: _ParameterLocations,
+    use_kwargs: bool = False,
 ) -> Iterable[str]:
     if parameter_locations.form_data:
-        yield "            form_data={"
+        yield "            data={"
         name: str
         parameter: _Parameter
         for name, parameter in parameter_locations.form_data.items():
-            if use_kwargs:
-                name = f'kwargs.get("{name}", None)'
-            parameter_representation = (
-                f'                "{parameter.name}": {name},'
+            yield _represent_dictionary_parameter(
+                name,
+                parameter,
+                use_kwargs=use_kwargs,
+                multipart=parameter_locations.multipart,
             )
-            if (
-                len(parameter_representation)
-                > sob.utilities.string.MAX_LINE_LENGTH
-            ):
-                parameter_representation = (
-                    f'                "{parameter.name}":\n'
-                    f"                {name},"
-                )
-            yield parameter_representation
         yield "            },"
 
 
@@ -2239,19 +2474,10 @@ class Module:
                 (schema.type_ is None) and schema.items
             ):
                 return sob.model.Array
-            elif schema.type_ == "number":
-                self._imports.add("import decimal")
-                return sob.properties.Number()
-            elif schema.type_ == "string":
-                return sob.properties.String()
-            elif schema.type_ == "integer":
-                return sob.properties.Integer()
-            elif schema.type_ == "boolean":
-                return sob.properties.Boolean()
-            elif schema.type_ == "file":
-                return sob.properties.Bytes()
             else:
-                raise ValueError(f"Missing `type_`: {repr(schema)}")
+                if schema.type_ == "number":
+                    self._imports.add("import decimal")
+                return get_type_format_property(schema.type_, schema.format_)
 
     def _get_parameter_or_schema_type(
         self, schema: Union[Schema, Parameter]
@@ -2304,22 +2530,57 @@ class Module:
                         self._resolve_response(response)
                     )
 
-    def _iter_type_names(
-        self, type_: Union[Type[sob.abc.Model], sob.abc.Property]
+    def _iter_enumerated_type_names(
+        self, type_: sob.abc.Enumerated
     ) -> Iterable[str]:
-        if isinstance(type_, sob.abc.Number):
+        if type_.types:
+            yield from chain(*map(self._iter_type_names, type_.types))
+        elif type_.values:
+            yield from chain(
+                *map(self._iter_type_names, map(type, type_.values))
+            )
+
+    def _iter_type_names(
+        self, type_: Union[type, sob.abc.Property]
+    ) -> Iterable[str]:
+        if isinstance(type_, sob.abc.Enumerated):
+            yield from self._iter_enumerated_type_names(type_)
+        elif isinstance(type_, sob.abc.Number) or (
+            isinstance(type_, type)
+            and issubclass(type_, (decimal.Decimal, float, int))
+        ):
             self._imports.add("import decimal")
             yield from ("int", "float", "decimal.Decimal")
-        elif isinstance(type_, sob.abc.String):
+        elif isinstance(type_, sob.abc.String) or (
+            isinstance(type_, type) and issubclass(type_, str)
+        ):
             yield "str"
-        elif isinstance(type_, sob.abc.Integer):
+        elif isinstance(type_, sob.abc.DateTime) or (
+            isinstance(type_, type) and issubclass(type_, datetime)
+        ):
+            self._imports.add("import datetime")
+            yield "datetime.datetime"
+        elif isinstance(type_, sob.abc.Date) or (
+            isinstance(type_, type) and issubclass(type_, date)
+        ):
+            self._imports.add("import datetime")
+            yield "datetime.date"
+        elif isinstance(type_, sob.abc.Integer) or (
+            isinstance(type_, type) and issubclass(type_, int)
+        ):
             yield "int"
-        elif isinstance(type_, sob.abc.Boolean):
+        elif isinstance(type_, sob.abc.Boolean) or (
+            isinstance(type_, type) and issubclass(type_, bool)
+        ):
             yield "bool"
-        elif isinstance(type_, sob.abc.Bytes):
-            yield "bytes"
+        elif isinstance(type_, sob.abc.Bytes) or (
+            isinstance(type_, type) and issubclass(type_, bytes)
+        ):
+            yield "typing.Union[typing.IO[bytes], bytes]"
         else:
-            assert isinstance(type_, type) and issubclass(type_, sob.abc.Model)
+            assert isinstance(type_, type) and issubclass(
+                type_, sob.abc.Model
+            ), repr(type_)
             model_module_name: str = (
                 "sob.abc"
                 if type_.__module__ in ("sob.model", "sob.abc")
@@ -2400,14 +2661,14 @@ class Module:
         self,
         parameter: Parameter,
         parameter_locations: _ParameterLocations,
+        parameter_names: Optional[Set[str]] = None,
+        content_type: str = "",
+        headers: Optional[Mapping[str, Union[Header, Reference]]] = None,
     ) -> Iterable[str]:
         """
-        Yield lines for a parameter declaration
+        Yield lines for a parameter declaration.
         """
         if parameter.name:
-            parameter_name: str = sob.utilities.string.property_name(
-                parameter.name
-            ).rstrip("_")
             if parameter.in_ and not (
                 (
                     parameter.in_ == "header"
@@ -2427,16 +2688,40 @@ class Module:
                     == self._get_api_key_name().lower()
                 )
             ):
+                parameter_name: str = sob.utilities.string.property_name(
+                    parameter.name
+                ).rstrip("_")
+                # If a set of parameter names was provided, make sure
+                # this one does not duplicate any
+                if parameter_names is not None:
+                    while parameter_name in parameter_names:
+                        parameter_name = f"{parameter_name}_"
+                    parameter_names.add(parameter_name)
                 # See: https://bit.ly/3uetijD
                 style: str = parameter.style or (
                     "form"
-                    if parameter.in_ in ("query", "cookie")
+                    if (
+                        parameter.in_ in ("query", "cookie")
+                        # OpenAPI 2x compatibility
+                        or (
+                            parameter.collection_format == "multi"
+                            and parameter.in_ in ("query", "formData")
+                        )
+                    )
                     else "simple"
                     if parameter.in_ in ("path", "header")
                     else ""
                 )
                 explode: bool = (
-                    (True if style in ("form", "deepObject") else False)
+                    (
+                        True
+                        if (
+                            style in ("form", "deepObject")
+                            # OpenAPI 2x compatibility
+                            or parameter.collection_format == "multi"
+                        )
+                        else False
+                    )
                     if parameter.explode is None
                     else parameter.explode
                 )
@@ -2456,10 +2741,7 @@ class Module:
                 ):
                     style = "form"
                     explode = False
-                getattr(
-                    parameter_locations,
-                    sob.utilities.string.property_name(parameter.in_),
-                )[parameter_name] = _Parameter(
+                parameter_: _Parameter = _Parameter(
                     name=parameter.name,
                     types=sob.types.Types(
                         [self._get_parameter_or_schema_type(parameter)]
@@ -2469,7 +2751,14 @@ class Module:
                     style=style,
                     description=parameter.description or "",
                     index=parameter_locations.total_count,
+                    content_type=content_type,
                 )
+                if headers:
+                    parameter_.headers = headers
+                getattr(
+                    parameter_locations,
+                    sob.utilities.string.property_name(parameter.in_),
+                )[parameter_name] = parameter_
                 parameter_locations.total_count += 1
                 type_hint: str = self._get_parameter_type_hint(parameter)
                 yield f"        {parameter_name}: {type_hint},"
@@ -2512,11 +2801,14 @@ class Module:
             parameter_locations, use_kwargs=use_kwargs
         )
         yield from _iter_request_form_data_representation(
-            parameter_locations, use_kwargs=use_kwargs
+            parameter_locations,
+            use_kwargs=use_kwargs,
         )
         yield from _iter_request_body_representation(
             parameter_locations, use_kwargs=use_kwargs
         )
+        if parameter_locations.multipart:
+            yield "            multipart=True,"
         yield "        )"
         if operation_response_types:
             response_types_representation: str = ",\n                ".join(
@@ -2622,60 +2914,127 @@ class Module:
             parameter_locations=parameter_locations,
         )
 
-    def _iter_request_body_parameter_method_source(
+    def _get_request_body_json_parameter_source(
+        self,
+        media_type: MediaType,
+        parameter_locations: _ParameterLocations,
+        parameter_names: Set[str],
+        required: bool = False,
+    ) -> str:
+        type_hint: str
+        assert media_type.schema
+        schema = self._resolve_schema(media_type.schema)
+        schema_type: Union[
+            Type[sob.abc.Model], sob.abc.Property
+        ] = self._get_parameter_or_schema_type(schema)
+        parameter_name: str
+        if isinstance(schema_type, type):
+            parameter_name = sob.utilities.string.property_name(
+                schema_type.__name__
+            )
+            # Ensure the parameter name is unique
+            while parameter_name in parameter_names:
+                parameter_name = f"{parameter_name}_"
+            parameter_names.add(parameter_name)
+        else:
+            parameter_name = "data_"
+        parameter_locations.body = _Parameter(
+            name=parameter_name,
+            types=sob.types.Types([schema_type]),
+            index=parameter_locations.total_count,
+            description=schema.description or "",
+        )
+        parameter_locations.total_count += 1
+        type_hint = self._get_schema_type_hint(schema, required=required)
+        return f"        {parameter_name}: {type_hint},"
+
+    def _iter_request_body_form_parameters_source(
+        self,
+        media_type: MediaType,
+        parameter_locations: _ParameterLocations,
+        parameter_names: Set[str],
+        required: bool = False,
+    ) -> Iterable[str]:
+        assert media_type.schema
+        schema = self._resolve_schema(media_type.schema)
+        # Form data parameters cannot be open-ended
+        assert schema.properties and not schema.additional_properties
+        properties: Properties = schema.properties
+        # Get parameter encodings
+        encoding: Union[Reference, Encoding, None]
+        parameters_encodings: Dict[str, Encoding] = {}
+        if media_type.encoding:
+            name: str
+            for name, encoding in media_type.encoding.items():
+                assert name in properties
+                parameters_encodings[name] = self._resolve_encoding(encoding)
+        # Create a parameter for each property
+        key: str
+        property_schema: Union[Reference, Schema]
+        for key, property_schema in properties.items():
+            property_schema = self._resolve_schema(property_schema)
+            parameter: Parameter = Parameter(
+                name=key,
+                in_="formData",
+                schema=property_schema,
+                required=required,
+                description=property_schema.description or "",
+                style="form",
+                explode=True,
+            )
+            encoding = parameters_encodings.get(key, None)
+            kwargs: Dict[
+                str, Union[str, Mapping[str, Union[Header, Reference]]]
+            ] = {}
+            if encoding:
+                encoding = self._resolve_encoding(encoding)
+                if encoding.explode is not None:
+                    parameter.explode = encoding.explode
+                if encoding.style is not None:
+                    parameter.style = encoding.style
+                if encoding.content_type:
+                    kwargs.update(content_type=encoding.content_type)
+                if encoding.headers:
+                    kwargs.update(headers=encoding.headers)
+            yield from self._iter_parameter_method_source(
+                parameter,
+                parameter_locations=parameter_locations,
+                parameter_names=parameter_names,
+                **kwargs,  # type: ignore
+            )
+
+    def _iter_request_body_parameters_source(
         self,
         request_body: RequestBody,
         parameter_locations: _ParameterLocations,
         parameter_names: Set[str],
     ) -> Iterable[str]:
-        encoding: Union[Reference, Encoding]
-        schema: Schema
         media_type: MediaType
         media_type_name: str
-        type_hint: str
+        required: bool = bool(request_body.required)
         if request_body.content:
             for media_type_name, media_type in request_body.content.items():
                 if media_type_name == "application/json":
-                    assert media_type.schema
-                    schema = self._resolve_schema(media_type.schema)
-                    schema_type: Union[
-                        Type[sob.abc.Model], sob.abc.Property
-                    ] = self._get_parameter_or_schema_type(schema)
-                    parameter_name: str
-                    if isinstance(schema_type, type):
-                        parameter_name = sob.utilities.string.property_name(
-                            schema_type.__name__
-                        )
-                        while parameter_name in parameter_names:
-                            parameter_name = f"{parameter_name}_"
-                    else:
-                        parameter_name = "data_"
-                    parameter_locations.body = _Parameter(
-                        name=parameter_name,
-                        types=sob.types.Types([schema_type]),
-                        index=parameter_locations.total_count,
+                    yield self._get_request_body_json_parameter_source(
+                        media_type,
+                        parameter_locations=parameter_locations,
+                        parameter_names=parameter_names,
+                        required=required,
                     )
-                    parameter_locations.total_count += 1
-                    type_hint = self._get_schema_type_hint(
-                        schema, required=bool(request_body.required)
-                    )
-                    yield f"        {parameter_name}: {type_hint},"
-                elif media_type_name in (
-                    "multipart",
-                    "application/x-www-form-urlencoded",
+                elif (
+                    media_type_name.startswith("multipart")
+                    or media_type_name == "application/x-www-form-urlencoded"
                 ):
-                    # Treat the request body as form data
-                    assert media_type.encoding
-                    assert media_type.schema
-                    name: str
-                    for name, encoding in media_type.encoding.items():
-                        encoding = self._resolve_encoding(encoding)
-                    schema = self._resolve_schema(media_type.schema)
-                    assert schema.type_ == "object"
-                    # Add each property as if it were a parameter
-                    # where in == "formData"
-                    # TODO
-                    raise NotImplementedError(media_type_name)
+                    if media_type_name.startswith("multipart"):
+                        parameter_locations.multipart = True
+                    yield from (
+                        self._iter_request_body_form_parameters_source(
+                            media_type,
+                            parameter_locations=parameter_locations,
+                            parameter_names=parameter_names,
+                            required=required,
+                        )
+                    )
                 else:
                     raise NotImplementedError(media_type_name)
 
@@ -2743,7 +3102,7 @@ class Module:
         if operation.request_body:
             request_body = self._resolve_request_body(operation.request_body)
             if request_body.required:
-                yield from self._iter_request_body_parameter_method_source(
+                yield from self._iter_request_body_parameters_source(
                     request_body,
                     parameter_locations=parameter_locations,
                     parameter_names=parameter_names,
@@ -2784,7 +3143,7 @@ class Module:
         if request_body and not request_body.required:
             if previous_parameter_required:
                 yield "        *,"
-            yield from self._iter_request_body_parameter_method_source(
+            yield from self._iter_request_body_parameters_source(
                 request_body,
                 parameter_locations=parameter_locations,
                 parameter_names=parameter_names,
