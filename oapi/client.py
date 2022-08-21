@@ -2530,76 +2530,56 @@ class Module:
                         self._resolve_response(response)
                     )
 
+    def _iter_enumerated_type_names(
+        self, type_: sob.abc.Enumerated
+    ) -> Iterable[str]:
+        if type_.types:
+            yield from chain(*map(self._iter_type_names, type_.types))
+        elif type_.values:
+            yield from chain(
+                *map(self._iter_type_names, map(type, type_.values))
+            )
+
     def _iter_type_names(
         self, type_: Union[type, sob.abc.Property]
     ) -> Iterable[str]:
         if isinstance(type_, sob.abc.Enumerated):
-            if type_.types:
-                yield from chain(*map(
-                    self._iter_type_names,
-                    type_.types
-                ))
-            elif type_.values:
-                yield from chain(*map(
-                    self._iter_type_names,
-                    map(type, type_.values)
-                ))
+            yield from self._iter_enumerated_type_names(type_)
         elif isinstance(type_, sob.abc.Number) or (
-            isinstance(type_, type) and issubclass(
-                type_,
-                (decimal.Decimal, float, int)
-            )
+            isinstance(type_, type)
+            and issubclass(type_, (decimal.Decimal, float, int))
         ):
             self._imports.add("import decimal")
             yield from ("int", "float", "decimal.Decimal")
         elif isinstance(type_, sob.abc.String) or (
-            isinstance(type_, type) and issubclass(
-                type_,
-                str
-            )
+            isinstance(type_, type) and issubclass(type_, str)
         ):
             yield "str"
         elif isinstance(type_, sob.abc.DateTime) or (
-            isinstance(type_, type) and issubclass(
-                type_,
-                datetime
-            )
+            isinstance(type_, type) and issubclass(type_, datetime)
         ):
             self._imports.add("import datetime")
             yield "datetime.datetime"
         elif isinstance(type_, sob.abc.Date) or (
-            isinstance(type_, type) and issubclass(
-                type_,
-                date
-            )
+            isinstance(type_, type) and issubclass(type_, date)
         ):
             self._imports.add("import datetime")
             yield "datetime.date"
         elif isinstance(type_, sob.abc.Integer) or (
-            isinstance(type_, type) and issubclass(
-                type_,
-                int
-            )
+            isinstance(type_, type) and issubclass(type_, int)
         ):
             yield "int"
         elif isinstance(type_, sob.abc.Boolean) or (
-            isinstance(type_, type) and issubclass(
-                type_,
-                bool
-            )
+            isinstance(type_, type) and issubclass(type_, bool)
         ):
             yield "bool"
         elif isinstance(type_, sob.abc.Bytes) or (
-            isinstance(type_, type) and issubclass(
-                type_,
-                bytes
-            )
+            isinstance(type_, type) and issubclass(type_, bytes)
         ):
             yield "typing.Union[typing.IO[bytes], bytes]"
         else:
-            assert (
-                isinstance(type_, type)
-                and issubclass(type_, sob.abc.Model)
+            assert isinstance(type_, type) and issubclass(
+                type_, sob.abc.Model
             ), repr(type_)
             model_module_name: str = (
                 "sob.abc"
@@ -2677,7 +2657,7 @@ class Module:
             schema, required=bool(parameter.required)
         )
 
-    def _iter_parameter_method_source(  # noqa: C901
+    def _iter_parameter_method_source(
         self,
         parameter: Parameter,
         parameter_locations: _ParameterLocations,
