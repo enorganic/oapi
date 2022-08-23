@@ -2459,7 +2459,9 @@ class Module:
                 raise
 
     def _get_schema_type(
-        self, schema: Union[Schema, Parameter]
+        self,
+        schema: Union[Schema, Parameter],
+        default_type: Type[sob.abc.Property] = sob.properties.Property,
     ) -> Union[Type[sob.abc.Model], sob.abc.Property]:
         try:
             return self._get_schema_class(schema)
@@ -2477,15 +2479,32 @@ class Module:
             else:
                 if schema.type_ == "number":
                     self._imports.add("import decimal")
-                return get_type_format_property(schema.type_, schema.format_)
+                return get_type_format_property(
+                    type_=schema.type_,
+                    format_=schema.format_,
+                    content_media_type=(
+                        schema.content_media_type
+                        if isinstance(schema, Schema)
+                        else None
+                    ),
+                    content_encoding=(
+                        schema.content_encoding
+                        if isinstance(schema, Schema)
+                        else None
+                    ),
+                    default_type=default_type,
+                )
 
     def _get_parameter_or_schema_type(
-        self, schema: Union[Schema, Parameter]
+        self,
+        schema: Union[Schema, Parameter],
+        default_type: Type[sob.abc.Property] = sob.properties.Property,
     ) -> Union[Type[sob.abc.Model], sob.abc.Property]:
         if isinstance(schema, Parameter):
             if schema.schema:
                 return self._get_parameter_or_schema_type(
-                    self._resolve_schema(schema.schema)
+                    self._resolve_schema(schema.schema),
+                    default_type=default_type,
                 )
             else:
                 if schema.content:
@@ -2494,9 +2513,10 @@ class Module:
                     )
                     if media_type.schema:
                         return self._get_parameter_or_schema_type(
-                            self._resolve_schema(media_type.schema)
+                            self._resolve_schema(media_type.schema),
+                            default_type=sob.properties.Bytes,
                         )
-        return self._get_schema_type(schema)
+        return self._get_schema_type(schema, default_type=default_type)
 
     def _iter_response_types(
         self, response: Response
@@ -2511,9 +2531,11 @@ class Module:
             media_type: Union[MediaType, Reference]
             for media_type_name, media_type in response.content.items():
                 media_type = self._resolve_media_type(media_type)
-                if media_type.schema:
+                if media_type.schema is not None:
                     schema = self._resolve_schema(media_type.schema)
-                    yield self._get_parameter_or_schema_type(schema)
+                    yield self._get_parameter_or_schema_type(
+                        schema, default_type=sob.properties.Bytes
+                    )
 
     def _iter_operation_response_types(
         self, operation: Operation
@@ -2530,6 +2552,12 @@ class Module:
                         self._resolve_response(response)
                     )
 
+    def _iter_type_types_names(self, type_: sob.abc.Property) -> Iterable[str]:
+        if type_.types:
+            yield from chain(*map(self._iter_type_names, type_.types))
+        else:
+            yield "typing.Any"
+
     def _iter_enumerated_type_names(
         self, type_: sob.abc.Enumerated
     ) -> Iterable[str]:
@@ -2539,6 +2567,8 @@ class Module:
             yield from chain(
                 *map(self._iter_type_names, map(type, type_.values))
             )
+        else:
+            yield "typing.Any"
 
     def _iter_type_names(
         self, type_: Union[type, sob.abc.Property]
@@ -2577,6 +2607,8 @@ class Module:
             isinstance(type_, type) and issubclass(type_, bytes)
         ):
             yield "typing.Union[typing.IO[bytes], bytes]"
+        elif isinstance(type_, sob.abc.Property):
+            yield from self._iter_type_types_names(type_)
         else:
             assert isinstance(type_, type) and issubclass(
                 type_, sob.abc.Model
@@ -2589,10 +2621,15 @@ class Module:
             yield f"{model_module_name}.{type_.__name__}"
 
     def _iter_schema_type_names(
-        self, schema: Union[Schema, Parameter]
+        self,
+        schema: Union[Schema, Parameter],
+        default_type: Type[sob.abc.Property] = sob.properties.Property,
     ) -> Iterable[str]:
         yield from self._iter_type_names(
-            self._get_parameter_or_schema_type(schema)
+            self._get_parameter_or_schema_type(
+                schema,
+                default_type=default_type,
+            )
         )
 
     def _get_simple_schema_type_hint(self, type_: Optional[str]) -> str:
@@ -2617,10 +2654,13 @@ class Module:
             raise ValueError(type_)
 
     def _get_schema_type_hint(
-        self, schema: Union[Schema, Parameter], required: bool = False
+        self,
+        schema: Union[Schema, Parameter],
+        required: bool = False,
+        default_type: Type[sob.abc.Property] = sob.properties.Property,
     ) -> str:
         type_names: Tuple[str, ...] = tuple(
-            self._iter_schema_type_names(schema)
+            self._iter_schema_type_names(schema, default_type=default_type)
         )
         assert type_names
         type_hint: str
@@ -2654,7 +2694,9 @@ class Module:
         if parameter.schema:
             schema = self._resolve_schema(parameter.schema)
         return self._get_schema_type_hint(
-            schema, required=bool(parameter.required)
+            schema,
+            required=bool(parameter.required),
+            default_type=sob.properties.Bytes,
         )
 
     def _iter_parameter_method_source(
@@ -2986,6 +3028,8 @@ class Module:
             kwargs: Dict[
                 str, Union[str, Mapping[str, Union[Header, Reference]]]
             ] = {}
+            if property_schema.content_media_type:
+                kwargs.update(content_type=property_schema.content_media_type)
             if encoding:
                 encoding = self._resolve_encoding(encoding)
                 if encoding.explode is not None:

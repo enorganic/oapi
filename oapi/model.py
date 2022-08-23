@@ -622,15 +622,15 @@ class _Modeler:
         property_: sob.abc.Property = get_type_format_property(
             schema_type,
             format_=schema.format_,
-            required=required,
-            default_type=(
-                sob.properties.Property  # type: ignore
-                if (
-                    isinstance(schema, Schema)
-                    and (schema.any_of or schema.one_of or schema.all_of)
-                )
-                else sob.properties.Bytes
+            content_media_type=(
+                schema.content_media_type
+                if isinstance(schema, Schema)
+                else None
             ),
+            content_encoding=(
+                schema.content_encoding if isinstance(schema, Schema) else None
+            ),
+            required=required,
         )
         if self.schema_defines_model(schema):
             model_class: Optional[Type[sob.abc.Model]] = self.get_model_class(
@@ -1304,7 +1304,7 @@ class _Modeler:
                             isinstance(object_, Schema)
                             and name == "all_of"
                             # If there is only one schema in "allOf",
-                            # it is no different form "anyOf" or "oneOf"
+                            # it is no different from "anyOf" or "oneOf"
                             and len(value) != 1  # type: ignore
                         ),
                     )

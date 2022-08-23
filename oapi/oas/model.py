@@ -2116,6 +2116,8 @@ class Schema(ExtensibleObject):
       object instance described by this schema.
     - default (Any): The value presumed if the value/instance described by
       this schema is absent.
+    - content_media_type (str)
+    - content_encoding (str)
 
     The following sob.properties are specific to OpenAPI (not part of the
     core `JSON Schema <http://json-schema.org>`):
@@ -2318,6 +2320,12 @@ class Schema(ExtensibleObject):
         ] = None,
         nullable: typing.Optional[
             bool
+        ] = None,
+        content_encoding: typing.Optional[
+            str
+        ] = None,
+        content_media_type: typing.Optional[
+            str
         ] = None
     ) -> None:
         self.title = title
@@ -2357,6 +2365,8 @@ class Schema(ExtensibleObject):
         self.deprecated = deprecated
         self.links = links
         self.nullable = nullable
+        self.content_encoding = content_encoding
+        self.content_media_type = content_media_type
         super().__init__(_data)
 
 
@@ -4365,7 +4375,8 @@ sob.meta.object_writable(  # type: ignore
     (
         'ref',
         sob.properties.String(
-            name="$ref"
+            name="$ref",
+            required=True
         )
     ),
     ('summary', sob.properties.String()),
@@ -4411,7 +4422,7 @@ sob.meta.object_writable(  # type: ignore
 sob.meta.object_writable(  # type: ignore
     Response
 ).properties = sob.meta.Properties([
-    ('description', sob.properties.String()),
+    ('description', sob.properties.String(required=True)),
     (
         'schema',
         sob.properties.Property(
@@ -4717,6 +4728,7 @@ sob.meta.object_writable(  # type: ignore
     (
         'external_docs',
         sob.properties.Property(
+            name="externalDocs",
             types=sob.types.MutableTypes([
                 ExternalDocumentation
             ])
@@ -4744,6 +4756,24 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Boolean(
             versions=(
                 'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'content_encoding',
+        sob.properties.String(
+            name="contentEncoding",
+            versions=(
+                'openapi>=3.1',
+            )
+        )
+    ),
+    (
+        'content_media_type',
+        sob.properties.String(
+            name="contentMediaType",
+            versions=(
+                'openapi>=3.1',
             )
         )
     )

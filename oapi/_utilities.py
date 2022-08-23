@@ -43,13 +43,15 @@ def rename_parameters(
 
 
 def get_string_format_property(
-    format_: Optional[str], required: bool = False
+    format_: Optional[str],
+    content_encoding: Optional[str],
+    required: bool = False,
 ) -> sob.abc.Property:
     if format_ == "date-time":
         return sob.properties.DateTime(required=required)
     elif format_ == "date":
         return sob.properties.Date(required=required)
-    elif format_ in ("byte", "binary", "base64"):
+    elif (format_ in ("byte", "binary", "base64")) or content_encoding:
         return sob.properties.Bytes(required=required)
     else:
         return sob.properties.String(required=required)
@@ -58,15 +60,17 @@ def get_string_format_property(
 def get_type_format_property(
     type_: Optional[str],
     format_: Optional[str] = None,
+    content_media_type: Optional[str] = None,
+    content_encoding: Optional[str] = None,
     required: bool = False,
-    default_type: Type[sob.abc.Property] = sob.properties.Bytes,
+    default_type: Type[sob.abc.Property] = sob.properties.Property,
 ) -> sob.abc.Property:
     if type_ == "number":
         return sob.properties.Number(required=required)
     elif type_ == "integer":
         return sob.properties.Integer(required=required)
     elif type_ == "string":
-        return get_string_format_property(format_, required)
+        return get_string_format_property(format_, content_encoding, required)
     elif type_ == "boolean":
         return sob.properties.Boolean(required=required)
     elif type_ == "file":
@@ -76,8 +80,8 @@ def get_type_format_property(
     elif type_ == "object":
         return sob.properties.Property(required=required)
     elif type_ is None:
-        # An empty schema is interpreted as a
-        # [binary file](https://bit.ly/3QW1Xvj)
+        if content_media_type or content_encoding:
+            return sob.properties.Bytes(required=required)
         return default_type(required=required)
     else:
         raise ValueError(f"Unknown schema type: {type_}")
