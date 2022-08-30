@@ -3564,7 +3564,7 @@ sob.meta.object_writable(  # type: ignore
 sob.meta.object_writable(  # type: ignore
     OAuthFlow
 ).properties = sob.meta.Properties([
-    ('authorization_url', sob.properties.String()),
+    ('authorization_url', sob.properties.String(name="authorizationUrl")),
     (
         'token_url',
         sob.properties.String(

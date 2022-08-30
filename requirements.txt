@@ -2,12 +2,14 @@ attrs==22.1.0
 black==22.6.0
 bleach==4.1.0
 certifi==2022.6.15
+cffi==1.15.1
 charset-normalizer==2.0.12
 click==8.0.4
 colorama==0.4.5
+cryptography==37.0.4
 dataclasses==0.8; python_version == "3.6"
-daves-dev-tools==1.37.0
-distlib==0.3.5
+daves-dev-tools==1.39.0
+distlib==0.3.6
 docutils==0.18.1
 filelock
 flake8==5.0.4
@@ -16,6 +18,7 @@ importlib-metadata
 importlib-resources
 iniconfig==1.1.1
 iso8601==1.0.2
+jeepney==0.7.1
 jsonpointer==2.3
 keyring==23.4.1
 mccabe==0.7.0
@@ -30,6 +33,7 @@ platformdirs
 pluggy==1.0.0
 py==1.11.0
 pycodestyle==2.9.1
+pycparser==2.21
 pyflakes==2.5.0
 Pygments==2.13.0
 pyparsing==3.0.9
@@ -39,6 +43,7 @@ readme-renderer==34.0
 requests-toolbelt==0.9.1
 requests==2.27.1
 rfc3986==1.5.0
+SecretStorage==3.3.3
 setuptools
 six==1.16.0
 sob==1.47.0
@@ -50,7 +55,7 @@ tqdm==4.64.0
 twine==3.8.0
 typed-ast==1.5.4
 typing-extensions==4.1.1
-urllib3==1.26.11
+urllib3==1.26.12
 virtualenv==20.16.2
 webencodings==0.5.1
 wheel==0.37.1
