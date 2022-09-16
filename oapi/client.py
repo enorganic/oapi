@@ -2699,7 +2699,7 @@ class Module:
             default_type=sob.properties.Bytes,
         )
 
-    def _iter_parameter_method_source(
+    def _iter_parameter_method_source(  # noqa: C901
         self,
         parameter: Parameter,
         parameter_locations: _ParameterLocations,
@@ -2797,10 +2797,21 @@ class Module:
                 )
                 if headers:
                     parameter_.headers = headers
-                getattr(
-                    parameter_locations,
-                    sob.utilities.string.property_name(parameter.in_),
-                )[parameter_name] = parameter_
+                parameter_in: str = sob.utilities.string.property_name(
+                    parameter.in_
+                )
+                if parameter_in == "body":
+                    if parameter_locations.body is not None:
+                        raise ValueError(
+                            'Only one "body" parameter is permitted'
+                        )
+                    parameter_.name = parameter_name
+                    parameter_locations.body = parameter_
+                else:
+                    getattr(
+                        parameter_locations,
+                        parameter_in,
+                    )[parameter_name] = parameter_
                 parameter_locations.total_count += 1
                 type_hint: str = self._get_parameter_type_hint(parameter)
                 yield f"        {parameter_name}: {type_hint},"
