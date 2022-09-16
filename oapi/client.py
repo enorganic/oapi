@@ -2805,6 +2805,7 @@ class Module:
                         raise ValueError(
                             'Only one "body" parameter is permitted'
                         )
+                    parameter_.name = parameter_name
                     parameter_locations.body = parameter_
                 else:
                     getattr(
