@@ -23,7 +23,6 @@ mypy-extensions==0.4.3
 mypy==0.971
 packaging==21.3
 pathspec==0.10.1
-pip==22.2.2
 pkginfo==1.8.3
 platformdirs
 pluggy==1.0.0

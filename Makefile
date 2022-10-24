@@ -55,6 +55,7 @@ requirements:
 	 setup.cfg pyproject.toml tox.ini && \
 	daves-dev-tools requirements freeze\
 	 -nv setuptools -nv filelock -nv platformdirs\
+	 -e pip\
 	 . pyproject.toml tox.ini daves-dev-tools\
 	 > requirements.txt && \
 	echo "Success!"
