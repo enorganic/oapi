@@ -51,7 +51,7 @@ upgrade:
 requirements:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	daves-dev-tools requirements update\
-	 -aen all\
+	 -i more-itertools -aen all\
 	 setup.cfg pyproject.toml tox.ini && \
 	daves-dev-tools requirements freeze\
 	 -nv setuptools -nv filelock -nv platformdirs\
