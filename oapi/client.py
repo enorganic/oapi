@@ -2495,6 +2495,28 @@ class Module:
                     default_type=default_type,
                 )
 
+    def _iter_schema_types(
+        self,
+        schema: Schema,
+        default_type: Type[sob.abc.Property] = sob.properties.Property,
+    ) -> Iterable[Union[Type[sob.abc.Model], sob.abc.Property]]:
+        if schema.any_of or schema.one_of:
+            schema_: Union[Reference, Schema]
+            if schema.any_of:
+                for schema_ in schema.any_of:
+                    schema_ = self._resolve_schema(schema_)
+                    yield from self._iter_schema_types(
+                        schema_, default_type=default_type
+                    )
+            if schema.one_of:
+                for schema_ in schema.one_of:
+                    schema_ = self._resolve_schema(schema_)
+                    yield from self._iter_schema_types(
+                        schema_, default_type=default_type
+                    )
+        else:
+            yield self._get_schema_type(schema, default_type=default_type)
+
     def _get_parameter_or_schema_type(
         self,
         schema: Union[Schema, Parameter],
@@ -2525,7 +2547,9 @@ class Module:
         resolved_schema: sob.abc.Model
         if response.schema:
             schema = self._resolve_schema(response.schema)
-            yield self._get_parameter_or_schema_type(schema)
+            yield from self._iter_schema_types(
+                schema, default_type=sob.properties.Bytes
+            )
         if response.content:
             media_type_name: str
             media_type: Union[MediaType, Reference]
@@ -2533,7 +2557,7 @@ class Module:
                 media_type = self._resolve_media_type(media_type)
                 if media_type.schema is not None:
                     schema = self._resolve_schema(media_type.schema)
-                    yield self._get_parameter_or_schema_type(
+                    yield from self._iter_schema_types(
                         schema, default_type=sob.properties.Bytes
                     )
 
