@@ -1101,6 +1101,7 @@ class Client(ABC):
         return callback
 
     @rename_parameters(form_data="data")
+    @dict_to_frozendict
     @functools.lru_cache()
     def request(
         self,
