@@ -724,6 +724,7 @@ CLIENT_SLOTS: Tuple[str, ...] = (
     "retry_number_of_attempts",
     "retry_for_errors",
     "retry_hook",
+    "lru_cache_maxsize",
     "_verify_ssl_certificate",
     "logger",
     "echo",
@@ -935,6 +936,7 @@ class Client(ABC):
         retry_hook: Callable[  # Force line-break retention
             [Exception], bool
         ] = default_retry_hook,
+        lru_cache_maxsize: int = 1,
         verify_ssl_certificate: bool = True,
         logger: Optional[Logger] = None,
         echo: bool = False,
@@ -997,6 +999,7 @@ class Client(ABC):
         self.retry_number_of_attempts = retry_number_of_attempts
         self.retry_for_errors = retry_for_errors
         self.retry_hook = retry_hook
+        self.lru_cache_maxsize = lru_cache_maxsize
         self._verify_ssl_certificate = verify_ssl_certificate
         self.logger = logger
         self.echo = echo
@@ -1054,6 +1057,7 @@ class Client(ABC):
             self.retry_number_of_attempts,
             self.retry_for_errors,
             self.retry_hook,
+            self.lru_cache_maxsize,
             self._verify_ssl_certificate,
             self.logger,
             self.echo,
