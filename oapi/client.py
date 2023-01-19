@@ -79,6 +79,7 @@ from .oas.model import (
 )
 from ._utilities import rename_parameters, get_type_format_property
 from ._multipart_request import MultipartRequest, Part
+from frozendict import frozendict
 
 _str_lru_cache: Callable[
     [], Callable[..., Callable[..., str]]
@@ -92,6 +93,22 @@ _lru_cache: Callable[
 
 # region Client ABC
 
+def dict_to_frozendict(func: Any) -> Any:
+    
+    @functools.wraps(func)
+    def wrapped(*args: Any, **kwargs: Any) -> Any:
+        args = tuple([
+            frozendict(arg) if isinstance(arg, dict) else arg
+            for arg in args
+        ])
+
+        kwargs = {
+            key: frozendict(value)
+            if isinstance(value, dict) else value
+            for key, value in kwargs.items()
+        }
+        return func(*args, **kwargs)
+    return wrapped
 
 def urlencode(
     query: Union[Mapping[str, Any], Sequence[Tuple[str, Any]]],
@@ -1084,6 +1101,8 @@ class Client(ABC):
         return callback
 
     @rename_parameters(form_data="data")
+    @dict_to_frozendict
+    @functools.lru_cache()
     def request(
         self,
         path: str,
