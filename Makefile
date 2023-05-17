@@ -10,7 +10,7 @@ install:
 	echo "Success!"
 
 ci-install:
-	{ python3 -m venv venv || py -3 -m venv venv } && \
+	{ python3 -m venv venv || py -3 -m venv venv ; } && \
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	{ python3 -m pip install --upgrade pip || echo "" ; } && \
 	python3 -m pip install\
