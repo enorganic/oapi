@@ -135,6 +135,10 @@ def urlencode(
     )
 
 
+def _item_is_not_empty(item: Tuple[str, Any]) -> bool:
+    return bool(item[0] and (item[-1] is not None) and item[-1] != "")
+
+
 def _censor_long_json_strings(text: str, limit: int = 2000) -> str:
     """
     Replace JSON strings (such as base-64 encoded images) longer than `limit`
@@ -3302,7 +3306,7 @@ class Module:
                 ),
                 # Both key and value must resolve to `True` when cast as `bool`
                 filter(
-                    all,
+                    _item_is_not_empty,
                     self._init_parameter_defaults.items(),
                 ),
             ),
