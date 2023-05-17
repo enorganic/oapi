@@ -852,31 +852,31 @@ class Client(ABC):
     Initialization Parameters:
 
     - url (str): The base URL for API requests.
-    - user (str) = "": A user name for use with HTTP basic authentication.
-    - password (str) = "":  A password for use with HTTP basic authentication.
-    - bearer_token (str) = "": A token for use with HTTP bearer authentication.
-    - api_key (str) = "": An API key with which to authenticate requests.
-    - api_key_in (str) = "header": Where the API key should be conveyed:
+    - user (str): A user name for use with HTTP basic authentication.
+    - password (str):  A password for use with HTTP basic authentication.
+    - bearer_token (str): A token for use with HTTP bearer authentication.
+    - api_key (str): An API key with which to authenticate requests.
+    - api_key_in (str): Where the API key should be conveyed:
       "header", "query" or "cookie".
-    - api_key_name (str) = "": The name of the header, query parameter, or
+    - api_key_name (str): The name of the header, query parameter, or
       cookie parameter in which to convey the API key.
-    - oauth2_client_id (str) = "": An OAuth2 client ID.
-    - oauth2_client_secret (str) = "": An OAuth2 client secret.
-    - oauth2_username (str) = "": A *username* for the "password" OAuth2 grant
+    - oauth2_client_id (str): An OAuth2 client ID.
+    - oauth2_client_secret (str): An OAuth2 client secret.
+    - oauth2_username (str): A *username* for the "password" OAuth2 grant
       type.
-    - oauth2_password (str) = "": A *password* for the "password" OAuth2 grant
+    - oauth2_password (str): A *password* for the "password" OAuth2 grant
       type.
-    - oauth2_authorization_url (str) = "": The authorization URL to use for an
+    - oauth2_authorization_url (str): The authorization URL to use for an
       OAuth2 flow. Can be relative to `url`.
-    - oauth2_token_url (str) = "": The token URL to use for OAuth2
+    - oauth2_token_url (str): The token URL to use for OAuth2
       authentication.
       Can be relative to `url`.
-    - oauth2_refresh_url (str) = "": The URL to be used for obtaining refresh
+    - oauth2_refresh_url (str): The URL to be used for obtaining refresh
       tokens for OAuth2 authentication.
-    - oauth2_flows ((str,)) = (): A tuple containing one or more of the
+    - oauth2_flows ((str,)): A tuple containing one or more of the
       following: "authorizationCode", "implicit", "password" and/or
       "clientCredentials".
-    - open_id_connect_url (str) = "": An OpenID connect URL where a JSON
+    - open_id_connect_url (str): An OpenID connect URL where a JSON
       web token containing OAuth2 information can be found.
     - headers ({str: str}): Default headers to include with all requests.
       Method-specific header arguments will override or modify these, where
@@ -885,7 +885,7 @@ class Client(ABC):
     - timeout (int): The number of seconds before a request will timeout
       and throw an error. If this is 0 (the default), the system default
       timeout will be used.
-    - retry_number_of_attempts (int) = 1: The number of times to retry
+    - retry_number_of_attempts (int): The number of times to retry
       a request which results in an error.
     - retry_for_errors: A tuple of one or more exception types
       on which to retry a request. To retry for *all* errors,
@@ -895,12 +895,12 @@ class Client(ABC):
       request (if retries have not been exhausted). This hook applies
       *only* for exceptions which are a sub-class of an exception
       included in `retry_for_errors`.
-    - verify_ssl_certificate (bool) = True: If `True`, SSL certificates
+    - verify_ssl_certificate (bool): If `True`, SSL certificates
       are verified, per usual. If `False`, SSL certificates are *not*
       verified.
-    - logger (logging.Logger|None) = None:
+    - logger (logging.Logger|None):
       A `logging.Logger` to which requests should be logged.
-    - echo (bool) = False: If `True`, requests/responses are printed as
+    - echo (bool): If `True`, requests/responses are printed as
       they occur.
     """
 
