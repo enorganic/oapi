@@ -26,10 +26,8 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python }}
-    - name: install
-      run: make
-    - name: test
-      run: make test
+    - run: make ci-install
+    - run: make test
   distribute:
     if: github.ref == 'refs/heads/main'
     needs:

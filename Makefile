@@ -1,10 +1,19 @@
 # python 3.7 is used, for the time being, in order to ensure compatibility
 install:
-	{ python3.7 -m venv venv || python3 -m venv venv || \
-	py -3.7 -m venv venv || py -3 -m venv venv ; } && \
+	{ python3.7 -m venv venv || py -3.7 -m venv venv } && \
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	{ pip3 install --upgrade pip || echo "" ; } && \
 	pip3 install\
+	 -r requirements.txt\
+	 -e . && \
+	{ mypy --install-types --non-interactive || echo "" ; } && \
+	echo "Success!"
+
+ci-install:
+	{ python3 -m venv venv || py -3 -m venv venv } && \
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
+	{ python3 -m pip install --upgrade pip || echo "" ; } && \
+	python3 -m pip install\
 	 -r requirements.txt\
 	 -e . && \
 	{ mypy --install-types --non-interactive || echo "" ; } && \
@@ -63,8 +72,7 @@ requirements:
 # Run all tests
 test:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
-	pip3 install tox && \
-	tox -r -p
+	[[ "$$(python -V)" = "Python 3.7."* ]] && python3 -m tox -r -p -o || python3 -m tox -r -e pytest
 
 # Download specification schemas
 schemas:
