@@ -300,7 +300,7 @@ class Resolver:
     def __init__(
         self,
         root: OpenAPI,
-        url: str = None,
+        url: Optional[str] = None,
         urlopen: Callable = _urlopen,
     ) -> None:
         # Ensure arguments are of the correct types

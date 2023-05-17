@@ -37,9 +37,9 @@ def iter_source_names_models() -> Iterable[Tuple[str, Type[sob.abc.Model]]]:
             yield name, value
 
 
-def iter_names_metadata_docstrings_suffixes() -> Iterable[
-    Tuple[str, sob.abc.Meta, str, str]
-]:
+def iter_names_metadata_docstrings_suffixes() -> (
+    Iterable[Tuple[str, sob.abc.Meta, str, str]]
+):
     def get_name_metadata(
         item: Tuple[str, Type[sob.abc.Model]]
     ) -> Tuple[str, sob.abc.Meta, str, str]:
@@ -61,9 +61,9 @@ def iter_names_metadata_docstrings_suffixes() -> Iterable[
     return map(get_name_metadata, iter_source_names_models())
 
 
-def iter_models_metadata_suffixes() -> Iterable[
-    Tuple[Type[sob.abc.Model], sob.abc.Meta, str]
-]:
+def iter_models_metadata_suffixes() -> (
+    Iterable[Tuple[Type[sob.abc.Model], sob.abc.Meta, str]]
+):
     name: str
     suffix: str
     metadata: sob.abc.Meta

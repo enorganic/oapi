@@ -1250,6 +1250,8 @@ class Client(ABC):
             content_encoding = content_encoding.strip().lower()
             if content_encoding and content_encoding == "gzip":
                 curl_options = f"{curl_options} --compressed"
+        if not self._verify_ssl_certificate:
+            curl_options = f"{curl_options} -k"
         self._get_request_response_callback()(
             get_request_curl(request, options=curl_options)
         )
@@ -1342,7 +1344,7 @@ class Client(ABC):
             "Authorization" not in self.headers
         ):
             # If our authorization has expired, get a new token
-            with (self._request_oauth2_password_authorization()) as response:
+            with self._request_oauth2_password_authorization() as response:
                 response_data: Dict[str, str] = json.loads(
                     str(response.read(), encoding="utf-8")
                 )
