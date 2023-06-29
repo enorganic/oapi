@@ -1,5 +1,8 @@
 # oapi
 
+[![test](https://github.com/enorganic/oapi/actions/workflows/test.yml/badge.svg)](https://github.com/enorganic/oapi/actions/workflows/test.yml)
+[![distribute](https://github.com/enorganic/oapi/actions/workflows/distribute.yml/badge.svg)](https://github.com/enorganic/oapi/actions/workflows/distribute.yml)
+
 `oapi` is a library and CLI for authoring python data models (for clients
 *or* servers), and/or client libraries, for web APIs, based on an
 OpenAPI specification (both OpenAPI/Swagger [version 2](https://bit.ly/36VneDU)
