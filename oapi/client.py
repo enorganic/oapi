@@ -3162,8 +3162,9 @@ class Module:
     ) -> Iterable[str]:
         parameter: Parameter
         previous_parameter_required: bool = True
+        operation_id: str = operation.operation_id or path
         method_name: str = (
-            f"{method}_{sob.utilities.string.property_name(path)}"
+            f"{method}_{sob.utilities.string.property_name(operation_id)}"
         ).rstrip("_")
         yield f"    def {method_name}("
         yield "        self,"
