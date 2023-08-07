@@ -1911,6 +1911,15 @@ def _strip_def_decorators(source: str) -> str:
     return re.sub(r"^(\s*)@(?:.|\n)*?(\bdef )", r"\1\2", source)
 
 
+def get_default_method_name_from_path_method_operation(
+    path: str, method: str, operation_id: Optional[str]
+) -> str:
+    operation_id = operation_id or path
+    return (
+        f"{method.lower()}_{sob.utilities.string.property_name(operation_id)}"
+    ).rstrip("_")
+
+
 class Module:
     """
     This class parses an Open API document and outputs a module defining
@@ -1971,6 +1980,10 @@ class Module:
         init_parameter_defaults_source: Union[
             Mapping[str, Any], Sequence[Tuple[str, Any]]
         ] = (),
+        get_method_name_from_path_method_operation: Callable[
+            [str, str, Optional[str]], str
+        ] = get_default_method_name_from_path_method_operation,
+        use_operation_id: bool = False,
     ) -> None:
         # Ensure a valid model path has been provided
         assert os.path.exists(model_path)
@@ -2046,6 +2059,10 @@ class Module:
                 ),
             )
         )
+        self.get_method_name_from_path_method_operation = (
+            get_method_name_from_path_method_operation
+        )
+        self.use_operation_id = use_operation_id
 
     def _get_open_api_major_version(self) -> int:
         return int(
@@ -3162,10 +3179,11 @@ class Module:
     ) -> Iterable[str]:
         parameter: Parameter
         previous_parameter_required: bool = True
-        operation_id: str = operation.operation_id or path
-        method_name: str = (
-            f"{method}_{sob.utilities.string.property_name(operation_id)}"
-        ).rstrip("_")
+        method_name: str = self.get_method_name_from_path_method_operation(
+            path,
+            method,
+            (operation.operation_id if self.use_operation_id else None),
+        )
         yield f"    def {method_name}("
         yield "        self,"
         # Request Body
