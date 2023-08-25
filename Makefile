@@ -1,6 +1,6 @@
 # python 3.7 is used, for the time being, in order to ensure compatibility
 install:
-	{ python3.7 -m venv venv || py -3.7 -m venv venv } && \
+	{ python3.7 -m venv venv || py -3.7 -m venv venv; } && \
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	{ pip3 install --upgrade pip || echo "" ; } && \
 	pip3 install\

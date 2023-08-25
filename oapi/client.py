@@ -509,7 +509,7 @@ def _represent_http_response(
 ) -> str:
     data = HTTPResponse.read(response) if data is None else data
     content_encoding: str
-    for content_encoding in response.getheader("Contents-encoding", "").split(
+    for content_encoding in response.getheader("Content-encoding", "").split(
         ","
     ):
         content_encoding = content_encoding.strip().lower()
