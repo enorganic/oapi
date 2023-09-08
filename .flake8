@@ -4,3 +4,4 @@ exclude =
     venv,
     .tox
 max-complexity = 10
+ignore = F842, W503

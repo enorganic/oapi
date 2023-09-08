@@ -658,14 +658,13 @@ class _Modeler:
             property_.name = name
         if (
             (isinstance(schema, Schema) and schema.nullable)
-            or
             # Swagger/OpenAPI versions prior to 3.0 do not support `nullable`,
             # so it must be assumed that null values are acceptable for
             # all attributes. Some specs use the "x-nullable" extension
             # attribute, so we check for this as well, but in the absence
             # of a `False` value for `Schema.x_nullable`, we assume all fields
             # are nullable.
-            (
+            or (
                 (self.major_version < 3)
                 and (
                     (not isinstance(schema, Schema))
