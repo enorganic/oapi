@@ -88,7 +88,6 @@ remodel:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	python3 scripts/remodel.py && \
 	echo "Success!"
-	nike-sustainability-dev-tools airflow run dev --include product_footprint_etl_sole
 
 # Apply formatting requirements and perform checks
 format:

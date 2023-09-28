@@ -163,12 +163,6 @@ def get_default_class_name_from_pointer(pointer: str, name: str = "") -> str:
     return class_name_
 
 
-# endregion
-
-
-# region Private Classes
-
-
 def _get_model_import_class_source(
     model: Type[sob.abc.Model],
 ) -> Tuple[str, str]:

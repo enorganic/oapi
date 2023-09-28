@@ -2,9 +2,8 @@
 https://github.com/OAI/OpenAPI-Specification
 """
 import decimal
-import typing
-
 import sob
+import typing
 
 # region Base Classes
 
