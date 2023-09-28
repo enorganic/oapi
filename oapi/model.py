@@ -1,16 +1,16 @@
-import sob
 import os
 import re
+from collections import OrderedDict, deque
 from copy import copy
 from datetime import date, datetime
 from itertools import chain, starmap
-from more_itertools import unique_everseen
 from typing import (
     Any,
     Callable,
     Dict,
     Iterable,
     Iterator,
+    List,
     Match,
     Optional,
     Pattern,
@@ -19,27 +19,29 @@ from typing import (
     Tuple,
     Type,
     Union,
-    List,
 )
-from collections import OrderedDict, deque
 from urllib.request import urlopen
+
+import sob
+from more_itertools import unique_everseen
 from sob.thesaurus import get_class_meta_attribute_assignment_source
+from sob.utilities import qualified_name
 from sob.utilities.inspect import (
+    calling_function_qualified_name,
     get_source,
     properties_values,
-    calling_function_qualified_name,
 )
 from sob.utilities.string import (
-    property_name,
     class_name,
+    property_name,
     split_long_docstring_lines,
 )
-from sob.utilities import qualified_name
 from sob.utilities.types import Null
-from .errors import DuplicateClassNameError
-from .oas.references import Resolver
-from .oas.model import OpenAPI, Parameter, Properties, Schema, Reference, Items
+
 from ._utilities import get_type_format_property
+from .errors import DuplicateClassNameError
+from .oas.model import Items, OpenAPI, Parameter, Properties, Reference, Schema
+from .oas.references import Resolver
 
 _META_PROPERTIES_QAULIFIED_NAME = qualified_name(sob.meta.Properties)
 _META_PROPERTIES_QAULIFIED_NAME_LENGTH = len(_META_PROPERTIES_QAULIFIED_NAME)
