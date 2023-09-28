@@ -1,16 +1,16 @@
-import sob
 import os
 import re
+from collections import OrderedDict, deque
 from copy import copy
 from datetime import date, datetime
 from itertools import chain, starmap
-from more_itertools import unique_everseen
 from typing import (
     Any,
     Callable,
     Dict,
     Iterable,
     Iterator,
+    List,
     Match,
     Optional,
     Pattern,
@@ -19,27 +19,29 @@ from typing import (
     Tuple,
     Type,
     Union,
-    List,
 )
-from collections import OrderedDict, deque
 from urllib.request import urlopen
+
+import sob
+from more_itertools import unique_everseen
 from sob.thesaurus import get_class_meta_attribute_assignment_source
+from sob.utilities import qualified_name
 from sob.utilities.inspect import (
+    calling_function_qualified_name,
     get_source,
     properties_values,
-    calling_function_qualified_name,
 )
 from sob.utilities.string import (
-    property_name,
     class_name,
+    property_name,
     split_long_docstring_lines,
 )
-from sob.utilities import qualified_name
 from sob.utilities.types import Null
-from .errors import DuplicateClassNameError
-from .oas.references import Resolver
-from .oas.model import OpenAPI, Parameter, Properties, Schema, Reference, Items
+
 from ._utilities import get_type_format_property
+from .errors import DuplicateClassNameError
+from .oas.model import Items, OpenAPI, Parameter, Properties, Reference, Schema
+from .oas.references import Resolver
 
 _META_PROPERTIES_QAULIFIED_NAME = qualified_name(sob.meta.Properties)
 _META_PROPERTIES_QAULIFIED_NAME_LENGTH = len(_META_PROPERTIES_QAULIFIED_NAME)
@@ -159,12 +161,6 @@ def get_default_class_name_from_pointer(pointer: str, name: str = "") -> str:
     class_name_ = class_name(class_name_)
     print(f"{pointer} -> {class_name_} (JSON Pointer -> Class Name)")
     return class_name_
-
-
-# endregion
-
-
-# region Private Classes
 
 
 def _get_model_import_class_source(
@@ -658,14 +654,13 @@ class _Modeler:
             property_.name = name
         if (
             (isinstance(schema, Schema) and schema.nullable)
-            or
             # Swagger/OpenAPI versions prior to 3.0 do not support `nullable`,
             # so it must be assumed that null values are acceptable for
             # all attributes. Some specs use the "x-nullable" extension
             # attribute, so we check for this as well, but in the absence
             # of a `False` value for `Schema.x_nullable`, we assume all fields
             # are nullable.
-            (
+            or (
                 (self.major_version < 3)
                 and (
                     (not isinstance(schema, Schema))

@@ -1,14 +1,15 @@
-import unittest
-import sob
 import os
+import unittest
 from copy import deepcopy
-from oapi.model import Module
 from itertools import chain
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
-from oapi.oas.references import Resolver
+
+import sob
+
+from oapi.model import Module, get_default_class_name_from_pointer
 from oapi.oas.model import OpenAPI
-from oapi.model import get_default_class_name_from_pointer
+from oapi.oas.references import Resolver
 
 OPENAPI_EXAMPLE_URL = (
     "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/"

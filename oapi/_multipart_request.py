@@ -9,7 +9,6 @@ import collections
 import collections.abc
 import random
 import string
-import sob
 from typing import (
     ItemsView,
     Iterable,
@@ -24,6 +23,8 @@ from typing import (
     Union,
 )
 from urllib.request import Request as _Request  # type: ignore
+
+import sob
 
 
 class Headers:

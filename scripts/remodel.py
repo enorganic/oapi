@@ -1,8 +1,10 @@
-from itertools import chain
 import os
 import re
-import sob
+from itertools import chain
 from typing import Any, Iterable, List, Match, Optional, Set, Tuple, Type
+
+import sob
+
 from oapi.oas import model
 
 PROJECT_PATH: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

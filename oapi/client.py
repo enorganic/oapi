@@ -1,29 +1,26 @@
 import copyreg
 import decimal
+import functools
 import gzip
 import inspect
 import json
-import shlex
+import os
 import re
+import shlex
 import ssl
 import sys
 import threading
 import time
-import sob
-import os
-import functools
-from base64 import b64encode
-from datetime import date, datetime
-from more_itertools import unique_everseen
-from http.cookiejar import CookieJar
-from ssl import SSLError
-from itertools import chain
-from collections import OrderedDict
-from dataclasses import field, dataclass
-from warnings import warn
 from abc import ABC
-from http.client import HTTPResponse
+from base64 import b64encode
+from collections import OrderedDict
+from dataclasses import dataclass, field
+from datetime import date, datetime
+from http.client import HTTPException, HTTPResponse
+from http.cookiejar import CookieJar
+from itertools import chain
 from logging import Logger, getLogger
+from ssl import SSLError
 from time import sleep
 from typing import (
     IO,
@@ -34,23 +31,19 @@ from typing import (
     List,
     Mapping,
     Match,
+    MutableMapping,
     Optional,
+    Pattern,
     Sequence,
     Set,
     Tuple,
     Type,
     Union,
-    Pattern,
-    MutableMapping,
 )
 from urllib.error import HTTPError, URLError
-from urllib.parse import (
-    ParseResult,
-    quote,
-    urlencode as _urlencode,
-    urlparse,
-    urlunparse,
-)
+from urllib.parse import ParseResult, quote
+from urllib.parse import urlencode as _urlencode
+from urllib.parse import urlparse, urlunparse
 from urllib.request import (
     HTTPCookieProcessor,
     HTTPSHandler,
@@ -59,8 +52,15 @@ from urllib.request import (
     build_opener,
     urlopen,
 )
-from .oas.references import Resolver
+from warnings import warn
+
+import sob
+from more_itertools import unique_everseen
+
+from ._multipart_request import MultipartRequest, Part
+from ._utilities import get_type_format_property, rename_parameters
 from .oas.model import (
+    Encoding,
     Header,
     MediaType,
     OAuthFlow,
@@ -73,12 +73,10 @@ from .oas.model import (
     RequestBody,
     Response,
     Schema,
-    Encoding,
-    SecuritySchemes,
     SecurityScheme,
+    SecuritySchemes,
 )
-from ._utilities import rename_parameters, get_type_format_property
-from ._multipart_request import MultipartRequest, Part
+from .oas.references import Resolver
 
 _str_lru_cache: Callable[
     [], Callable[..., Callable[..., str]]
@@ -701,6 +699,7 @@ DEFAULT_RETRY_FOR_ERRORS: Tuple[Type[Exception], ...] = (
     URLError,
     ConnectionError,
     TimeoutError,
+    HTTPException,
 )
 # For backwards-compatibility...
 DEFAULT_RETRY_FOR_EXCEPTIONS: Tuple[

@@ -1,6 +1,7 @@
-from collections import deque
 import os
+from collections import deque
 from typing import List
+
 from daves_dev_tools.git.download import download
 
 PROJECT_PATH: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

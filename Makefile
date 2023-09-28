@@ -1,6 +1,8 @@
-# python 3.7 is used, for the time being, in order to ensure compatibility
+SHELL := bash
+
 install:
-	{ python3.7 -m venv venv || py -3.7 -m venv venv; } && \
+	{ rm -R venv || echo "" ; } && \
+	{ python3.8 -m venv venv || py -3.8 -m venv venv ; } && \
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	{ pip3 install --upgrade pip || echo "" ; } && \
 	pip3 install\
@@ -72,7 +74,7 @@ requirements:
 # Run all tests
 test:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
-	[[ "$$(python -V)" = "Python 3.7."* ]] && python3 -m tox -r -p -o || python3 -m tox -r -e pytest
+	[[ "$$(python -V)" = "Python 3.8."* ]] && python3 -m tox -r -p -o || python3 -m tox -r -e pytest
 
 # Download specification schemas
 schemas:
@@ -86,3 +88,8 @@ remodel:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	python3 scripts/remodel.py && \
 	echo "Success!"
+
+# Apply formatting requirements and perform checks
+format:
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
+	black . && isort . && flake8 && mypy
