@@ -20,14 +20,16 @@ resolver = Resolver(open_api_document)
 resolver.dereference()
 ```
 """
-import sob
 from typing import Any, Callable, Dict, Optional, Sequence, Tuple, Union
 from urllib.error import HTTPError
 from urllib.parse import ParseResult, urljoin, urlparse
 from urllib.request import urlopen as _urlopen
+
+import sob
 from jsonpointer import resolve_pointer  # type: ignore
-from .model import OpenAPI, Reference
+
 from ..errors import ReferenceLoopError
+from .model import OpenAPI, Reference
 
 
 def _unmarshal_resolved_reference(

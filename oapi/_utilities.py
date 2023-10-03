@@ -1,11 +1,7 @@
 import functools
+from typing import Any, Callable, Optional, Type
+
 import sob
-from typing import (
-    Any,
-    Callable,
-    Optional,
-    Type,
-)
 
 
 def rename_parameters(
