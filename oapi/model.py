@@ -125,6 +125,10 @@ def get_default_class_name_from_pointer(pointer: str, name: str = "") -> str:
             "/",
         ),
         (
+            r"/additionalProperties",
+            "/items"
+        ),
+        (
             r"/properties/",
             "/",
         ),
