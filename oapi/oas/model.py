@@ -2,9 +2,8 @@
 https://github.com/OAI/OpenAPI-Specification
 """
 import decimal
-import typing
-
 import sob
+import typing
 
 # region Base Classes
 
@@ -2119,6 +2118,7 @@ class Schema(ExtensibleObject):
       this schema is absent.
     - content_media_type (str)
     - content_encoding (str)
+    - examples ([Any]): A list of valid examples of this object
 
     The following sob.properties are specific to OpenAPI (not part of the
     core `JSON Schema <http://json-schema.org>`):
@@ -2327,6 +2327,11 @@ class Schema(ExtensibleObject):
         ] = None,
         content_media_type: typing.Optional[
             str
+        ] = None,
+        examples: typing.Optional[
+            typing.Sequence[
+                typing.Optional[sob.abc.MarshallableTypes]
+            ]
         ] = None
     ) -> None:
         self.title = title
@@ -2368,6 +2373,7 @@ class Schema(ExtensibleObject):
         self.nullable = nullable
         self.content_encoding = content_encoding
         self.content_media_type = content_media_type
+        self.examples = examples
         super().__init__(_data)
 
 
@@ -4783,6 +4789,15 @@ sob.meta.object_writable(  # type: ignore
         'content_media_type',
         sob.properties.String(
             name="contentMediaType",
+            versions=(
+                'openapi>=3.1',
+            )
+        )
+    ),
+    (
+        'examples',
+        sob.properties.Array(
+            name="examples",
             versions=(
                 'openapi>=3.1',
             )
