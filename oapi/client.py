@@ -544,7 +544,11 @@ def _set_response_callback(
 
 
 def default_retry_hook(error: Exception) -> bool:
-    assert error
+    """
+    By default, don't retry for HTTP 404 (NOT FOUND) errors
+    """
+    if isinstance(error, HTTPError) and error.code == 404:
+        return False
     return True
 
 
