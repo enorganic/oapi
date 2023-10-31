@@ -13,7 +13,7 @@ import threading
 import time
 from abc import ABC
 from base64 import b64encode
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from http.client import HTTPException, HTTPResponse
@@ -546,8 +546,9 @@ def _set_response_callback(
 def default_retry_hook(error: Exception) -> bool:
     """
     By default, don't retry for HTTP 404 (NOT FOUND) errors
+    and HTTP 401 (UNAUTHORIZED) errors.
     """
-    if isinstance(error, HTTPError) and error.code == 404:
+    if isinstance(error, HTTPError) and error.code in (404, 401):
         return False
     return True
 
@@ -1076,6 +1077,25 @@ class Client(ABC):
             self._cookie_jar,
             self._oauth2_authorization_expires,
         )
+
+    def __getstate__(self) -> Dict[str, Any]:
+        """
+        TODO: Replace  `__reduce__` with `__getstate__` and `__setstate__`
+        """
+        slot: str
+        return dict(
+            map(
+                lambda slot: (slot, getattr(self, slot)),
+                filter(lambda slot: slot != "__opener", self.__slots__),
+            )
+        )
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        """
+        TODO: Replace  `__reduce__` with `__getstate__` and `__setstate__`
+        """
+        item: Tuple[str, Any]
+        deque(map(lambda item: setattr(self, *item), state.items()), maxlen=0)
 
     def _get_request_response_callback(
         self, error: Optional[HTTPError] = None
