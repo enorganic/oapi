@@ -735,7 +735,7 @@ CLIENT_SLOTS: Tuple[str, ...] = (
     "logger",
     "echo",
     "_cookie_jar",
-    "_opener",
+    "__opener",
     "_oauth2_authorization_expires",
 )
 
@@ -1009,13 +1009,21 @@ class Client(ABC):
         self.echo = echo
         # Support for persisting cookies
         self._cookie_jar: CookieJar = CookieJar()
-        self._opener: OpenerDirector = build_opener(
-            HTTPSHandler(
-                context=_SSLContext(check_hostname=verify_ssl_certificate)
-            ),
-            HTTPCookieProcessor(self._cookie_jar),
-        )
+        self.__opener: Optional[OpenerDirector] = None
         self._oauth2_authorization_expires: int = 0
+
+    @property
+    def _opener(self) -> OpenerDirector:
+        if self.__opener is None:
+            self.__opener = build_opener(
+                HTTPSHandler(
+                    context=_SSLContext(
+                        check_hostname=self._verify_ssl_certificate
+                    )
+                ),
+                HTTPCookieProcessor(self._cookie_jar),
+            )
+        return self.__opener
 
     @classmethod
     def _resurrect_client(cls, *args: Any) -> "Client":
