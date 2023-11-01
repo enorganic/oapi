@@ -13,7 +13,7 @@ import threading
 import time
 from abc import ABC
 from base64 import b64encode
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from http.client import HTTPException, HTTPResponse
@@ -546,8 +546,9 @@ def _set_response_callback(
 def default_retry_hook(error: Exception) -> bool:
     """
     By default, don't retry for HTTP 404 (NOT FOUND) errors
+    and HTTP 401 (UNAUTHORIZED) errors.
     """
-    if isinstance(error, HTTPError) and error.code == 404:
+    if isinstance(error, HTTPError) and error.code in (404, 401):
         return False
     return True
 
@@ -731,11 +732,11 @@ CLIENT_SLOTS: Tuple[str, ...] = (
     "retry_number_of_attempts",
     "retry_for_errors",
     "retry_hook",
-    "_verify_ssl_certificate",
+    "verify_ssl_certificate",
     "logger",
     "echo",
     "_cookie_jar",
-    "_opener",
+    "__opener",
     "_oauth2_authorization_expires",
 )
 
@@ -846,6 +847,10 @@ def _assemble_request(
             method=method.upper(),
             headers=headers,
         )
+
+
+def _get_first(items: Iterable[Any]) -> Any:
+    return next(iter(items))
 
 
 class Client(ABC):
@@ -1004,18 +1009,40 @@ class Client(ABC):
         self.retry_number_of_attempts = retry_number_of_attempts
         self.retry_for_errors = retry_for_errors
         self.retry_hook = retry_hook
-        self._verify_ssl_certificate = verify_ssl_certificate
+        self.verify_ssl_certificate = verify_ssl_certificate
         self.logger = logger
         self.echo = echo
         # Support for persisting cookies
         self._cookie_jar: CookieJar = CookieJar()
-        self._opener: OpenerDirector = build_opener(
-            HTTPSHandler(
-                context=_SSLContext(check_hostname=verify_ssl_certificate)
-            ),
-            HTTPCookieProcessor(self._cookie_jar),
-        )
+        self.__opener: Optional[OpenerDirector] = None
         self._oauth2_authorization_expires: int = 0
+
+    @property
+    def _verify_ssl_certificate(self) -> bool:
+        """
+        For backwards compatibility
+        """
+        return self.verify_ssl_certificate
+
+    @_verify_ssl_certificate.setter
+    def _verify_ssl_certificate(self, verify_ssl_certificate: bool) -> None:
+        """
+        For backwards compatibility
+        """
+        self.verify_ssl_certificate = verify_ssl_certificate
+
+    @property
+    def _opener(self) -> OpenerDirector:
+        if self.__opener is None:
+            self.__opener = build_opener(
+                HTTPSHandler(
+                    context=_SSLContext(
+                        check_hostname=self.verify_ssl_certificate
+                    )
+                ),
+                HTTPCookieProcessor(self._cookie_jar),
+            )
+        return self.__opener
 
     @classmethod
     def _resurrect_client(cls, *args: Any) -> "Client":
@@ -1025,6 +1052,16 @@ class Client(ABC):
         un-pickle instances which have been pickled (such as for use in
         multiprocessing, etc.).
         """
+        warn(
+            (
+                "Your client module appears to be out of date. "
+                "Client pickling/un-pickling, as of OAPI version "
+                "1.62, is performed through `__getstate__` and "
+                "`__setstate__`. Remodel your client to "
+                "remedy. This method will be removed in OAPI 2.0."
+            ),
+            DeprecationWarning,
+        )
         init_parameters: List[Any] = list(args)
         oauth2_authorization_expires: int = init_parameters.pop()
         cookie_jar: CookieJar = init_parameters.pop()
@@ -1033,41 +1070,51 @@ class Client(ABC):
         client._oauth2_authorization_expires = oauth2_authorization_expires
         return client
 
-    def __reduce__(
-        self,
-    ) -> Tuple[  # Force line-break retention
-        Callable[..., "Client"], Tuple[Any, ...]
-    ]:
-        return self._resurrect_client, (
-            # Initialization Parameters
-            self.url,
-            self.user,
-            self.password,
-            self.bearer_token,
-            self.api_key,
-            self.api_key_in,
-            self.api_key_name,
-            self.oauth2_client_id,
-            self.oauth2_client_secret,
-            self.oauth2_username,
-            self.oauth2_password,
-            self.oauth2_authorization_url,
-            self.oauth2_token_url,
-            self.oauth2_refresh_url,
-            self.oauth2_flows,
-            self.open_id_connect_url,
-            self.headers,
-            self.timeout,
-            self.retry_number_of_attempts,
-            self.retry_for_errors,
-            self.retry_hook,
-            self._verify_ssl_certificate,
-            self.logger,
-            self.echo,
-            # Not Initialization Parameters
-            self._cookie_jar,
-            self._oauth2_authorization_expires,
+    def __getstate__(self) -> Dict[str, Any]:
+        """
+        Get a dictionary of attributes for pickling
+        """
+        slot: str
+        return dict(
+            map(
+                lambda slot: (slot, getattr(self, slot)),
+                filter(lambda slot: slot != "__opener", self.__slots__),
+            )
         )
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        """
+        Unpickle an instance of `oapi.client.Client` from a state dictionary
+        """
+        # Determine which state keys are parameters for the `__init__` method
+        parameters: Iterable[
+            Tuple[str, inspect.Parameter]
+        ] = inspect.signature(
+            self.__init__  # type: ignore
+        ).parameters.items()
+        item: Tuple[str, inspect.Parameter]
+        parameter_names: Set[str] = set(
+            map(
+                _get_first,
+                filter(
+                    lambda item: item[1].kind
+                    not in (
+                        inspect.Parameter.VAR_POSITIONAL,
+                        inspect.Parameter.POSITIONAL_ONLY,
+                    ),
+                    parameters,
+                ),
+            )
+        )
+        state_keys: Set[str] = set(state.keys())
+        kwargs: Dict[str, Any] = {}
+        key: str
+        value: Any
+        for key in state_keys - parameter_names:
+            kwargs[key] = state.pop(key)
+        self.__init__(**kwargs)  # type: ignore
+        # Set the remaining state slots
+        deque(map(lambda item: setattr(self, *item), state.items()), maxlen=0)
 
     def _get_request_response_callback(
         self, error: Optional[HTTPError] = None
@@ -1253,7 +1300,7 @@ class Client(ABC):
             content_encoding = content_encoding.strip().lower()
             if content_encoding and content_encoding == "gzip":
                 curl_options = f"{curl_options} --compressed"
-        if not self._verify_ssl_certificate:
+        if not self.verify_ssl_certificate:
             curl_options = f"{curl_options} -k"
         self._get_request_response_callback()(
             get_request_curl(request, options=curl_options)
@@ -3461,22 +3508,6 @@ class Module:
         yield "        )"
         yield ""
 
-    def _iter_reduce_method_source(self) -> Iterable[str]:
-        if self._include_init_parameters:
-            reduce_method_source: str = (
-                self._resolve_source_namespace_discrepancies(
-                    sob.utilities.inspect.get_source(Client.__reduce__)
-                )
-            )
-            parameter_name: str
-            for parameter_name in self._iter_excluded_parameter_names():
-                reduce_method_source = re.sub(
-                    f"\\n\\s+self\\._?{parameter_name},\\n",
-                    r"\n",
-                    reduce_method_source,
-                )
-            yield f"{reduce_method_source}"
-
     def _iter_paths_operations_methods_source(self) -> Iterable[str]:
         path_item: Union[PathItem, Reference]
         if self.open_api.paths:
@@ -3498,7 +3529,6 @@ class Module:
             chain(
                 self._iter_class_declaration_source(),
                 self._iter_init_method_source(),
-                self._iter_reduce_method_source(),
                 self._iter_paths_operations_methods_source(),
                 ("",),
             )
