@@ -3508,22 +3508,6 @@ class Module:
         yield "        )"
         yield ""
 
-    def _iter_reduce_method_source(self) -> Iterable[str]:
-        if self._include_init_parameters:
-            reduce_method_source: str = (
-                self._resolve_source_namespace_discrepancies(
-                    sob.utilities.inspect.get_source(Client.__reduce__)
-                )
-            )
-            parameter_name: str
-            for parameter_name in self._iter_excluded_parameter_names():
-                reduce_method_source = re.sub(
-                    f"\\n\\s+self\\._?{parameter_name},\\n",
-                    r"\n",
-                    reduce_method_source,
-                )
-            yield f"{reduce_method_source}"
-
     def _iter_paths_operations_methods_source(self) -> Iterable[str]:
         path_item: Union[PathItem, Reference]
         if self.open_api.paths:
@@ -3545,7 +3529,6 @@ class Module:
             chain(
                 self._iter_class_declaration_source(),
                 self._iter_init_method_source(),
-                # self._iter_reduce_method_source(),
                 self._iter_paths_operations_methods_source(),
                 ("",),
             )
