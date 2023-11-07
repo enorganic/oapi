@@ -917,7 +917,7 @@ class Client(ABC):
     @rename_parameters(retry_for_exceptions="retry_for_errors")
     def __init__(
         self,
-        url: str,
+        url: str = "",
         user: str = "",
         password: str = "",
         bearer_token: str = "",
