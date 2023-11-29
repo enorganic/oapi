@@ -3387,20 +3387,11 @@ class Module:
             ),
             self._init_parameter_defaults_source.items(),
         ):
-            pattern: Pattern
-            if parameter_name == "url":
-                # The `url` is our only *positional* argument
-                pattern = re.compile(
-                    f"(\\n\\s*{parameter_name}:"
-                    r"(?:.|\n)*?)()"
-                    r"(,?\n\s*(?:[\w_]+|\)):)"
-                )
-            else:
-                pattern = re.compile(
-                    f"(\\n\\s*{parameter_name}:"
-                    r"(?:.|\n)*?=\s*)((?:.|\n)*?)"
-                    r"(,?\n\s*(?:[\w_]+|\)):)"
-                )
+            pattern: Pattern = re.compile(
+                f"(\\n\\s*{parameter_name}:"
+                r"(?:.|\n)*?=\s*)((?:.|\n)*?)"
+                r"(,?\n\s*(?:[\w_]+|\)):)"
+            )
             matched: Optional[Match] = pattern.search(init_declaration_source)
             if matched:
                 if (
@@ -3420,11 +3411,6 @@ class Module:
                     default_representation = sob.utilities.string.indent(
                         default_representation, number_of_spaces=8
                     )
-                if parameter_name == "url":
-                    # The assignment operator will not have been included
-                    # in the pattern match for `url`, since it is a
-                    # positional argument
-                    default_representation = f" = {default_representation}"
                 init_declaration_source = pattern.sub(
                     f"\\g<1>{default_representation}\\g<3>",
                     init_declaration_source,
