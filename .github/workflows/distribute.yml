@@ -18,6 +18,14 @@ jobs:
         python-version: '3.x'
     - name: install
       run: make ci-install
+    - name: tag version
+      run: venv/bin/daves-dev-tools git tag-version
+    - name: push tags
+      run: git push --tags
+    - name: create release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh release create "$(venv/bin/python setup.py --version)" || echo "Release already exists"
     - name: distribute
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
