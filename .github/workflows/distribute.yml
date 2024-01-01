@@ -26,7 +26,7 @@ jobs:
     - name: tag version
       run: venv/bin/daves-dev-tools git tag-version
     - name: push tags
-      run: git push --tags
+      run: git push --tags || echo "Tag already exists"
     - name: create release
       env:
         GH_TOKEN: ${{ github.token }}
