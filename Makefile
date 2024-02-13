@@ -1,8 +1,9 @@
 SHELL := bash
+PYTHON_VERSION := 3.8
 
 install:
 	{ rm -R venv || echo "" ; } && \
-	{ python3.8 -m venv venv || py -3.8 -m venv venv ; } && \
+	{ python$(PYTHON_VERSION) -m venv venv || py -$(PYTHON_VERSION) -m venv venv ; } && \
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	{ pip3 install --upgrade pip || echo "" ; } && \
 	pip3 install\
@@ -23,7 +24,7 @@ ci-install:
 
 reinstall:
 	{ rm -R venv || echo "" ; } && \
-	{ python3.8 -m venv venv || py -3.8 -m venv venv ; } && \
+	{ python$(PYTHON_VERSION) -m venv venv || py -$(PYTHON_VERSION) -m venv venv ; } && \
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
 	pip install --upgrade pip && \
 	pip install isort flake8 mypy black tox pytest daves-dev-tools -e . && \
@@ -83,7 +84,7 @@ requirements:
 
 test:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
-	if [[ "$$(python -V)" = "Python 3.8."* ]] ;\
+	if [[ "$$(python -V)" = "Python $(PYTHON_VERSION)."* ]] ;\
 	then tox run-parallel -r -o ;\
 	else tox run-parallel -r -o --skip-env 'black|mypy|isort|flake8' ;\
 	fi
