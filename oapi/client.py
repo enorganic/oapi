@@ -469,11 +469,13 @@ def get_request_curl(
     data: bytes = (
         request.data
         if isinstance(request.data, bytes)
-        else request.data.read()  # type: ignore
-        if isinstance(request.data, sob.abc.Readable)
-        else b"".join(request.data)  # type: ignore
-        if request.data
-        else b""
+        else (
+            request.data.read()  # type: ignore
+            if isinstance(request.data, sob.abc.Readable)
+            else (
+                b"".join(request.data) if request.data else b""  # type: ignore
+            )
+        )
     )
     repr_data: str = ""
     if data:
@@ -707,9 +709,9 @@ DEFAULT_RETRY_FOR_ERRORS: Tuple[Type[Exception], ...] = (
     HTTPException,
 )
 # For backwards-compatibility...
-DEFAULT_RETRY_FOR_EXCEPTIONS: Tuple[
-    Type[Exception], ...
-] = DEFAULT_RETRY_FOR_ERRORS
+DEFAULT_RETRY_FOR_EXCEPTIONS: Tuple[Type[Exception], ...] = (
+    DEFAULT_RETRY_FOR_ERRORS
+)
 CLIENT_SLOTS: Tuple[str, ...] = (
     "url",
     "user",
@@ -821,14 +823,14 @@ def _assemble_request(
                     repr_filename: str = (
                         f'; filename="{filename}"' if filename else ""
                     )
-                    part_headers[
-                        "Content-disposition"
-                    ] = f'form-data; name="{name}"{repr_filename}'
+                    part_headers["Content-disposition"] = (
+                        f'form-data; name="{name}"{repr_filename}'
+                    )
                 if "Content-type" not in part_headers:
                     if isinstance(datum, bytes):
-                        part_headers[
-                            "Content-type"
-                        ] = "application/octet-stream"
+                        part_headers["Content-type"] = (
+                            "application/octet-stream"
+                        )
                     elif isinstance(datum, str):
                         part_headers["Content-type"] = "text/plain"
                     else:
@@ -963,9 +965,7 @@ class Client(ABC):
                 lambda flow: (
                     "authorizationCode"
                     if flow == "accessCode"
-                    else "clientCredentials"
-                    if flow == "application"
-                    else flow
+                    else "clientCredentials" if flow == "application" else flow
                 ),
                 oauth2_flows,
             )
@@ -1110,7 +1110,7 @@ class Client(ABC):
         kwargs: Dict[str, Any] = {}
         key: str
         value: Any
-        for key in state_keys - parameter_names:
+        for key in state_keys & parameter_names:
             kwargs[key] = state.pop(key)
         self.__init__(**kwargs)  # type: ignore
         # Set the remaining state slots
@@ -2319,9 +2319,9 @@ class Module:
         )
 
     def _iter_security_schemes(self) -> Iterable[SecurityScheme]:
-        security_schemes: Optional[
-            SecuritySchemes
-        ] = self._get_security_schemes()
+        security_schemes: Optional[SecuritySchemes] = (
+            self._get_security_schemes()
+        )
         yield from (security_schemes or {}).values()
 
     @_lru_cache()
@@ -2367,9 +2367,11 @@ class Module:
                     yield (
                         "authorizationCode"
                         if security_scheme.flow == "accessCode"
-                        else "clientCredentials"
-                        if security_scheme.flow == "application"
-                        else security_scheme.flow
+                        else (
+                            "clientCredentials"
+                            if security_scheme.flow == "application"
+                            else security_scheme.flow
+                        )
                     ), None
 
     @_lru_cache()
@@ -2851,9 +2853,9 @@ class Module:
                             and parameter.in_ in ("query", "formData")
                         )
                     )
-                    else "simple"
-                    if parameter.in_ in ("path", "header")
-                    else ""
+                    else (
+                        "simple" if parameter.in_ in ("path", "header") else ""
+                    )
                 )
                 explode: bool = (
                     (
@@ -3078,9 +3080,9 @@ class Module:
         type_hint: str
         assert media_type.schema
         schema = self._resolve_schema(media_type.schema)
-        schema_type: Union[
-            Type[sob.abc.Model], sob.abc.Property
-        ] = self._get_parameter_or_schema_type(schema)
+        schema_type: Union[Type[sob.abc.Model], sob.abc.Property] = (
+            self._get_parameter_or_schema_type(schema)
+        )
         parameter_name: str
         if isinstance(schema_type, type):
             parameter_name = sob.utilities.string.property_name(

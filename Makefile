@@ -21,6 +21,16 @@ ci-install:
 	{ mypy --install-types --non-interactive || echo "" ; } && \
 	echo "Success!"
 
+reinstall:
+	{ rm -R venv || echo "" ; } && \
+	{ python3.8 -m venv venv || py -3.8 -m venv venv ; } && \
+	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
+	pip install --upgrade pip && \
+	pip install isort flake8 mypy black tox pytest daves-dev-tools -e . && \
+	{ mypy --install-types --non-interactive || echo "" ; } && \
+	make requirements && \
+	echo "Installation complete"
+
 # Install dependencies locally where available
 editable:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
@@ -71,10 +81,12 @@ requirements:
 	 > requirements.txt && \
 	echo "Success!"
 
-# Run all tests
 test:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
-	[[ "$$(python -V)" = "Python 3.8."* ]] && python3 -m tox -r -p -o || python3 -m tox -r -e pytest
+	if [[ "$$(python -V)" = "Python 3.8."* ]] ;\
+	then tox run-parallel -r -o ;\
+	else tox run-parallel -r -o --skip-env 'black|mypy|isort|flake8' ;\
+	fi
 
 # Download specification schemas
 schemas:

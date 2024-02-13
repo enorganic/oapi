@@ -5,6 +5,7 @@ parameter/property for `urllib.request.Request`, and to support casting
 requests as `str` or `bytes` (typically for debugging purposes and/or to aid in
 producing non-language-specific API documentation).
 """
+
 import collections
 import collections.abc
 import random

@@ -9,10 +9,12 @@ from oapi.oas import model
 
 PROJECT_PATH: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_PATH: str = os.path.join(PROJECT_PATH, "oapi", "oas", "model.py")
-EXTENSIBLE_MODEL_SOURCE: str = """
+EXTENSIBLE_MODEL_SOURCE: str = (
+    """
 class ExtensibleObject(sob.model.Object):
     pass
 """.strip()
+)
 
 
 def get_region_source(name: str) -> str:
