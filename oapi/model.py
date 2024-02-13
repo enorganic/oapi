@@ -277,9 +277,9 @@ class _Modeler:
             .split(".")[0]
             .strip()
         )
-        self.get_class_name_from_pointer: Callable[
-            [str, str], str
-        ] = get_class_name_from_pointer
+        self.get_class_name_from_pointer: Callable[[str, str], str] = (
+            get_class_name_from_pointer
+        )
 
     def schema_defines_object(self, schema: Union[Schema, Reference]) -> bool:
         """
@@ -412,12 +412,12 @@ class _Modeler:
             ] != relative_url_pointer:
                 class_name_ = f"{class_name_}_"
             # Update the mapping
-            self._relative_urls_pointers_class_names[
-                relative_url_pointer
-            ] = class_name_
-        self._class_names_relative_urls_pointers[
-            class_name_
-        ] = relative_url_pointer
+            self._relative_urls_pointers_class_names[relative_url_pointer] = (
+                class_name_
+            )
+        self._class_names_relative_urls_pointers[class_name_] = (
+            relative_url_pointer
+        )
         return class_name_
 
     def relative_url_pointer_class_name_exists(
@@ -525,10 +525,10 @@ class _Modeler:
                         name_ in next_schema.required
                     ):
                         meta_properties[property_name_].required = True
-                    meta_properties[
-                        property_name_
-                    ] = self.extend_property_schemas(
-                        meta_properties[property_name_], (schema,)
+                    meta_properties[property_name_] = (
+                        self.extend_property_schemas(
+                            meta_properties[property_name_], (schema,)
+                        )
                     )
                 else:
                     property_ = self.get_property(
@@ -583,13 +583,13 @@ class _Modeler:
             relative_url_pointer, name
         )
         self._class_names_meta[name] = object_meta
-        object_class: Type[
-            sob.abc.Object
-        ] = sob.model.from_meta(  # type: ignore
-            name,
-            object_meta,
-            docstring=self.get_docstring(next_schema),
-            module="__main__",
+        object_class: Type[sob.abc.Object] = (
+            sob.model.from_meta(  # type: ignore
+                name,
+                object_meta,
+                docstring=self.get_docstring(next_schema),
+                module="__main__",
+            )
         )
         return object_class
 
@@ -1171,12 +1171,12 @@ class _Modeler:
         - name (str|None) = None
         - relative_url_pointer (str|None)
         """
-        cls: Optional[
-            Type[sob.abc.Object]
-        ] = self.get_merged_schemas_object_class(
-            (schema,),
-            name=name,
-            relative_url_pointer=relative_url_pointer,
+        cls: Optional[Type[sob.abc.Object]] = (
+            self.get_merged_schemas_object_class(
+                (schema,),
+                name=name,
+                relative_url_pointer=relative_url_pointer,
+            )
         )
         assert cls
         return cls
@@ -1422,9 +1422,11 @@ class _Modeler:
                     key=lambda sort_line: (
                         (1, sort_line)
                         if sort_line == "import sob"
-                        else (0, sort_line)
-                        if sort_line.startswith("import")
-                        else (2, sort_line)
+                        else (
+                            (0, sort_line)
+                            if sort_line.startswith("import")
+                            else (2, sort_line)
+                        )
                     ),
                 ),
                 ("\n",),

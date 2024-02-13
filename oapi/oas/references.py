@@ -20,6 +20,7 @@ resolver = Resolver(open_api_document)
 resolver.dereference()
 ```
 """
+
 from typing import Any, Callable, Dict, Optional, Sequence, Tuple, Union
 from urllib.error import HTTPError
 from urllib.parse import ParseResult, urljoin, urlparse
