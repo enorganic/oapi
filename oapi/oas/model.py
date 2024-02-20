@@ -5023,13 +5023,6 @@ sob.meta.object_writable(  # type: ignore
 
 # region Hooks
 
-_object_hooks: sob.abc.ObjectHooks = sob.hooks.object_writable(
-    ExtensibleObject
-)
-_reference_hooks: sob.abc.ObjectHooks = sob.hooks.object_writable(Reference)
-_parameter_hooks: sob.abc.ObjectHooks = sob.hooks.object_writable(Parameter)
-_schema_hooks: sob.abc.ObjectHooks = sob.hooks.object_writable(Schema)
-
 
 def _add_object_property(object_: sob.abc.Object, key: str) -> None:
     """
@@ -5174,10 +5167,22 @@ def _schema_after_validate(
             )
 
 
+_object_hooks: sob.abc.ObjectHooks = sob.hooks.object_writable(
+    ExtensibleObject
+)
 _object_hooks.before_setitem = _object_before_setitem
+_reference_hooks: sob.abc.ObjectHooks = sob.hooks.object_writable(Reference)
 _reference_hooks.before_setitem = _reference_before_setitem
 _reference_hooks.after_unmarshal = _reference_after_unmarshal
+_parameter_hooks: sob.abc.ObjectHooks = sob.hooks.object_writable(Parameter)
 _parameter_hooks.after_validate = _parameter_after_validate
+_schema_hooks: sob.abc.ObjectHooks = sob.hooks.object_writable(Schema)
 _schema_hooks.after_validate = _schema_after_validate
+assert _schema_hooks.before_setitem == (
+    typing.cast(
+        sob.abc.ObjectHooks,
+        sob.hooks.object_read(Schema())
+    ).before_setitem
+)
 
 # endregion
