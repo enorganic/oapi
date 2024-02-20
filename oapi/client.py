@@ -3078,7 +3078,7 @@ class Module:
         required: bool = False,
     ) -> str:
         type_hint: str
-        assert media_type.schema
+        assert media_type.schema, f"Media type missing schema: {media_type}"
         schema = self._resolve_schema(media_type.schema)
         schema_type: Union[Type[sob.abc.Model], sob.abc.Property] = (
             self._get_parameter_or_schema_type(schema)
@@ -3111,7 +3111,7 @@ class Module:
         parameter_names: Set[str],
         required: bool = False,
     ) -> Iterable[str]:
-        assert media_type.schema
+        assert media_type.schema, f"Media type missing schema: {media_type}"
         schema = self._resolve_schema(media_type.schema)
         # Form data parameters cannot be open-ended
         assert schema.properties and not schema.additional_properties
@@ -3185,14 +3185,23 @@ class Module:
                 ):
                     if media_type_name.startswith("multipart"):
                         parameter_locations.multipart = True
-                    yield from (
-                        self._iter_request_body_form_parameters_source(
-                            media_type,
-                            parameter_locations=parameter_locations,
-                            parameter_names=parameter_names,
-                            required=required,
+                    try:
+                        yield from (
+                            self._iter_request_body_form_parameters_source(
+                                media_type,
+                                parameter_locations=parameter_locations,
+                                parameter_names=parameter_names,
+                                required=required,
+                            )
                         )
-                    )
+                    except Exception as error:
+                        sob.errors.append_exception_text(
+                            error,
+                            "\nErrors were encountered while generating "
+                            "form parameters for media type: "
+                            f"{media_type_name}",
+                        )
+                        raise error
                 else:
                     raise NotImplementedError(media_type_name)
 
@@ -3320,12 +3329,20 @@ class Module:
         name: str
         operation: Union[Operation, Reference]
         for name, operation in _iter_path_item_operations(path_item):
-            yield from self._iter_operation_method_source(
-                path,
-                name,
-                self._resolve_operation(operation),
-                path_item=path_item,
-            )
+            try:
+                yield from self._iter_operation_method_source(
+                    path,
+                    name,
+                    self._resolve_operation(operation),
+                    path_item=path_item,
+                )
+            except Exception as error:
+                sob.errors.append_exception_text(
+                    error,
+                    "\nErrors were encountered while generating a method "
+                    f"for the operation: {name}",
+                )
+                raise error
 
     def _iter_excluded_parameter_names(self) -> Iterable[str]:
         if self._include_init_parameters:
@@ -3497,12 +3514,21 @@ class Module:
         yield ""
 
     def _iter_paths_operations_methods_source(self) -> Iterable[str]:
+        path: str
         path_item: Union[PathItem, Reference]
         if self.open_api.paths:
             for path, path_item in self.open_api.paths.items():
-                yield from self._iter_path_methods_source(
-                    path, self._resolve_path_item(path_item)
-                )
+                try:
+                    yield from self._iter_path_methods_source(
+                        path, self._resolve_path_item(path_item)
+                    )
+                except Exception as error:
+                    sob.errors.append_exception_text(
+                        error,
+                        "\nErrors were encountered while generating a method "
+                        f"for the path: {path}",
+                    )
+                    raise error
 
     def get_source(self, path: str) -> str:
         """
