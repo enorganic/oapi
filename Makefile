@@ -72,10 +72,10 @@ upgrade:
 # Update requirement version #'s to match the current environment
 requirements:
 	{ . venv/bin/activate || venv/Scripts/activate.bat ; } && \
-	daves-dev-tools requirements update\
+	dependence update\
 	 -i more-itertools -aen all\
 	 setup.cfg pyproject.toml tox.ini && \
-	daves-dev-tools requirements freeze\
+	dependence freeze\
 	 -nv setuptools -nv filelock -nv platformdirs\
 	 -e pip\
 	 . pyproject.toml tox.ini daves-dev-tools\
