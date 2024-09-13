@@ -550,7 +550,7 @@ def default_retry_hook(error: Exception) -> bool:
     By default, don't retry for HTTP 404 (NOT FOUND) errors
     and HTTP 401 (UNAUTHORIZED) errors.
     """
-    if isinstance(error, HTTPError) and error.code in (404, 401):
+    if isinstance(error, HTTPError) and error.code in (404, 401, 409, 410):
         return False
     return True
 
