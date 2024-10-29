@@ -1131,10 +1131,10 @@ class _Modeler:
                 if is_first_property:
                     if schema_description:
                         docstring.append("")
-                    docstring.append(("    Properties:\n"))
+                    docstring.append(("    Attributes:"))
                     is_first_property = False
                 name = sob.utilities.string.property_name(name)
-                property_docstring: str = f"    - {name}"
+                property_docstring: str = f"        {name}:"
                 if property_schema.description:
                     description: str = re.sub(
                         r"\n[\s\n]*\n+",
@@ -1142,16 +1142,14 @@ class _Modeler:
                         property_schema.description.strip(),
                     )
                     description = sob.utilities.string.indent(
-                        description, 6, start=0
+                        description, 12, start=0
                     )
                     description = (
                         sob.utilities.string.split_long_docstring_lines(
                             description
                         )
                     )
-                    property_docstring = (
-                        f"{property_docstring}:\n{description}"
-                    )
+                    property_docstring = f"{property_docstring}\n{description}"
                 docstring.append(property_docstring)
         return "\n".join(docstring) if docstring else None
 
