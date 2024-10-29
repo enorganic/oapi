@@ -949,9 +949,11 @@ class _Modeler:
         ] = tuple(
             filter(
                 None,
-                map(  # type: ignore
+                map(
                     (
-                        self.get_required_schema_model_or_property
+                        (
+                            self
+                        ).get_required_schema_model_or_property  # type: ignore
                         if required
                         else self.get_schema_model_or_property
                     ),
