@@ -4,12 +4,11 @@ import sob
 
 class CheckPostResponse(sob.model.Object):
     """
-    Properties:
-
-    - software
-    - language:
-      The language used for checking the text.
-    - matches
+    Attributes:
+        software:
+        language:
+            The language used for checking the text.
+        matches:
     """
 
     def __init__(
@@ -60,15 +59,14 @@ class CheckPostResponseLanguage(sob.model.Object):
     """
     The language used for checking the text.
 
-    Properties:
-
-    - name:
-      Language name like 'French' or 'English (US)'.
-    - code:
-      ISO 639-1 code like 'en', 'en-US', or 'ca-ES-valencia'
-    - detected_language:
-      The automatically detected text language (might be different from the
-      language actually used for checking).
+    Attributes:
+        name:
+            Language name like 'French' or 'English (US)'.
+        code:
+            ISO 639-1 code like 'en', 'en-US', or 'ca-ES-valencia'
+        detected_language:
+            The automatically detected text language (might be different from
+            the language actually used for checking).
     """
 
     def __init__(
@@ -120,12 +118,11 @@ class CheckPostResponseLanguageDetectedLanguage(sob.model.Object):
     The automatically detected text language (might be different from the
     language actually used for checking).
 
-    Properties:
-
-    - name:
-      Language name like 'French' or 'English (US)'.
-    - code:
-      ISO 639-1 code like 'en', 'en-US', or 'ca-ES-valencia'.
+    Attributes:
+        name:
+            Language name like 'French' or 'English (US)'.
+        code:
+            ISO 639-1 code like 'en', 'en-US', or 'ca-ES-valencia'.
     """
 
     def __init__(
@@ -184,23 +181,23 @@ class CheckPostResponseMatches(sob.model.Array):
 
 class CheckPostResponseMatchesItem(sob.model.Object):
     """
-    Properties:
-
-    - message:
-      Message about the error displayed to the user.
-    - short_message:
-      An optional shorter version of 'message'.
-    - offset:
-      The 0-based character offset of the error in the text.
-    - length:
-      The length of the error in characters.
-    - replacements:
-      Replacements that might correct the error. The array can be empty, in
-      this case there is no suggested replacement.
-    - context
-    - sentence:
-      The sentence the error occurred in (since LanguageTool 4.0 or later)
-    - rule
+    Attributes:
+        message:
+            Message about the error displayed to the user.
+        short_message:
+            An optional shorter version of 'message'.
+        offset:
+            The 0-based character offset of the error in the text.
+        length:
+            The length of the error in characters.
+        replacements:
+            Replacements that might correct the error. The array can be empty,
+            in this case there is no suggested replacement.
+        context:
+        sentence:
+            The sentence the error occurred in (since LanguageTool 4.0 or later
+            )
+        rule:
     """
 
     def __init__(
@@ -284,15 +281,14 @@ class CheckPostResponseMatchesItem(sob.model.Object):
 
 class CheckPostResponseMatchesItemContext(sob.model.Object):
     """
-    Properties:
-
-    - text:
-      Context of the error, i.e. the error and some text to the left and to the
-      left.
-    - offset:
-      The 0-based character offset of the error in the context text.
-    - length:
-      The length of the error in characters in the context.
+    Attributes:
+        text:
+            Context of the error, i.e. the error and some text to the left and
+            to the left.
+        offset:
+            The 0-based character offset of the error in the context text.
+        length:
+            The length of the error in characters in the context.
     """
 
     def __init__(
@@ -362,10 +358,9 @@ class CheckPostResponseMatchesItemReplacements(sob.model.Array):
 
 class CheckPostResponseMatchesItemReplacementsItem(sob.model.Object):
     """
-    Properties:
-
-    - value:
-      the replacement string
+    Attributes:
+        value:
+            the replacement string
     """
 
     def __init__(
@@ -400,22 +395,22 @@ class CheckPostResponseMatchesItemReplacementsItem(sob.model.Object):
 
 class CheckPostResponseMatchesItemRule(sob.model.Object):
     """
-    Properties:
-
-    - id_:
-      An rule's identifier that's unique for this language.
-    - sub_id:
-      An optional sub identifier of the rule, used when several rules are
-      grouped.
-    - description
-    - urls:
-      An optional array of URLs with a more detailed description of the error.
-    - issue_type:
-      The <a href="http://www.w3.org/International/multilingualweb/lt/drafts/
-      its20/its20.html#lqissue-typevalues">Localization Quality Issue Type</a>.
-      This is not defined for all languages, in which case it will always be '
-      Uncategorized'.
-    - category
+    Attributes:
+        id_:
+            An rule's identifier that's unique for this language.
+        sub_id:
+            An optional sub identifier of the rule, used when several rules are
+            grouped.
+        description:
+        urls:
+            An optional array of URLs with a more detailed description of the
+            error.
+        issue_type:
+            The <a href="http://www.w3.org/International/multilingualweb/lt/
+            drafts/its20/its20.html#lqissue-typevalues">Localization Quality
+            Issue Type</a>. This is not defined for all languages, in which
+            case it will always be 'Uncategorized'.
+        category:
     """
 
     def __init__(
@@ -485,12 +480,11 @@ class CheckPostResponseMatchesItemRule(sob.model.Object):
 
 class CheckPostResponseMatchesItemRuleCategory(sob.model.Object):
     """
-    Properties:
-
-    - id_:
-      A category's identifier that's unique for this language.
-    - name:
-      A short description of the category.
+    Attributes:
+        id_:
+            A category's identifier that's unique for this language.
+        name:
+            A short description of the category.
     """
 
     def __init__(
@@ -552,10 +546,9 @@ class CheckPostResponseMatchesItemRuleUrls(sob.model.Array):
 
 class CheckPostResponseMatchesItemRuleUrlsItem(sob.model.Object):
     """
-    Properties:
-
-    - value:
-      the URL
+    Attributes:
+        value:
+            the URL
     """
 
     def __init__(
@@ -590,22 +583,21 @@ class CheckPostResponseMatchesItemRuleUrlsItem(sob.model.Object):
 
 class CheckPostResponseSoftware(sob.model.Object):
     """
-    Properties:
-
-    - name:
-      Usually 'LanguageTool'.
-    - version:
-      A version string like '3.3' or '3.4-SNAPSHOT'.
-    - build_date:
-      Date when the software was built, e.g. '2016-05-25'.
-    - api_version:
-      Version of this API response. We don't expect to make incompatible
-      changes, so this can also be increased for newly added fields.
-    - status:
-      An optional warning, e.g. when the API format is not stable.
-    - premium:
-      true if you're using a Premium account with all the premium text checks (
-      since LanguageTool 4.2)
+    Attributes:
+        name:
+            Usually 'LanguageTool'.
+        version:
+            A version string like '3.3' or '3.4-SNAPSHOT'.
+        build_date:
+            Date when the software was built, e.g. '2016-05-25'.
+        api_version:
+            Version of this API response. We don't expect to make incompatible
+            changes, so this can also be increased for newly added fields.
+        status:
+            An optional warning, e.g. when the API format is not stable.
+        premium:
+            true if you're using a Premium account with all the premium text
+            checks (since LanguageTool 4.2)
     """
 
     def __init__(
@@ -692,14 +684,13 @@ class LanguagesGetResponse(sob.model.Array):
 
 class LanguagesGetResponseItem(sob.model.Object):
     """
-    Properties:
-
-    - name:
-      a language name like 'French' or 'English (Australia)'
-    - code:
-      a language code like 'en'
-    - long_code:
-      a language code like 'en-US' or 'ca-ES-valencia'
+    Attributes:
+        name:
+            a language name like 'French' or 'English (Australia)'
+        code:
+            a language code like 'en'
+        long_code:
+            a language code like 'en-US' or 'ca-ES-valencia'
     """
 
     def __init__(
@@ -748,10 +739,9 @@ class LanguagesGetResponseItem(sob.model.Object):
 
 class WordsGetResponse(sob.model.Object):
     """
-    Properties:
-
-    - words:
-      array of words
+    Attributes:
+        words:
+            array of words
     """
 
     def __init__(
@@ -809,11 +799,10 @@ class WordsGetResponseWords(sob.model.Array):
 
 class WordsAddPostResponse(sob.model.Object):
     """
-    Properties:
-
-    - added:
-      true if the word has been added. false means the word hasn't been added
-      because it had been added before.
+    Attributes:
+        added:
+            true if the word has been added. false means the word hasn't been
+            added because it had been added before.
     """
 
     def __init__(
@@ -848,11 +837,10 @@ class WordsAddPostResponse(sob.model.Object):
 
 class WordsDeletePostResponse(sob.model.Object):
     """
-    Properties:
-
-    - deleted:
-      true if the word has been removed. false means the word hasn't been
-      removed because it was not in the dictionary.
+    Attributes:
+        deleted:
+            true if the word has been removed. false means the word hasn't been
+            removed because it was not in the dictionary.
     """
 
     def __init__(
