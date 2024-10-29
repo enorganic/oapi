@@ -49,9 +49,24 @@ class CheckPostResponse(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.software = software
-        self.language = language
-        self.matches = matches
+        self.software: typing.Optional[
+            typing.Union[
+                "CheckPostResponseSoftware",
+                sob.utilities.types.Null
+            ]
+        ] = software
+        self.language: typing.Optional[
+            typing.Union[
+                "CheckPostResponseLanguage",
+                sob.utilities.types.Null
+            ]
+        ] = language
+        self.matches: typing.Optional[
+            typing.Union[
+                "CheckPostResponseMatches",
+                sob.utilities.types.Null
+            ]
+        ] = matches
         super().__init__(_data)
 
 
@@ -107,9 +122,24 @@ class CheckPostResponseLanguage(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.name = name
-        self.code = code
-        self.detected_language = detected_language
+        self.name: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = name
+        self.code: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = code
+        self.detected_language: typing.Optional[
+            typing.Union[
+                "CheckPostResponseLanguageDetectedLanguage",
+                sob.utilities.types.Null
+            ]
+        ] = detected_language
         super().__init__(_data)
 
 
@@ -157,8 +187,18 @@ class CheckPostResponseLanguageDetectedLanguage(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.name = name
-        self.code = code
+        self.name: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = name
+        self.code: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = code
         super().__init__(_data)
 
 
@@ -268,14 +308,54 @@ class CheckPostResponseMatchesItem(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.message = message
-        self.short_message = short_message
-        self.offset = offset
-        self.length = length
-        self.replacements = replacements
-        self.context = context
-        self.sentence = sentence
-        self.rule = rule
+        self.message: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = message
+        self.short_message: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = short_message
+        self.offset: typing.Optional[
+            typing.Union[
+                int,
+                sob.utilities.types.Null
+            ]
+        ] = offset
+        self.length: typing.Optional[
+            typing.Union[
+                int,
+                sob.utilities.types.Null
+            ]
+        ] = length
+        self.replacements: typing.Optional[
+            typing.Union[
+                "CheckPostResponseMatchesItemReplacements",
+                sob.utilities.types.Null
+            ]
+        ] = replacements
+        self.context: typing.Optional[
+            typing.Union[
+                "CheckPostResponseMatchesItemContext",
+                sob.utilities.types.Null
+            ]
+        ] = context
+        self.sentence: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = sentence
+        self.rule: typing.Optional[
+            typing.Union[
+                "CheckPostResponseMatchesItemRule",
+                sob.utilities.types.Null
+            ]
+        ] = rule
         super().__init__(_data)
 
 
@@ -329,9 +409,24 @@ class CheckPostResponseMatchesItemContext(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.text = text
-        self.offset = offset
-        self.length = length
+        self.text: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = text
+        self.offset: typing.Optional[
+            typing.Union[
+                int,
+                sob.utilities.types.Null
+            ]
+        ] = offset
+        self.length: typing.Optional[
+            typing.Union[
+                int,
+                sob.utilities.types.Null
+            ]
+        ] = length
         super().__init__(_data)
 
 
@@ -389,7 +484,12 @@ class CheckPostResponseMatchesItemReplacementsItem(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.value = value
+        self.value: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = value
         super().__init__(_data)
 
 
@@ -469,12 +569,42 @@ class CheckPostResponseMatchesItemRule(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.id_ = id_
-        self.sub_id = sub_id
-        self.description = description
-        self.urls = urls
-        self.issue_type = issue_type
-        self.category = category
+        self.id_: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = id_
+        self.sub_id: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = sub_id
+        self.description: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = description
+        self.urls: typing.Optional[
+            typing.Union[
+                "CheckPostResponseMatchesItemRuleUrls",
+                sob.utilities.types.Null
+            ]
+        ] = urls
+        self.issue_type: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = issue_type
+        self.category: typing.Optional[
+            typing.Union[
+                "CheckPostResponseMatchesItemRuleCategory",
+                sob.utilities.types.Null
+            ]
+        ] = category
         super().__init__(_data)
 
 
@@ -519,8 +649,18 @@ class CheckPostResponseMatchesItemRuleCategory(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.id_ = id_
-        self.name = name
+        self.id_: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = id_
+        self.name: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = name
         super().__init__(_data)
 
 
@@ -577,7 +717,12 @@ class CheckPostResponseMatchesItemRuleUrlsItem(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.value = value
+        self.value: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = value
         super().__init__(_data)
 
 
@@ -656,12 +801,42 @@ class CheckPostResponseSoftware(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.name = name
-        self.version = version
-        self.build_date = build_date
-        self.api_version = api_version
-        self.status = status
-        self.premium = premium
+        self.name: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = name
+        self.version: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = version
+        self.build_date: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = build_date
+        self.api_version: typing.Optional[
+            typing.Union[
+                int,
+                sob.utilities.types.Null
+            ]
+        ] = api_version
+        self.status: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = status
+        self.premium: typing.Optional[
+            typing.Union[
+                bool,
+                sob.utilities.types.Null
+            ]
+        ] = premium
         super().__init__(_data)
 
 
@@ -731,9 +906,24 @@ class LanguagesGetResponseItem(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.name = name
-        self.code = code
-        self.long_code = long_code
+        self.name: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = name
+        self.code: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = code
+        self.long_code: typing.Optional[
+            typing.Union[
+                str,
+                sob.utilities.types.Null
+            ]
+        ] = long_code
         super().__init__(_data)
 
 
@@ -770,7 +960,12 @@ class WordsGetResponse(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.words = words
+        self.words: typing.Optional[
+            typing.Union[
+                "WordsGetResponseWords",
+                sob.utilities.types.Null
+            ]
+        ] = words
         super().__init__(_data)
 
 
@@ -831,7 +1026,12 @@ class WordsAddPostResponse(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.added = added
+        self.added: typing.Optional[
+            typing.Union[
+                bool,
+                sob.utilities.types.Null
+            ]
+        ] = added
         super().__init__(_data)
 
 
@@ -869,7 +1069,12 @@ class WordsDeletePostResponse(sob.model.Object):
             ]
         ] = None
     ) -> None:
-        self.deleted = deleted
+        self.deleted: typing.Optional[
+            typing.Union[
+                bool,
+                sob.utilities.types.Null
+            ]
+        ] = deleted
         super().__init__(_data)
 
 
