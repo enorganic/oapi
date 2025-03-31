@@ -119,14 +119,14 @@ class Headers:
     def get(
         self,
         key: str,
-        default: Union[str, sob.abc.Undefined] = sob.utilities.types.UNDEFINED,
+        default: Union[str, sob.abc.Undefined] = sob.types.UNDEFINED,
     ) -> str:
         try:
             return self.__getitem__(key)
         except KeyError:
             if isinstance(default, sob.abc.Undefined):
                 raise
-            return default
+            return default`
 
     def __delitem__(self, key: str) -> None:
         self._reset_part()

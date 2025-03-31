@@ -25,25 +25,25 @@ from urllib.request import urlopen
 import sob
 from more_itertools import unique_everseen
 from sob.thesaurus import get_class_meta_attribute_assignment_source
-from sob.utilities import qualified_name
-from sob.utilities.inspect import (
-    calling_function_qualified_name,
+from sob.utilities import get_qualified_name
+from sob.utilities import (
+    get_calling_function_qualified_name,
     get_source,
-    properties_values,
+    iter_properties_values,
 )
-from sob.utilities.string import (
+from sob.utilities import (
     class_name,
     property_name,
     split_long_docstring_lines,
 )
-from sob.utilities.types import Null
+from sob.types import Null
 
 from ._utilities import get_type_format_property
 from .errors import DuplicateClassNameError
 from .oas.model import Items, OpenAPI, Parameter, Properties, Reference, Schema
 from .oas.references import Resolver
 
-_META_PROPERTIES_QAULIFIED_NAME = qualified_name(sob.meta.Properties)
+_META_PROPERTIES_QAULIFIED_NAME = get_qualified_name(sob.meta.Properties)
 _META_PROPERTIES_QAULIFIED_NAME_LENGTH = len(_META_PROPERTIES_QAULIFIED_NAME)
 _DOC_POINTER_RE = re.compile(
     (
@@ -202,10 +202,10 @@ def _append_property_type(
     type_representations: Set[str] = set(
         filter(
             None,
-            map(sob.utilities.inspect.represent, property_.types or ()),
+            map(sob.utilities.represent, property_.types or ()),
         )
-    ) | {sob.utilities.inspect.represent(property_)}
-    if sob.utilities.inspect.represent(type_) not in type_representations:
+    ) | {sob.utilities.represent(property_)}
+    if sob.utilities.represent(type_) not in type_representations:
         if not isinstance(property_.types, sob.abc.MutableTypes):
             types: sob.abc.MutableTypes
             # If the existing property type is a base class of the
@@ -1135,7 +1135,7 @@ class _Modeler:
                         docstring.append("")
                     docstring.append(("    Attributes:"))
                     is_first_property = False
-                name = sob.utilities.string.property_name(name)
+                name = sob.utilities.property_name(name)
                 property_docstring: str = f"        {name}:"
                 if property_schema.description:
                     description: str = re.sub(
@@ -1143,11 +1143,11 @@ class _Modeler:
                         "\n",
                         property_schema.description.strip(),
                     )
-                    description = sob.utilities.string.indent(
+                    description = sob.utilities.indent(
                         description, 12, start=0
                     )
                     description = (
-                        sob.utilities.string.split_long_docstring_lines(
+                        sob.utilities.split_long_docstring_lines(
                             description
                         )
                     )
@@ -1340,7 +1340,7 @@ class _Modeler:
     def represent_model_meta(self, class_name_: str) -> str:
         meta_ = self._class_names_meta[class_name_]
         lines: List[str] = list()
-        for property_name_, value in properties_values(meta_):
+        for property_name_, value in iter_properties_values(meta_):
             if value is not None:
                 value = repr(value)
                 if value[: _META_PROPERTIES_QAULIFIED_NAME_LENGTH + 1] == (
@@ -1396,11 +1396,11 @@ class _Modeler:
             key_value_separator: str = (
                 " "
                 if (9 + len(relative_url_pointer) + len(model_class.__name__))
-                <= sob.utilities.string.MAX_LINE_LENGTH
+                <= sob.utilities.MAX_LINE_LENGTH
                 else (
                     "\n    "
                     if (7 + len(relative_url_pointer))
-                    <= sob.utilities.string.MAX_LINE_LENGTH
+                    <= sob.utilities.MAX_LINE_LENGTH
                     else "  # noqa\n    "
                 )
             )
@@ -1410,7 +1410,7 @@ class _Modeler:
             )
             if (
                 len(pointer_class.split("\n")[-1])
-                > sob.utilities.string.MAX_LINE_LENGTH
+                > sob.utilities.MAX_LINE_LENGTH
             ):
                 pointer_class = f"{pointer_class}  # noqa"
             pointers_classes.append(pointer_class)
@@ -1560,8 +1560,8 @@ class Module:
             self._modeler = _get_open_api_modeler(open_api)
         else:
             raise TypeError(
-                f"`{calling_function_qualified_name()}` requires an instance "
-                f"of `str`, `{qualified_name(OpenAPI)}`, or a file-like "
+                f"`{get_calling_function_qualified_name()}` requires an instance "
+                f"of `str`, `{get_qualified_name(OpenAPI)}`, or a file-like "
                 f"object for the `open_api` parameter--not {repr(open_api)}"
             )
         self._modeler.get_class_name_from_pointer = get_class_name_from_pointer

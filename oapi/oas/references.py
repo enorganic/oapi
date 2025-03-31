@@ -102,7 +102,7 @@ class _Document:
             else:
                 raise TypeError(
                     "The argument must be an instance of "
-                    f"`{sob.utilities.qualified_name(sob.model.Model)}`, "
+                    f"`{sob.utilities.get_qualified_name(sob.model.Model)}`, "
                     f"not {repr(model)}"
                 )
         except ReferenceLoopError:
@@ -309,7 +309,7 @@ class Resolver:
         # Ensure arguments are of the correct types
         assert callable(urlopen)
         assert isinstance(root, OpenAPI)
-        assert isinstance(url, (str, sob.utilities.types.NoneType))
+        assert isinstance(url, (str, sob.types.NoneType))
         # This is the function used to open external pointer references
         self.urlopen = urlopen
         # Infer the URL from the `OpenAPI` document, if not explicitly provided
@@ -412,7 +412,7 @@ class Resolver:
                 if url == self.url:
                     relative_url = ""
                 else:
-                    relative_url = sob.utilities.string.url_relative_to(
+                    relative_url = sob.utilities.url_relative_to(
                         url, self.url
                     )
             else:

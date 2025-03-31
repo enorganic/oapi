@@ -1827,7 +1827,7 @@ def _iter_sorted_parameters(
 def _iter_request_path_representation(
     path: str, parameter_locations: _ParameterLocations
 ) -> Iterable[str]:
-    path_representation: str = sob.utilities.inspect.represent(path)
+    path_representation: str = sob.utilities.represent(path)
     if parameter_locations.path:
         yield f"            {path_representation}.format(**{{"
         name: str
@@ -1848,7 +1848,7 @@ def _represent_dictionary_parameter(
     multipart: bool = False,
     value_type: str = "",
 ) -> str:
-    represent_style: str = sob.utilities.inspect.represent(parameter.style)
+    represent_style: str = sob.utilities.represent(parameter.style)
     parameter_name: str = parameter.name
     if parameter.style == "matrix":
         parameter_name = f";{parameter_name}"
@@ -1878,10 +1878,10 @@ def _iter_cookie_dictionary_parameter_representation(
         name: str
         parameter: _Parameter
         for name, parameter in names_parameters.items():
-            represent_style: str = sob.utilities.inspect.represent(
+            represent_style: str = sob.utilities.represent(
                 parameter.style
             )
-            represent_explode: str = sob.utilities.inspect.represent(
+            represent_explode: str = sob.utilities.represent(
                 parameter.explode
             )
             yield "                    oapi.client.urlencode({"
@@ -1966,10 +1966,10 @@ def get_default_method_name_from_path_method_operation(
 ) -> str:
     method_name: str
     if operation_id:
-        method_name = sob.utilities.string.property_name(operation_id)
+        method_name = sob.utilities.property_name(operation_id)
     else:
         method_name = (
-            f"{method.lower()}_" f"{sob.utilities.string.property_name(path)}"
+            f"{method.lower()}_" f"{sob.utilities.property_name(path)}"
         )
     return method_name.rstrip("_")
 
@@ -2051,9 +2051,9 @@ class Module:
             open_api = _get_io_open_api(open_api)
         elif not isinstance(open_api, OpenAPI):
             raise TypeError(
-                f"`{sob.utilities.inspect.calling_function_qualified_name()}` "
+                f"`{sob.utilities.get_calling_function_qualified_name()}` "
                 "requires an instance of `str`, "
-                f"`{sob.utilities.inspect.qualified_name(OpenAPI)}`, or a "
+                f"`{sob.utilities.get_qualified_name(OpenAPI)}`, or a "
                 "file-like object for the `open_api` parameter--not "
                 f"{repr(open_api)}"
             )
@@ -2359,7 +2359,7 @@ class Module:
                 if security_scheme.flows:
                     yield from filter(
                         None,
-                        sob.utilities.inspect.properties_values(
+                        sob.utilities.iter_properties_values(
                             security_scheme.flows
                         ),
                     )
@@ -2478,11 +2478,11 @@ class Module:
                     )
                 parameter_doc: str
                 for parameter_doc in self._add_init_parameter_docs:
-                    parameter_doc = sob.utilities.string.indent(
+                    parameter_doc = sob.utilities.indent(
                         parameter_doc.lstrip(" -"), number_of_spaces=6, start=0
                     )
                     parameter_doc = (
-                        sob.utilities.string.split_long_docstring_lines(
+                        sob.utilities.split_long_docstring_lines(
                             parameter_doc
                         )
                     ).lstrip()
@@ -2502,7 +2502,7 @@ class Module:
             f"class {self._class_name}"
             f"({self._get_client_base_class_name()}):"
         )
-        if len(class_declaration) > sob.utilities.string.MAX_LINE_LENGTH:
+        if len(class_declaration) > sob.utilities.MAX_LINE_LENGTH:
             class_declaration = (
                 f"class {self._class_name}(\n"
                 f"    {self._get_client_base_class_name()}\n"
@@ -2833,7 +2833,7 @@ class Module:
                     == self._get_api_key_name().lower()
                 )
             ):
-                parameter_name: str = sob.utilities.string.property_name(
+                parameter_name: str = sob.utilities.property_name(
                     parameter.name
                 ).rstrip("_")
                 # If a set of parameter names was provided, make sure
@@ -2900,7 +2900,7 @@ class Module:
                 )
                 if headers:
                     parameter_.headers = headers
-                parameter_in: str = sob.utilities.string.property_name(
+                parameter_in: str = sob.utilities.property_name(
                     parameter.in_
                 )
                 if parameter_in == "body":
@@ -2923,7 +2923,7 @@ class Module:
         self, type_: Union[Type[sob.abc.Model], sob.abc.Property]
     ) -> str:
         if isinstance(type_, sob.abc.Property):
-            return sob.utilities.inspect.represent(type_)
+            return sob.utilities.represent(type_)
         assert isinstance(type_, type) and issubclass(type_, sob.abc.Model)
         if type_.__module__.startswith("sob."):
             return f"{type_.__module__}.{type_.__name__}"
@@ -2985,9 +2985,9 @@ class Module:
     ) -> Iterable[str]:
         yield '        """'
         if operation.description or operation.summary:
-            yield sob.utilities.string.split_long_docstring_lines(
+            yield sob.utilities.split_long_docstring_lines(
                 "\n{}        ".format(
-                    sob.utilities.string.indent(
+                    sob.utilities.indent(
                         (
                             operation.description or operation.summary or ""
                         ).strip(),
@@ -3012,11 +3012,11 @@ class Module:
                     description: str = re.sub(
                         r"\n[\s\n]*\n+", "\n", parameter.description.strip()
                     )
-                    description = sob.utilities.string.indent(
+                    description = sob.utilities.indent(
                         description, 10, start=0
                     )
                     description = (
-                        sob.utilities.string.split_long_docstring_lines(
+                        sob.utilities.split_long_docstring_lines(
                             description
                         )
                     )
@@ -3085,7 +3085,7 @@ class Module:
         )
         parameter_name: str
         if isinstance(schema_type, type):
-            parameter_name = sob.utilities.string.property_name(
+            parameter_name = sob.utilities.property_name(
                 schema_type.__name__
             )
             # Ensure the parameter name is unique
@@ -3255,7 +3255,7 @@ class Module:
         request_body: Optional[RequestBody] = None
         parameter_names: Set[str] = set(
             map(
-                sob.utilities.string.property_name,
+                sob.utilities.property_name,
                 filter(
                     None,
                     map(
@@ -3396,7 +3396,7 @@ class Module:
             map(
                 lambda item: (
                     item[0],
-                    sob.utilities.inspect.represent(item[1]),
+                    sob.utilities.represent(item[1]),
                 ),
                 # Both key and value must resolve to `True` when cast as `bool`
                 filter(
@@ -3419,15 +3419,15 @@ class Module:
                     + len(default_representation)
                     # Characters needed for the assignment operator
                     + (3 if parameter_name == "url" else 0)
-                ) > sob.utilities.string.MAX_LINE_LENGTH:
-                    default_representation = sob.utilities.string.indent(
+                ) > sob.utilities.MAX_LINE_LENGTH:
+                    default_representation = sob.utilities.indent(
                         default_representation, number_of_spaces=12, start=0
                     )
                     default_representation = (
                         f"(\n{default_representation}\n        )"
                     )
                 else:
-                    default_representation = sob.utilities.string.indent(
+                    default_representation = sob.utilities.indent(
                         default_representation, number_of_spaces=8
                     )
                 init_declaration_source = pattern.sub(
@@ -3482,13 +3482,13 @@ class Module:
 
     def _iter_init_method_source(self) -> Iterable[str]:
         if self._init_decorator:
-            yield sob.utilities.string.indent(self._init_decorator, start=0)
+            yield sob.utilities.indent(self._init_decorator, start=0)
         # Resolve namespace discrepancies between `oap.client` and the
         # generated client module
         init_declaration_source: str = (
             self._resolve_source_namespace_discrepancies(
                 _strip_def_decorators(
-                    sob.utilities.inspect.get_source(Client.__init__)
+                    sob.utilities.get_source(Client.__init__)
                 )
             )
         )
@@ -3555,7 +3555,7 @@ class Module:
         }
         # Imports need to be generated last
         imports: str = "\n".join(self._iter_imports())
-        return sob.utilities.string.suffix_long_lines(
+        return sob.utilities.suffix_long_lines(
             f"{imports}\n\n\n{source.rstrip()}\n"
         )
 

@@ -33,38 +33,38 @@ class CheckPostResponse(sob.model.Object):
         software: typing.Optional[
             typing.Union[
                 "CheckPostResponseSoftware",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         language: typing.Optional[
             typing.Union[
                 "CheckPostResponseLanguage",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         matches: typing.Optional[
             typing.Union[
                 "CheckPostResponseMatches",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.software: typing.Optional[
             typing.Union[
                 "CheckPostResponseSoftware",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = software
         self.language: typing.Optional[
             typing.Union[
                 "CheckPostResponseLanguage",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = language
         self.matches: typing.Optional[
             typing.Union[
                 "CheckPostResponseMatches",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = matches
         super().__init__(_data)
@@ -106,38 +106,38 @@ class CheckPostResponseLanguage(sob.model.Object):
         name: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         code: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         detected_language: typing.Optional[
             typing.Union[
                 "CheckPostResponseLanguageDetectedLanguage",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.name: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = name
         self.code: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = code
         self.detected_language: typing.Optional[
             typing.Union[
                 "CheckPostResponseLanguageDetectedLanguage",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = detected_language
         super().__init__(_data)
@@ -177,26 +177,26 @@ class CheckPostResponseLanguageDetectedLanguage(sob.model.Object):
         name: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         code: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.name: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = name
         self.code: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = code
         super().__init__(_data)
@@ -262,98 +262,98 @@ class CheckPostResponseMatchesItem(sob.model.Object):
         message: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         short_message: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         offset: typing.Optional[
             typing.Union[
                 int,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         length: typing.Optional[
             typing.Union[
                 int,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         replacements: typing.Optional[
             typing.Union[
                 "CheckPostResponseMatchesItemReplacements",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         context: typing.Optional[
             typing.Union[
                 "CheckPostResponseMatchesItemContext",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         sentence: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         rule: typing.Optional[
             typing.Union[
                 "CheckPostResponseMatchesItemRule",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.message: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = message
         self.short_message: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = short_message
         self.offset: typing.Optional[
             typing.Union[
                 int,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = offset
         self.length: typing.Optional[
             typing.Union[
                 int,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = length
         self.replacements: typing.Optional[
             typing.Union[
                 "CheckPostResponseMatchesItemReplacements",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = replacements
         self.context: typing.Optional[
             typing.Union[
                 "CheckPostResponseMatchesItemContext",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = context
         self.sentence: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = sentence
         self.rule: typing.Optional[
             typing.Union[
                 "CheckPostResponseMatchesItemRule",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = rule
         super().__init__(_data)
@@ -393,38 +393,38 @@ class CheckPostResponseMatchesItemContext(sob.model.Object):
         text: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         offset: typing.Optional[
             typing.Union[
                 int,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         length: typing.Optional[
             typing.Union[
                 int,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.text: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = text
         self.offset: typing.Optional[
             typing.Union[
                 int,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = offset
         self.length: typing.Optional[
             typing.Union[
                 int,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = length
         super().__init__(_data)
@@ -480,14 +480,14 @@ class CheckPostResponseMatchesItemReplacementsItem(sob.model.Object):
         value: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.value: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = value
         super().__init__(_data)
@@ -535,74 +535,74 @@ class CheckPostResponseMatchesItemRule(sob.model.Object):
         id_: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         sub_id: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         description: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         urls: typing.Optional[
             typing.Union[
                 "CheckPostResponseMatchesItemRuleUrls",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         issue_type: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         category: typing.Optional[
             typing.Union[
                 "CheckPostResponseMatchesItemRuleCategory",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.id_: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = id_
         self.sub_id: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = sub_id
         self.description: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = description
         self.urls: typing.Optional[
             typing.Union[
                 "CheckPostResponseMatchesItemRuleUrls",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = urls
         self.issue_type: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = issue_type
         self.category: typing.Optional[
             typing.Union[
                 "CheckPostResponseMatchesItemRuleCategory",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = category
         super().__init__(_data)
@@ -639,26 +639,26 @@ class CheckPostResponseMatchesItemRuleCategory(sob.model.Object):
         id_: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         name: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.id_: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = id_
         self.name: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = name
         super().__init__(_data)
@@ -713,14 +713,14 @@ class CheckPostResponseMatchesItemRuleUrlsItem(sob.model.Object):
         value: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.value: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = value
         super().__init__(_data)
@@ -767,74 +767,74 @@ class CheckPostResponseSoftware(sob.model.Object):
         name: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         version: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         build_date: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         api_version: typing.Optional[
             typing.Union[
                 int,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         status: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         premium: typing.Optional[
             typing.Union[
                 bool,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.name: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = name
         self.version: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = version
         self.build_date: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = build_date
         self.api_version: typing.Optional[
             typing.Union[
                 int,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = api_version
         self.status: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = status
         self.premium: typing.Optional[
             typing.Union[
                 bool,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = premium
         super().__init__(_data)
@@ -890,38 +890,38 @@ class LanguagesGetResponseItem(sob.model.Object):
         name: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         code: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None,
         long_code: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.name: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = name
         self.code: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = code
         self.long_code: typing.Optional[
             typing.Union[
                 str,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = long_code
         super().__init__(_data)
@@ -956,14 +956,14 @@ class WordsGetResponse(sob.model.Object):
         words: typing.Optional[
             typing.Union[
                 "WordsGetResponseWords",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.words: typing.Optional[
             typing.Union[
                 "WordsGetResponseWords",
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = words
         super().__init__(_data)
@@ -980,7 +980,7 @@ class WordsGetResponseWords(sob.model.Array):
             typing.Iterable[
                 typing.Union[
                     str,
-                    sob.utilities.types.Null
+                    sob.types.Null
                 ]
             ],
             sob.abc.Readable,
@@ -1022,14 +1022,14 @@ class WordsAddPostResponse(sob.model.Object):
         added: typing.Optional[
             typing.Union[
                 bool,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.added: typing.Optional[
             typing.Union[
                 bool,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = added
         super().__init__(_data)
@@ -1065,14 +1065,14 @@ class WordsDeletePostResponse(sob.model.Object):
         deleted: typing.Optional[
             typing.Union[
                 bool,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = None
     ) -> None:
         self.deleted: typing.Optional[
             typing.Union[
                 bool,
-                sob.utilities.types.Null
+                sob.types.Null
             ]
         ] = deleted
         super().__init__(_data)
@@ -1086,7 +1086,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 CheckPostResponseSoftware,
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1095,7 +1095,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 CheckPostResponseLanguage,
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1104,7 +1104,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 CheckPostResponseMatches,
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1118,7 +1118,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1128,7 +1128,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1139,7 +1139,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 CheckPostResponseLanguageDetectedLanguage,
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1153,7 +1153,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1163,7 +1163,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1182,7 +1182,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1192,7 +1192,7 @@ sob.meta.object_writable(  # type: ignore
             name="shortMessage",
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1202,7 +1202,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.Integer(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1212,7 +1212,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.Integer(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1222,7 +1222,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 CheckPostResponseMatchesItemReplacements,
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1232,7 +1232,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 CheckPostResponseMatchesItemContext,
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1242,7 +1242,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1251,7 +1251,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 CheckPostResponseMatchesItemRule,
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1265,7 +1265,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1275,7 +1275,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.Integer(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1285,7 +1285,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.Integer(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1303,7 +1303,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1318,7 +1318,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1328,7 +1328,7 @@ sob.meta.object_writable(  # type: ignore
             name="subId",
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1338,7 +1338,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1347,7 +1347,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 CheckPostResponseMatchesItemRuleUrls,
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1357,7 +1357,7 @@ sob.meta.object_writable(  # type: ignore
             name="issueType",
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1367,7 +1367,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 CheckPostResponseMatchesItemRuleCategory,
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1381,7 +1381,7 @@ sob.meta.object_writable(  # type: ignore
             name="id",
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1390,7 +1390,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1408,7 +1408,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1422,7 +1422,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1432,7 +1432,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1443,7 +1443,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1454,7 +1454,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.Integer(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1463,7 +1463,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1472,7 +1472,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 sob.properties.Boolean(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1491,7 +1491,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1501,7 +1501,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     ),
@@ -1512,7 +1512,7 @@ sob.meta.object_writable(  # type: ignore
             required=True,
             types=sob.types.MutableTypes([
                 sob.properties.String(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1525,7 +1525,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 WordsGetResponseWords,
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1536,7 +1536,7 @@ sob.meta.array_writable(  # type: ignore
     sob.properties.Property(
         types=sob.types.MutableTypes([
             sob.properties.String(),
-            sob.utilities.types.Null
+            sob.types.Null
         ])
     )
 ])
@@ -1548,7 +1548,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 sob.properties.Boolean(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )
@@ -1561,7 +1561,7 @@ sob.meta.object_writable(  # type: ignore
         sob.properties.Property(
             types=sob.types.MutableTypes([
                 sob.properties.Boolean(),
-                sob.utilities.types.Null
+                sob.types.Null
             ])
         )
     )

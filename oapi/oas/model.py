@@ -5083,7 +5083,7 @@ def _reference_after_unmarshal(data: sob.abc.Model) -> typing.Any:
     if ref is None:
         raise TypeError(
             "All instances of "
-            f"`{sob.utilities.qualified_name(Reference)}` must have a `$ref` "
+            f"`{sob.utilities.get_qualified_name(Reference)}` must have a `$ref` "
             "attribute"
         )
     return data
@@ -5095,16 +5095,16 @@ def _parameter_after_validate(parameter: sob.abc.Model) -> None:
         tuple(parameter.content.keys())
     ) > 1:
         raise sob.errors.ValidationError(
-            f"`{sob.utilities.qualified_name(type(parameter))}."
+            f"`{sob.utilities.get_qualified_name(type(parameter))}."
             "content` may have only one mapped value.:\n"
-            f"{sob.utilities.inspect.represent(parameter)}"
+            f"{sob.utilities.represent(parameter)}"
         )
     if (parameter.content is not None) and (parameter.schema is not None):
         raise sob.errors.ValidationError(
             "An instance of "
-            f"`{sob.utilities.qualified_name(type(parameter))}` may have a "
+            f"`{sob.utilities.get_qualified_name(type(parameter))}` may have a "
             "`schema` property or a `content` property, but not *both*:\n"
-            f"{sob.utilities.inspect.represent(parameter)}"
+            f"{sob.utilities.represent(parameter)}"
         )
     _schema_after_validate(parameter)
 
@@ -5128,7 +5128,7 @@ def _schema_after_validate(
         if schema.type_ == "integer" and (
             schema.format_ not in ("int32", "int64", None)
         ):
-            qualified_class_name = sob.utilities.qualified_name(type(schema))
+            qualified_class_name = sob.utilities.get_qualified_name(type(schema))
             raise sob.errors.ValidationError(
                 f'"{schema.format_}" in not a valid value for '
                 f"`{qualified_class_name}.format_` in this circumstance. "
@@ -5138,7 +5138,7 @@ def _schema_after_validate(
         elif schema.type_ == "number" and (
             schema.format_ not in ("float", "double", None)
         ):
-            qualified_class_name = sob.utilities.qualified_name(type(schema))
+            qualified_class_name = sob.utilities.get_qualified_name(type(schema))
             raise sob.errors.ValidationError(
                 f'"{schema.format_}" in not a valid value for '
                 f"`{qualified_class_name}.format_` in this circumstance. "
@@ -5157,7 +5157,7 @@ def _schema_after_validate(
                 None
             )
         ):
-            qualified_class_name = sob.utilities.qualified_name(type(schema))
+            qualified_class_name = sob.utilities.get_qualified_name(type(schema))
             raise sob.errors.ValidationError(
                 f'"{schema.format_}" in not a valid value for '
                 f"`{qualified_class_name}.format_` in this circumstance. "

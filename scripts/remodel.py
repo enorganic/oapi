@@ -57,7 +57,7 @@ def iter_names_metadata_docstrings_suffixes() -> (
                     (item[1].__doc__ or "").strip().split("\n"),
                 )
             ),
-            sob.utilities.inspect.get_source(item[1])
+            sob.utilities.get_source(item[1])
             .partition("super().__init__(_data)")[2]
             .strip(),
         )
@@ -97,7 +97,7 @@ def main() -> None:
         import_source: str
         class_source: str
         import_source, _, class_source = (
-            sob.utilities.inspect.get_source(cls)
+            sob.utilities.get_source(cls)
             .replace("oapi.oas.model.", "")
             .rpartition("\n\n\n")
         )

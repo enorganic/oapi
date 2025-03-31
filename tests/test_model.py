@@ -66,7 +66,7 @@ class TestModel(unittest.TestCase):
             print(url)
             with urlopen(url) as response:
                 oa = OpenAPI(response)
-                sob.test.json(oa)
+                sob.model.validate(oa)
                 oa2 = deepcopy(oa)
                 assert sob.meta.url(oa) == sob.meta.url(oa2)
                 Resolver(oa2).dereference()
@@ -81,7 +81,7 @@ class TestModel(unittest.TestCase):
                         e.args = (str(oa2),)
                     raise e
                 if oa2 != oa:
-                    sob.test.json(oa2)
+                    sob.model.validate(oa2)
 
     @staticmethod
     def test_languagetool() -> None:
@@ -89,7 +89,7 @@ class TestModel(unittest.TestCase):
             Request(LANGUAGE_TOOL_URL, headers={"User-agent": ""})
         ) as response:
             oa = OpenAPI(response)
-            sob.test.json(oa)
+            sob.model.validate(oa)
             model = Module(oa)
             model_path = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),

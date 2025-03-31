@@ -1,5 +1,5 @@
 SHELL := bash
-PYTHON_VERSION := 3.8
+PYTHON_VERSION := 3.9
 
 install:
 	{ rm -R venv || echo "" ; } && \
