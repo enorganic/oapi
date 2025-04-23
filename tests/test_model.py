@@ -21,22 +21,27 @@ LANGUAGE_TOOL_URL = (
 
 
 class TestModel(unittest.TestCase):
-
     @staticmethod
     def test_get_default_class_name_from_pointer() -> None:
-        get_default_class_name_from_pointer(
-            pointer=(
-                "#/paths/~1directory~1sub-directory~1name/get/parameters/1"
-            ),
-            name="argument-name",
-        ) == "DirectorySubDirectoryNameGetArgumentName"
-        get_default_class_name_from_pointer(
-            pointer=(
-                "#/paths/~1directory~1sub-directory~1name/get/parameters/1"
-                "/item"
-            ),
-            name="argument-name",
-        ) == "DirectorySubDirectoryNameGetArgumentNameItem"
+        assert (
+            get_default_class_name_from_pointer(
+                pointer=(
+                    "#/paths/~1directory~1sub-directory~1name/get/parameters/1"
+                ),
+                name="argument-name",
+            )
+            == "DirectorySubDirectoryNameGetArgumentName"
+        )
+        assert (
+            get_default_class_name_from_pointer(
+                pointer=(
+                    "#/paths/~1directory~1sub-directory~1name/get/parameters/1"
+                    "/item"
+                ),
+                name="argument-name",
+            )
+            == "DirectorySubDirectoryNameGetArgumentNameItem"
+        )
 
     @staticmethod
     def test_openapi_examples() -> None:
@@ -63,25 +68,34 @@ class TestModel(unittest.TestCase):
             "v2.0/yaml/uber.yaml",
         ):
             url: str = urljoin(OPENAPI_EXAMPLE_URL, relative_path)
-            print(url)
+            print(url)  # noqa: T201
             with urlopen(url) as response:
-                oa = OpenAPI(response)
-                sob.model.validate(oa)
-                oa2 = deepcopy(oa)
-                assert sob.meta.url(oa) == sob.meta.url(oa2)
-                Resolver(oa2).dereference()
+                openapi: OpenAPI = OpenAPI(response)
+                sob.validate(openapi)
+                openapi2: OpenAPI = deepcopy(openapi)
+                assert sob.get_model_url(openapi) == sob.get_model_url(
+                    openapi2
+                )
+                Resolver(openapi2).dereference()
                 try:
-                    assert "$ref" not in str(oa2)
-                except AssertionError as e:
-                    if e.args:
-                        e.args = tuple(
-                            chain((e.args[0] + "\n" + str(oa2),), e.args[1:])
+                    assert "$ref" not in str(openapi2)
+                except AssertionError as assertion_error:
+                    if assertion_error.args:
+                        assertion_error.args = tuple(
+                            chain(
+                                (
+                                    assertion_error.args[0]
+                                    + "\n"
+                                    + str(openapi2),
+                                ),
+                                assertion_error.args[1:],
+                            )
                         )
                     else:
-                        e.args = (str(oa2),)
-                    raise e
-                if oa2 != oa:
-                    sob.model.validate(oa2)
+                        assertion_error.args = (str(openapi2),)
+                    raise
+                if openapi2 != openapi:
+                    sob.validate(openapi2)
 
     @staticmethod
     def test_languagetool() -> None:
@@ -89,15 +103,15 @@ class TestModel(unittest.TestCase):
             Request(LANGUAGE_TOOL_URL, headers={"User-agent": ""})
         ) as response:
             oa = OpenAPI(response)
-            sob.model.validate(oa)
+            sob.validate(oa)
             model = Module(oa)
             model_path = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
-                "data",
-                "languagetool.py"
+                "regression-data",
+                "languagetool.py",
             )
             if os.path.exists(model_path):
-                with open(model_path, "r") as model_file:
+                with open(model_path) as model_file:
                     model_file_data = model_file.read()
                     if not isinstance(model_file_data, str):
                         model_file_data = str(
@@ -110,7 +124,7 @@ class TestModel(unittest.TestCase):
                     with open(model_path, "w") as model_file:
                         model_file.write(model_string)
                 else:
-                    raise ValueError()
+                    raise ValueError
 
 
 if __name__ == "__main__":

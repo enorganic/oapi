@@ -9,9 +9,9 @@ class Client(_Client):
     pass
 
 
-client_lru_cache: Callable[
-    [], Callable[..., Callable[..., Client]]
-] = functools.lru_cache  # type: ignore
+client_lru_cache: Callable[[], Callable[..., Callable[..., Client]]] = (
+    functools.lru_cache
+)  # type: ignore
 
 
 class TestClient(unittest.TestCase):

@@ -15,5 +15,6 @@ pip-wheel-metadata
 schemas
 !.github
 !.gitignore
-!.flake8
-!.devcontainer.json
+!.markdownlint.yaml
+!.editorconfig
+site

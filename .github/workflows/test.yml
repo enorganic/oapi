@@ -1,16 +1,23 @@
 name: test
 on:
+  push:
+    branches:
+    - main
+  workflow_dispatch:
   pull_request:
     paths:
-    - oapi/**
+    - src/**
     - pyproject.toml
-    - setup.py
-    - setup.cfg
     - tests/**
-    - requirements.txt
-    - tox.ini
-    - .github/**
+    - .github/workflows/test.yml
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Hatch
+      uses: pypa/hatch@install
+    - run: hatch fmt --check && hatch run mypy
   test:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -20,18 +27,14 @@ jobs:
         - windows-latest
         - macos-latest
         python:
-        - 3.8
         - 3.9
         - '3.10'
         - 3.11
         - 3.12
+        - 3.13
     steps:
     - uses: actions/checkout@v4
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python }}
-    - name: install
-      run: make ci-install
+    - name: Install Hatch
+      uses: pypa/hatch@install
     - name: test
-      run: make test
+      run: hatch test -c -py ${{ matrix.python }}

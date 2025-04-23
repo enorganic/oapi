@@ -11,8 +11,8 @@ from urllib.request import urlopen
 from oapi.oas.model import OpenAPI
 
 with urlopen(
-    'https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/'
-    'examples/v3.0/callback-example.yaml'
+    "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/"
+    "examples/v3.0/callback-example.yaml"
 ) as response:
     open_api_document = OpenAPI(response)
 
@@ -21,7 +21,10 @@ resolver.dereference()
 ```
 """
 
-from typing import Any, Callable, Dict, Optional, Sequence, Tuple, Union
+from __future__ import annotations
+
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Callable
 from urllib.error import HTTPError
 from urllib.parse import ParseResult, urljoin, urlparse
 from urllib.request import urlopen as _urlopen
@@ -29,45 +32,56 @@ from urllib.request import urlopen as _urlopen
 import sob
 from jsonpointer import resolve_pointer  # type: ignore
 
-from ..errors import ReferenceLoopError
-from .model import OpenAPI, Reference
+from oapi.errors import OAPIReferenceLoopError, OAPIReferencePointerError
+from oapi.oas.model import OpenAPI, Reference
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def _unmarshal_resolved_reference(
     resolved_reference: sob.abc.MarshallableTypes,
-    url: Optional[str],
+    url: str | None,
     pointer: str,
-    types: Union[Sequence[Union[sob.abc.Property, type]], sob.abc.Types] = (),
+    types: Sequence[sob.abc.Property | type] | sob.abc.Types = (),
 ) -> sob.abc.Model:
     if types or (not isinstance(resolved_reference, sob.abc.Model)):
-        resolved_reference = sob.model.unmarshal(
-            resolved_reference, types=types
-        )
+        resolved_reference = sob.unmarshal(resolved_reference, types=types)
         # Re-assign the URL and pointer
-        assert isinstance(resolved_reference, sob.abc.Model)
-        sob.meta.url(resolved_reference, url)
-        sob.meta.pointer(resolved_reference, pointer)
+        if not isinstance(resolved_reference, sob.abc.Model):
+            raise TypeError(resolved_reference)
+        sob.set_model_url(resolved_reference, url)
+        sob.set_model_pointer(resolved_reference, pointer)
     return resolved_reference
 
 
 class _Document:
     def __init__(
         self,
-        resolver: "Resolver",
+        resolver: Resolver,
         root: sob.abc.Model,
-        url: Optional[str] = None,
+        url: str | Path | None = None,
     ) -> None:
-        assert isinstance(url, str)
-        assert isinstance(resolver, Resolver)
-        # Infer the document URL
+        message: str
+        # Attempt to Infer the document URL
         if (url is None) and isinstance(root, sob.abc.Model):
-            url = sob.meta.get_url(root)
+            url = sob.get_model_url(root)
+        if isinstance(url, Path):
+            url = str(url)
+        if url is None:
+            message = (
+                "You must provide a URL or file path to the OpenAPI document "
+                "in order to resolve references"
+            )
+            raise ValueError(message)
+        if not isinstance(resolver, Resolver):
+            raise TypeError(resolver)
         self.resolver: Resolver = resolver
         self.root: sob.abc.Model = root
-        self.pointers: Dict[str, Optional[sob.abc.Model]] = {}
+        self.pointers: dict[str, sob.abc.Model | None] = {}
         self.url: str = url
 
-    def get_url_pointer(self, pointer: str) -> Tuple[str, str]:
+    def get_url_pointer(self, pointer: str) -> tuple[str, str]:
         """
         Get an absolute URL + relative pointer
         """
@@ -87,7 +101,7 @@ class _Document:
         return url
 
     def dereference(
-        self, model: sob.abc.Model, recursive: bool = True
+        self, model: sob.abc.Model, *, recursive: bool = True
     ) -> None:
         """
         Recursively dereference this objects and all items/properties
@@ -100,24 +114,25 @@ class _Document:
             elif isinstance(model, sob.abc.Dictionary):
                 self.dereference_dictionary_values(model, recursive=recursive)
             else:
-                raise TypeError(
+                msg = (
                     "The argument must be an instance of "
-                    f"`{sob.utilities.get_qualified_name(sob.model.Model)}`, "
-                    f"not {repr(model)}"
+                    f"`{sob.utilities.get_qualified_name(sob.Model)}`, "
+                    f"not {model!r}"
                 )
-        except ReferenceLoopError:
+                raise TypeError(msg)
+        except OAPIReferenceLoopError:
             if not recursive:
                 raise
 
     def prevent_infinite_recursion(
         self, model: sob.abc.Model
-    ) -> Tuple[Optional[str], Optional[sob.abc.Model]]:
+    ) -> tuple[str | None, sob.abc.Model | None]:
         """
         Prevent recursion errors by putting a placeholder `None` in place of
         the parent object in the `pointer` cache
         """
-        pointer = sob.meta.get_pointer(model)
-        existing_value: Optional[sob.abc.Model] = None
+        pointer = sob.get_model_pointer(model)
+        existing_value: sob.abc.Model | None = None
         if pointer:
             if pointer in self.pointers:
                 existing_value = self.pointers[pointer]
@@ -125,7 +140,7 @@ class _Document:
         return pointer, existing_value
 
     def reset_recursion_placeholder(
-        self, pointer: str, previous_value: Optional[sob.abc.Model]
+        self, pointer: str, previous_value: sob.abc.Model | None
     ) -> None:
         """
         Cleanup a placeholder created by the `prevent_infinite_recursion`
@@ -138,21 +153,30 @@ class _Document:
                 self.pointers[pointer] = previous_value
 
     def dereference_object_properties(
-        self, object_: sob.abc.Model, recursive: bool = True
+        self, object_: sob.abc.Object, *, recursive: bool = True
     ) -> None:
         """
         Replace all references in this object's properties with the referenced
         object
         """
-        object_meta = sob.meta.read(object_)
+        message: str
+        object_meta: sob.abc.ObjectMeta | None = sob.read_object_meta(object_)
+        if object_meta is None:
+            message = f"No metadata found for the object:\n{object_!r}\n"
+            raise ValueError(message)
+        if TYPE_CHECKING:
+            assert object_meta.properties is not None
         # Prevent recursion errors
-        pointer: Optional[str]
-        existing: Optional[sob.abc.Model]
+        pointer: str | None
+        existing: sob.abc.Model | None
         pointer, existing = self.prevent_infinite_recursion(object_)
+        property_name: str
+        property_: sob.abc.Property
         for property_name, property_ in object_meta.properties.items():
             value = getattr(object_, property_name)
             if isinstance(value, Reference):
-                assert value.ref
+                if not value.ref:
+                    raise ValueError(value)
                 setattr(
                     object_,
                     property_name,
@@ -166,21 +190,28 @@ class _Document:
             self.reset_recursion_placeholder(pointer, existing)
 
     def dereference_array_items(
-        self, array: sob.abc.Array, recursive: bool = True
+        self, array: sob.abc.Array, *, recursive: bool = True
     ) -> None:
         """
         Replace all references in this array with the referenced object
         """
-        array_meta = sob.meta.read(array)
+        message: str
+        array_meta: sob.abc.ArrayMeta | None = sob.read_array_meta(array)
+        if array_meta is None:
+            message = f"No metadata found for the array:\n{array!r}"
+            raise ValueError(message)
+        if TYPE_CHECKING:
+            assert array_meta.item_types is not None
         # Prevent recursion errors
-        pointer: Optional[str]
-        existing: Optional[sob.abc.Model]
+        pointer: str | None
+        existing: sob.abc.Model | None
         pointer, existing = self.prevent_infinite_recursion(array)
         index: int
         item: Any
         for index, item in enumerate(array):
             if isinstance(item, Reference):
-                assert item.ref
+                if not item.ref:
+                    raise ValueError(item)
                 array[index] = self.resolve(
                     item.ref,
                     types=array_meta.item_types or (),
@@ -192,20 +223,28 @@ class _Document:
             self.reset_recursion_placeholder(pointer, existing)
 
     def dereference_dictionary_values(
-        self, dictionary: sob.abc.Dictionary, recursive: bool = True
+        self, dictionary: sob.abc.Dictionary, *, recursive: bool = True
     ) -> None:
         """
         Replace all references in this dictionary with the referenced object
         """
-        dictionary_meta = sob.meta.read(dictionary)
-
+        message: str
+        dictionary_meta: sob.abc.DictionaryMeta | None = (
+            sob.read_dictionary_meta(dictionary)
+        )
+        if dictionary_meta is None:
+            message = f"No metadata found for the dictionary:\n{dictionary!r}"
+            raise ValueError(message)
+        if TYPE_CHECKING:
+            assert dictionary_meta.value_types is not None
         # Prevent recursion errors
         pointer, existing = self.prevent_infinite_recursion(dictionary)
         key: str
         value: Any
         for key, value in dictionary.items():
             if isinstance(value, Reference):
-                assert value.ref
+                if not value.ref:
+                    raise ValueError(value)
                 dictionary[key] = self.resolve(
                     value.ref,
                     types=dictionary_meta.value_types or (),
@@ -219,9 +258,8 @@ class _Document:
     def resolve(
         self,
         pointer: str,
-        types: Union[
-            sob.abc.Types, Sequence[Union[sob.abc.Property, type]]
-        ] = (),
+        types: sob.abc.Types | Sequence[sob.abc.Property | type] = (),
+        *,
         dereference: bool = False,
     ) -> sob.abc.Model:
         """
@@ -230,7 +268,7 @@ class _Document:
         if pointer in self.pointers:
             # This catches recursion errors
             if self.pointers[pointer] is None:
-                raise ReferenceLoopError(pointer)
+                raise OAPIReferenceLoopError(pointer)
         else:
             self.pointers[pointer] = None
             if pointer.startswith("#"):
@@ -241,7 +279,7 @@ class _Document:
                     resolved, self.url, pointer, types=types
                 )
                 if resolved is None:
-                    raise RuntimeError()
+                    raise RuntimeError
             else:
                 # Resolve a reference from another Open API document
                 url, document_pointer = self.get_url_pointer(pointer)
@@ -263,11 +301,12 @@ class _Document:
                 self.dereference(resolved, recursive=dereference)
             # Cache the resolved pointer
             self.pointers[pointer] = resolved
-        model: Optional[sob.abc.Model] = self.pointers[pointer]
-        assert model
+        model: sob.abc.Model | None = self.pointers[pointer]
+        if not model:
+            raise OAPIReferencePointerError(pointer)
         # The following is necessary in order to apply pointers to
         # dereferenced elements
-        sob.meta.set_pointer(model, pointer)
+        sob.set_model_pointer(model, pointer)
         return model
 
     def dereference_all(self) -> None:
@@ -303,18 +342,21 @@ class Resolver:
     def __init__(
         self,
         root: OpenAPI,
-        url: Optional[str] = None,
+        url: str | None = None,
         urlopen: Callable = _urlopen,
     ) -> None:
         # Ensure arguments are of the correct types
-        assert callable(urlopen)
-        assert isinstance(root, OpenAPI)
-        assert isinstance(url, (str, sob.types.NoneType))
+        if not callable(urlopen):
+            raise TypeError(urlopen)
+        if not isinstance(root, OpenAPI):
+            raise TypeError(root)
+        if not ((url is None) or isinstance(url, str)):
+            raise TypeError(url)
         # This is the function used to open external pointer references
         self.urlopen = urlopen
         # Infer the URL from the `OpenAPI` document, if not explicitly provided
         if url is None:
-            url = sob.meta.url(root) or ""
+            url = sob.get_model_url(root) or ""
         self.url = url
         # This is the primary document--the one we are resolving
         document: _Document = _Document(self, root, url)
@@ -333,11 +375,11 @@ class Resolver:
             try:
                 with self.urlopen(url) as response:
                     self.documents[url] = _Document(
-                        self, sob.model.detect_format(response)[0], url=url
+                        self, sob.unmarshal(sob.deserialize(response)), url=url
                     )
             except (HTTPError, FileNotFoundError) as error:
-                sob.errors.append_exception_text(error, ": {url}")
-                raise error
+                sob.errors.append_exception_text(error, f": {url}")
+                raise
         return self.documents[url]
 
     def dereference(self) -> None:
@@ -349,9 +391,8 @@ class Resolver:
     def resolve(
         self,
         pointer: str,
-        types: Union[
-            sob.abc.Types, Sequence[Union[type, sob.abc.Property]]
-        ] = (),
+        types: sob.abc.Types | Sequence[type | sob.abc.Property] = (),
+        *,
         dereference: bool = False,
     ) -> sob.abc.Model:
         """
@@ -365,9 +406,7 @@ class Resolver:
     def resolve_reference(
         self,
         reference: Reference,
-        types: Union[
-            sob.abc.Types, Sequence[Union[type, sob.abc.Property]]
-        ] = (),
+        types: sob.abc.Types | Sequence[type | sob.abc.Property] = (),
     ) -> sob.abc.Model:
         """
         Retrieve a referenced object.
@@ -377,10 +416,12 @@ class Resolver:
         - reference (oapi.oas.model.Reference)
         - types ([Union[type, sob.abc.Property]]) = ()
         """
-        url: str = sob.meta.get_url(reference) or ""
-        assert reference.ref
+        message: str
+        url: str = sob.get_model_url(reference) or ""
+        if not reference.ref:
+            raise ValueError(reference)
         pointer: str = urljoin(
-            sob.meta.get_pointer(reference) or "",
+            sob.get_model_pointer(reference) or "",
             reference.ref,
         )
         resolved_model: sob.abc.Model = self.get_document(url).resolve(
@@ -390,9 +431,8 @@ class Resolver:
             isinstance(resolved_model, Reference)
             and resolved_model.ref == reference.ref
         ):
-            raise ReferenceLoopError(
-                f"`Reference` instance is self-referential: {pointer}"
-            )
+            message = f"`Reference` instance is self-referential: {pointer}"
+            raise OAPIReferenceLoopError(message)
         if isinstance(resolved_model, Reference):
             resolved_model = self.resolve_reference(
                 resolved_model, types=types
@@ -412,7 +452,7 @@ class Resolver:
                 if url == self.url:
                     relative_url = ""
                 else:
-                    relative_url = sob.utilities.url_relative_to(
+                    relative_url = sob.utilities.get_url_relative_to(
                         url, self.url
                     )
             else:

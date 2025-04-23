@@ -6,22 +6,18 @@ requests as `str` or `bytes` (typically for debugging purposes and/or to aid in
 producing non-language-specific API documentation).
 """
 
+from __future__ import annotations
+
 import collections
-import collections.abc
 import random
 import string
-from typing import (
+from collections.abc import (
     ItemsView,
     Iterable,
     Iterator,
-    List,
     Mapping,
-    Optional,
     Reversible,
     Sequence,
-    Set,
-    Tuple,
-    Union,
 )
 from urllib.request import Request as _Request  # type: ignore
 
@@ -36,25 +32,23 @@ class Headers:
 
     def __init__(
         self,
-        items: Union[Mapping[str, str], Iterable[Tuple[str, str]]],
-        request: "Data",
+        items: Mapping[str, str] | Iterable[tuple[str, str]],
+        request: Data,
     ) -> None:
-        self._dict: "sob.abc.OrderedDict[str, str]" = collections.OrderedDict()
-        assert isinstance(request, Data)
+        self._dict: dict[str, str] = {}
+        if not isinstance(request, Data):
+            raise TypeError(request)
         self.request: Data = request
         self._init_items(items)
 
     def _init_items(
         self,
-        data: Union[
-            Mapping[str, str],
-            Iterable[Tuple[str, str]],
-        ],
+        data: Mapping[str, str] | Iterable[tuple[str, str]],
     ) -> None:
         if data is not None:
-            items: Iterable[Tuple[str, str]]
+            items: Iterable[tuple[str, str]]
             if isinstance(
-                data, (collections.OrderedDict, sob.abc.Dictionary)
+                data, (dict, collections.OrderedDict, sob.abc.Dictionary)
             ) or (isinstance(data, Mapping) and isinstance(data, Reversible)):
                 items = data.items()
             elif isinstance(data, Mapping):
@@ -72,15 +66,15 @@ class Headers:
             self.request.clear_bytes()
 
     def pop(  # type: ignore
-        self, key: str, default: Optional[str] = None
-    ) -> Optional[str]:
+        self, key: str, default: str | None = None
+    ) -> str | None:
         key = key.capitalize()
         self._reset_part()
         return self._dict.pop(key, default)
 
-    def popitem(self, last: bool = True) -> Tuple[str, str]:
+    def popitem(self) -> tuple[str, str]:
         self._reset_part()
-        return self._dict.popitem(last=last)
+        return self._dict.popitem()
 
     def setdefault(self, key: str, default: str = "") -> str:
         key = key.capitalize()
@@ -89,44 +83,43 @@ class Headers:
 
     def update(  # type: ignore
         self,
-        *args: Union[
-            Mapping[str, str], sob.abc.Dictionary, Iterable[Tuple[str, str]]
-        ],
+        *args: Mapping[str, str]
+        | sob.abc.Dictionary
+        | Iterable[tuple[str, str]],
         **kwargs: str,
     ) -> None:
-        capitalized_dict: "sob.abc.OrderedDict[str, str]" = (
-            collections.OrderedDict()
-        )
+        capitalized_dict: dict[str, str] = {}
         key: str
         value: str
-        for key, value in collections.OrderedDict(*args, **kwargs).items():
+        for key, value in dict(*args, **kwargs).items():
             capitalized_dict[key.capitalize()] = value
         self._reset_part()
         self._dict.update(capitalized_dict)
 
     def __getitem__(self, key: str) -> str:
         key = key.capitalize()
-        value: Optional[str]
+        value: str | None
         if key == "Content-length":
             value = str(self._get_content_length())
         elif key == "Content-type":
             value = self._get_content_type()
         else:
             value = self._dict.__getitem__(key)
-        assert isinstance(value, str)
+        if not isinstance(value, str):
+            raise TypeError(value)
         return value
 
     def get(
         self,
         key: str,
-        default: Union[str, sob.abc.Undefined] = sob.types.UNDEFINED,
+        default: str | sob.Undefined = sob.UNDEFINED,
     ) -> str:
         try:
             return self.__getitem__(key)
         except KeyError:
             if isinstance(default, sob.abc.Undefined):
                 raise
-            return default`
+            return default
 
     def __delitem__(self, key: str) -> None:
         self._reset_part()
@@ -150,26 +143,30 @@ class Headers:
     def _get_content_type(self) -> str:
         if isinstance(self.request, Part) and self.request.parts:
             return f"multipart/form-data; boundary={self._get_boundary()}"
-        else:
-            return self._dict.__getitem__("Content-type")
+        return self._dict.__getitem__("Content-type")
 
     def __len__(self) -> int:
         return self._dict.__len__()
 
     def __iter__(self) -> Iterator[str]:
-        keys: Set[str] = set()
+        keys: set[str] = set()
         key: str
         for key in self._dict.__iter__():
             keys.add(key)
             yield key
-        if type(self.request) is not Part:
+        if (
+            (type(self.request) is not Part)
             # *Always* include "Content-length"
-            if "Content-length" not in keys:
-                yield "Content-length"
-        if isinstance(self.request, Part) and self.request.parts:
+            and ("Content-length" not in keys)
+        ):
+            yield "Content-length"
+        if (
+            isinstance(self.request, Part)
+            and self.request.parts
             # Always include "Content-type" for multi-part requests
-            if "Content-type" not in keys:
-                yield "Content-type"
+            and ("Content-type" not in keys)
+        ):
+            yield "Content-type"
 
     def __contains__(self, key: str) -> bool:  # type: ignore
         return self._dict.__contains__(key.capitalize())
@@ -180,18 +177,17 @@ class Headers:
 
     def keys(self) -> Iterator[str]:  # type: ignore
         key: str
-        for key in self.__iter__():
-            yield key
+        yield from self.__iter__()
 
     def values(self) -> Iterator[str]:  # type: ignore
         key: str
         for key in self.__iter__():
             yield self[key]
 
-    def copy(self) -> "Headers":
+    def copy(self) -> Headers:
         return self.__class__(self._dict.items(), request=self.request)
 
-    def __copy__(self) -> "Headers":
+    def __copy__(self) -> Headers:
         return self.copy()
 
 
@@ -203,7 +199,7 @@ class Data:
     def __init__(
         self,
         data: sob.abc.MarshallableTypes = None,
-        headers: Union[Headers, Mapping[str, str], None] = None,
+        headers: Headers | Mapping[str, str] | None = None,
     ) -> None:
         """
         Parameters:
@@ -217,20 +213,18 @@ class Data:
           always include values for "Content-Disposition" and
           "Content-Type".
         """
-        self._bytes: Optional[bytes] = None
-        self._headers: Optional[Headers] = None
-        self._data: Optional[bytes] = None
-        setattr(self, "headers", headers)
-        setattr(self, "data", data)
+        self._bytes: bytes | None = None
+        self._headers: Headers | None = None
+        self._data: bytes | None = None
+        self.headers = headers  # type: ignore
+        self.data = data  # type: ignore
 
     @property  # type: ignore
-    def headers(self) -> Optional[Headers]:
+    def headers(self) -> Headers | None:
         return self._headers
 
     @headers.setter
-    def headers(
-        self, headers: Union[Mapping[str, str], Headers, None]
-    ) -> None:
+    def headers(self, headers: Mapping[str, str] | Headers | None) -> None:
         self._bytes = None
         if headers is None:
             headers = Headers({}, self)
@@ -241,7 +235,7 @@ class Data:
         self._headers = headers
 
     @property  # type: ignore
-    def data(self) -> Optional[bytes]:
+    def data(self) -> bytes | None:
         return self._data
 
     @data.setter
@@ -252,7 +246,7 @@ class Data:
         self._bytes = None
         if data is not None:
             if (data is not None) and not (isinstance(data, (str, bytes))):
-                data = sob.model.serialize(data)
+                data = sob.serialize(data)
             if isinstance(data, str):
                 data = bytes(data, encoding="utf-8")
         self._data = data
@@ -266,14 +260,12 @@ class Data:
 
     def __bytes__(self) -> bytes:
         if self._bytes is None:
-            lines: List[bytes] = []
+            lines: list[bytes] = []
             if self.headers is not None:
                 key: str
                 value: str
                 for key, value in self.headers.items():
-                    lines.append(
-                        bytes("%s: %s" % (key, value), encoding="utf-8")
-                    )
+                    lines.append(bytes(f"{key}: {value}", encoding="utf-8"))
             lines.append(b"")
             if self.data is not None:
                 lines.append(self.data)
@@ -292,8 +284,8 @@ class Part(Data):
     def __init__(
         self,
         data: sob.abc.MarshallableTypes = None,
-        headers: Union[Headers, Mapping[str, str], None] = None,
-        parts: Union[Sequence["Part"], "Parts", None] = None,
+        headers: Headers | Mapping[str, str] | None = None,
+        parts: Sequence[Part] | Parts | None = None,
     ):
         """
         Parameters:
@@ -307,8 +299,8 @@ class Part(Data):
           always include values for "Content-Disposition" and
           "Content-Type".
         """
-        self._boundary: Optional[bytes] = None
-        self._parts: Optional[Parts] = None
+        self._boundary: bytes | None = None
+        self._parts: Parts | None = None
         self.parts = parts  # type: ignore
         Data.__init__(self, data=data, headers=headers)
 
@@ -326,14 +318,18 @@ class Part(Data):
             )
             boundary: bytes = b"".join(
                 bytes(
-                    random.choice(string.digits + string.ascii_letters),
+                    random.choice(  # noqa: S311
+                        string.digits + string.ascii_letters
+                    ),
                     encoding="utf-8",
                 )
                 for _index in range(16)
             )
             while boundary in data:
                 boundary += bytes(
-                    random.choice(string.digits + string.ascii_letters),
+                    random.choice(  # noqa: S311
+                        string.digits + string.ascii_letters
+                    ),
                     encoding="utf-8",
                 )
             self._boundary = boundary
@@ -344,8 +340,8 @@ class Part(Data):
         self._boundary = None
 
     @property  # type: ignore
-    def data(self) -> Optional[bytes]:
-        data: Optional[bytes]
+    def data(self) -> bytes | None:
+        data: bytes | None
         if self.parts:
             part: Part
             data = b"%s\r\n--%s--" % (
@@ -364,14 +360,14 @@ class Part(Data):
         self,
         data: sob.abc.MarshallableTypes,
     ) -> None:
-        getattr(Data.data, "__set__")(self, data)
+        Data.data.__set__(self, data)  # type: ignore
 
     @property  # type: ignore
-    def parts(self) -> Optional["Parts"]:
+    def parts(self) -> Parts | None:
         return self._parts
 
     @parts.setter
-    def parts(self, parts: Union["Parts", Sequence["Part"], None]) -> None:
+    def parts(self, parts: Parts | Sequence[Part] | None) -> None:
         if parts is None:
             parts = Parts([], request=self)
         elif isinstance(parts, Parts):
@@ -384,37 +380,37 @@ class Part(Data):
 
 class Parts:
     def __init__(self, items: Sequence[Part], request: Part) -> None:
-        self._list: List[Part] = list(items)
+        self._list: list[Part] = list(items)
         self.request = request
 
     def append(self, item: Part) -> None:
-        self.request._boundary = None
-        self.request._bytes = None
+        self.request._boundary = None  # noqa: SLF001
+        self.request._bytes = None  # noqa: SLF001
         self._list.append(item)
 
     def clear(self) -> None:
-        self.request._boundary = None
-        self.request._bytes = None
+        self.request._boundary = None  # noqa: SLF001
+        self.request._bytes = None  # noqa: SLF001
         self._list.clear()
 
     def extend(self, items: Iterable[Part]) -> None:
-        self.request._boundary = None
-        self.request._bytes = None
+        self.request._boundary = None  # noqa: SLF001
+        self.request._bytes = None  # noqa: SLF001
         self._list.extend(items)
 
     def reverse(self) -> None:
-        self.request._boundary = None
-        self.request._bytes = None
+        self.request._boundary = None  # noqa: SLF001
+        self.request._bytes = None  # noqa: SLF001
         self._list.reverse()
 
     def __delitem__(self, key: int) -> None:
-        self.request._boundary = None
-        self.request._bytes = None
+        self.request._boundary = None  # noqa: SLF001
+        self.request._bytes = None  # noqa: SLF001
         self._list.__delitem__(key)
 
     def __setitem__(self, key: int, value: Part) -> None:
-        self.request._boundary = None
-        self.request._bytes = None
+        self.request._boundary = None  # noqa: SLF001
+        self.request._bytes = None  # noqa: SLF001
         self._list.__setitem__(key, value)
 
     def __iter__(self) -> Iterator[Part]:
@@ -438,12 +434,12 @@ class Request(Data, _Request):  # type: ignore
         self,
         url: str,
         data: sob.abc.MarshallableTypes = None,
-        headers: Union[Mapping[str, str], Headers, None] = None,
-        origin_req_host: Optional[str] = None,
-        unverifiable: bool = False,
-        method: Optional[str] = None,
+        headers: Mapping[str, str] | Headers | None = None,
+        origin_req_host: str | None = None,
+        unverifiable: bool = False,  # noqa: FBT001 FBT002
+        method: str | None = None,
     ) -> None:
-        self._bytes: Optional[bytes] = None
+        self._bytes: bytes | None = None
         self._headers = None
         self._data = None
         self.headers = headers  # type: ignore
@@ -470,11 +466,11 @@ class MultipartRequest(Part, Request):  # type: ignore
         self,
         url: str,
         data: sob.abc.MarshallableTypes = None,
-        headers: Union[Headers, Mapping[str, str], None] = None,
-        origin_req_host: Optional[str] = None,
-        unverifiable: bool = False,
-        method: Optional[str] = None,
-        parts: Union[Sequence[Part], Parts, None] = None,
+        headers: Headers | Mapping[str, str] | None = None,
+        origin_req_host: str | None = None,
+        unverifiable: bool = False,  # noqa: FBT001 FBT002
+        method: str | None = None,
+        parts: Sequence[Part] | Parts | None = None,
     ) -> None:
         Part.__init__(self, data=data, headers=headers, parts=parts)
         Request.__init__(

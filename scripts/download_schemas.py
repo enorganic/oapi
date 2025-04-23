@@ -1,20 +1,23 @@
+from __future__ import annotations
+
 import os
 from collections import deque
-from typing import List
 
-from daves_dev_tools.git.download import download
+from gittable.download import download
 
 PROJECT_PATH: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GIT_URL: str = "https://github.com/OAI/OpenAPI-Specification.git"
 
 
 def main() -> None:
-    files: List[str] = download(
+    files: list[str] = download(
         GIT_URL,
         files=("schemas/v2.*/**", "schemas/v3.*/**"),
         directory=PROJECT_PATH,
     )
-    assert files, f"Could not download schemas from {GIT_URL}"
+    if not files:
+        message: str = f"Could not download schemas from {GIT_URL}"
+        raise RuntimeError(message)
     deque(map(print, files), maxlen=0)
 
 

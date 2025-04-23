@@ -1,25 +1,29 @@
+from __future__ import annotations
+
 import os
 import re
 from itertools import chain
-from typing import Any, Iterable, List, Match, Optional, Set, Tuple, Type
+from re import Match
+from typing import TYPE_CHECKING, Any
 
 import sob
 
 from oapi.oas import model
 
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
 PROJECT_PATH: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_PATH: str = os.path.join(PROJECT_PATH, "oapi", "oas", "model.py")
-EXTENSIBLE_MODEL_SOURCE: str = (
-    """
-class ExtensibleObject(sob.model.Object):
+EXTENSIBLE_MODEL_SOURCE: str = """
+class ExtensibleObject(sob.Object):
     pass
 """.strip()
-)
 
 
 def get_region_source(name: str) -> str:
     with open(MODEL_PATH) as model_io:
-        match: Optional[Match] = re.search(
+        match: Match | None = re.search(
             (
                 f"\\n#\\s*region\\s*{re.escape(name)}"
                 r"(\n|.)*?"
@@ -31,7 +35,7 @@ def get_region_source(name: str) -> str:
         return match.group().strip() if match else ""
 
 
-def iter_source_names_models() -> Iterable[Tuple[str, Type[sob.abc.Model]]]:
+def iter_source_names_models() -> Iterable[tuple[str, type[sob.abc.Model]]]:
     name: str
     value: Any
     for name in dir(model):
@@ -42,20 +46,21 @@ def iter_source_names_models() -> Iterable[Tuple[str, Type[sob.abc.Model]]]:
 
 
 def iter_names_metadata_docstrings_suffixes() -> (
-    Iterable[Tuple[str, sob.abc.Meta, str, str]]
+    Iterable[tuple[str, sob.abc.Meta, str, str]]
 ):
     def get_name_metadata(
-        item: Tuple[str, Type[sob.abc.Model]]
-    ) -> Tuple[str, sob.abc.Meta, str, str]:
+        item: tuple[str, type[sob.abc.Model]],
+    ) -> tuple[str, sob.abc.Meta, str, str]:
         line: str
+        meta: sob.abc.Meta | None = sob.read_model_meta(item[1])
+        if not meta:
+            raise ValueError(item[1])
         return (
             item[0],
-            sob.meta.read(item[1]),
+            meta,
             "\n".join(
-                map(
-                    lambda line: line[4:] if line.startswith("    ") else line,
-                    (item[1].__doc__ or "").strip().split("\n"),
-                )
+                line[4:] if line.startswith("    ") else line
+                for line in (item[1].__doc__ or "").strip().split("\n")
             ),
             sob.utilities.get_source(item[1])
             .partition("super().__init__(_data)")[2]
@@ -66,7 +71,7 @@ def iter_names_metadata_docstrings_suffixes() -> (
 
 
 def iter_models_metadata_suffixes() -> (
-    Iterable[Tuple[Type[sob.abc.Model], sob.abc.Meta, str]]
+    Iterable[tuple[type[sob.abc.Model], sob.abc.Meta, str]]
 ):
     name: str
     suffix: str
@@ -78,21 +83,25 @@ def iter_models_metadata_suffixes() -> (
         suffix,
     ) in iter_names_metadata_docstrings_suffixes():
         if metadata:
-            yield sob.model.from_meta(
-                name,
+            yield (
+                sob.get_model_from_meta(
+                    name,
+                    metadata,
+                    module="oapi.oas.model",
+                    docstring=docstring.strip(),
+                ),
                 metadata,
-                module="oapi.oas.model",
-                docstring=docstring.strip(),
-            ), metadata, suffix
+                suffix,
+            )
 
 
 def main() -> None:
     suffix: str
-    cls: Type[sob.abc.Model]
+    cls: type[sob.abc.Model]
     metadata: sob.abc.Meta
-    imports: Set[str] = set()
-    classes: List[str] = []
-    metadatas: List[str] = []
+    imports: set[str] = set()
+    classes: list[str] = []
+    metadatas: list[str] = []
     for cls, metadata, suffix in iter_models_metadata_suffixes():
         import_source: str
         class_source: str
@@ -111,10 +120,11 @@ def main() -> None:
         if import_source:
             imports |= set(import_source.strip().split("\n"))
         classes.append(class_source.strip())
-        assert isinstance(
+        if not isinstance(
             metadata,
             (sob.abc.ObjectMeta, sob.abc.ArrayMeta, sob.abc.DictionaryMeta),
-        )
+        ):
+            raise TypeError(metadata)
         if isinstance(metadata, sob.abc.ObjectMeta):
             metadatas.append(
                 re.sub(
