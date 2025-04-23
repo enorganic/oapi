@@ -1,48 +1,71 @@
 """
 https://github.com/OAI/OpenAPI-Specification
 """
-
 from __future__ import annotations
-
-import typing
-
 import sob
-
+import typing
 from oapi._utilities import deprecated as _deprecated
+
 
 if typing.TYPE_CHECKING:
     import decimal
 
 
+
 class Callback(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, PathItem]
-        | typing.Iterable[tuple[str, PathItem]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                PathItem
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    PathItem
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
 
 class Callbacks(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, Reference | Callback]
-        | typing.Iterable[tuple[str, Reference | Callback]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                Reference
+                | Callback
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    Reference
+                    | Callback
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
 
 class Components(sob.Object):
+
     __slots__: tuple[str, ...] = (
         "schemas",
         "responses",
@@ -57,32 +80,97 @@ class Components(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        schemas: Schemas | None = None,
-        responses: Responses | None = None,
-        parameters: Parameters | None = None,
-        examples: Examples | None = None,
-        request_bodies: RequestBodies | None = None,
-        headers: Headers | None = None,
-        security_schemes: SecuritySchemes | None = None,
-        links: Links | None = None,
-        callbacks: Callbacks | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        schemas: (
+            Schemas
+            | None
+        ) = None,
+        responses: (
+            Responses
+            | None
+        ) = None,
+        parameters: (
+            Parameters
+            | None
+        ) = None,
+        examples: (
+            Examples
+            | None
+        ) = None,
+        request_bodies: (
+            RequestBodies
+            | None
+        ) = None,
+        headers: (
+            Headers
+            | None
+        ) = None,
+        security_schemes: (
+            SecuritySchemes
+            | None
+        ) = None,
+        links: (
+            Links
+            | None
+        ) = None,
+        callbacks: (
+            Callbacks
+            | None
+        ) = None
     ) -> None:
-        self.schemas = schemas
-        self.responses = responses
-        self.parameters = parameters
-        self.examples = examples
-        self.request_bodies = request_bodies
-        self.headers = headers
-        self.security_schemes = security_schemes
-        self.links = links
-        self.callbacks = callbacks
+        self.schemas: (
+            Schemas
+            | None
+        ) = schemas
+        self.responses: (
+            Responses
+            | None
+        ) = responses
+        self.parameters: (
+            Parameters
+            | None
+        ) = parameters
+        self.examples: (
+            Examples
+            | None
+        ) = examples
+        self.request_bodies: (
+            RequestBodies
+            | None
+        ) = request_bodies
+        self.headers: (
+            Headers
+            | None
+        ) = headers
+        self.security_schemes: (
+            SecuritySchemes
+            | None
+        ) = security_schemes
+        self.links: (
+            Links
+            | None
+        ) = links
+        self.callbacks: (
+            Callbacks
+            | None
+        ) = callbacks
         super().__init__(_data)
 
 
@@ -99,33 +187,73 @@ class Contact(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        name: str | None = None,
-        url: str | None = None,
-        email: str | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        name: (
+            str
+            | None
+        ) = None,
+        url: (
+            str
+            | None
+        ) = None,
+        email: (
+            str
+            | None
+        ) = None
     ) -> None:
-        self.name = name
-        self.url = url
-        self.email = email
+        self.name: (
+            str
+            | None
+        ) = name
+        self.url: (
+            str
+            | None
+        ) = url
+        self.email: (
+            str
+            | None
+        ) = email
         super().__init__(_data)
 
 
 class Definitions(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, Schema]
-        | typing.Iterable[tuple[str, Schema]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                Schema
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    Schema
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
@@ -149,18 +277,47 @@ class Discriminator(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        property_name: str | None = None,
-        mapping: typing.Mapping[str, str] | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        property_name: (
+            str
+            | None
+        ) = None,
+        mapping: (
+            typing.Mapping[
+                str,
+                str
+            ]
+            | None
+        ) = None
     ) -> None:
-        self.property_name = property_name
-        self.mapping = mapping
+        self.property_name: (
+            str
+            | None
+        ) = property_name
+        self.mapping: (
+            typing.Mapping[
+                str,
+                str
+            ]
+            | None
+        ) = mapping
         super().__init__(_data)
 
 
@@ -179,24 +336,73 @@ class Encoding(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        content_type: str | None = None,
-        headers: typing.Mapping[str, Reference | Header] | None = None,
-        style: str | None = None,
-        explode: bool | None = None,
-        allow_reserved: bool | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        content_type: (
+            str
+            | None
+        ) = None,
+        headers: (
+            typing.Mapping[
+                str,
+                Reference
+                | Header
+            ]
+            | None
+        ) = None,
+        style: (
+            str
+            | None
+        ) = None,
+        explode: (
+            bool
+            | None
+        ) = None,
+        allow_reserved: (
+            bool
+            | None
+        ) = None
     ) -> None:
-        self.content_type = content_type
-        self.headers = headers
-        self.style = style
-        self.explode = explode
-        self.allow_reserved = allow_reserved
+        self.content_type: (
+            str
+            | None
+        ) = content_type
+        self.headers: (
+            typing.Mapping[
+                str,
+                Reference
+                | Header
+            ]
+            | None
+        ) = headers
+        self.style: (
+            str
+            | None
+        ) = style
+        self.explode: (
+            bool
+            | None
+        ) = explode
+        self.allow_reserved: (
+            bool
+            | None
+        ) = allow_reserved
         super().__init__(_data)
 
 
@@ -214,35 +420,83 @@ class Example(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        summary: str | None = None,
-        description: str | None = None,
-        value: typing.Any | None = None,
-        external_value: str | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        summary: (
+            str
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        value: (
+            typing.Any
+            | None
+        ) = None,
+        external_value: (
+            str
+            | None
+        ) = None
     ) -> None:
-        self.summary = summary
-        self.description = description
-        self.value = value
-        self.external_value = external_value
+        self.summary: (
+            str
+            | None
+        ) = summary
+        self.description: (
+            str
+            | None
+        ) = description
+        self.value: (
+            typing.Any
+            | None
+        ) = value
+        self.external_value: (
+            str
+            | None
+        ) = external_value
         super().__init__(_data)
 
 
 class Examples(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, Reference | Example]
-        | typing.Iterable[tuple[str, Reference | Example]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                Reference
+                | Example
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    Reference
+                    | Example
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
@@ -262,22 +516,46 @@ class ExternalDocumentation(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        description: str | None = None,
-        url: str | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        url: (
+            str
+            | None
+        ) = None
     ) -> None:
-        self.description = description
-        self.url = url
+        self.description: (
+            str
+            | None
+        ) = description
+        self.url: (
+            str
+            | None
+        ) = url
         super().__init__(_data)
 
 
 class Header(sob.Object):
+
     __slots__: tuple[str, ...] = (
         "description",
         "required",
@@ -311,83 +589,307 @@ class Header(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        description: str | None = None,
-        required: bool | None = None,
-        deprecated: bool | None = None,
-        allow_empty_value: bool | None = None,
-        style: str | None = None,
-        explode: bool | None = None,
-        allow_reserved: bool | None = None,
-        schema: Reference | Schema | None = None,
-        example: typing.Any | None = None,
-        examples: typing.Mapping[str, Reference | Example] | None = None,
-        content: typing.Mapping[str, MediaType] | None = None,
-        type_: str | None = None,
-        default: typing.Any | None = None,
-        maximum: float | decimal.Decimal | None = None,
-        exclusive_maximum: bool | None = None,
-        minimum: float | decimal.Decimal | None = None,
-        exclusive_minimum: bool | None = None,
-        max_length: int | None = None,
-        min_length: int | None = None,
-        pattern: str | None = None,
-        max_items: int | None = None,
-        min_items: int | None = None,
-        unique_items: bool | None = None,
-        enum: typing.Sequence[sob.abc.MarshallableTypes | None] | None = None,
-        format_: str | None = None,
-        collection_format: str | None = None,
-        items: Items | None = None,
-        multiple_of: float | decimal.Decimal | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        required: (
+            bool
+            | None
+        ) = None,
+        deprecated: (
+            bool
+            | None
+        ) = None,
+        allow_empty_value: (
+            bool
+            | None
+        ) = None,
+        style: (
+            str
+            | None
+        ) = None,
+        explode: (
+            bool
+            | None
+        ) = None,
+        allow_reserved: (
+            bool
+            | None
+        ) = None,
+        schema: (
+            Reference
+            | Schema
+            | None
+        ) = None,
+        example: (
+            typing.Any
+            | None
+        ) = None,
+        examples: (
+            typing.Mapping[
+                str,
+                Reference
+                | Example
+            ]
+            | None
+        ) = None,
+        content: (
+            typing.Mapping[
+                str,
+                MediaType
+            ]
+            | None
+        ) = None,
+        type_: (
+            str
+            | None
+        ) = None,
+        default: (
+            typing.Any
+            | None
+        ) = None,
+        maximum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = None,
+        exclusive_maximum: (
+            bool
+            | None
+        ) = None,
+        minimum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = None,
+        exclusive_minimum: (
+            bool
+            | None
+        ) = None,
+        max_length: (
+            int
+            | None
+        ) = None,
+        min_length: (
+            int
+            | None
+        ) = None,
+        pattern: (
+            str
+            | None
+        ) = None,
+        max_items: (
+            int
+            | None
+        ) = None,
+        min_items: (
+            int
+            | None
+        ) = None,
+        unique_items: (
+            bool
+            | None
+        ) = None,
+        enum: (
+            typing.Sequence[
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = None,
+        format_: (
+            str
+            | None
+        ) = None,
+        collection_format: (
+            str
+            | None
+        ) = None,
+        items: (
+            Items
+            | None
+        ) = None,
+        multiple_of: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = None
     ) -> None:
-        self.description = description
-        self.required = required
-        self.deprecated = deprecated
-        self.allow_empty_value = allow_empty_value
-        self.style = style
-        self.explode = explode
-        self.allow_reserved = allow_reserved
-        self.schema = schema
-        self.example = example
-        self.examples = examples
-        self.content = content
-        self.type_ = type_
-        self.default = default
-        self.maximum = maximum
-        self.exclusive_maximum = exclusive_maximum
-        self.minimum = minimum
-        self.exclusive_minimum = exclusive_minimum
-        self.max_length = max_length
-        self.min_length = min_length
-        self.pattern = pattern
-        self.max_items = max_items
-        self.min_items = min_items
-        self.unique_items = unique_items
-        self.enum = enum
-        self.format_ = format_
-        self.collection_format = collection_format
-        self.items = items
-        self.multiple_of = multiple_of
+        self.description: (
+            str
+            | None
+        ) = description
+        self.required: (
+            bool
+            | None
+        ) = required
+        self.deprecated: (
+            bool
+            | None
+        ) = deprecated
+        self.allow_empty_value: (
+            bool
+            | None
+        ) = allow_empty_value
+        self.style: (
+            str
+            | None
+        ) = style
+        self.explode: (
+            bool
+            | None
+        ) = explode
+        self.allow_reserved: (
+            bool
+            | None
+        ) = allow_reserved
+        self.schema: (
+            Reference
+            | Schema
+            | None
+        ) = schema
+        self.example: (
+            typing.Any
+            | None
+        ) = example
+        self.examples: (
+            typing.Mapping[
+                str,
+                Reference
+                | Example
+            ]
+            | None
+        ) = examples
+        self.content: (
+            typing.Mapping[
+                str,
+                MediaType
+            ]
+            | None
+        ) = content
+        self.type_: (
+            str
+            | None
+        ) = type_
+        self.default: (
+            typing.Any
+            | None
+        ) = default
+        self.maximum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = maximum
+        self.exclusive_maximum: (
+            bool
+            | None
+        ) = exclusive_maximum
+        self.minimum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = minimum
+        self.exclusive_minimum: (
+            bool
+            | None
+        ) = exclusive_minimum
+        self.max_length: (
+            int
+            | None
+        ) = max_length
+        self.min_length: (
+            int
+            | None
+        ) = min_length
+        self.pattern: (
+            str
+            | None
+        ) = pattern
+        self.max_items: (
+            int
+            | None
+        ) = max_items
+        self.min_items: (
+            int
+            | None
+        ) = min_items
+        self.unique_items: (
+            bool
+            | None
+        ) = unique_items
+        self.enum: (
+            typing.Sequence[
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = enum
+        self.format_: (
+            str
+            | None
+        ) = format_
+        self.collection_format: (
+            str
+            | None
+        ) = collection_format
+        self.items: (
+            Items
+            | None
+        ) = items
+        self.multiple_of: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = multiple_of
         super().__init__(_data)
 
 
 class Headers(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, Reference | Header]
-        | typing.Iterable[tuple[str, Reference | Header]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                Reference
+                | Header
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    Reference
+                    | Header
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
@@ -408,26 +910,73 @@ class Info(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        title: str | None = None,
-        description: str | None = None,
-        terms_of_service: str | None = None,
-        contact: Contact | None = None,
-        license_: License | None = None,
-        version: str | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        title: (
+            str
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        terms_of_service: (
+            str
+            | None
+        ) = None,
+        contact: (
+            Contact
+            | None
+        ) = None,
+        license_: (
+            License
+            | None
+        ) = None,
+        version: (
+            str
+            | None
+        ) = None
     ) -> None:
-        self.title = title
-        self.description = description
-        self.terms_of_service = terms_of_service
-        self.contact = contact
-        self.license_ = license_
-        self.version = version
+        self.title: (
+            str
+            | None
+        ) = title
+        self.description: (
+            str
+            | None
+        ) = description
+        self.terms_of_service: (
+            str
+            | None
+        ) = terms_of_service
+        self.contact: (
+            Contact
+            | None
+        ) = contact
+        self.license_: (
+            License
+            | None
+        ) = license_
+        self.version: (
+            str
+            | None
+        ) = version
         super().__init__(_data)
 
 
@@ -458,48 +1007,177 @@ class Items(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        type_: str | None = None,
-        format_: str | None = None,
-        items: Items | None = None,
-        collection_format: str | None = None,
-        default: typing.Any | None = None,
-        maximum: float | decimal.Decimal | None = None,
-        exclusive_maximum: bool | None = None,
-        minimum: float | decimal.Decimal | None = None,
-        exclusive_minimum: bool | None = None,
-        max_length: int | None = None,
-        min_length: int | None = None,
-        pattern: str | None = None,
-        max_items: int | None = None,
-        min_items: int | None = None,
-        unique_items: bool | None = None,
-        enum: typing.Sequence[sob.abc.MarshallableTypes | None] | None = None,
-        multiple_of: float | decimal.Decimal | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        type_: (
+            str
+            | None
+        ) = None,
+        format_: (
+            str
+            | None
+        ) = None,
+        items: (
+            Items
+            | None
+        ) = None,
+        collection_format: (
+            str
+            | None
+        ) = None,
+        default: (
+            typing.Any
+            | None
+        ) = None,
+        maximum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = None,
+        exclusive_maximum: (
+            bool
+            | None
+        ) = None,
+        minimum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = None,
+        exclusive_minimum: (
+            bool
+            | None
+        ) = None,
+        max_length: (
+            int
+            | None
+        ) = None,
+        min_length: (
+            int
+            | None
+        ) = None,
+        pattern: (
+            str
+            | None
+        ) = None,
+        max_items: (
+            int
+            | None
+        ) = None,
+        min_items: (
+            int
+            | None
+        ) = None,
+        unique_items: (
+            bool
+            | None
+        ) = None,
+        enum: (
+            typing.Sequence[
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = None,
+        multiple_of: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = None
     ) -> None:
-        self.type_ = type_
-        self.format_ = format_
-        self.items = items
-        self.collection_format = collection_format
-        self.default = default
-        self.maximum = maximum
-        self.exclusive_maximum = exclusive_maximum
-        self.minimum = minimum
-        self.exclusive_minimum = exclusive_minimum
-        self.max_length = max_length
-        self.min_length = min_length
-        self.pattern = pattern
-        self.max_items = max_items
-        self.min_items = min_items
-        self.unique_items = unique_items
-        self.enum = enum
-        self.multiple_of = multiple_of
+        self.type_: (
+            str
+            | None
+        ) = type_
+        self.format_: (
+            str
+            | None
+        ) = format_
+        self.items: (
+            Items
+            | None
+        ) = items
+        self.collection_format: (
+            str
+            | None
+        ) = collection_format
+        self.default: (
+            typing.Any
+            | None
+        ) = default
+        self.maximum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = maximum
+        self.exclusive_maximum: (
+            bool
+            | None
+        ) = exclusive_maximum
+        self.minimum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = minimum
+        self.exclusive_minimum: (
+            bool
+            | None
+        ) = exclusive_minimum
+        self.max_length: (
+            int
+            | None
+        ) = max_length
+        self.min_length: (
+            int
+            | None
+        ) = min_length
+        self.pattern: (
+            str
+            | None
+        ) = pattern
+        self.max_items: (
+            int
+            | None
+        ) = max_items
+        self.min_items: (
+            int
+            | None
+        ) = min_items
+        self.unique_items: (
+            bool
+            | None
+        ) = unique_items
+        self.enum: (
+            typing.Sequence[
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = enum
+        self.multiple_of: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = multiple_of
         super().__init__(_data)
 
 
@@ -515,22 +1193,46 @@ class License(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        name: str | None = None,
-        url: str | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        name: (
+            str
+            | None
+        ) = None,
+        url: (
+            str
+            | None
+        ) = None
     ) -> None:
-        self.name = name
-        self.url = url
+        self.name: (
+            str
+            | None
+        ) = name
+        self.url: (
+            str
+            | None
+        ) = url
         super().__init__(_data)
 
 
 class Link(sob.Object):
+
     __slots__: tuple[str, ...] = (
         "rel",
         "href",
@@ -538,24 +1240,48 @@ class Link(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        rel: str | None = None,
-        href: str | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        rel: (
+            str
+            | None
+        ) = None,
+        href: (
+            str
+            | None
+        ) = None
     ) -> None:
-        self.rel = rel
-        self.href = href
+        self.rel: (
+            str
+            | None
+        ) = rel
+        self.href: (
+            str
+            | None
+        ) = href
         super().__init__(_data)
 
 
 class LinkObject(sob.Object):
     """
-    https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#link-object
+    https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#
+    link-object
     """
 
     __slots__: tuple[str, ...] = (
@@ -569,40 +1295,105 @@ class LinkObject(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        operation_ref: str | None = None,
-        operation_id: str | None = None,
-        parameters: typing.Mapping[str, sob.abc.MarshallableTypes | None]
-        | None = None,
-        request_body: typing.Any | None = None,
-        description: str | None = None,
-        server: Server | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        operation_ref: (
+            str
+            | None
+        ) = None,
+        operation_id: (
+            str
+            | None
+        ) = None,
+        parameters: (
+            typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = None,
+        request_body: (
+            typing.Any
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        server: (
+            Server
+            | None
+        ) = None
     ) -> None:
-        self.operation_ref = operation_ref
-        self.operation_id = operation_id
-        self.parameters = parameters
-        self.request_body = request_body
-        self.description = description
-        self.server = server
+        self.operation_ref: (
+            str
+            | None
+        ) = operation_ref
+        self.operation_id: (
+            str
+            | None
+        ) = operation_id
+        self.parameters: (
+            typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = parameters
+        self.request_body: (
+            typing.Any
+            | None
+        ) = request_body
+        self.description: (
+            str
+            | None
+        ) = description
+        self.server: (
+            Server
+            | None
+        ) = server
         super().__init__(_data)
 
 
 class Links(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, Reference | LinkObject]
-        | typing.Iterable[tuple[str, Reference | LinkObject]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                Reference
+                | LinkObject
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    Reference
+                    | LinkObject
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
@@ -621,22 +1412,75 @@ class MediaType(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        schema: Reference | Schema | None = None,
-        example: typing.Any | None = None,
-        examples: typing.Mapping[str, Reference | Example] | None = None,
-        encoding: typing.Mapping[str, Reference | Encoding] | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        schema: (
+            Reference
+            | Schema
+            | None
+        ) = None,
+        example: (
+            typing.Any
+            | None
+        ) = None,
+        examples: (
+            typing.Mapping[
+                str,
+                Reference
+                | Example
+            ]
+            | None
+        ) = None,
+        encoding: (
+            typing.Mapping[
+                str,
+                Reference
+                | Encoding
+            ]
+            | None
+        ) = None
     ) -> None:
-        self.schema = schema
-        self.example = example
-        self.examples = examples
-        self.encoding = encoding
+        self.schema: (
+            Reference
+            | Schema
+            | None
+        ) = schema
+        self.example: (
+            typing.Any
+            | None
+        ) = example
+        self.examples: (
+            typing.Mapping[
+                str,
+                Reference
+                | Example
+            ]
+            | None
+        ) = examples
+        self.encoding: (
+            typing.Mapping[
+                str,
+                Reference
+                | Encoding
+            ]
+            | None
+        ) = encoding
         super().__init__(_data)
 
 
@@ -654,22 +1498,63 @@ class OAuthFlow(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        authorization_url: str | None = None,
-        token_url: str | None = None,
-        refresh_url: str | None = None,
-        scopes: typing.Mapping[str, str] | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        authorization_url: (
+            str
+            | None
+        ) = None,
+        token_url: (
+            str
+            | None
+        ) = None,
+        refresh_url: (
+            str
+            | None
+        ) = None,
+        scopes: (
+            typing.Mapping[
+                str,
+                str
+            ]
+            | None
+        ) = None
     ) -> None:
-        self.authorization_url = authorization_url
-        self.token_url = token_url
-        self.refresh_url = refresh_url
-        self.scopes = scopes
+        self.authorization_url: (
+            str
+            | None
+        ) = authorization_url
+        self.token_url: (
+            str
+            | None
+        ) = token_url
+        self.refresh_url: (
+            str
+            | None
+        ) = refresh_url
+        self.scopes: (
+            typing.Mapping[
+                str,
+                str
+            ]
+            | None
+        ) = scopes
         super().__init__(_data)
 
 
@@ -687,22 +1572,57 @@ class OAuthFlows(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        implicit: OAuthFlow | None = None,
-        password: OAuthFlow | None = None,
-        client_credentials: OAuthFlow | None = None,
-        authorization_code: OAuthFlow | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        implicit: (
+            OAuthFlow
+            | None
+        ) = None,
+        password: (
+            OAuthFlow
+            | None
+        ) = None,
+        client_credentials: (
+            OAuthFlow
+            | None
+        ) = None,
+        authorization_code: (
+            OAuthFlow
+            | None
+        ) = None
     ) -> None:
-        self.implicit = implicit
-        self.password = password
-        self.client_credentials = client_credentials
-        self.authorization_code = authorization_code
+        self.implicit: (
+            OAuthFlow
+            | None
+        ) = implicit
+        self.password: (
+            OAuthFlow
+            | None
+        ) = password
+        self.client_credentials: (
+            OAuthFlow
+            | None
+        ) = client_credentials
+        self.authorization_code: (
+            OAuthFlow
+            | None
+        ) = authorization_code
         super().__init__(_data)
 
 
@@ -735,52 +1655,213 @@ class OpenAPI(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        openapi: str | None = None,
-        info: Info | None = None,
-        json_schema_dialect: str | None = None,
-        host: str | None = None,
-        servers: typing.Sequence[Server] | None = None,
-        base_path: str | None = None,
-        schemes: typing.Sequence[str] | None = None,
-        tags: typing.Sequence[Tag] | None = None,
-        paths: Paths | None = None,
-        components: Components | None = None,
-        consumes: typing.Sequence[str] | None = None,
-        swagger: str | None = None,
-        definitions: Definitions | None = None,
-        security_definitions: SecuritySchemes | None = None,
-        produces: typing.Sequence[str] | None = None,
-        external_docs: ExternalDocumentation | None = None,
-        parameters: typing.Mapping[str, Parameter] | None = None,
-        responses: typing.Mapping[str, Response] | None = None,
-        security: typing.Sequence[SecurityRequirement] | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        openapi: (
+            str
+            | None
+        ) = None,
+        info: (
+            Info
+            | None
+        ) = None,
+        json_schema_dialect: (
+            str
+            | None
+        ) = None,
+        host: (
+            str
+            | None
+        ) = None,
+        servers: (
+            typing.Sequence[
+                Server
+            ]
+            | None
+        ) = None,
+        base_path: (
+            str
+            | None
+        ) = None,
+        schemes: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = None,
+        tags: (
+            typing.Sequence[
+                Tag
+            ]
+            | None
+        ) = None,
+        paths: (
+            Paths
+            | None
+        ) = None,
+        components: (
+            Components
+            | None
+        ) = None,
+        consumes: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = None,
+        swagger: (
+            str
+            | None
+        ) = None,
+        definitions: (
+            Definitions
+            | None
+        ) = None,
+        security_definitions: (
+            SecuritySchemes
+            | None
+        ) = None,
+        produces: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = None,
+        external_docs: (
+            ExternalDocumentation
+            | None
+        ) = None,
+        parameters: (
+            typing.Mapping[
+                str,
+                Parameter
+            ]
+            | None
+        ) = None,
+        responses: (
+            typing.Mapping[
+                str,
+                Response
+            ]
+            | None
+        ) = None,
+        security: (
+            typing.Sequence[
+                SecurityRequirement
+            ]
+            | None
+        ) = None
     ) -> None:
-        self.openapi = openapi
-        self.info = info
-        self.json_schema_dialect = json_schema_dialect
-        self.host = host
-        self.servers = servers
-        self.base_path = base_path
-        self.schemes = schemes
-        self.tags = tags
-        self.paths = paths
-        self.components = components
-        self.consumes = consumes
-        self.swagger = swagger
-        self.definitions = definitions
-        self.security_definitions = security_definitions
-        self.produces = produces
-        self.external_docs = external_docs
-        self.parameters = parameters
-        self.responses = responses
-        self.security = security
+        self.openapi: (
+            str
+            | None
+        ) = openapi
+        self.info: (
+            Info
+            | None
+        ) = info
+        self.json_schema_dialect: (
+            str
+            | None
+        ) = json_schema_dialect
+        self.host: (
+            str
+            | None
+        ) = host
+        self.servers: (
+            typing.Sequence[
+                Server
+            ]
+            | None
+        ) = servers
+        self.base_path: (
+            str
+            | None
+        ) = base_path
+        self.schemes: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = schemes
+        self.tags: (
+            typing.Sequence[
+                Tag
+            ]
+            | None
+        ) = tags
+        self.paths: (
+            Paths
+            | None
+        ) = paths
+        self.components: (
+            Components
+            | None
+        ) = components
+        self.consumes: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = consumes
+        self.swagger: (
+            str
+            | None
+        ) = swagger
+        self.definitions: (
+            Definitions
+            | None
+        ) = definitions
+        self.security_definitions: (
+            SecuritySchemes
+            | None
+        ) = security_definitions
+        self.produces: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = produces
+        self.external_docs: (
+            ExternalDocumentation
+            | None
+        ) = external_docs
+        self.parameters: (
+            typing.Mapping[
+                str,
+                Parameter
+            ]
+            | None
+        ) = parameters
+        self.responses: (
+            typing.Mapping[
+                str,
+                Response
+            ]
+            | None
+        ) = responses
+        self.security: (
+            typing.Sequence[
+                SecurityRequirement
+            ]
+            | None
+        ) = security
         super().__init__(_data)
         version: str = self.openapi or self.swagger or ""
         if version:
@@ -850,44 +1931,177 @@ class Operation(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        tags: typing.Sequence[str] | None = None,
-        summary: str | None = None,
-        description: str | None = None,
-        external_docs: ExternalDocumentation | None = None,
-        operation_id: str | None = None,
-        consumes: typing.Sequence[str] | None = None,
-        produces: typing.Sequence[str] | None = None,
-        parameters: typing.Sequence[Reference | Parameter] | None = None,
-        request_body: Reference | RequestBody | None = None,
-        responses: Responses | None = None,
-        callbacks: Callbacks | None = None,
-        schemes: typing.Sequence[str] | None = None,
-        deprecated: bool | None = None,
-        security: typing.Sequence[SecurityRequirement] | None = None,
-        servers: typing.Sequence[Server] | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        tags: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = None,
+        summary: (
+            str
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        external_docs: (
+            ExternalDocumentation
+            | None
+        ) = None,
+        operation_id: (
+            str
+            | None
+        ) = None,
+        consumes: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = None,
+        produces: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = None,
+        parameters: (
+            typing.Sequence[
+                Reference
+            | Parameter
+            ]
+            | None
+        ) = None,
+        request_body: (
+            Reference
+            | RequestBody
+            | None
+        ) = None,
+        responses: (
+            Responses
+            | None
+        ) = None,
+        callbacks: (
+            Callbacks
+            | None
+        ) = None,
+        schemes: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = None,
+        deprecated: (
+            bool
+            | None
+        ) = None,
+        security: (
+            typing.Sequence[
+                SecurityRequirement
+            ]
+            | None
+        ) = None,
+        servers: (
+            typing.Sequence[
+                Server
+            ]
+            | None
+        ) = None
     ) -> None:
-        self.tags = tags
-        self.summary = summary
-        self.description = description
-        self.external_docs = external_docs
-        self.operation_id = operation_id
-        self.consumes = consumes
-        self.produces = produces
-        self.parameters = parameters
-        self.request_body = request_body
-        self.responses = responses
-        self.callbacks = callbacks
-        self.schemes = schemes
-        self.deprecated = deprecated
-        self.security = security
-        self.servers = servers
+        self.tags: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = tags
+        self.summary: (
+            str
+            | None
+        ) = summary
+        self.description: (
+            str
+            | None
+        ) = description
+        self.external_docs: (
+            ExternalDocumentation
+            | None
+        ) = external_docs
+        self.operation_id: (
+            str
+            | None
+        ) = operation_id
+        self.consumes: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = consumes
+        self.produces: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = produces
+        self.parameters: (
+            typing.Sequence[
+                Reference
+            | Parameter
+            ]
+            | None
+        ) = parameters
+        self.request_body: (
+            Reference
+            | RequestBody
+            | None
+        ) = request_body
+        self.responses: (
+            Responses
+            | None
+        ) = responses
+        self.callbacks: (
+            Callbacks
+            | None
+        ) = callbacks
+        self.schemes: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = schemes
+        self.deprecated: (
+            bool
+            | None
+        ) = deprecated
+        self.security: (
+            typing.Sequence[
+                SecurityRequirement
+            ]
+            | None
+        ) = security
+        self.servers: (
+            typing.Sequence[
+                Server
+            ]
+            | None
+        ) = servers
         super().__init__(_data)
 
 
@@ -1012,87 +2226,325 @@ class Parameter(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        name: str | None = None,
-        in_: str | None = None,
-        description: str | None = None,
-        required: bool | None = None,
-        deprecated: bool | None = None,
-        allow_empty_value: bool | None = None,
-        style: str | None = None,
-        explode: bool | None = None,
-        allow_reserved: bool | None = None,
-        schema: Reference | Schema | None = None,
-        example: typing.Any | None = None,
-        examples: typing.Mapping[str, Reference | Example] | None = None,
-        content: typing.Mapping[str, MediaType] | None = None,
-        type_: str | None = None,
-        default: typing.Any | None = None,
-        maximum: float | decimal.Decimal | None = None,
-        exclusive_maximum: bool | None = None,
-        minimum: float | decimal.Decimal | None = None,
-        exclusive_minimum: bool | None = None,
-        max_length: int | None = None,
-        min_length: int | None = None,
-        pattern: str | None = None,
-        max_items: int | None = None,
-        min_items: int | None = None,
-        unique_items: bool | None = None,
-        enum: typing.Sequence[sob.abc.MarshallableTypes | None] | None = None,
-        format_: str | None = None,
-        collection_format: str | None = None,
-        items: Items | None = None,
-        multiple_of: float | decimal.Decimal | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        name: (
+            str
+            | None
+        ) = None,
+        in_: (
+            str
+            | str
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        required: (
+            bool
+            | None
+        ) = None,
+        deprecated: (
+            bool
+            | None
+        ) = None,
+        allow_empty_value: (
+            bool
+            | None
+        ) = None,
+        style: (
+            str
+            | None
+        ) = None,
+        explode: (
+            bool
+            | None
+        ) = None,
+        allow_reserved: (
+            bool
+            | None
+        ) = None,
+        schema: (
+            Reference
+            | Schema
+            | None
+        ) = None,
+        example: (
+            typing.Any
+            | None
+        ) = None,
+        examples: (
+            typing.Mapping[
+                str,
+                Reference
+                | Example
+            ]
+            | None
+        ) = None,
+        content: (
+            typing.Mapping[
+                str,
+                MediaType
+            ]
+            | None
+        ) = None,
+        type_: (
+            str
+            | None
+        ) = None,
+        default: (
+            typing.Any
+            | None
+        ) = None,
+        maximum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = None,
+        exclusive_maximum: (
+            bool
+            | None
+        ) = None,
+        minimum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = None,
+        exclusive_minimum: (
+            bool
+            | None
+        ) = None,
+        max_length: (
+            int
+            | None
+        ) = None,
+        min_length: (
+            int
+            | None
+        ) = None,
+        pattern: (
+            str
+            | None
+        ) = None,
+        max_items: (
+            int
+            | None
+        ) = None,
+        min_items: (
+            int
+            | None
+        ) = None,
+        unique_items: (
+            bool
+            | None
+        ) = None,
+        enum: (
+            typing.Sequence[
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = None,
+        format_: (
+            str
+            | None
+        ) = None,
+        collection_format: (
+            str
+            | None
+        ) = None,
+        items: (
+            Items
+            | None
+        ) = None,
+        multiple_of: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = None
     ) -> None:
-        self.name = name
-        self.in_ = in_
-        self.description = description
-        self.required = required
-        self.deprecated = deprecated
-        self.allow_empty_value = allow_empty_value
-        self.style = style
-        self.explode = explode
-        self.allow_reserved = allow_reserved
-        self.schema = schema
-        self.example = example
-        self.examples = examples
-        self.content = content
-        self.type_ = type_
-        self.default = default
-        self.maximum = maximum
-        self.exclusive_maximum = exclusive_maximum
-        self.minimum = minimum
-        self.exclusive_minimum = exclusive_minimum
-        self.max_length = max_length
-        self.min_length = min_length
-        self.pattern = pattern
-        self.max_items = max_items
-        self.min_items = min_items
-        self.unique_items = unique_items
-        self.enum = enum
-        self.format_ = format_
-        self.collection_format = collection_format
-        self.items = items
-        self.multiple_of = multiple_of
+        self.name: (
+            str
+            | None
+        ) = name
+        self.in_: (
+            str
+            | str
+            | None
+        ) = in_
+        self.description: (
+            str
+            | None
+        ) = description
+        self.required: (
+            bool
+            | None
+        ) = required
+        self.deprecated: (
+            bool
+            | None
+        ) = deprecated
+        self.allow_empty_value: (
+            bool
+            | None
+        ) = allow_empty_value
+        self.style: (
+            str
+            | None
+        ) = style
+        self.explode: (
+            bool
+            | None
+        ) = explode
+        self.allow_reserved: (
+            bool
+            | None
+        ) = allow_reserved
+        self.schema: (
+            Reference
+            | Schema
+            | None
+        ) = schema
+        self.example: (
+            typing.Any
+            | None
+        ) = example
+        self.examples: (
+            typing.Mapping[
+                str,
+                Reference
+                | Example
+            ]
+            | None
+        ) = examples
+        self.content: (
+            typing.Mapping[
+                str,
+                MediaType
+            ]
+            | None
+        ) = content
+        self.type_: (
+            str
+            | None
+        ) = type_
+        self.default: (
+            typing.Any
+            | None
+        ) = default
+        self.maximum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = maximum
+        self.exclusive_maximum: (
+            bool
+            | None
+        ) = exclusive_maximum
+        self.minimum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = minimum
+        self.exclusive_minimum: (
+            bool
+            | None
+        ) = exclusive_minimum
+        self.max_length: (
+            int
+            | None
+        ) = max_length
+        self.min_length: (
+            int
+            | None
+        ) = min_length
+        self.pattern: (
+            str
+            | None
+        ) = pattern
+        self.max_items: (
+            int
+            | None
+        ) = max_items
+        self.min_items: (
+            int
+            | None
+        ) = min_items
+        self.unique_items: (
+            bool
+            | None
+        ) = unique_items
+        self.enum: (
+            typing.Sequence[
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = enum
+        self.format_: (
+            str
+            | None
+        ) = format_
+        self.collection_format: (
+            str
+            | None
+        ) = collection_format
+        self.items: (
+            Items
+            | None
+        ) = items
+        self.multiple_of: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = multiple_of
         super().__init__(_data)
 
 
 class Parameters(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, Reference | Parameter]
-        | typing.Iterable[tuple[str, Reference | Parameter]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                Reference
+                | Parameter
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    Reference
+                    | Parameter
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
@@ -1103,7 +2555,6 @@ class PathItem(sob.Object):
     """
 
     __slots__: tuple[str, ...] = (
-        "ref",
         "summary",
         "description",
         "get",
@@ -1120,65 +2571,182 @@ class PathItem(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        summary: str | None = None,
-        description: str | None = None,
-        get: Operation | None = None,
-        put: Operation | None = None,
-        post: Operation | None = None,
-        delete: Operation | None = None,
-        options: Operation | None = None,
-        head: Operation | None = None,
-        patch: Operation | None = None,
-        trace: Operation | None = None,
-        servers: typing.Sequence[Server] | None = None,
-        parameters: typing.Sequence[Reference | Parameter] | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        summary: (
+            str
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        get: (
+            Operation
+            | None
+        ) = None,
+        put: (
+            Operation
+            | None
+        ) = None,
+        post: (
+            Operation
+            | None
+        ) = None,
+        delete: (
+            Operation
+            | None
+        ) = None,
+        options: (
+            Operation
+            | None
+        ) = None,
+        head: (
+            Operation
+            | None
+        ) = None,
+        patch: (
+            Operation
+            | None
+        ) = None,
+        trace: (
+            Operation
+            | None
+        ) = None,
+        servers: (
+            typing.Sequence[
+                Server
+            ]
+            | None
+        ) = None,
+        parameters: (
+            typing.Sequence[
+                Reference
+            | Parameter
+            ]
+            | None
+        ) = None
     ) -> None:
-        self.summary = summary
-        self.description = description
-        self.get = get
-        self.put = put
-        self.post = post
-        self.delete = delete
-        self.options = options
-        self.head = head
-        self.patch = patch
-        self.trace = trace
-        self.servers = servers
-        self.parameters = parameters
+        self.summary: (
+            str
+            | None
+        ) = summary
+        self.description: (
+            str
+            | None
+        ) = description
+        self.get: (
+            Operation
+            | None
+        ) = get
+        self.put: (
+            Operation
+            | None
+        ) = put
+        self.post: (
+            Operation
+            | None
+        ) = post
+        self.delete: (
+            Operation
+            | None
+        ) = delete
+        self.options: (
+            Operation
+            | None
+        ) = options
+        self.head: (
+            Operation
+            | None
+        ) = head
+        self.patch: (
+            Operation
+            | None
+        ) = patch
+        self.trace: (
+            Operation
+            | None
+        ) = trace
+        self.servers: (
+            typing.Sequence[
+                Server
+            ]
+            | None
+        ) = servers
+        self.parameters: (
+            typing.Sequence[
+                Reference
+            | Parameter
+            ]
+            | None
+        ) = parameters
         super().__init__(_data)
 
 
 class Paths(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, PathItem]
-        | typing.Iterable[tuple[str, PathItem]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                PathItem
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    PathItem
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
 
 class Properties(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, Reference | Schema]
-        | typing.Iterable[tuple[str, Reference | Schema]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                Reference
+                | Schema
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    Reference
+                    | Schema
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
@@ -1196,38 +2764,81 @@ class Reference(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        ref: str | None = None,
-        summary: str | None = None,
-        description: str | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        ref: (
+            str
+            | None
+        ) = None,
+        summary: (
+            str
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None
     ) -> None:
-        self.ref = ref
-        self.summary = summary
-        self.description = description
+        self.ref: (
+            str
+            | None
+        ) = ref
+        self.summary: (
+            str
+            | None
+        ) = summary
+        self.description: (
+            str
+            | None
+        ) = description
         super().__init__(_data)
 
 
 class RequestBodies(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, Reference | RequestBody]
-        | typing.Iterable[tuple[str, Reference | RequestBody]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                Reference
+                | RequestBody
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    Reference
+                    | RequestBody
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
 
 class RequestBody(sob.Object):
+
     __slots__: tuple[str, ...] = (
         "description",
         "content",
@@ -1236,20 +2847,55 @@ class RequestBody(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        description: str | None = None,
-        content: typing.Mapping[str, MediaType] | None = None,
-        required: bool | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        content: (
+            typing.Mapping[
+                str,
+                MediaType
+            ]
+            | None
+        ) = None,
+        required: (
+            bool
+            | None
+        ) = None
     ) -> None:
-        self.description = description
-        self.content = content
-        self.required = required
+        self.description: (
+            str
+            | None
+        ) = description
+        self.content: (
+            typing.Mapping[
+                str,
+                MediaType
+            ]
+            | None
+        ) = content
+        self.required: (
+            bool
+            | None
+        ) = required
         super().__init__(_data)
 
 
@@ -1285,41 +2931,133 @@ class Response(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        *,
-        description: str | None = None,
-        schema: Reference | Schema | None = None,
-        headers: typing.Mapping[str, Reference | Header] | None = None,
-        examples: typing.Mapping[str, sob.abc.MarshallableTypes | None]
-        | None = None,
-        content: typing.Mapping[str, Reference | MediaType] | None = None,
-        links: typing.Mapping[str, Reference | LinkObject] | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        schema: (
+            Reference
+            | Schema
+            | None
+        ) = None,
+        headers: (
+            typing.Mapping[
+                str,
+                Reference
+                | Header
+            ]
+            | None
+        ) = None,
+        examples: (
+            typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = None,
+        content: (
+            typing.Mapping[
+                str,
+                Reference
+                | MediaType
+            ]
+            | None
+        ) = None,
+        links: (
+            typing.Mapping[
+                str,
+                Reference
+                | LinkObject
+            ]
+            | None
+        ) = None
     ) -> None:
-        self.description = description
-        self.schema = schema
-        self.headers = headers
-        self.examples = examples
-        self.content = content
-        self.links = links
+        self.description: (
+            str
+            | None
+        ) = description
+        self.schema: (
+            Reference
+            | Schema
+            | None
+        ) = schema
+        self.headers: (
+            typing.Mapping[
+                str,
+                Reference
+                | Header
+            ]
+            | None
+        ) = headers
+        self.examples: (
+            typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = examples
+        self.content: (
+            typing.Mapping[
+                str,
+                Reference
+                | MediaType
+            ]
+            | None
+        ) = content
+        self.links: (
+            typing.Mapping[
+                str,
+                Reference
+                | LinkObject
+            ]
+            | None
+        ) = links
         super().__init__(_data)
 
 
 class Responses(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, Reference | Response]
-        | typing.Iterable[tuple[str, Reference | Response]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                Reference
+                | Response
+                | Response
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    Reference
+                    | Response
+                    | Response
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
@@ -1498,125 +3236,464 @@ class Schema(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        title: str | None = None,
-        description: str | None = None,
-        multiple_of: float | decimal.Decimal | None = None,
-        maximum: float | decimal.Decimal | None = None,
-        exclusive_maximum: bool | None = None,
-        minimum: float | decimal.Decimal | None = None,
-        exclusive_minimum: bool | None = None,
-        max_length: int | None = None,
-        min_length: int | None = None,
-        pattern: str | None = None,
-        max_items: int | None = None,
-        min_items: int | None = None,
-        unique_items: bool | None = None,
-        items: Reference
-        | Schema
-        | typing.Sequence[Reference | Schema]
-        | None = None,
-        max_properties: int | None = None,
-        min_properties: int | None = None,
-        properties: Properties | None = None,
-        additional_properties: Reference | Schema | bool | None = None,
-        enum: typing.Sequence[sob.abc.MarshallableTypes | None] | None = None,
-        type_: str | None = None,
-        format_: str | None = None,
-        required: typing.Sequence[str] | None = None,
-        all_of: typing.Sequence[Reference | Schema] | None = None,
-        any_of: typing.Sequence[Reference | Schema] | None = None,
-        one_of: typing.Sequence[Reference | Schema] | None = None,
-        is_not: Reference | Schema | None = None,
-        definitions: typing.Any | None = None,
-        default: typing.Any | None = None,
-        discriminator: Discriminator | str | None = None,
-        read_only: bool | None = None,
-        write_only: bool | None = None,
-        xml: XML | None = None,
-        external_docs: ExternalDocumentation | None = None,
-        example: typing.Any | None = None,
-        deprecated: bool | None = None,
-        links: typing.Sequence[Link] | None = None,
-        nullable: bool | None = None,
-        content_encoding: str | None = None,
-        content_media_type: str | None = None,
-        examples: typing.Sequence[sob.abc.MarshallableTypes | None]
-        | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        title: (
+            str
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        multiple_of: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = None,
+        maximum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = None,
+        exclusive_maximum: (
+            bool
+            | None
+        ) = None,
+        minimum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = None,
+        exclusive_minimum: (
+            bool
+            | None
+        ) = None,
+        max_length: (
+            int
+            | None
+        ) = None,
+        min_length: (
+            int
+            | None
+        ) = None,
+        pattern: (
+            str
+            | None
+        ) = None,
+        max_items: (
+            int
+            | None
+        ) = None,
+        min_items: (
+            int
+            | None
+        ) = None,
+        unique_items: (
+            bool
+            | None
+        ) = None,
+        items: (
+            Reference
+            | Schema
+            | typing.Sequence[
+                Reference
+            | Schema
+            ]
+            | None
+        ) = None,
+        max_properties: (
+            int
+            | None
+        ) = None,
+        min_properties: (
+            int
+            | None
+        ) = None,
+        properties: (
+            Properties
+            | None
+        ) = None,
+        additional_properties: (
+            Reference
+            | Schema
+            | bool
+            | None
+        ) = None,
+        enum: (
+            typing.Sequence[
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = None,
+        type_: (
+            str
+            | None
+        ) = None,
+        format_: (
+            str
+            | None
+        ) = None,
+        required: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = None,
+        all_of: (
+            typing.Sequence[
+                Reference
+            | Schema
+            ]
+            | None
+        ) = None,
+        any_of: (
+            typing.Sequence[
+                Reference
+            | Schema
+            ]
+            | None
+        ) = None,
+        one_of: (
+            typing.Sequence[
+                Reference
+            | Schema
+            ]
+            | None
+        ) = None,
+        is_not: (
+            Reference
+            | Schema
+            | None
+        ) = None,
+        definitions: (
+            typing.Any
+            | None
+        ) = None,
+        default: (
+            typing.Any
+            | None
+        ) = None,
+        discriminator: (
+            Discriminator
+            | str
+            | None
+        ) = None,
+        read_only: (
+            bool
+            | None
+        ) = None,
+        write_only: (
+            bool
+            | None
+        ) = None,
+        xml: (
+            XML
+            | None
+        ) = None,
+        external_docs: (
+            ExternalDocumentation
+            | None
+        ) = None,
+        example: (
+            typing.Any
+            | None
+        ) = None,
+        deprecated: (
+            bool
+            | None
+        ) = None,
+        links: (
+            typing.Sequence[
+                Link
+            ]
+            | None
+        ) = None,
+        nullable: (
+            bool
+            | None
+        ) = None,
+        content_encoding: (
+            str
+            | None
+        ) = None,
+        content_media_type: (
+            str
+            | None
+        ) = None,
+        examples: (
+            typing.Sequence[
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = None
     ) -> None:
-        self.title = title
-        self.description = description
-        self.multiple_of = multiple_of
-        self.maximum = maximum
-        self.exclusive_maximum = exclusive_maximum
-        self.minimum = minimum
-        self.exclusive_minimum = exclusive_minimum
-        self.max_length = max_length
-        self.min_length = min_length
-        self.pattern = pattern
-        self.max_items = max_items
-        self.min_items = min_items
-        self.unique_items = unique_items
-        self.items = items
-        self.max_properties = max_properties
-        self.min_properties = min_properties
-        self.properties = properties
-        self.additional_properties = additional_properties
-        self.enum = enum
-        self.type_ = type_
-        self.format_ = format_
-        self.required = required
-        self.all_of = all_of
-        self.any_of = any_of
-        self.one_of = one_of
-        self.is_not = is_not
-        self.definitions = definitions
-        self.default = default
-        self.discriminator = discriminator
-        self.read_only = read_only
-        self.write_only = write_only
-        self.xml = xml
-        self.external_docs = external_docs
-        self.example = example
-        self.deprecated = deprecated
-        self.links = links
-        self.nullable = nullable
-        self.content_encoding = content_encoding
-        self.content_media_type = content_media_type
-        self.examples = examples
+        self.title: (
+            str
+            | None
+        ) = title
+        self.description: (
+            str
+            | None
+        ) = description
+        self.multiple_of: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = multiple_of
+        self.maximum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = maximum
+        self.exclusive_maximum: (
+            bool
+            | None
+        ) = exclusive_maximum
+        self.minimum: (
+            float
+            | int
+            | decimal.Decimal
+            | None
+        ) = minimum
+        self.exclusive_minimum: (
+            bool
+            | None
+        ) = exclusive_minimum
+        self.max_length: (
+            int
+            | None
+        ) = max_length
+        self.min_length: (
+            int
+            | None
+        ) = min_length
+        self.pattern: (
+            str
+            | None
+        ) = pattern
+        self.max_items: (
+            int
+            | None
+        ) = max_items
+        self.min_items: (
+            int
+            | None
+        ) = min_items
+        self.unique_items: (
+            bool
+            | None
+        ) = unique_items
+        self.items: (
+            Reference
+            | Schema
+            | typing.Sequence[
+                Reference
+            | Schema
+            ]
+            | None
+        ) = items
+        self.max_properties: (
+            int
+            | None
+        ) = max_properties
+        self.min_properties: (
+            int
+            | None
+        ) = min_properties
+        self.properties: (
+            Properties
+            | None
+        ) = properties
+        self.additional_properties: (
+            Reference
+            | Schema
+            | bool
+            | None
+        ) = additional_properties
+        self.enum: (
+            typing.Sequence[
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = enum
+        self.type_: (
+            str
+            | None
+        ) = type_
+        self.format_: (
+            str
+            | None
+        ) = format_
+        self.required: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = required
+        self.all_of: (
+            typing.Sequence[
+                Reference
+            | Schema
+            ]
+            | None
+        ) = all_of
+        self.any_of: (
+            typing.Sequence[
+                Reference
+            | Schema
+            ]
+            | None
+        ) = any_of
+        self.one_of: (
+            typing.Sequence[
+                Reference
+            | Schema
+            ]
+            | None
+        ) = one_of
+        self.is_not: (
+            Reference
+            | Schema
+            | None
+        ) = is_not
+        self.definitions: (
+            typing.Any
+            | None
+        ) = definitions
+        self.default: (
+            typing.Any
+            | None
+        ) = default
+        self.discriminator: (
+            Discriminator
+            | str
+            | None
+        ) = discriminator
+        self.read_only: (
+            bool
+            | None
+        ) = read_only
+        self.write_only: (
+            bool
+            | None
+        ) = write_only
+        self.xml: (
+            XML
+            | None
+        ) = xml
+        self.external_docs: (
+            ExternalDocumentation
+            | None
+        ) = external_docs
+        self.example: (
+            typing.Any
+            | None
+        ) = example
+        self.deprecated: (
+            bool
+            | None
+        ) = deprecated
+        self.links: (
+            typing.Sequence[
+                Link
+            ]
+            | None
+        ) = links
+        self.nullable: (
+            bool
+            | None
+        ) = nullable
+        self.content_encoding: (
+            str
+            | None
+        ) = content_encoding
+        self.content_media_type: (
+            str
+            | None
+        ) = content_media_type
+        self.examples: (
+            typing.Sequence[
+                sob.abc.MarshallableTypes | None
+            ]
+            | None
+        ) = examples
         super().__init__(_data)
 
 
 class Schemas(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, Reference | Schema]
-        | typing.Iterable[tuple[str, Reference | Schema]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                Reference
+                | Schema
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    Reference
+                    | Schema
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
 
 class SecurityRequirement(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, typing.Sequence[str]]
-        | typing.Iterable[tuple[str, typing.Sequence[str]]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                typing.Sequence[
+                    str
+                ]
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    typing.Sequence[
+                        str
+                    ]
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
@@ -1659,51 +3736,155 @@ class SecurityScheme(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        type_: str | None = None,
-        description: str | None = None,
-        name: str | None = None,
-        in_: str | None = None,
-        scheme: str | None = None,
-        bearer_format: str | None = None,
-        flows: OAuthFlows | None = None,
-        open_id_connect_url: str | None = None,
-        flow: str | None = None,
-        authorization_url: str | None = None,
-        token_url: str | None = None,
-        scopes: typing.Mapping[str, str] | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        type_: (
+            str
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        name: (
+            str
+            | None
+        ) = None,
+        in_: (
+            str
+            | str
+            | None
+        ) = None,
+        scheme: (
+            str
+            | None
+        ) = None,
+        bearer_format: (
+            str
+            | None
+        ) = None,
+        flows: (
+            OAuthFlows
+            | None
+        ) = None,
+        open_id_connect_url: (
+            str
+            | None
+        ) = None,
+        flow: (
+            str
+            | None
+        ) = None,
+        authorization_url: (
+            str
+            | None
+        ) = None,
+        token_url: (
+            str
+            | None
+        ) = None,
+        scopes: (
+            typing.Mapping[
+                str,
+                str
+            ]
+            | None
+        ) = None
     ) -> None:
-        self.type_ = type_
-        self.description = description
-        self.name = name
-        self.in_ = in_
-        self.scheme = scheme
-        self.bearer_format = bearer_format
-        self.flows = flows
-        self.open_id_connect_url = open_id_connect_url
-        self.flow = flow
-        self.authorization_url = authorization_url
-        self.token_url = token_url
-        self.scopes = scopes
+        self.type_: (
+            str
+            | None
+        ) = type_
+        self.description: (
+            str
+            | None
+        ) = description
+        self.name: (
+            str
+            | None
+        ) = name
+        self.in_: (
+            str
+            | str
+            | None
+        ) = in_
+        self.scheme: (
+            str
+            | None
+        ) = scheme
+        self.bearer_format: (
+            str
+            | None
+        ) = bearer_format
+        self.flows: (
+            OAuthFlows
+            | None
+        ) = flows
+        self.open_id_connect_url: (
+            str
+            | None
+        ) = open_id_connect_url
+        self.flow: (
+            str
+            | None
+        ) = flow
+        self.authorization_url: (
+            str
+            | None
+        ) = authorization_url
+        self.token_url: (
+            str
+            | None
+        ) = token_url
+        self.scopes: (
+            typing.Mapping[
+                str,
+                str
+            ]
+            | None
+        ) = scopes
         super().__init__(_data)
 
 
 class SecuritySchemes(sob.Dictionary):
+
     def __init__(
         self,
-        items: sob.abc.Dictionary
-        | typing.Mapping[str, Reference | SecurityScheme]
-        | typing.Iterable[tuple[str, Reference | SecurityScheme]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
+        items: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                Reference
+                | SecurityScheme
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    Reference
+                    | SecurityScheme
+                ]
+            ]
+            | sob.abc.Readable
+            | str
+            | bytes
+            | None
+        ) = None,
     ) -> None:
         super().__init__(items)
 
@@ -1713,24 +3894,63 @@ class Server(sob.Object):
     https://bit.ly/3iTqBxv
     """
 
-    __slots__: tuple[str, ...] = ("url", "description", "variables")
+    __slots__: tuple[str, ...] = (
+        "url",
+        "description",
+        "variables",
+    )
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        url: str | None = None,
-        description: str | None = None,
-        variables: typing.Mapping[str, ServerVariable] | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        url: (
+            str
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        variables: (
+            typing.Mapping[
+                str,
+                ServerVariable
+            ]
+            | None
+        ) = None
     ) -> None:
-        self.url = url
-        self.description = description
-        self.variables = variables
+        self.url: (
+            str
+            | None
+        ) = url
+        self.description: (
+            str
+            | None
+        ) = description
+        self.variables: (
+            typing.Mapping[
+                str,
+                ServerVariable
+            ]
+            | None
+        ) = variables
         super().__init__(_data)
 
 
@@ -1739,24 +3959,61 @@ class ServerVariable(sob.Object):
     https://bit.ly/3iYikZ7
     """
 
-    __slots__: tuple[str, ...] = ("enum", "default", "description")
+    __slots__: tuple[str, ...] = (
+        "enum",
+        "default",
+        "description",
+    )
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        enum: typing.Sequence[str] | None = None,
-        default: str | None = None,
-        description: str | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        enum: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = None,
+        default: (
+            str
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None
     ) -> None:
-        self.enum = enum
-        self.default = default
-        self.description = description
+        self.enum: (
+            typing.Sequence[
+                str
+            ]
+            | None
+        ) = enum
+        self.default: (
+            str
+            | None
+        ) = default
+        self.description: (
+            str
+            | None
+        ) = description
         super().__init__(_data)
 
 
@@ -1765,24 +4022,57 @@ class Tag(sob.Object):
     https://bit.ly/36K2JtU
     """
 
-    __slots__: tuple[str, ...] = ("name", "description", "external_docs")
+    __slots__: tuple[str, ...] = (
+        "name",
+        "description",
+        "external_docs",
+    )
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        name: str | None = None,
-        description: str | None = None,
-        external_docs: ExternalDocumentation | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        name: (
+            str
+            | None
+        ) = None,
+        description: (
+            str
+            | None
+        ) = None,
+        external_docs: (
+            ExternalDocumentation
+            | None
+        ) = None
     ) -> None:
-        self.name = name
-        self.description = description
-        self.external_docs = external_docs
+        self.name: (
+            str
+            | None
+        ) = name
+        self.description: (
+            str
+            | None
+        ) = description
+        self.external_docs: (
+            ExternalDocumentation
+            | None
+        ) = external_docs
         super().__init__(_data)
 
 
@@ -1813,1203 +4103,2336 @@ class XML(sob.Object):
 
     def __init__(
         self,
-        _data: sob.abc.Dictionary
-        | typing.Mapping[str, sob.abc.MarshallableTypes]
-        | typing.Iterable[tuple[str, sob.abc.MarshallableTypes]]
-        | sob.abc.Readable
-        | str
-        | bytes
-        | None = None,
-        name: str | None = None,
-        name_space: str | None = None,
-        prefix: str | None = None,
-        attribute: bool | None = None,
-        wrapped: bool | None = None,
+        _data: (
+            sob.abc.Dictionary
+            | typing.Mapping[
+                str,
+                sob.abc.MarshallableTypes
+            ]
+            | typing.Iterable[
+                tuple[
+                    str,
+                    sob.abc.MarshallableTypes
+                ]
+            ]
+            | sob.abc.Readable
+            | typing.IO
+            | str
+            | bytes
+            | None
+        ) = None,
+        name: (
+            str
+            | None
+        ) = None,
+        name_space: (
+            str
+            | None
+        ) = None,
+        prefix: (
+            str
+            | None
+        ) = None,
+        attribute: (
+            bool
+            | None
+        ) = None,
+        wrapped: (
+            bool
+            | None
+        ) = None
     ) -> None:
-        self.name = name
-        self.name_space = name_space
-        self.prefix = prefix
-        self.attribute = attribute
-        self.wrapped = wrapped
+        self.name: (
+            str
+            | None
+        ) = name
+        self.name_space: (
+            str
+            | None
+        ) = name_space
+        self.prefix: (
+            str
+            | None
+        ) = prefix
+        self.attribute: (
+            bool
+            | None
+        ) = attribute
+        self.wrapped: (
+            bool
+            | None
+        ) = wrapped
         super().__init__(_data)
 
 
 sob.get_writable_dictionary_meta(  # type: ignore
     Callback
-).value_types = sob.MutableTypes([PathItem])
+).value_types = sob.MutableTypes([
+    PathItem
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     Callbacks
-).value_types = sob.MutableTypes([Reference, Callback])
+).value_types = sob.MutableTypes([
+    Reference,
+    Callback
+])
 sob.get_writable_object_meta(  # type: ignore
     Components
-).properties = sob.Properties(
-    [
-        ("schemas", sob.Property(types=sob.MutableTypes([Schemas]))),
-        ("responses", sob.Property(types=sob.MutableTypes([Responses]))),
-        (
-            "parameters",
-            sob.Property(types=sob.MutableTypes([Parameters])),
-        ),
-        ("examples", sob.Property(types=sob.MutableTypes([Examples]))),
-        (
-            "request_bodies",
-            sob.Property(
-                name="requestBodies",
-                types=sob.MutableTypes([RequestBodies]),
-            ),
-        ),
-        ("headers", sob.Property(types=sob.MutableTypes([Headers]))),
-        (
-            "security_schemes",
-            sob.Property(
-                name="securitySchemes",
-                types=sob.MutableTypes([SecuritySchemes]),
-            ),
-        ),
-        ("links", sob.Property(types=sob.MutableTypes([Links]))),
-        ("callbacks", sob.Property(types=sob.MutableTypes([Callbacks]))),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'schemas',
+        sob.Property(
+            types=sob.MutableTypes([
+                Schemas
+            ])
+        )
+    ),
+    (
+        'responses',
+        sob.Property(
+            types=sob.MutableTypes([
+                Responses
+            ])
+        )
+    ),
+    (
+        'parameters',
+        sob.Property(
+            types=sob.MutableTypes([
+                Parameters
+            ])
+        )
+    ),
+    (
+        'examples',
+        sob.Property(
+            types=sob.MutableTypes([
+                Examples
+            ])
+        )
+    ),
+    (
+        'request_bodies',
+        sob.Property(
+            name="requestBodies",
+            types=sob.MutableTypes([
+                RequestBodies
+            ])
+        )
+    ),
+    (
+        'headers',
+        sob.Property(
+            types=sob.MutableTypes([
+                Headers
+            ])
+        )
+    ),
+    (
+        'security_schemes',
+        sob.Property(
+            name="securitySchemes",
+            types=sob.MutableTypes([
+                SecuritySchemes
+            ])
+        )
+    ),
+    (
+        'links',
+        sob.Property(
+            types=sob.MutableTypes([
+                Links
+            ])
+        )
+    ),
+    (
+        'callbacks',
+        sob.Property(
+            types=sob.MutableTypes([
+                Callbacks
+            ])
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     Contact
-).properties = sob.Properties(
-    [
-        ("name", sob.StringProperty()),
-        ("url", sob.StringProperty()),
-        ("email", sob.StringProperty()),
-    ]
-)
+).properties = sob.Properties([
+    ('name', sob.StringProperty()),
+    ('url', sob.StringProperty()),
+    ('email', sob.StringProperty())
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     Definitions
-).value_types = sob.MutableTypes([Schema])
+).value_types = sob.MutableTypes([
+    Schema
+])
 sob.get_writable_object_meta(  # type: ignore
     Discriminator
-).properties = sob.Properties(
-    [
-        (
-            "property_name",
-            sob.StringProperty(
-                name="propertyName", versions=("openapi>=3.0",)
-            ),
-        ),
-        (
-            "mapping",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([str]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'property_name',
+        sob.StringProperty(
+            name="propertyName",
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'mapping',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                str
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     Encoding
-).properties = sob.Properties(
-    [
-        ("content_type", sob.StringProperty(name="contentType")),
-        (
-            "headers",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([Reference, Header])
-            ),
-        ),
-        ("style", sob.StringProperty()),
-        ("explode", sob.BooleanProperty()),
-        ("allow_reserved", sob.BooleanProperty(name="allowReserved")),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'content_type',
+        sob.StringProperty(
+            name="contentType"
+        )
+    ),
+    (
+        'headers',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                Reference,
+                Header
+            ])
+        )
+    ),
+    ('style', sob.StringProperty()),
+    ('explode', sob.BooleanProperty()),
+    (
+        'allow_reserved',
+        sob.BooleanProperty(
+            name="allowReserved"
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     Example
-).properties = sob.Properties(
-    [
-        ("summary", sob.StringProperty(versions=("openapi>=3.0",))),
-        ("description", sob.StringProperty(versions=("openapi>=3.0",))),
-        ("value", sob.Property(versions=("openapi>=3.0",))),
-        (
-            "external_value",
-            sob.StringProperty(
-                name="externalValue", versions=("openapi>=3.0",)
-            ),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'summary',
+        sob.StringProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'description',
+        sob.StringProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'value',
+        sob.Property(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'external_value',
+        sob.StringProperty(
+            name="externalValue",
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    )
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     Examples
-).value_types = sob.MutableTypes([Reference, Example])
+).value_types = sob.MutableTypes([
+    Reference,
+    Example
+])
 sob.get_writable_object_meta(  # type: ignore
     ExternalDocumentation
-).properties = sob.Properties(
-    [
-        ("description", sob.StringProperty()),
-        ("url", sob.StringProperty(required=True)),
-    ]
-)
+).properties = sob.Properties([
+    ('description', sob.StringProperty()),
+    (
+        'url',
+        sob.StringProperty(
+            required=True
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     Header
-).properties = sob.Properties(
-    [
-        ("description", sob.StringProperty()),
-        ("required", sob.BooleanProperty(versions=("openapi>=3.0",))),
-        ("deprecated", sob.BooleanProperty(versions=("openapi>=3.0",))),
-        (
-            "allow_empty_value",
-            sob.BooleanProperty(
-                name="allowEmptyValue", versions=("openapi>=3.0",)
-            ),
-        ),
-        ("style", sob.StringProperty(versions=("openapi>=3.0",))),
-        ("explode", sob.BooleanProperty(versions=("openapi>=3.0",))),
-        (
-            "allow_reserved",
-            sob.BooleanProperty(
-                name="allowReserved", versions=("openapi>=3.0",)
-            ),
-        ),
-        (
-            "schema",
-            sob.Property(
-                types=sob.MutableTypes([Reference, Schema]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        ("example", sob.Property(versions=("openapi>=3.0",))),
-        (
-            "examples",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([Reference, Example]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "content",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([MediaType]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "type_",
-            sob.EnumeratedProperty(
-                name="type",
-                types=sob.Types([str]),
-                values={"array", "boolean", "integer", "number", "string"},
-                versions=("openapi<3.0",),
-            ),
-        ),
-        ("default", sob.Property(versions=("openapi<3.0",))),
-        ("maximum", sob.NumberProperty(versions=("openapi<3.0",))),
-        (
-            "exclusive_maximum",
-            sob.BooleanProperty(
-                name="exclusiveMaximum", versions=("openapi<3.0",)
-            ),
-        ),
-        ("minimum", sob.NumberProperty(versions=("openapi<3.0",))),
-        (
-            "exclusive_minimum",
-            sob.BooleanProperty(
-                name="exclusiveMinimum", versions=("openapi<3.0",)
-            ),
-        ),
-        (
-            "max_length",
-            sob.IntegerProperty(name="maxLength", versions=("openapi<3.0",)),
-        ),
-        (
-            "min_length",
-            sob.IntegerProperty(name="minLength", versions=("openapi<3.0",)),
-        ),
-        ("pattern", sob.StringProperty(versions=("openapi<3.0",))),
-        (
-            "max_items",
-            sob.IntegerProperty(name="maxItems", versions=("openapi<3.0",)),
-        ),
-        (
-            "min_items",
-            sob.IntegerProperty(name="minItems", versions=("openapi<3.0",)),
-        ),
-        (
-            "unique_items",
-            sob.BooleanProperty(name="uniqueItems", versions=("openapi<3.0",)),
-        ),
-        ("enum", sob.ArrayProperty(versions=("openapi<3.0",))),
-        (
-            "format_",
-            sob.StringProperty(name="format", versions=("openapi<3.0",)),
-        ),
-        (
-            "collection_format",
-            sob.EnumeratedProperty(
-                name="collectionFormat",
-                types=sob.Types([str]),
-                values={"csv", "multi", "pipes", "ssv", "tsv"},
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "items",
-            sob.Property(
-                types=sob.MutableTypes([Items]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "multiple_of",
-            sob.NumberProperty(name="multipleOf", versions=("openapi<3.0",)),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    ('description', sob.StringProperty()),
+    (
+        'required',
+        sob.BooleanProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'deprecated',
+        sob.BooleanProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'allow_empty_value',
+        sob.BooleanProperty(
+            name="allowEmptyValue",
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'style',
+        sob.StringProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'explode',
+        sob.BooleanProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'allow_reserved',
+        sob.BooleanProperty(
+            name="allowReserved",
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'schema',
+        sob.Property(
+            types=sob.MutableTypes([
+                Reference,
+                Schema
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'example',
+        sob.Property(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'examples',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                Reference,
+                Example
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'content',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                MediaType
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'type_',
+        sob.EnumeratedProperty(
+            name="type",
+            types=sob.Types([
+                str
+            ]),
+            values={
+                "array",
+                "boolean",
+                "integer",
+                "number",
+                "string"
+            },
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'default',
+        sob.Property(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'maximum',
+        sob.NumberProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'exclusive_maximum',
+        sob.BooleanProperty(
+            name="exclusiveMaximum",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'minimum',
+        sob.NumberProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'exclusive_minimum',
+        sob.BooleanProperty(
+            name="exclusiveMinimum",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'max_length',
+        sob.IntegerProperty(
+            name="maxLength",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'min_length',
+        sob.IntegerProperty(
+            name="minLength",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'pattern',
+        sob.StringProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'max_items',
+        sob.IntegerProperty(
+            name="maxItems",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'min_items',
+        sob.IntegerProperty(
+            name="minItems",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'unique_items',
+        sob.BooleanProperty(
+            name="uniqueItems",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'enum',
+        sob.ArrayProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'format_',
+        sob.StringProperty(
+            name="format",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'collection_format',
+        sob.EnumeratedProperty(
+            name="collectionFormat",
+            types=sob.Types([
+                str
+            ]),
+            values={
+                "csv",
+                "multi",
+                "pipes",
+                "ssv",
+                "tsv"
+            },
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'items',
+        sob.Property(
+            types=sob.MutableTypes([
+                Items
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'multiple_of',
+        sob.NumberProperty(
+            name="multipleOf",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    )
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     Headers
-).value_types = sob.MutableTypes([Reference, Header])
+).value_types = sob.MutableTypes([
+    Reference,
+    Header
+])
 sob.get_writable_object_meta(  # type: ignore
     Info
-).properties = sob.Properties(
-    [
-        ("title", sob.StringProperty(required=True)),
-        ("description", sob.StringProperty()),
-        ("terms_of_service", sob.StringProperty(name="termsOfService")),
-        ("contact", sob.Property(types=sob.MutableTypes([Contact]))),
-        (
-            "license_",
-            sob.Property(name="license", types=sob.MutableTypes([License])),
-        ),
-        ("version", sob.StringProperty(required=True)),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'title',
+        sob.StringProperty(
+            required=True
+        )
+    ),
+    ('description', sob.StringProperty()),
+    (
+        'terms_of_service',
+        sob.StringProperty(
+            name="termsOfService"
+        )
+    ),
+    (
+        'contact',
+        sob.Property(
+            types=sob.MutableTypes([
+                Contact
+            ])
+        )
+    ),
+    (
+        'license_',
+        sob.Property(
+            name="license",
+            types=sob.MutableTypes([
+                License
+            ])
+        )
+    ),
+    (
+        'version',
+        sob.StringProperty(
+            required=True
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     Items
-).properties = sob.Properties(
-    [
-        (
-            "type_",
-            sob.EnumeratedProperty(
-                name="type",
-                types=sob.Types([str]),
-                values={
-                    "array",
-                    "boolean",
-                    "file",
-                    "integer",
-                    "number",
-                    "object",
-                    "string",
-                },
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "format_",
-            sob.StringProperty(name="format", versions=("openapi<3.0",)),
-        ),
-        (
-            "items",
-            sob.Property(
-                types=sob.MutableTypes([Items]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "collection_format",
-            sob.EnumeratedProperty(
-                name="collectionFormat",
-                types=sob.Types([str]),
-                values={"csv", "pipes", "ssv", "tsv"},
-                versions=("openapi<3.0",),
-            ),
-        ),
-        ("default", sob.Property()),
-        ("maximum", sob.NumberProperty(versions=("openapi<3.0",))),
-        (
-            "exclusive_maximum",
-            sob.BooleanProperty(
-                name="exclusiveMaximum", versions=("openapi<3.0",)
-            ),
-        ),
-        ("minimum", sob.NumberProperty(versions=("openapi<3.0",))),
-        (
-            "exclusive_minimum",
-            sob.BooleanProperty(
-                name="exclusiveMinimum", versions=("openapi<3.0",)
-            ),
-        ),
-        (
-            "max_length",
-            sob.IntegerProperty(name="maxLength", versions=("openapi<3.0",)),
-        ),
-        (
-            "min_length",
-            sob.IntegerProperty(name="minLength", versions=("openapi<3.0",)),
-        ),
-        ("pattern", sob.StringProperty(versions=("openapi<3.0",))),
-        (
-            "max_items",
-            sob.IntegerProperty(name="maxItems", versions=("openapi<3.0",)),
-        ),
-        (
-            "min_items",
-            sob.IntegerProperty(name="minItems", versions=("openapi<3.0",)),
-        ),
-        (
-            "unique_items",
-            sob.BooleanProperty(name="uniqueItems", versions=("openapi<3.0",)),
-        ),
-        ("enum", sob.ArrayProperty(versions=("openapi<3.0",))),
-        (
-            "multiple_of",
-            sob.NumberProperty(name="multipleOf", versions=("openapi<3.0",)),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'type_',
+        sob.EnumeratedProperty(
+            name="type",
+            types=sob.Types([
+                str
+            ]),
+            values={
+                "array",
+                "boolean",
+                "file",
+                "integer",
+                "number",
+                "object",
+                "string"
+            },
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'format_',
+        sob.StringProperty(
+            name="format",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'items',
+        sob.Property(
+            types=sob.MutableTypes([
+                Items
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'collection_format',
+        sob.EnumeratedProperty(
+            name="collectionFormat",
+            types=sob.Types([
+                str
+            ]),
+            values={
+                "csv",
+                "pipes",
+                "ssv",
+                "tsv"
+            },
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    ('default', sob.Property()),
+    (
+        'maximum',
+        sob.NumberProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'exclusive_maximum',
+        sob.BooleanProperty(
+            name="exclusiveMaximum",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'minimum',
+        sob.NumberProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'exclusive_minimum',
+        sob.BooleanProperty(
+            name="exclusiveMinimum",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'max_length',
+        sob.IntegerProperty(
+            name="maxLength",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'min_length',
+        sob.IntegerProperty(
+            name="minLength",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'pattern',
+        sob.StringProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'max_items',
+        sob.IntegerProperty(
+            name="maxItems",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'min_items',
+        sob.IntegerProperty(
+            name="minItems",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'unique_items',
+        sob.BooleanProperty(
+            name="uniqueItems",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'enum',
+        sob.ArrayProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'multiple_of',
+        sob.NumberProperty(
+            name="multipleOf",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     License
-).properties = sob.Properties(
-    [
-        ("name", sob.StringProperty(required=True)),
-        ("url", sob.StringProperty()),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'name',
+        sob.StringProperty(
+            required=True
+        )
+    ),
+    ('url', sob.StringProperty())
+])
 sob.get_writable_object_meta(  # type: ignore
     Link
-).properties = sob.Properties(
-    [("rel", sob.StringProperty()), ("href", sob.StringProperty())]
-)
+).properties = sob.Properties([
+    ('rel', sob.StringProperty()),
+    ('href', sob.StringProperty())
+])
 sob.get_writable_object_meta(  # type: ignore
     LinkObject
-).properties = sob.Properties(
-    [
-        (
-            "operation_ref",
-            sob.StringProperty(
-                name="operationRef", versions=("openapi>=3.0",)
-            ),
-        ),
-        (
-            "operation_id",
-            sob.StringProperty(name="operationId", versions=("openapi>=3.0",)),
-        ),
-        ("parameters", sob.DictionaryProperty(versions=("openapi>=3.0",))),
-        (
-            "request_body",
-            sob.Property(name="requestBody", versions=("openapi>=3.0",)),
-        ),
-        ("description", sob.StringProperty(versions=("openapi>=3.0",))),
-        (
-            "server",
-            sob.Property(
-                types=sob.MutableTypes([Server]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'operation_ref',
+        sob.StringProperty(
+            name="operationRef",
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'operation_id',
+        sob.StringProperty(
+            name="operationId",
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'parameters',
+        sob.DictionaryProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'request_body',
+        sob.Property(
+            name="requestBody",
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'description',
+        sob.StringProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'server',
+        sob.Property(
+            types=sob.MutableTypes([
+                Server
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    )
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     Links
-).value_types = sob.MutableTypes([Reference, LinkObject])
+).value_types = sob.MutableTypes([
+    Reference,
+    LinkObject
+])
 sob.get_writable_object_meta(  # type: ignore
     MediaType
-).properties = sob.Properties(
-    [
-        (
-            "schema",
-            sob.Property(
-                types=sob.MutableTypes([Reference, Schema]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        ("example", sob.Property(versions=("openapi>=3.0",))),
-        (
-            "examples",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([Reference, Example]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "encoding",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([Reference, Encoding]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'schema',
+        sob.Property(
+            types=sob.MutableTypes([
+                Reference,
+                Schema
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'example',
+        sob.Property(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'examples',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                Reference,
+                Example
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'encoding',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                Reference,
+                Encoding
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     OAuthFlow
-).properties = sob.Properties(
-    [
-        ("authorization_url", sob.StringProperty(name="authorizationUrl")),
-        ("token_url", sob.StringProperty(name="tokenUrl")),
-        ("refresh_url", sob.StringProperty(name="refreshUrl")),
-        (
-            "scopes",
-            sob.DictionaryProperty(value_types=sob.MutableTypes([str])),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'authorization_url',
+        sob.StringProperty(
+            name="authorizationUrl"
+        )
+    ),
+    (
+        'token_url',
+        sob.StringProperty(
+            name="tokenUrl"
+        )
+    ),
+    (
+        'refresh_url',
+        sob.StringProperty(
+            name="refreshUrl"
+        )
+    ),
+    (
+        'scopes',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                str
+            ])
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     OAuthFlows
-).properties = sob.Properties(
-    [
-        (
-            "implicit",
-            sob.Property(
-                types=sob.MutableTypes([OAuthFlow]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "password",
-            sob.Property(
-                types=sob.MutableTypes([OAuthFlow]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "client_credentials",
-            sob.Property(
-                name="clientCredentials",
-                types=sob.MutableTypes([OAuthFlow]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "authorization_code",
-            sob.Property(
-                name="authorizationCode",
-                types=sob.MutableTypes([OAuthFlow]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'implicit',
+        sob.Property(
+            types=sob.MutableTypes([
+                OAuthFlow
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'password',
+        sob.Property(
+            types=sob.MutableTypes([
+                OAuthFlow
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'client_credentials',
+        sob.Property(
+            name="clientCredentials",
+            types=sob.MutableTypes([
+                OAuthFlow
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'authorization_code',
+        sob.Property(
+            name="authorizationCode",
+            types=sob.MutableTypes([
+                OAuthFlow
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     OpenAPI
-).properties = sob.Properties(
-    [
-        (
-            "openapi",
-            sob.StringProperty(required=True, versions=("openapi>=3.0",)),
-        ),
-        (
-            "info",
-            sob.Property(required=True, types=sob.MutableTypes([Info])),
-        ),
-        (
-            "json_schema_dialect",
-            sob.StringProperty(
-                name="jsonSchemaDialect", versions=("openapi>=3.1",)
-            ),
-        ),
-        ("host", sob.StringProperty(versions=("openapi<3.0",))),
-        (
-            "servers",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([Server]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "base_path",
-            sob.StringProperty(name="basePath", versions=("openapi<3.0",)),
-        ),
-        (
-            "schemes",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([str]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        ("tags", sob.ArrayProperty(item_types=sob.MutableTypes([Tag]))),
-        (
-            "paths",
-            sob.Property(required=True, types=sob.MutableTypes([Paths])),
-        ),
-        (
-            "components",
-            sob.Property(
-                types=sob.MutableTypes([Components]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "consumes",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([str]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "swagger",
-            sob.StringProperty(required=True, versions=("openapi<3.0",)),
-        ),
-        (
-            "definitions",
-            sob.Property(
-                types=sob.MutableTypes([Definitions]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "security_definitions",
-            sob.Property(
-                name="securityDefinitions",
-                types=sob.MutableTypes([SecuritySchemes]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "produces",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([str]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "external_docs",
-            sob.Property(
-                name="externalDocs",
-                types=sob.MutableTypes([ExternalDocumentation]),
-            ),
-        ),
-        (
-            "parameters",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([Parameter]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "responses",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([Response]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "security",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([SecurityRequirement])
-            ),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'openapi',
+        sob.StringProperty(
+            required=True,
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'info',
+        sob.Property(
+            required=True,
+            types=sob.MutableTypes([
+                Info
+            ])
+        )
+    ),
+    (
+        'json_schema_dialect',
+        sob.StringProperty(
+            name="jsonSchemaDialect",
+            versions=(
+                'openapi>=3.1',
+            )
+        )
+    ),
+    (
+        'host',
+        sob.StringProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'servers',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                Server
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'base_path',
+        sob.StringProperty(
+            name="basePath",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'schemes',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                str
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'tags',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                Tag
+            ])
+        )
+    ),
+    (
+        'paths',
+        sob.Property(
+            required=True,
+            types=sob.MutableTypes([
+                Paths
+            ])
+        )
+    ),
+    (
+        'components',
+        sob.Property(
+            types=sob.MutableTypes([
+                Components
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'consumes',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                str
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'swagger',
+        sob.StringProperty(
+            required=True,
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'definitions',
+        sob.Property(
+            types=sob.MutableTypes([
+                Definitions
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'security_definitions',
+        sob.Property(
+            name="securityDefinitions",
+            types=sob.MutableTypes([
+                SecuritySchemes
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'produces',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                str
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'external_docs',
+        sob.Property(
+            name="externalDocs",
+            types=sob.MutableTypes([
+                ExternalDocumentation
+            ])
+        )
+    ),
+    (
+        'parameters',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                Parameter
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'responses',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                Response
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'security',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                SecurityRequirement
+            ])
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     Operation
-).properties = sob.Properties(
-    [
-        ("tags", sob.ArrayProperty(item_types=sob.MutableTypes([str]))),
-        ("summary", sob.StringProperty()),
-        ("description", sob.StringProperty()),
-        (
-            "external_docs",
-            sob.Property(
-                name="externalDocs",
-                types=sob.MutableTypes([ExternalDocumentation]),
-            ),
-        ),
-        ("operation_id", sob.StringProperty(name="operationId")),
-        (
-            "consumes",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([str]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "produces",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([str]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "parameters",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([Reference, Parameter])
-            ),
-        ),
-        (
-            "request_body",
-            sob.Property(
-                name="requestBody",
-                types=sob.MutableTypes([Reference, RequestBody]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "responses",
-            sob.Property(required=True, types=sob.MutableTypes([Responses])),
-        ),
-        (
-            "callbacks",
-            sob.Property(
-                types=sob.MutableTypes([Callbacks]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "schemes",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([str]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        ("deprecated", sob.BooleanProperty()),
-        (
-            "security",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([SecurityRequirement])
-            ),
-        ),
-        (
-            "servers",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([Server]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'tags',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                str
+            ])
+        )
+    ),
+    ('summary', sob.StringProperty()),
+    ('description', sob.StringProperty()),
+    (
+        'external_docs',
+        sob.Property(
+            name="externalDocs",
+            types=sob.MutableTypes([
+                ExternalDocumentation
+            ])
+        )
+    ),
+    (
+        'operation_id',
+        sob.StringProperty(
+            name="operationId"
+        )
+    ),
+    (
+        'consumes',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                str
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'produces',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                str
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'parameters',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                Reference,
+                Parameter
+            ])
+        )
+    ),
+    (
+        'request_body',
+        sob.Property(
+            name="requestBody",
+            types=sob.MutableTypes([
+                Reference,
+                RequestBody
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'responses',
+        sob.Property(
+            required=True,
+            types=sob.MutableTypes([
+                Responses
+            ])
+        )
+    ),
+    (
+        'callbacks',
+        sob.Property(
+            types=sob.MutableTypes([
+                Callbacks
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'schemes',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                str
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    ('deprecated', sob.BooleanProperty()),
+    (
+        'security',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                SecurityRequirement
+            ])
+        )
+    ),
+    (
+        'servers',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                Server
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     Parameter
-).properties = sob.Properties(
-    [
-        ("name", sob.StringProperty(required=True)),
-        (
-            "in_",
-            sob.Property(
-                name="in",
-                required=True,
-                types=sob.Types(
-                    [
-                        sob.EnumeratedProperty(
-                            types=sob.Types([str]),
-                            values={"cookie", "header", "path", "query"},
-                            versions=("openapi>=3.0",),
-                        ),
-                        sob.EnumeratedProperty(
-                            types=sob.Types([str]),
-                            values={
-                                "body",
-                                "formData",
-                                "header",
-                                "path",
-                                "query",
-                            },
-                            versions=("openapi<3.0",),
-                        ),
-                    ]
+).properties = sob.Properties([
+    (
+        'name',
+        sob.StringProperty(
+            required=True
+        )
+    ),
+    (
+        'in_',
+        sob.Property(
+            name="in",
+            required=True,
+            types=sob.Types([
+                sob.EnumeratedProperty(
+                    types=sob.Types([
+                        str
+                    ]),
+                    values={
+                        "cookie",
+                        "header",
+                        "path",
+                        "query"
+                    },
+                    versions=(
+                        'openapi>=3.0',
+                    )
                 ),
-            ),
-        ),
-        ("description", sob.StringProperty()),
-        ("required", sob.BooleanProperty()),
-        ("deprecated", sob.BooleanProperty()),
-        ("allow_empty_value", sob.BooleanProperty(name="allowEmptyValue")),
-        ("style", sob.StringProperty(versions=("openapi>=3.0",))),
-        ("explode", sob.BooleanProperty(versions=("openapi>=3.0",))),
-        (
-            "allow_reserved",
-            sob.BooleanProperty(
-                name="allowReserved", versions=("openapi>=3.0",)
-            ),
-        ),
-        (
-            "schema",
-            sob.Property(types=sob.MutableTypes([Reference, Schema])),
-        ),
-        ("example", sob.Property(versions=("openapi>=3.0",))),
-        (
-            "examples",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([Reference, Example]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "content",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([MediaType]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "type_",
-            sob.EnumeratedProperty(
-                name="type",
-                types=sob.Types([str]),
-                values={
-                    "array",
-                    "boolean",
-                    "file",
-                    "integer",
-                    "number",
-                    "object",
-                    "string",
-                },
-                versions=("openapi<3.0",),
-            ),
-        ),
-        ("default", sob.Property(versions=("openapi<3.0",))),
-        ("maximum", sob.NumberProperty(versions=("openapi<3.0",))),
-        (
-            "exclusive_maximum",
-            sob.BooleanProperty(
-                name="exclusiveMaximum", versions=("openapi<3.0",)
-            ),
-        ),
-        ("minimum", sob.NumberProperty(versions=("openapi<3.0",))),
-        (
-            "exclusive_minimum",
-            sob.BooleanProperty(
-                name="exclusiveMinimum", versions=("openapi<3.0",)
-            ),
-        ),
-        (
-            "max_length",
-            sob.IntegerProperty(name="maxLength", versions=("openapi<3.0",)),
-        ),
-        (
-            "min_length",
-            sob.IntegerProperty(name="minLength", versions=("openapi<3.0",)),
-        ),
-        ("pattern", sob.StringProperty(versions=("openapi<3.0",))),
-        (
-            "max_items",
-            sob.IntegerProperty(name="maxItems", versions=("openapi<3.0",)),
-        ),
-        (
-            "min_items",
-            sob.IntegerProperty(name="minItems", versions=("openapi<3.0",)),
-        ),
-        (
-            "unique_items",
-            sob.BooleanProperty(name="uniqueItems", versions=("openapi<3.0",)),
-        ),
-        ("enum", sob.ArrayProperty(versions=("openapi<3.0",))),
-        (
-            "format_",
-            sob.StringProperty(name="format", versions=("openapi<3.0",)),
-        ),
-        (
-            "collection_format",
-            sob.EnumeratedProperty(
-                name="collectionFormat",
-                types=sob.Types([str]),
-                values={"csv", "multi", "pipes", "ssv", "tsv"},
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "items",
-            sob.Property(
-                types=sob.MutableTypes([Items]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "multiple_of",
-            sob.NumberProperty(name="multipleOf", versions=("openapi<3.0",)),
-        ),
-    ]
-)
+                sob.EnumeratedProperty(
+                    types=sob.Types([
+                        str
+                    ]),
+                    values={
+                        "body",
+                        "formData",
+                        "header",
+                        "path",
+                        "query"
+                    },
+                    versions=(
+                        'openapi<3.0',
+                    )
+                )
+            ])
+        )
+    ),
+    ('description', sob.StringProperty()),
+    ('required', sob.BooleanProperty()),
+    ('deprecated', sob.BooleanProperty()),
+    (
+        'allow_empty_value',
+        sob.BooleanProperty(
+            name="allowEmptyValue"
+        )
+    ),
+    (
+        'style',
+        sob.StringProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'explode',
+        sob.BooleanProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'allow_reserved',
+        sob.BooleanProperty(
+            name="allowReserved",
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'schema',
+        sob.Property(
+            types=sob.MutableTypes([
+                Reference,
+                Schema
+            ])
+        )
+    ),
+    (
+        'example',
+        sob.Property(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'examples',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                Reference,
+                Example
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'content',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                MediaType
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'type_',
+        sob.EnumeratedProperty(
+            name="type",
+            types=sob.Types([
+                str
+            ]),
+            values={
+                "array",
+                "boolean",
+                "file",
+                "integer",
+                "number",
+                "object",
+                "string"
+            },
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'default',
+        sob.Property(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'maximum',
+        sob.NumberProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'exclusive_maximum',
+        sob.BooleanProperty(
+            name="exclusiveMaximum",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'minimum',
+        sob.NumberProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'exclusive_minimum',
+        sob.BooleanProperty(
+            name="exclusiveMinimum",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'max_length',
+        sob.IntegerProperty(
+            name="maxLength",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'min_length',
+        sob.IntegerProperty(
+            name="minLength",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'pattern',
+        sob.StringProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'max_items',
+        sob.IntegerProperty(
+            name="maxItems",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'min_items',
+        sob.IntegerProperty(
+            name="minItems",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'unique_items',
+        sob.BooleanProperty(
+            name="uniqueItems",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'enum',
+        sob.ArrayProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'format_',
+        sob.StringProperty(
+            name="format",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'collection_format',
+        sob.EnumeratedProperty(
+            name="collectionFormat",
+            types=sob.Types([
+                str
+            ]),
+            values={
+                "csv",
+                "multi",
+                "pipes",
+                "ssv",
+                "tsv"
+            },
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'items',
+        sob.Property(
+            types=sob.MutableTypes([
+                Items
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'multiple_of',
+        sob.NumberProperty(
+            name="multipleOf",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    )
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     Parameters
-).value_types = sob.MutableTypes([Reference, Parameter])
+).value_types = sob.MutableTypes([
+    Reference,
+    Parameter
+])
 sob.get_writable_object_meta(  # type: ignore
     PathItem
-).properties = sob.Properties(
-    [
-        ("summary", sob.StringProperty(versions=("openapi>=3.0",))),
-        ("description", sob.StringProperty(versions=("openapi>=3.0",))),
-        ("get", sob.Property(types=sob.MutableTypes([Operation]))),
-        ("put", sob.Property(types=sob.MutableTypes([Operation]))),
-        ("post", sob.Property(types=sob.MutableTypes([Operation]))),
-        ("delete", sob.Property(types=sob.MutableTypes([Operation]))),
-        ("options", sob.Property(types=sob.MutableTypes([Operation]))),
-        ("head", sob.Property(types=sob.MutableTypes([Operation]))),
-        ("patch", sob.Property(types=sob.MutableTypes([Operation]))),
-        (
-            "trace",
-            sob.Property(
-                types=sob.MutableTypes([Operation]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "servers",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([Server]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "parameters",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([Reference, Parameter])
-            ),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'summary',
+        sob.StringProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'description',
+        sob.StringProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'get',
+        sob.Property(
+            types=sob.MutableTypes([
+                Operation
+            ])
+        )
+    ),
+    (
+        'put',
+        sob.Property(
+            types=sob.MutableTypes([
+                Operation
+            ])
+        )
+    ),
+    (
+        'post',
+        sob.Property(
+            types=sob.MutableTypes([
+                Operation
+            ])
+        )
+    ),
+    (
+        'delete',
+        sob.Property(
+            types=sob.MutableTypes([
+                Operation
+            ])
+        )
+    ),
+    (
+        'options',
+        sob.Property(
+            types=sob.MutableTypes([
+                Operation
+            ])
+        )
+    ),
+    (
+        'head',
+        sob.Property(
+            types=sob.MutableTypes([
+                Operation
+            ])
+        )
+    ),
+    (
+        'patch',
+        sob.Property(
+            types=sob.MutableTypes([
+                Operation
+            ])
+        )
+    ),
+    (
+        'trace',
+        sob.Property(
+            types=sob.MutableTypes([
+                Operation
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'servers',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                Server
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'parameters',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                Reference,
+                Parameter
+            ])
+        )
+    )
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     Paths
-).value_types = sob.MutableTypes([PathItem])
+).value_types = sob.MutableTypes([
+    PathItem
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     Properties
-).value_types = sob.MutableTypes([Reference, Schema])
+).value_types = sob.MutableTypes([
+    Reference,
+    Schema
+])
 sob.get_writable_object_meta(  # type: ignore
     Reference
-).properties = sob.Properties(
-    [
-        ("ref", sob.StringProperty(name="$ref", required=True)),
-        ("summary", sob.StringProperty()),
-        ("description", sob.StringProperty()),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'ref',
+        sob.StringProperty(
+            name="$ref",
+            required=True
+        )
+    ),
+    ('summary', sob.StringProperty()),
+    ('description', sob.StringProperty())
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     RequestBodies
-).value_types = sob.MutableTypes([Reference, RequestBody])
+).value_types = sob.MutableTypes([
+    Reference,
+    RequestBody
+])
 sob.get_writable_object_meta(  # type: ignore
     RequestBody
-).properties = sob.Properties(
-    [
-        ("description", sob.StringProperty(versions=("openapi>=3.0",))),
-        (
-            "content",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([MediaType]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        ("required", sob.BooleanProperty(versions=("openapi>=3.0",))),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'description',
+        sob.StringProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'content',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                MediaType
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'required',
+        sob.BooleanProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     Response
-).properties = sob.Properties(
-    [
-        ("description", sob.StringProperty(required=True)),
-        (
-            "schema",
-            sob.Property(
-                types=sob.MutableTypes([Reference, Schema]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-        (
-            "headers",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([Reference, Header])
-            ),
-        ),
-        ("examples", sob.DictionaryProperty(versions=("openapi<3.0",))),
-        (
-            "content",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([Reference, MediaType]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        (
-            "links",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([Reference, LinkObject]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'description',
+        sob.StringProperty(
+            required=True
+        )
+    ),
+    (
+        'schema',
+        sob.Property(
+            types=sob.MutableTypes([
+                Reference,
+                Schema
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'headers',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                Reference,
+                Header
+            ])
+        )
+    ),
+    (
+        'examples',
+        sob.DictionaryProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'content',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                Reference,
+                MediaType
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'links',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                Reference,
+                LinkObject
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    )
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     Responses
-).value_types = sob.MutableTypes(
-    [
-        sob.Property(
-            types=sob.MutableTypes([Reference, Response]),
-            versions=("openapi>=3.0",),
-        ),
-        sob.Property(
-            types=sob.MutableTypes([Response]), versions=("openapi<3.0",)
-        ),
-    ]
-)
+).value_types = sob.MutableTypes([
+    sob.Property(
+        types=sob.MutableTypes([
+            Reference,
+            Response
+        ]),
+        versions=(
+            'openapi>=3.0',
+        )
+    ),
+    sob.Property(
+        types=sob.MutableTypes([
+            Response
+        ]),
+        versions=(
+            'openapi<3.0',
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     Schema
-).properties = sob.Properties(
-    [
-        ("title", sob.StringProperty()),
-        ("description", sob.StringProperty()),
-        ("multiple_of", sob.NumberProperty(name="multipleOf")),
-        ("maximum", sob.NumberProperty()),
-        ("exclusive_maximum", sob.BooleanProperty(name="exclusiveMaximum")),
-        ("minimum", sob.NumberProperty()),
-        ("exclusive_minimum", sob.BooleanProperty(name="exclusiveMinimum")),
-        ("max_length", sob.IntegerProperty(name="maxLength")),
-        ("min_length", sob.IntegerProperty(name="minLength")),
-        ("pattern", sob.StringProperty()),
-        ("max_items", sob.IntegerProperty(name="maxItems")),
-        ("min_items", sob.IntegerProperty(name="minItems")),
-        ("unique_items", sob.BooleanProperty(name="uniqueItems")),
-        (
-            "items",
-            sob.Property(
-                types=sob.MutableTypes(
-                    [
+).properties = sob.Properties([
+    ('title', sob.StringProperty()),
+    ('description', sob.StringProperty()),
+    (
+        'multiple_of',
+        sob.NumberProperty(
+            name="multipleOf"
+        )
+    ),
+    ('maximum', sob.NumberProperty()),
+    (
+        'exclusive_maximum',
+        sob.BooleanProperty(
+            name="exclusiveMaximum"
+        )
+    ),
+    ('minimum', sob.NumberProperty()),
+    (
+        'exclusive_minimum',
+        sob.BooleanProperty(
+            name="exclusiveMinimum"
+        )
+    ),
+    (
+        'max_length',
+        sob.IntegerProperty(
+            name="maxLength"
+        )
+    ),
+    (
+        'min_length',
+        sob.IntegerProperty(
+            name="minLength"
+        )
+    ),
+    ('pattern', sob.StringProperty()),
+    (
+        'max_items',
+        sob.IntegerProperty(
+            name="maxItems"
+        )
+    ),
+    (
+        'min_items',
+        sob.IntegerProperty(
+            name="minItems"
+        )
+    ),
+    (
+        'unique_items',
+        sob.BooleanProperty(
+            name="uniqueItems"
+        )
+    ),
+    (
+        'items',
+        sob.Property(
+            types=sob.MutableTypes([
+                Reference,
+                Schema,
+                sob.ArrayProperty(
+                    item_types=sob.MutableTypes([
                         Reference,
-                        Schema,
-                        sob.ArrayProperty(
-                            item_types=sob.MutableTypes([Reference, Schema])
-                        ),
-                    ]
+                        Schema
+                    ])
                 )
-            ),
-        ),
-        ("max_properties", sob.IntegerProperty(name="maxProperties")),
-        ("min_properties", sob.IntegerProperty(name="minProperties")),
-        (
-            "properties",
-            sob.Property(types=sob.MutableTypes([Properties])),
-        ),
-        (
-            "additional_properties",
-            sob.Property(
-                name="additionalProperties",
-                types=sob.MutableTypes([Reference, Schema, bool]),
-            ),
-        ),
-        ("enum", sob.ArrayProperty()),
-        (
-            "type_",
-            sob.Property(
-                name="type",
-                types=sob.MutableTypes(
-                    [
-                        sob.EnumeratedProperty(
-                            types=sob.Types([str]),
-                            values={
-                                "array",
-                                "boolean",
-                                "file",
-                                "integer",
-                                "number",
-                                "object",
-                                "string",
-                            },
-                        )
-                    ]
+            ])
+        )
+    ),
+    (
+        'max_properties',
+        sob.IntegerProperty(
+            name="maxProperties"
+        )
+    ),
+    (
+        'min_properties',
+        sob.IntegerProperty(
+            name="minProperties"
+        )
+    ),
+    (
+        'properties',
+        sob.Property(
+            types=sob.MutableTypes([
+                Properties
+            ])
+        )
+    ),
+    (
+        'additional_properties',
+        sob.Property(
+            name="additionalProperties",
+            types=sob.MutableTypes([
+                Reference,
+                Schema,
+                bool
+            ])
+        )
+    ),
+    ('enum', sob.ArrayProperty()),
+    (
+        'type_',
+        sob.Property(
+            name="type",
+            types=sob.MutableTypes([
+                sob.EnumeratedProperty(
+                    types=sob.Types([
+                        str
+                    ]),
+                    values={
+                        "array",
+                        "boolean",
+                        "file",
+                        "integer",
+                        "number",
+                        "object",
+                        "string"
+                    }
+                )
+            ])
+        )
+    ),
+    (
+        'format_',
+        sob.StringProperty(
+            name="format"
+        )
+    ),
+    (
+        'required',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                str
+            ])
+        )
+    ),
+    (
+        'all_of',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                Reference,
+                Schema
+            ]),
+            name="allOf"
+        )
+    ),
+    (
+        'any_of',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                Reference,
+                Schema
+            ]),
+            name="anyOf"
+        )
+    ),
+    (
+        'one_of',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                Reference,
+                Schema
+            ]),
+            name="oneOf"
+        )
+    ),
+    (
+        'is_not',
+        sob.Property(
+            name="isNot",
+            types=sob.MutableTypes([
+                Reference,
+                Schema
+            ])
+        )
+    ),
+    ('definitions', sob.Property()),
+    ('default', sob.Property()),
+    (
+        'discriminator',
+        sob.Property(
+            types=sob.MutableTypes([
+                sob.Property(
+                    types=sob.MutableTypes([
+                        Discriminator
+                    ]),
+                    versions=(
+                        'openapi>=3.0',
+                    )
                 ),
-            ),
-        ),
-        ("format_", sob.StringProperty(name="format")),
-        (
-            "required",
-            sob.ArrayProperty(item_types=sob.MutableTypes([str])),
-        ),
-        (
-            "all_of",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([Reference, Schema]),
-                name="allOf",
-            ),
-        ),
-        (
-            "any_of",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([Reference, Schema]),
-                name="anyOf",
-            ),
-        ),
-        (
-            "one_of",
-            sob.ArrayProperty(
-                item_types=sob.MutableTypes([Reference, Schema]),
-                name="oneOf",
-            ),
-        ),
-        (
-            "is_not",
-            sob.Property(
-                name="isNot", types=sob.MutableTypes([Reference, Schema])
-            ),
-        ),
-        ("definitions", sob.Property()),
-        ("default", sob.Property()),
-        (
-            "discriminator",
-            sob.Property(
-                types=sob.MutableTypes(
-                    [
-                        sob.Property(
-                            types=sob.MutableTypes([Discriminator]),
-                            versions=("openapi>=3.0",),
-                        ),
-                        sob.Property(
-                            types=sob.MutableTypes([str]),
-                            versions=("openapi<3.0",),
-                        ),
-                    ]
+                sob.Property(
+                    types=sob.MutableTypes([
+                        str
+                    ]),
+                    versions=(
+                        'openapi<3.0',
+                    )
                 )
-            ),
-        ),
-        ("read_only", sob.BooleanProperty(name="readOnly")),
-        (
-            "write_only",
-            sob.BooleanProperty(name="writeOnly", versions=("openapi>=3.0",)),
-        ),
-        ("xml", sob.Property(types=sob.MutableTypes([XML]))),
-        (
-            "external_docs",
-            sob.Property(
-                name="externalDocs",
-                types=sob.MutableTypes([ExternalDocumentation]),
-            ),
-        ),
-        ("example", sob.Property()),
-        ("deprecated", sob.BooleanProperty(versions=("openapi>=3.0",))),
-        (
-            "links",
-            sob.ArrayProperty(item_types=sob.MutableTypes([Link])),
-        ),
-        ("nullable", sob.BooleanProperty(versions=("openapi>=3.0",))),
-        (
-            "content_encoding",
-            sob.StringProperty(
-                name="contentEncoding", versions=("openapi>=3.1",)
-            ),
-        ),
-        (
-            "content_media_type",
-            sob.StringProperty(
-                name="contentMediaType", versions=("openapi>=3.1",)
-            ),
-        ),
-        (
-            "examples",
-            sob.ArrayProperty(name="examples", versions=("openapi>=3.1",)),
-        ),
-    ]
-)
+            ])
+        )
+    ),
+    (
+        'read_only',
+        sob.BooleanProperty(
+            name="readOnly"
+        )
+    ),
+    (
+        'write_only',
+        sob.BooleanProperty(
+            name="writeOnly",
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'xml',
+        sob.Property(
+            types=sob.MutableTypes([
+                XML
+            ])
+        )
+    ),
+    (
+        'external_docs',
+        sob.Property(
+            name="externalDocs",
+            types=sob.MutableTypes([
+                ExternalDocumentation
+            ])
+        )
+    ),
+    ('example', sob.Property()),
+    (
+        'deprecated',
+        sob.BooleanProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'links',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                Link
+            ])
+        )
+    ),
+    (
+        'nullable',
+        sob.BooleanProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'content_encoding',
+        sob.StringProperty(
+            name="contentEncoding",
+            versions=(
+                'openapi>=3.1',
+            )
+        )
+    ),
+    (
+        'content_media_type',
+        sob.StringProperty(
+            name="contentMediaType",
+            versions=(
+                'openapi>=3.1',
+            )
+        )
+    ),
+    (
+        'examples',
+        sob.ArrayProperty(
+            name="examples",
+            versions=(
+                'openapi>=3.1',
+            )
+        )
+    )
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     Schemas
-).value_types = sob.MutableTypes([Reference, Schema])
+).value_types = sob.MutableTypes([
+    Reference,
+    Schema
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     SecurityRequirement
-).value_types = sob.MutableTypes(
-    [sob.ArrayProperty(item_types=sob.MutableTypes([str]))]
-)
+).value_types = sob.MutableTypes([
+    sob.ArrayProperty(
+        item_types=sob.MutableTypes([
+            str
+        ])
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     SecurityScheme
-).properties = sob.Properties(
-    [
-        (
-            "type_",
-            sob.EnumeratedProperty(
-                name="type",
-                required=True,
-                types=sob.Types([str]),
-                values={"apiKey", "http", "oauth2", "openIdConnect"},
-            ),
-        ),
-        ("description", sob.StringProperty()),
-        ("name", sob.StringProperty()),
-        (
-            "in_",
-            sob.Property(
-                name="in",
-                types=sob.MutableTypes(
-                    [
-                        sob.EnumeratedProperty(
-                            types=sob.Types([str]),
-                            values={"cookie", "header", "query"},
-                            versions=("openapi>=3.0",),
-                        ),
-                        sob.EnumeratedProperty(
-                            types=sob.Types([str]),
-                            values={"header", "query"},
-                            versions=("openapi<3.0",),
-                        ),
-                    ]
+).properties = sob.Properties([
+    (
+        'type_',
+        sob.EnumeratedProperty(
+            name="type",
+            required=True,
+            types=sob.Types([
+                str
+            ]),
+            values={
+                "apiKey",
+                "http",
+                "oauth2",
+                "openIdConnect"
+            }
+        )
+    ),
+    ('description', sob.StringProperty()),
+    ('name', sob.StringProperty()),
+    (
+        'in_',
+        sob.Property(
+            name="in",
+            types=sob.MutableTypes([
+                sob.EnumeratedProperty(
+                    types=sob.Types([
+                        str
+                    ]),
+                    values={
+                        "cookie",
+                        "header",
+                        "query"
+                    },
+                    versions=(
+                        'openapi>=3.0',
+                    )
                 ),
-            ),
-        ),
-        ("scheme", sob.StringProperty(versions=("openapi>=3.0",))),
-        ("bearer_format", sob.StringProperty(name="bearerFormat")),
-        (
-            "flows",
-            sob.Property(
-                types=sob.MutableTypes([OAuthFlows]),
-                versions=("openapi>=3.0",),
-            ),
-        ),
-        ("open_id_connect_url", sob.StringProperty(name="openIdConnectUrl")),
-        ("flow", sob.StringProperty(versions=("openapi<3.0",))),
-        (
-            "authorization_url",
-            sob.StringProperty(
-                name="authorizationUrl", versions=("openapi<3.0",)
-            ),
-        ),
-        (
-            "token_url",
-            sob.StringProperty(name="tokenUrl", versions=("openapi<3.0",)),
-        ),
-        (
-            "scopes",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([str]),
-                versions=("openapi<3.0",),
-            ),
-        ),
-    ]
-)
+                sob.EnumeratedProperty(
+                    types=sob.Types([
+                        str
+                    ]),
+                    values={
+                        "header",
+                        "query"
+                    },
+                    versions=(
+                        'openapi<3.0',
+                    )
+                )
+            ])
+        )
+    ),
+    (
+        'scheme',
+        sob.StringProperty(
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'bearer_format',
+        sob.StringProperty(
+            name="bearerFormat"
+        )
+    ),
+    (
+        'flows',
+        sob.Property(
+            types=sob.MutableTypes([
+                OAuthFlows
+            ]),
+            versions=(
+                'openapi>=3.0',
+            )
+        )
+    ),
+    (
+        'open_id_connect_url',
+        sob.StringProperty(
+            name="openIdConnectUrl"
+        )
+    ),
+    (
+        'flow',
+        sob.StringProperty(
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'authorization_url',
+        sob.StringProperty(
+            name="authorizationUrl",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'token_url',
+        sob.StringProperty(
+            name="tokenUrl",
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    ),
+    (
+        'scopes',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                str
+            ]),
+            versions=(
+                'openapi<3.0',
+            )
+        )
+    )
+])
 sob.get_writable_dictionary_meta(  # type: ignore
     SecuritySchemes
-).value_types = sob.MutableTypes([Reference, SecurityScheme])
+).value_types = sob.MutableTypes([
+    Reference,
+    SecurityScheme
+])
 sob.get_writable_object_meta(  # type: ignore
     Server
-).properties = sob.Properties(
-    [
-        ("url", sob.StringProperty(required=True)),
-        ("description", sob.StringProperty()),
-        (
-            "variables",
-            sob.DictionaryProperty(
-                value_types=sob.MutableTypes([ServerVariable])
-            ),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'url',
+        sob.StringProperty(
+            required=True
+        )
+    ),
+    ('description', sob.StringProperty()),
+    (
+        'variables',
+        sob.DictionaryProperty(
+            value_types=sob.MutableTypes([
+                ServerVariable
+            ])
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     ServerVariable
-).properties = sob.Properties(
-    [
-        ("enum", sob.ArrayProperty(item_types=sob.MutableTypes([str]))),
-        ("default", sob.StringProperty(required=True)),
-        ("description", sob.StringProperty()),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'enum',
+        sob.ArrayProperty(
+            item_types=sob.MutableTypes([
+                str
+            ])
+        )
+    ),
+    (
+        'default',
+        sob.StringProperty(
+            required=True
+        )
+    ),
+    ('description', sob.StringProperty())
+])
 sob.get_writable_object_meta(  # type: ignore
     Tag
-).properties = sob.Properties(
-    [
-        ("name", sob.StringProperty(required=True)),
-        ("description", sob.StringProperty()),
-        (
-            "external_docs",
-            sob.Property(types=sob.MutableTypes([ExternalDocumentation])),
-        ),
-    ]
-)
+).properties = sob.Properties([
+    (
+        'name',
+        sob.StringProperty(
+            required=True
+        )
+    ),
+    ('description', sob.StringProperty()),
+    (
+        'external_docs',
+        sob.Property(
+            types=sob.MutableTypes([
+                ExternalDocumentation
+            ])
+        )
+    )
+])
 sob.get_writable_object_meta(  # type: ignore
     XML
-).properties = sob.Properties(
-    [
-        ("name", sob.StringProperty()),
-        ("name_space", sob.StringProperty(name="nameSpace")),
-        ("prefix", sob.StringProperty()),
-        ("attribute", sob.BooleanProperty()),
-        ("wrapped", sob.BooleanProperty()),
-    ]
-)
+).properties = sob.Properties([
+    ('name', sob.StringProperty()),
+    (
+        'name_space',
+        sob.StringProperty(
+            name="nameSpace"
+        )
+    ),
+    ('prefix', sob.StringProperty()),
+    ('attribute', sob.BooleanProperty()),
+    ('wrapped', sob.BooleanProperty())
+])
 
 # region Aliases
 

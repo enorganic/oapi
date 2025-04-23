@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections.abc
 import copyreg
 import decimal
 import functools
@@ -16,7 +17,6 @@ import time
 import typing
 from base64 import b64encode
 from collections import deque
-from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from http.client import HTTPException, HTTPResponse
@@ -81,7 +81,8 @@ _lru_cache: typing.Callable[
 
 
 def urlencode(
-    query: Mapping[str, typing.Any] | Sequence[tuple[str, typing.Any]],
+    query: collections.abc.Mapping[str, typing.Any]
+    | collections.abc.Sequence[tuple[str, typing.Any]],
     doseq: bool = True,  # noqa: FBT001 FBT002
     safe: str = "|;,/=+",
     encoding: str = "utf-8",
@@ -103,8 +104,10 @@ def urlencode(
         quote_via:
     """
     items: list[tuple[str, typing.Any]] = []
-    for item in query.items() if isinstance(query, Mapping) else query:
-        if isinstance(item, Mapping):
+    for item in (
+        query.items() if isinstance(query, collections.abc.Mapping) else query
+    ):
+        if isinstance(item, collections.abc.Mapping):
             # The only dictionaries which should exist
             # for values which have been formatted are
             # intended to be bumped up into the top-level
@@ -187,7 +190,7 @@ def _format_simple_argument_value(
                 chain(*value.items()),
             )
         )
-    if isinstance(value, Sequence):
+    if isinstance(value, collections.abc.Sequence):
         return ",".join(map(_format_primitive_value, value))  # type: ignore
     raise ValueError(value)
 
@@ -207,7 +210,7 @@ def _format_label_argument_value(
                 f"{item[0]}=" f"{_format_primitive_value(item[1])}"
                 for item in value
             )
-        elif isinstance(value, Sequence):
+        elif isinstance(value, collections.abc.Sequence):
             argument_value = ".".join(
                 map(_format_primitive_value, value)  # type: ignore
             )
@@ -223,7 +226,7 @@ def _format_matrix_argument_value(
     value: sob.abc.MarshallableTypes,
     *,
     explode: bool = False,
-) -> str | dict[str, str] | Sequence[str] | None:
+) -> str | dict[str, str] | collections.abc.Sequence[str] | None:
     argument_value: str
     if value is None:
         return None
@@ -236,7 +239,7 @@ def _format_matrix_argument_value(
                 (f";{item[0]}=" f"{_format_primitive_value(item[1])}")
                 for item in value
             )
-        elif isinstance(value, Sequence):
+        elif isinstance(value, collections.abc.Sequence):
             value_: _PrimitiveValueTypes
             argument_value = "".join(
                 (f";{name}={_format_primitive_value(value_)}")
@@ -254,18 +257,18 @@ def _format_form_argument_value(
     value: sob.abc.MarshallableTypes,
     *,
     explode: bool = False,
-) -> str | dict[str, str] | Sequence[str] | None:
+) -> str | dict[str, str] | collections.abc.Sequence[str] | None:
     if value is None or isinstance(value, _PRIMITIVE_VALUE_TYPES):
         return _format_primitive_value(value)  # type: ignore
     if explode:
-        if isinstance(value, Mapping):
+        if isinstance(value, collections.abc.Mapping):
             key: str
             value_: sob.abc.MarshallableTypes
             return {
                 key: _format_primitive_value(value_) or ""
                 for key, value_ in value.items()
             }
-        if isinstance(value, Sequence):
+        if isinstance(value, collections.abc.Sequence):
             return tuple(map(_format_primitive_value, value))  # type: ignore
         raise ValueError(value)
     return _format_simple_argument_value(value)
@@ -275,12 +278,12 @@ def _format_space_delimited_argument_value(
     value: sob.abc.MarshallableTypes,
     *,
     explode: bool = False,
-) -> str | dict[str, str] | Sequence[str] | None:
+) -> str | dict[str, str] | collections.abc.Sequence[str] | None:
     if value is None or isinstance(value, _PRIMITIVE_VALUE_TYPES):
         return _format_primitive_value(value)  # type: ignore
     if explode:
         return _format_form_argument_value(value, explode=explode)
-    if isinstance(value, Sequence):
+    if isinstance(value, collections.abc.Sequence):
         return " ".join(
             map(_format_primitive_value, value)  # type: ignore
         )
@@ -292,12 +295,12 @@ def _format_pipe_delimited_argument_value(
     value: sob.abc.MarshallableTypes,
     *,
     explode: bool = False,
-) -> str | dict[str, str] | Sequence[str] | None:
+) -> str | dict[str, str] | collections.abc.Sequence[str] | None:
     if value is None or isinstance(value, _PRIMITIVE_VALUE_TYPES):
         return _format_primitive_value(value)  # type: ignore
     if explode:
         return _format_form_argument_value(value, explode=explode)
-    if isinstance(value, Sequence):
+    if isinstance(value, collections.abc.Sequence):
         return "|".join(
             map(_format_primitive_value, value)  # type: ignore
         )
@@ -310,7 +313,7 @@ def _format_deep_object_argument_value(
     value: sob.abc.MarshallableTypes,
     *,
     explode: bool = False,
-) -> str | dict[str, str] | Sequence[str] | None:
+) -> str | dict[str, str] | collections.abc.Sequence[str] | None:
     if value is None or isinstance(value, _PRIMITIVE_VALUE_TYPES):
         return _format_primitive_value(value)  # type: ignore
     message: str
@@ -319,7 +322,7 @@ def _format_deep_object_argument_value(
             "The `deepObject` argument style only supports `explode=True`."
         )
         raise ValueError(message)
-    if isinstance(value, Mapping):
+    if isinstance(value, collections.abc.Mapping):
         key: str
         value_: sob.abc.MarshallableTypes
         return {
@@ -340,10 +343,10 @@ def format_argument_value(
 ) -> (
     str
     | dict[str, str]
-    | Sequence[str]
-    | Sequence[bytes]
+    | collections.abc.Sequence[str]
+    | collections.abc.Sequence[bytes]
     | bytes
-    | typing.Sequence[typing.IO[bytes]]
+    | collections.abc.Sequence[typing.IO[bytes]]
     | typing.IO[bytes]
     | None
 ):
@@ -364,7 +367,7 @@ def format_argument_value(
         or (
             value
             and (not isinstance(value, str))
-            and isinstance(value, Sequence)
+            and isinstance(value, collections.abc.Sequence)
             and isinstance(value[0], (bytes, sob.abc.Readable))
         )
     ):
@@ -393,7 +396,7 @@ def format_argument_value(
 def get_request_curl(
     request: Request,
     options: str = "-i",
-    censored_headers: Iterable[str] = (
+    censored_headers: collections.abc.Iterable[str] = (
         "X-api-key",
         "Authorization",
     ),
@@ -562,9 +565,10 @@ def retry(
 
 
 def _remove_none(
-    items: Mapping[str, typing.Any] | Sequence[tuple[str, typing.Any]],
-) -> Sequence[tuple[str, typing.Any]]:
-    if isinstance(items, Mapping):
+    items: collections.abc.Mapping[str, typing.Any]
+    | collections.abc.Sequence[tuple[str, typing.Any]],
+) -> collections.abc.Sequence[tuple[str, typing.Any]]:
+    if isinstance(items, collections.abc.Mapping):
         items = tuple(items.items())
     item: tuple[str, typing.Any]
     return tuple(filter(lambda item: item[1] is not None, items))
@@ -572,7 +576,8 @@ def _remove_none(
 
 def _format_request_data(  # noqa: C901
     json: str | bytes | sob.abc.Model | None,
-    data: Mapping[str, typing.Any] | Sequence[tuple[str, typing.Any]],
+    data: collections.abc.Mapping[str, typing.Any]
+    | collections.abc.Sequence[tuple[str, typing.Any]],
 ) -> bytes | None:
     formatted_data: bytes | None = None
     if json:
@@ -593,7 +598,7 @@ def _format_request_data(  # noqa: C901
     elif data:
         data = _remove_none(data)
         data = dict(data)
-        if not isinstance(data, MutableMapping):
+        if not isinstance(data, collections.abc.MutableMapping):
             raise ValueError(data)
         # Convert bytes to base64-encoded strings
         key: str
@@ -667,35 +672,6 @@ DEFAULT_RETRY_FOR_ERRORS: tuple[type[Exception], ...] = (
 DEFAULT_RETRY_FOR_EXCEPTIONS: tuple[type[Exception], ...] = (
     DEFAULT_RETRY_FOR_ERRORS
 )
-CLIENT_SLOTS: tuple[str, ...] = (
-    "url",
-    "user",
-    "password",
-    "bearer_token",
-    "api_key",
-    "api_key_in",
-    "api_key_name",
-    "oauth2_client_id",
-    "oauth2_client_secret",
-    "oauth2_username",
-    "oauth2_password",
-    "oauth2_authorization_url",
-    "oauth2_token_url",
-    "oauth2_refresh_url",
-    "oauth2_flows",
-    "open_id_connect_url",
-    "headers",
-    "timeout",
-    "retry_number_of_attempts",
-    "retry_for_errors",
-    "retry_hook",
-    "verify_ssl_certificate",
-    "logger",
-    "echo",
-    "_cookie_jar",
-    "__opener",
-    "_oauth2_authorization_expires",
-)
 
 
 class _SSLContext(ssl.SSLContext):
@@ -741,16 +717,18 @@ def _assemble_request(  # noqa: C901
     url: str,
     method: str,
     json: str | bytes | sob.abc.Model | None,
-    data: Mapping[str, sob.abc.MarshallableTypes | typing.IO[bytes]],
-    headers: MutableMapping[
+    data: collections.abc.Mapping[
+        str, sob.abc.MarshallableTypes | typing.IO[bytes]
+    ],
+    headers: collections.abc.MutableMapping[
         str,
         str,
     ],
     *,
     multipart: bool,
-    multipart_data_headers: Mapping[
+    multipart_data_headers: collections.abc.Mapping[
         str,
-        MutableMapping[
+        collections.abc.MutableMapping[
             str,
             str,
         ],
@@ -769,7 +747,7 @@ def _assemble_request(  # noqa: C901
         part_data: sob.abc.MarshallableTypes
         for name, part_data in data.items():
             if not (
-                isinstance(part_data, Sequence)
+                isinstance(part_data, collections.abc.Sequence)
                 and (not isinstance(part_data, bytes))
                 and part_data
                 and isinstance(part_data[0], (bytes, sob.abc.Readable))
@@ -777,8 +755,8 @@ def _assemble_request(  # noqa: C901
                 part_data = (part_data,)  # noqa: PLW2901
             datum: sob.abc.MarshallableTypes
             for datum in part_data:
-                part_headers: MutableMapping = multipart_data_headers.get(
-                    name, {}
+                part_headers: collections.abc.MutableMapping = (
+                    multipart_data_headers.get(name, {})
                 )
                 if "Content-disposition" not in part_headers:
                     filename: str = ""
@@ -819,7 +797,7 @@ def _assemble_request(  # noqa: C901
     )
 
 
-def _get_first(items: Iterable[typing.Any]) -> typing.Any:
+def _get_first(items: collections.abc.Iterable[typing.Any]) -> typing.Any:
     return next(iter(items))
 
 
@@ -828,7 +806,35 @@ class Client:
     A base class for OpenAPI clients.
     """
 
-    __slots__: tuple[str, ...] = CLIENT_SLOTS
+    __slots__: tuple[str, ...] = (
+        "url",
+        "user",
+        "password",
+        "bearer_token",
+        "api_key",
+        "api_key_in",
+        "api_key_name",
+        "oauth2_client_id",
+        "oauth2_client_secret",
+        "oauth2_username",
+        "oauth2_password",
+        "oauth2_authorization_url",
+        "oauth2_token_url",
+        "oauth2_refresh_url",
+        "oauth2_flows",
+        "open_id_connect_url",
+        "headers",
+        "timeout",
+        "retry_number_of_attempts",
+        "retry_for_errors",
+        "retry_hook",
+        "verify_ssl_certificate",
+        "logger",
+        "echo",
+        "_cookie_jar",
+        "__opener",
+        "_oauth2_authorization_expires",
+    )
 
     def __init__(
         self,
@@ -861,8 +867,8 @@ class Client:
         ]
         | None = None,
         open_id_connect_url: str | None = None,
-        headers: typing.Mapping[str, str]
-        | typing.Sequence[tuple[str, str]] = (
+        headers: collections.abc.Mapping[str, str]
+        | collections.abc.Sequence[tuple[str, str]] = (
             ("Accept", "application/json"),
             ("Content-type", "application/json"),
         ),
@@ -1076,13 +1082,19 @@ class Client:
         slot: str
         return {
             slot: getattr(self, slot)
-            for slot in filter(lambda slot: slot != "__opener", self.__slots__)
+            for slot in filter(
+                lambda slot: slot != "__opener",
+                # Get all inherited slots
+                chain.from_iterable(
+                    getattr(cls, "__slots__", ()) for cls in type(self).__mro__
+                ),
+            )
         }
 
     def __setstate__(self, state: dict[str, typing.Any]) -> None:
         # Unpickle an instance of `oapi.client.Client` from a state dictionary
         # Determine which state keys are parameters for the `__init__` method
-        parameters: Iterable[tuple[str, inspect.Parameter]] = (
+        parameters: collections.abc.Iterable[tuple[str, inspect.Parameter]] = (
             inspect.signature(
                 self.__init__  # type: ignore
             ).parameters.items()
@@ -1140,15 +1152,19 @@ class Client:
         method: str,
         *,
         json: str | bytes | sob.abc.Model | None = None,
-        data: Mapping[str, sob.abc.MarshallableTypes]
-        | Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
-        query: Mapping[str, sob.abc.MarshallableTypes]
-        | Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
-        headers: Mapping[str, sob.abc.MarshallableTypes]
-        | Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
+        data: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
+        query: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
+        headers: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
         multipart: bool = False,
-        multipart_data_headers: Mapping[str, MutableMapping[str, str]]
-        | Sequence[tuple[str, MutableMapping[str, str]]] = (),
+        multipart_data_headers: collections.abc.Mapping[
+            str, collections.abc.MutableMapping[str, str]
+        ]
+        | collections.abc.Sequence[
+            tuple[str, collections.abc.MutableMapping[str, str]]
+        ] = (),
         timeout: int = 0,
     ) -> sob.abc.Readable:
         """
@@ -1179,15 +1195,25 @@ class Client:
                 str,
                 str,
                 str | bytes | sob.abc.Model | None,
-                Mapping[str, sob.abc.MarshallableTypes]
-                | Sequence[tuple[str, sob.abc.MarshallableTypes]],
-                Mapping[str, sob.abc.MarshallableTypes]
-                | Sequence[tuple[str, sob.abc.MarshallableTypes]],
-                Mapping[str, sob.abc.MarshallableTypes]
-                | Sequence[tuple[str, sob.abc.MarshallableTypes]],
+                collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+                | collections.abc.Sequence[
+                    tuple[str, sob.abc.MarshallableTypes]
+                ],
+                collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+                | collections.abc.Sequence[
+                    tuple[str, sob.abc.MarshallableTypes]
+                ],
+                collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+                | collections.abc.Sequence[
+                    tuple[str, sob.abc.MarshallableTypes]
+                ],
                 bool,
-                Mapping[str, MutableMapping[str, str]]
-                | Sequence[tuple[str, MutableMapping[str, str]]],
+                collections.abc.Mapping[
+                    str, collections.abc.MutableMapping[str, str]
+                ]
+                | collections.abc.Sequence[
+                    tuple[str, collections.abc.MutableMapping[str, str]]
+                ],
                 int,
             ],
             sob.abc.Readable,
@@ -1468,15 +1494,19 @@ class Client:
         path: str,
         method: str,
         json: str | bytes | sob.abc.Model | None = None,
-        data: Mapping[str, sob.abc.MarshallableTypes]
-        | Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
-        query: Mapping[str, sob.abc.MarshallableTypes]
-        | Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
-        headers: Mapping[str, sob.abc.MarshallableTypes]
-        | Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
+        data: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
+        query: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
+        headers: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
         multipart: bool = False,  # noqa: FBT001 FBT002
-        multipart_data_headers: Mapping[str, MutableMapping[str, str]]
-        | Sequence[tuple[str, MutableMapping[str, str]]] = (),
+        multipart_data_headers: collections.abc.Mapping[
+            str, collections.abc.MutableMapping[str, str]
+        ]
+        | collections.abc.Sequence[
+            tuple[str, collections.abc.MutableMapping[str, str]]
+        ] = (),
         timeout: int = 0,
     ) -> sob.abc.Readable:
         if query:
@@ -1500,7 +1530,7 @@ class Client:
                     key: value
                     for key, value in (
                         headers.items()
-                        if isinstance(headers, Mapping)
+                        if isinstance(headers, collections.abc.Mapping)
                         else headers
                     )
                     if key and value
@@ -1551,6 +1581,9 @@ class Client:
         return response
 
 
+# For backwards compatibility
+CLIENT_SLOTS: tuple[str, ...] = Client.__slots__  # type: ignore
+
 # endregion
 
 
@@ -1572,7 +1605,7 @@ def _get_io_open_api(model_io: sob.abc.Readable) -> OpenAPI:
 
 def _iter_path_item_operations(
     path_item: PathItem,
-) -> Iterable[tuple[str, Operation]]:
+) -> collections.abc.Iterable[tuple[str, Operation]]:
     """
     Yield all operations on a path as a tuple of the operation name
     ("get", "put", "post", "patch", etc.) and the object representing that
@@ -1672,7 +1705,9 @@ class _Parameter:
     style: str = ""
     description: str = ""
     content_type: str = ""
-    headers: Mapping[str, Header | Reference] = field(default_factory=dict)
+    headers: collections.abc.Mapping[str, Header | Reference] = field(
+        default_factory=dict
+    )
 
 
 @dataclass
@@ -1707,7 +1742,7 @@ class _ParameterLocations:
 
 def _iter_parameters(
     parameter_locations: _ParameterLocations,
-) -> Iterable[tuple[str, _Parameter]]:
+) -> collections.abc.Iterable[tuple[str, _Parameter]]:
     if parameter_locations.body:
         yield parameter_locations.body.name, parameter_locations.body
     yield from chain(
@@ -1721,7 +1756,7 @@ def _iter_parameters(
 
 def _iter_sorted_parameters(
     parameter_locations: _ParameterLocations,
-) -> Iterable[tuple[str, _Parameter]]:
+) -> collections.abc.Iterable[tuple[str, _Parameter]]:
     item: tuple[str, _Parameter]
     return sorted(
         _iter_parameters(parameter_locations), key=lambda item: item[1].index
@@ -1730,7 +1765,7 @@ def _iter_sorted_parameters(
 
 def _iter_request_path_representation(
     path: str, parameter_locations: _ParameterLocations
-) -> Iterable[str]:
+) -> collections.abc.Iterable[str]:
     path_representation: str = sob.utilities.represent(path)
     if parameter_locations.path:
         yield f"            {path_representation}.format(**{{"
@@ -1777,7 +1812,7 @@ def _represent_dictionary_parameter(
 
 def _iter_cookie_dictionary_parameter_representation(
     names_parameters: dict[str, _Parameter],
-) -> Iterable[str]:
+) -> collections.abc.Iterable[str]:
     if names_parameters:
         yield '                "Cookie": "; ".join(('
         name: str
@@ -1799,7 +1834,7 @@ def _iter_cookie_dictionary_parameter_representation(
 
 def _iter_request_headers_representation(
     parameter_locations: _ParameterLocations, *, use_kwargs: bool = False
-) -> Iterable[str]:
+) -> collections.abc.Iterable[str]:
     if parameter_locations.header or parameter_locations.cookie:
         yield "            headers={"
         if parameter_locations.header:
@@ -1818,7 +1853,7 @@ def _iter_request_headers_representation(
 
 def _iter_request_body_representation(
     parameter_locations: _ParameterLocations, *, use_kwargs: bool = False
-) -> Iterable[str]:
+) -> collections.abc.Iterable[str]:
     if parameter_locations.body:
         name: str = parameter_locations.body.name
         if use_kwargs:
@@ -1828,7 +1863,7 @@ def _iter_request_body_representation(
 
 def _iter_request_query_representation(
     parameter_locations: _ParameterLocations, *, use_kwargs: bool = False
-) -> Iterable[str]:
+) -> collections.abc.Iterable[str]:
     if parameter_locations.query:
         yield "            query={"
         name: str
@@ -1844,7 +1879,7 @@ def _iter_request_form_data_representation(
     parameter_locations: _ParameterLocations,
     *,
     use_kwargs: bool = False,
-) -> Iterable[str]:
+) -> collections.abc.Iterable[str]:
     if parameter_locations.form_data:
         yield "            data={"
         name: str
@@ -1895,10 +1930,12 @@ class Module:
         include_init_parameters: str | tuple[str, ...] = (),
         add_init_parameters: str | tuple[str, ...] = (),
         add_init_parameter_docs: str | tuple[str, ...] = (),
-        init_parameter_defaults: Mapping[str, typing.Any]
-        | Sequence[tuple[str, typing.Any]] = (),
-        init_parameter_defaults_source: Mapping[str, typing.Any]
-        | Sequence[tuple[str, typing.Any]] = (),
+        init_parameter_defaults: collections.abc.Mapping[str, typing.Any]
+        | collections.abc.Sequence[tuple[str, typing.Any]] = (),
+        init_parameter_defaults_source: collections.abc.Mapping[
+            str, typing.Any
+        ]
+        | collections.abc.Sequence[tuple[str, typing.Any]] = (),
         get_method_name_from_path_method_operation: typing.Callable[
             [str, str, str | None], str
         ] = get_default_method_name_from_path_method_operation,
@@ -2001,24 +2038,22 @@ class Module:
             "sob",
             "oapi",
             "typing",
-            "decimal",
             "Logger",
             self._class_name,
         }
-        self._imports: set[str] = set(
-            filter(
-                None,
-                (
-                    (
-                        "import typing",
-                        "import sob",
-                        "import oapi",
-                        "from logging import Logger",
-                    )
-                    + ((imports,) if isinstance(imports, str) else imports)
-                ),
-            )
+        self._imports: set[str] = {
+            "from __future__ import annotations",
+            "import typing",
+            "import oapi",
+            "import sob",
+            "from logging import Logger",
+        } | set(
+            filter(None, (imports,) if isinstance(imports, str) else imports)
         )
+        if "headers" not in self._iter_excluded_parameter_names():
+            # `collections.abc` is only referenced if `headers` is used
+            self._imports.add("import collections.abc")
+            self._names.add("collections")
         self.get_method_name_from_path_method_operation = (
             get_method_name_from_path_method_operation
         )
@@ -2137,7 +2172,7 @@ class Module:
             os.chdir(current_directory)
         return namespace.get("_POINTERS_CLASSES")  # type: ignore
 
-    def _iter_imports(self) -> Iterable[str]:
+    def _iter_imports(self) -> collections.abc.Iterable[str]:
         """
         Yield sorted import statements. This is used to ensure consistent
         output (no unwarranted diffs).
@@ -2228,7 +2263,9 @@ class Module:
             else None
         )
 
-    def _iter_security_schemes(self) -> Iterable[SecurityScheme]:
+    def _iter_security_schemes(
+        self,
+    ) -> collections.abc.Iterable[SecurityScheme]:
         security_schemes: SecuritySchemes | None = self._get_security_schemes()
         yield from (security_schemes or {}).values()
 
@@ -2259,7 +2296,9 @@ class Module:
                 return security_scheme.name
         return "X-API-KEY"
 
-    def _iter_oauth2_flows(self) -> Iterable[tuple[str, OAuthFlow | None]]:
+    def _iter_oauth2_flows(
+        self,
+    ) -> collections.abc.Iterable[tuple[str, OAuthFlow | None]]:
         security_scheme: SecurityScheme
         for security_scheme in self._iter_security_schemes():
             # Use the first API key security scheme
@@ -2357,7 +2396,9 @@ class Module:
                 return security_scheme.open_id_connect_url
         return ""
 
-    def _iter_class_init_docstring_source(self) -> Iterable[str]:
+    def _iter_class_init_docstring_source(
+        self,
+    ) -> collections.abc.Iterable[str]:
         message: str
         if Client.__init__.__doc__:
             docstring: str = Client.__init__.__doc__
@@ -2379,7 +2420,7 @@ class Module:
                 for parameter_name in self._iter_excluded_parameter_names():
                     pattern: str = (
                         f"\\n            {parameter_name}:(?:.|\\n)*?"
-                        r"(\n            |(\n|\s)*$)"
+                        r"(\n            (?=[^\s])|(\n|\s)*$)"
                     )
                     if not re.search(pattern, parameter_documentation):
                         message = (
@@ -2394,13 +2435,14 @@ class Module:
                 parameter_doc: str
                 for parameter_doc in self._add_init_parameter_docs:
                     parameter_doc = sob.utilities.indent(  # noqa: PLW2901
-                        parameter_doc.lstrip(" "), number_of_spaces=8, start=0
+                        parameter_doc.lstrip(" "), number_of_spaces=16, start=0
                     )
                     parameter_doc = (  # noqa: PLW2901
                         sob.utilities.split_long_docstring_lines(parameter_doc)
                     ).lstrip()
                     parameter_documentation = (
-                        f"{parameter_documentation}\n        {parameter_doc}"
+                        f"{parameter_documentation}"
+                        f"\n            {parameter_doc}"
                     )
                 yield (
                     f'        """{prefix}{parameter_documentation}'
@@ -2410,7 +2452,7 @@ class Module:
                 yield f'        """{docstring}"""'
             yield ""
 
-    def _iter_class_declaration_source(self) -> Iterable[str]:
+    def _iter_class_declaration_source(self) -> collections.abc.Iterable[str]:
         class_declaration: str = (
             f"class {self._class_name}"
             f"({self._get_client_base_class_name()}):"
@@ -2422,10 +2464,6 @@ class Module:
                 "):"
             )
         yield class_declaration
-        yield (
-            "    __slots__: typing.Tuple[str, ...] = "
-            "oapi.client.CLIENT_SLOTS"
-        )
         yield ""
 
     def _get_schema_class(
@@ -2467,6 +2505,7 @@ class Module:
             ):
                 return sob.Array
             if schema.type_ == "number":
+                self._names.add("decimal")
                 self._imports.add("import decimal")
             return get_type_format_property(
                 type_=schema.type_,
@@ -2488,7 +2527,7 @@ class Module:
         self,
         schema: Schema,
         default_type: type[sob.abc.Property] = sob.Property,
-    ) -> Iterable[type[sob.abc.Model] | sob.abc.Property]:
+    ) -> collections.abc.Iterable[type[sob.abc.Model] | sob.abc.Property]:
         if schema.any_of or schema.one_of:
             schema_: Reference | Schema
             if schema.any_of:
@@ -2530,7 +2569,7 @@ class Module:
 
     def _iter_response_types(
         self, response: Response
-    ) -> Iterable[type[sob.abc.Model] | sob.abc.Property]:
+    ) -> collections.abc.Iterable[type[sob.abc.Model] | sob.abc.Property]:
         schema: Schema
         resolved_schema: sob.abc.Model
         if response.schema:
@@ -2553,7 +2592,7 @@ class Module:
 
     def _iter_operation_response_types(
         self, operation: Operation
-    ) -> Iterable[type[sob.abc.Model] | sob.abc.Property]:
+    ) -> collections.abc.Iterable[type[sob.abc.Model] | sob.abc.Property]:
         """
         Yield classes for all responses with a status code in the 200-299 range
         """
@@ -2566,7 +2605,9 @@ class Module:
                         self._resolve_response(response)
                     )
 
-    def _iter_type_types_names(self, type_: sob.abc.Property) -> Iterable[str]:
+    def _iter_type_types_names(
+        self, type_: sob.abc.Property
+    ) -> collections.abc.Iterable[str]:
         if type_.types:
             yield from chain(*map(self._iter_type_names, type_.types))
         else:
@@ -2574,7 +2615,7 @@ class Module:
 
     def _iter_enumerated_type_names(
         self, type_: sob.abc.EnumeratedProperty
-    ) -> Iterable[str]:
+    ) -> collections.abc.Iterable[str]:
         if type_.types:
             yield from chain(*map(self._iter_type_names, type_.types))
         elif type_.values:
@@ -2586,7 +2627,7 @@ class Module:
 
     def _iter_type_names(  # noqa: C901
         self, type_: type | sob.abc.Property
-    ) -> Iterable[str]:
+    ) -> collections.abc.Iterable[str]:
         if isinstance(type_, sob.abc.EnumeratedProperty):
             yield from self._iter_enumerated_type_names(type_)
         elif isinstance(type_, sob.abc.NumberProperty) or (
@@ -2594,6 +2635,7 @@ class Module:
             and issubclass(type_, (decimal.Decimal, float, int))
         ):
             self._imports.add("import decimal")
+            self._names.add("decimal")
             yield from ("int", "float", "decimal.Decimal")
         elif isinstance(type_, sob.abc.StringProperty) or (
             isinstance(type_, type) and issubclass(type_, str)
@@ -2639,34 +2681,13 @@ class Module:
         self,
         schema: Schema | Parameter,
         default_type: type[sob.abc.Property] = sob.Property,
-    ) -> Iterable[str]:
+    ) -> collections.abc.Iterable[str]:
         yield from self._iter_type_names(
             self._get_parameter_or_schema_type(
                 schema,
                 default_type=default_type,
             )
         )
-
-    def _get_simple_schema_type_hint(self, type_: str | None) -> str:
-        # TODO: Is this deprecated?
-        if type_ == "number":
-            self._imports.add("import decimal")
-            return (
-                "typing.Union[\n"
-                "        int,\n"
-                "        float,\n"
-                "        decimal.Decimal\n"
-                "    ]"
-            )
-        if type_ == "string":
-            return "str"
-        if type_ == "integer":
-            return "int"
-        if type_ == "boolean":
-            return "bool"
-        if type_ == "file":
-            return "typing.IO[bytes]"
-        raise ValueError(type_)
 
     def _get_schema_type_hint(
         self,
@@ -2709,8 +2730,9 @@ class Module:
         parameter_locations: _ParameterLocations,
         parameter_names: set[str] | None = None,
         content_type: str = "",
-        headers: Mapping[str, Header | Reference] | None = None,
-    ) -> Iterable[str]:
+        headers: collections.abc.Mapping[str, Header | Reference]
+        | None = None,
+    ) -> collections.abc.Iterable[str]:
         """
         Yield lines for a parameter declaration.
         """
@@ -2834,7 +2856,7 @@ class Module:
         method: str,
         operation: Operation,
         parameter_locations: _ParameterLocations,
-    ) -> Iterable[str]:
+    ) -> collections.abc.Iterable[str]:
         operation_response_types: tuple[
             type[sob.abc.Model] | sob.abc.Property, ...
         ] = tuple(self._iter_operation_response_types(operation))
@@ -2880,7 +2902,7 @@ class Module:
 
     def _iter_operation_method_docstring(
         self, operation: Operation, parameter_locations: _ParameterLocations
-    ) -> Iterable[str]:
+    ) -> collections.abc.Iterable[str]:
         yield '        """'
         if operation.description or operation.summary:
             yield sob.utilities.split_long_docstring_lines(
@@ -2901,24 +2923,23 @@ class Module:
             if operation.description or operation.summary:
                 yield ""
             yield "        Parameters:"
-            yield ""
             name: str
             parameter: _Parameter
             for name, parameter in sorted_parameters:
-                parameter_docstring: str = f"        {name}:"
+                parameter_docstring: str
                 if parameter.description:
                     description: str = re.sub(
                         r"\n[\s\n]*\n+", "\n", parameter.description.strip()
                     )
-                    description = sob.utilities.indent(
-                        description, 12, start=0
-                    )
-                    description = sob.utilities.split_long_docstring_lines(
-                        description
-                    )
                     parameter_docstring = (
-                        f"{parameter_docstring}:\n{description}"
+                        sob.utilities.split_long_docstring_lines(
+                            sob.utilities.indent(
+                                f"{name}: {description}", 16, start=0
+                            )
+                        )[4:]
                     )
+                else:
+                    parameter_docstring = f"            {name}:"
                 yield parameter_docstring
         yield '        """'
 
@@ -2928,7 +2949,7 @@ class Module:
         method: str,
         operation: Operation,
         path_item: PathItem,
-    ) -> Iterable[str]:
+    ) -> collections.abc.Iterable[str]:
         # This dictionary will be passed to
         # `self._iter_operation_method_declaration()`
         # in order to capture information about the parameters
@@ -3011,7 +3032,7 @@ class Module:
         parameter_locations: _ParameterLocations,
         parameter_names: set[str],
         required: bool = False,
-    ) -> Iterable[str]:
+    ) -> collections.abc.Iterable[str]:
         message: str
         if not media_type.schema:
             message = f"Media type missing schema: {media_type}"
@@ -3051,7 +3072,9 @@ class Module:
                 explode=True,
             )
             encoding = parameters_encodings.get(key)
-            kwargs: dict[str, str | Mapping[str, Header | Reference]] = {}
+            kwargs: dict[
+                str, str | collections.abc.Mapping[str, Header | Reference]
+            ] = {}
             if property_schema.content_media_type:
                 kwargs.update(content_type=property_schema.content_media_type)
             if encoding:
@@ -3076,7 +3099,7 @@ class Module:
         request_body: RequestBody,
         parameter_locations: _ParameterLocations,
         parameter_names: set[str],
-    ) -> Iterable[str]:
+    ) -> collections.abc.Iterable[str]:
         media_type: MediaType
         media_type_name: str
         required: bool = bool(request_body.required)
@@ -3150,7 +3173,7 @@ class Module:
         operation: Operation,
         path_item: PathItem,
         parameter_locations: _ParameterLocations,
-    ) -> Iterable[str]:
+    ) -> collections.abc.Iterable[str]:
         parameter: Parameter
         previous_parameter_required: bool = True
         method_name: str = self.get_method_name_from_path_method_operation(
@@ -3235,7 +3258,7 @@ class Module:
 
     def _iter_path_methods_source(
         self, path: str, path_item: PathItem
-    ) -> Iterable[str]:
+    ) -> collections.abc.Iterable[str]:
         name: str
         operation: Operation | Reference
         for name, operation in _iter_path_item_operations(path_item):
@@ -3254,7 +3277,7 @@ class Module:
                 )
                 raise
 
-    def _iter_excluded_parameter_names(self) -> Iterable[str]:
+    def _iter_excluded_parameter_names(self) -> collections.abc.Iterable[str]:
         if self._include_init_parameters:
             parameter_name: str
             for parameter_name in inspect.signature(
@@ -3384,19 +3407,10 @@ class Module:
                 r')(?:"|\b)'
             ),
             r"oapi.client.\1",
-            re.sub(
-                (
-                    r"\b("
-                    "Tuple|Type|Callable|Optional|Mapping|Union|Sequence|"
-                    "Any"
-                    r")\b"
-                ),
-                r"typing.\1",
-                source.replace("  # Force line-break retention\n", "\n"),
-            ),
+            source.replace("  # Force line-break retention\n", "\n"),
         )
 
-    def _iter_init_method_source(self) -> Iterable[str]:
+    def _iter_init_method_source(self) -> collections.abc.Iterable[str]:
         if self._init_decorator:
             yield sob.utilities.indent(self._init_decorator, start=0)
         # Resolve namespace discrepancies between `oap.client` and the
@@ -3427,7 +3441,9 @@ class Module:
         yield "        )"
         yield ""
 
-    def _iter_paths_operations_methods_source(self) -> Iterable[str]:
+    def _iter_paths_operations_methods_source(
+        self,
+    ) -> collections.abc.Iterable[str]:
         path: str
         path_item: PathItem | Reference
         if self.open_api.paths:

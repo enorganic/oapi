@@ -28,24 +28,28 @@ upgrade:
 	hatch run dependence freeze\
 	 --include-pointer /tool/hatch/envs/default\
 	 --include-pointer /project\
+	 -nv '*'\
 	 pyproject.toml > .requirements.txt && \
 	hatch run pip install --upgrade --upgrade-strategy eager\
 	 -r .requirements.txt && \
 	hatch run docs:dependence freeze\
 	 --include-pointer /tool/hatch/envs/docs\
 	 --include-pointer /project\
+	 -nv '*'\
 	 pyproject.toml > .requirements.txt && \
 	hatch run docs:pip install --upgrade --upgrade-strategy eager\
 	 -r .requirements.txt && \
 	hatch run hatch-static-analysis:dependence freeze\
 	 --include-pointer /tool/hatch/envs/docs\
 	 --include-pointer /project\
+	 -nv '*'\
 	 pyproject.toml > .requirements.txt && \
 	hatch run hatch-static-analysis:pip install --upgrade --upgrade-strategy eager\
 	 -r .requirements.txt && \
 	hatch run hatch-test.py$(MINIMUM_PYTHON_VERSION):dependence freeze\
 	 --include-pointer /tool/hatch/envs/hatch-test\
 	 --include-pointer /project\
+	 -nv '*'\
 	 pyproject.toml > .requirements.txt && \
 	hatch run hatch-test.py$(MINIMUM_PYTHON_VERSION):pip install --upgrade --upgrade-strategy eager\
 	 -r .requirements.txt && \
@@ -90,11 +94,6 @@ docs:
 # Cleanup untracked files
 clean:
 	git clean -f -e .vscode -e .idea -x .
-
-# Download specification schemas
-schemas:
-	hatch run python scripts/download_schemas.py && \
-	echo "Success!"
 
 # Rebuild the data model (to maintain consistency when/if changes are made
 # which affect formatting)

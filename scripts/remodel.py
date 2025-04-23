@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import os
 import re
 from itertools import chain
+from pathlib import Path
 from re import Match
 from typing import TYPE_CHECKING, Any
 
@@ -13,12 +13,8 @@ from oapi.oas import model
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-PROJECT_PATH: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH: str = os.path.join(PROJECT_PATH, "oapi", "oas", "model.py")
-EXTENSIBLE_MODEL_SOURCE: str = """
-class ExtensibleObject(sob.Object):
-    pass
-""".strip()
+PROJECT_PATH: Path = Path(__file__).absolute().parent.parent
+MODEL_PATH: Path = PROJECT_PATH / "src" / "oapi" / "oas" / "model.py"
 
 
 def get_region_source(name: str) -> str:
@@ -99,7 +95,9 @@ def main() -> None:
     suffix: str
     cls: type[sob.abc.Model]
     metadata: sob.abc.Meta
-    imports: set[str] = set()
+    imports: set[str] = {
+        "from oapi._utilities import deprecated as _deprecated",
+    }
     classes: list[str] = []
     metadatas: list[str] = []
     for cls, metadata, suffix in iter_models_metadata_suffixes():
@@ -109,11 +107,6 @@ def main() -> None:
             sob.utilities.get_source(cls)
             .replace("oapi.oas.model.", "")
             .rpartition("\n\n\n")
-        )
-        class_source = re.sub(
-            r"\bsob\.model\.Object\b",
-            "ExtensibleObject",
-            class_source,
         )
         if suffix:
             class_source = f"{class_source.rstrip()}\n        {suffix}"
@@ -155,19 +148,32 @@ def main() -> None:
                     ),
                 )
             )
+    import_statement: str
     model_source: str = "\n\n".join(
         chain(
             (
                 "\n".join(
                     chain(
                         (f'"""{model.__doc__.rstrip()}\n"""',),
-                        sorted(imports),
+                        sorted(
+                            imports - {"import decimal"},
+                            key=lambda import_statement: (
+                                (0, import_statement)
+                                if import_statement.startswith(
+                                    "from __future__"
+                                )
+                                else (2, import_statement)
+                                if import_statement.startswith("from ")
+                                else (1, import_statement)
+                            ),
+                        ),
                     )
                 ),
             ),
-            (get_region_source("Base Classes"),),
+            ("\nif typing.TYPE_CHECKING:\n    import decimal\n",),
             ("\n{}\n".format("\n\n\n".join(classes)),),
             ("\n".join(metadatas),),
+            (get_region_source("Aliases"),),
             (get_region_source("Hooks"),),
         )
     )

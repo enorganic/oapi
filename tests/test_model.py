@@ -12,8 +12,8 @@ from oapi.oas.model import OpenAPI
 from oapi.oas.references import Resolver
 
 OPENAPI_EXAMPLE_URL = (
-    "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/"
-    "examples/"
+    "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/"
+    "_archive_/v3/examples/"
 )
 LANGUAGE_TOOL_URL = (
     "https://languagetool.org/http-api/languagetool-swagger.json"

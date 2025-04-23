@@ -84,6 +84,7 @@ python = ["3.9", "3.10", "3.11", "3.12", "3.13"]
 line-length = 79
 extend-exclude = [
     "tests/regression-data/*",
+    "src/oapi/oas/model.py",
 ]
 
 [tool.ruff.lint]

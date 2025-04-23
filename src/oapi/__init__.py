@@ -1,5 +1,6 @@
+# isort: skip_file
 from __future__ import annotations
 
-from oapi import client, errors, model, oas
+from oapi import oas, client, errors, model
 
-__all__: list[str] = ["client", "oas", "errors", "model"]
+__all__: tuple[str, ...] = ("oas", "client", "errors", "model")
