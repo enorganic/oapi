@@ -2857,7 +2857,7 @@ class ClientModule:
             return sob.utilities.represent(type_)
         if not (isinstance(type_, type) and issubclass(type_, sob.abc.Model)):
             raise TypeError(type_)
-        if type_.__module__.startswith("sob."):
+        if type_.__module__.startswith("sob.") or type_.__module__ == "sob":
             return f"{type_.__module__}.{type_.__name__}"
         return f"{self._get_model_module_name()}.{type_.__name__}"
 
