@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 import collections.abc
 import copyreg
 import decimal
@@ -2709,16 +2710,16 @@ class ClientModule:
         if not type_names:
             raise ValueError(schema)
         type_hint: str
-        if required:
-            if len(type_names) == 1:
-                type_hint = type_names[0]
-            else:
-                type_hint = "\n        | ".join(type_names)
-        elif len(type_names) == 1:
-            type_hint = f"{type_names[0]}\n        | None"
-        else:
+        if not required:
             type_names += ("None",)
-            type_hint = "\n        | ".join(type_names)
+        if all(map(functools.partial(hasattr, builtins), type_names)):
+            type_hint = " | ".join(type_names)
+        else:
+            type_hint = "(\n            {}\n       )".format(
+                "\n            | ".join(type_names)
+            )
+        if not required:
+            type_hint = f"{type_hint} = None"
         return type_hint
 
     def _get_parameter_type_hint(self, parameter: Parameter) -> str:
@@ -2727,7 +2728,7 @@ class ClientModule:
             schema = self._resolve_schema(parameter.schema)
         return self._get_schema_type_hint(
             schema,
-            required=bool(parameter.required),
+            required=parameter.required or False,
             default_type=sob.BytesProperty,
         )
 
