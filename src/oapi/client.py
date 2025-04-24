@@ -674,7 +674,7 @@ DEFAULT_RETRY_FOR_EXCEPTIONS: tuple[type[Exception], ...] = (
 )
 
 
-class _SSLContext(ssl.SSLContext):
+class SSLContext(ssl.SSLContext):
     """
     This class is a wrapper for `ssl.SSLContext` which makes it possible to
     connect to hosts which have an unverified SSL certificate.
@@ -696,7 +696,7 @@ class _SSLContext(ssl.SSLContext):
         A pickled instance of this class will just be an entirely new
         instance.
         """
-        return _SSLContext, (self.check_hostname,)
+        return SSLContext, (self.check_hostname,)
 
 
 def _get_file_name(file: typing.IO, default: str = "") -> str:
@@ -1022,25 +1022,11 @@ class Client:
         self._oauth2_authorization_expires: int = 0
 
     @property
-    def _verify_ssl_certificate(self) -> bool:
-        """
-        For backwards compatibility
-        """
-        return self.verify_ssl_certificate
-
-    @_verify_ssl_certificate.setter
-    def _verify_ssl_certificate(self, verify_ssl_certificate: bool) -> None:
-        """
-        For backwards compatibility
-        """
-        self.verify_ssl_certificate = verify_ssl_certificate
-
-    @property
     def _opener(self) -> OpenerDirector:
         if self.__opener is None:
             self.__opener = build_opener(
                 HTTPSHandler(
-                    context=_SSLContext(
+                    context=SSLContext(
                         check_hostname=self.verify_ssl_certificate
                     )
                 ),
