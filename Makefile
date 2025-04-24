@@ -53,6 +53,14 @@ upgrade:
 	 pyproject.toml > .requirements.txt && \
 	hatch run hatch-test.py$(MINIMUM_PYTHON_VERSION):pip install --upgrade --upgrade-strategy eager\
 	 -r .requirements.txt && \
+	hatch run hatch-test.py3.10:pip install --upgrade --upgrade-strategy eager\
+	 -r .requirements.txt && \
+	hatch run hatch-test.py3.11:pip install --upgrade --upgrade-strategy eager\
+	 -r .requirements.txt && \
+	hatch run hatch-test.py3.12:pip install --upgrade --upgrade-strategy eager\
+	 -r .requirements.txt && \
+	hatch run hatch-test.py3.13:pip install --upgrade --upgrade-strategy eager\
+	 -r .requirements.txt && \
 	rm .requirements.txt && \
 	make requirements
 

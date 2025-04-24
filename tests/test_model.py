@@ -2,22 +2,26 @@ import os
 import unittest
 from copy import deepcopy
 from itertools import chain
+from pathlib import Path
 from urllib.parse import urljoin
-from urllib.request import Request, urlopen
+from urllib.request import Request
 
 import sob
 
 from oapi.model import Module, get_default_class_name_from_pointer
 from oapi.oas.model import OpenAPI
-from oapi.oas.references import Resolver
+from oapi.oas.references import Resolver, _urlopen
 
 OPENAPI_EXAMPLE_URL = (
-    "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/"
-    "_archive_/v3/examples/"
+    "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/3.1.1/"
+    "examples/"
 )
 LANGUAGE_TOOL_URL = (
     "https://languagetool.org/http-api/languagetool-swagger.json"
 )
+TESTS_PATH: Path = Path(__file__).absolute().parent
+REGRESSION_DATA_PATH: Path = TESTS_PATH / "regression-data"
+INPUT_DATA_PATH: Path = TESTS_PATH / "input-data"
 
 
 class TestModel(unittest.TestCase):
@@ -69,7 +73,7 @@ class TestModel(unittest.TestCase):
         ):
             url: str = urljoin(OPENAPI_EXAMPLE_URL, relative_path)
             print(url)  # noqa: T201
-            with urlopen(url) as response:
+            with _urlopen(url) as response:
                 openapi: OpenAPI = OpenAPI(response)
                 sob.validate(openapi)
                 openapi2: OpenAPI = deepcopy(openapi)
@@ -99,18 +103,14 @@ class TestModel(unittest.TestCase):
 
     @staticmethod
     def test_languagetool() -> None:
-        with urlopen(
+        with _urlopen(
             Request(LANGUAGE_TOOL_URL, headers={"User-agent": ""})
         ) as response:
             oa = OpenAPI(response)
             sob.validate(oa)
             model = Module(oa)
-            model_path = os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                "regression-data",
-                "languagetool.py",
-            )
-            if os.path.exists(model_path):
+            model_path: Path = REGRESSION_DATA_PATH / "languagetool.py"
+            if model_path.exists():
                 with open(model_path) as model_file:
                     model_file_data = model_file.read()
                     if not isinstance(model_file_data, str):
@@ -119,12 +119,11 @@ class TestModel(unittest.TestCase):
                         )
                     assert str(model) == model_file_data
             else:
+                if not REGRESSION_DATA_PATH.exists():
+                    os.makedirs(REGRESSION_DATA_PATH, exist_ok=True)
                 model_string: str = str(model)
-                if model_string.strip():
-                    with open(model_path, "w") as model_file:
-                        model_file.write(model_string)
-                else:
-                    raise ValueError
+                with open(model_path, "w") as model_file:
+                    model_file.write(model_string)
 
 
 if __name__ == "__main__":

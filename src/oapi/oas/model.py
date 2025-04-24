@@ -2250,7 +2250,6 @@ class Parameter(sob.Object):
         ) = None,
         in_: (
             str
-            | str
             | None
         ) = None,
         description: (
@@ -2388,7 +2387,6 @@ class Parameter(sob.Object):
         ) = name
         self.in_: (
             str
-            | str
             | None
         ) = in_
         self.description: (
@@ -3768,7 +3766,6 @@ class SecurityScheme(sob.Object):
         ) = None,
         in_: (
             str
-            | str
             | None
         ) = None,
         scheme: (
@@ -3821,7 +3818,6 @@ class SecurityScheme(sob.Object):
         ) = name
         self.in_: (
             str
-            | str
             | None
         ) = in_
         self.scheme: (

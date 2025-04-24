@@ -5,7 +5,9 @@ import re
 from collections import deque
 from copy import copy
 from datetime import date, datetime
+from functools import partial
 from itertools import chain, starmap
+from logging import Logger
 from re import Match, Pattern
 from typing import (
     TYPE_CHECKING,
@@ -64,7 +66,11 @@ def _get_schema_type(schema: Schema | Items) -> str | None:
     return schema_type
 
 
-def get_default_class_name_from_pointer(pointer: str, name: str = "") -> str:
+def get_default_class_name_from_pointer(
+    pointer: str,
+    name: str = "",
+    log: Logger | Callable[[str], None] | None = None,
+) -> str:
     """
     This function infers a class name from a JSON pointer (or from a
     relative URL concatenated with a JSON pointer) + parameter name (or
@@ -72,23 +78,29 @@ def get_default_class_name_from_pointer(pointer: str, name: str = "") -> str:
     the default naming function used by `oapi.model.Module`.
 
     Parameters:
-
-    - pointer (str): A JSON pointer referencing a schema within an OpenAPI
-      document, or a concatenation of a relative URL + "#" + a JSON pointer.
-    - name (str) = "": The parameter name, or "" if the element is not a
-      parameter.
+        pointer: A JSON pointer referencing a schema within an OpenAPI
+            document, or a concatenation of a relative URL + "#" + a JSON
+            pointer.
+        name: The parameter name, or "" if the element is not a
+            parameter.
+        log: A logger, or a callback function for log messages
 
     Examples:
 
-    >>> get_default_class_name_from_pointer(  # doctest: +SKIP
-    ...     "#/paths/~1directory~1sub-directory~1name/get/parameters/1",
-    ...     name="argument-name",
+    >>> print(
+    ...     get_default_class_name_from_pointer(
+    ...         "#/paths/~1directory~1sub-directory~1name/get/parameters/1",
+    ...         name="argument-name",
+    ...     )
     ... )
     DirectorySubDirectoryNameGetArgumentName
 
-    >>> get_default_class_name_from_pointer(  # doctest: +SKIP
-    ...     "#/paths/~1directory~1sub-directory~1name/get/parameters/1/item",
-    ...     name="argument-name",
+    >>> print(
+    ...     get_default_class_name_from_pointer(
+    ...         "#/paths/~1directory~1sub-directory~1name/get/parameters/1"  #
+    ...         "/item",
+    ...         name="argument-name",
+    ...     )
     ... )
     DirectorySubDirectoryNameGetArgumentNameItem
     """
@@ -152,9 +164,14 @@ def get_default_class_name_from_pointer(pointer: str, name: str = "") -> str:
             class_name_ = f"{class_name_}/{name}"
     if relative_url:
         class_name_ = f"{relative_url}/{class_name_}"
-    print(  # noqa: T201
-        f"{pointer} -> {class_name_} (JSON Pointer -> Class Name)"
-    )
+    if log is not None:  # pragma: no cover
+        message: str = (
+            f"{pointer} -> {class_name_} (JSON Pointer -> Class Name)"
+        )
+        if isinstance(log, Logger):
+            log.info(message)
+        elif callable(log):
+            log(message)
     return sob.utilities.get_class_name(class_name_)
 
 
@@ -248,9 +265,9 @@ class _Modeler:
     def __init__(
         self,
         root: OpenAPI,
-        get_class_name_from_pointer: Callable[
-            [str, str], str
-        ] = get_default_class_name_from_pointer,
+        get_class_name_from_pointer: Callable[[str, str], str] = partial(
+            get_default_class_name_from_pointer, log=print
+        ),
     ) -> None:
         message: str
         # This ensures all elements have URLs and JSON pointers
@@ -1147,20 +1164,22 @@ class _Modeler:
                     docstring.append("    Attributes:")
                     is_first_property = False
                 name = sob.utilities.get_property_name(name)  # noqa: PLW2901
-                property_docstring: str = f"        {name}:"
+                property_docstring: str
                 if property_schema.description:
                     description: str = re.sub(
                         r"\n[\s\n]*\n+",
                         "\n",
                         property_schema.description.strip(),
                     )
-                    description = sob.utilities.indent(
-                        description, 12, start=0
+                    property_docstring = (
+                        sob.utilities.split_long_docstring_lines(
+                            sob.utilities.indent(
+                                f"{name}: {description}", 12, start=0
+                            )
+                        )[4:]
                     )
-                    description = sob.utilities.split_long_docstring_lines(
-                        description
-                    )
-                    property_docstring = f"{property_docstring}\n{description}"
+                else:
+                    property_docstring = f"        {name}:"
                 docstring.append(property_docstring)
         return "\n".join(docstring) if docstring else None
 

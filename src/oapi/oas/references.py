@@ -2,32 +2,41 @@
 This module provides functionality for resolving references within an instance
 of `oapi.oas.model.OpenAPI`.
 
-For example, the following will replace all references in the Open API
+The following will replace all references in the Open API
 document `open_api_document` with the objects targeted by the `ref` property
-of the reference:
+of the reference.
 
-```python
-from urllib.request import urlopen
-from oapi.oas.model import OpenAPI
+Example:
 
-with urlopen(
-    "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/"
-    "examples/v3.0/callback-example.yaml"
-) as response:
-    open_api_document = OpenAPI(response)
+    import yaml
+    from urllib.request import urlopen
+    from oapi.oas.model import OpenAPI
+    from oapi.oas.references import Resolver
 
-resolver = Resolver(open_api_document)
-resolver.dereference()
-```
+
+    with urlopen(
+        "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/3.1.1/"
+        "examples/v3.0/callback-example.yaml"
+    ) as response:
+        open_api_document = OpenAPI(
+            yaml.safe_load(response)
+        )
+
+    resolver = Resolver(open_api_document)
+    resolver.dereference()
 """
 
 from __future__ import annotations
 
+import json
+from functools import wraps
+from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, cast
 from urllib.error import HTTPError
 from urllib.parse import ParseResult, urljoin, urlparse
-from urllib.request import urlopen as _urlopen
+from urllib.request import Request
+from urllib.request import urlopen as urllib_request_urlopen
 
 import sob
 from jsonpointer import resolve_pointer  # type: ignore
@@ -53,6 +62,29 @@ def _unmarshal_resolved_reference(
         sob.set_model_url(resolved_reference, url)
         sob.set_model_pointer(resolved_reference, pointer)
     return resolved_reference
+
+
+@wraps(urllib_request_urlopen)
+def _urlopen(
+    url: str | Request, *args: Any, **kwargs: Any
+) -> sob.abc.Readable:
+    response: sob.abc.Readable = urllib_request_urlopen(  # noqa: S310
+        url, *args, **kwargs
+    )
+    response_url: str = response.url  # type: ignore
+    if response_url.lower().endswith(("yaml", "yml")):
+        # Use pyyaml to parse yaml files, if it is installed
+        try:
+            import yaml  # type: ignore
+        except ImportError:
+            pass
+        else:
+            response = cast(
+                sob.abc.Readable,
+                BytesIO(json.dumps(yaml.safe_load(response)).encode("utf-8")),
+            )
+            response.url = response_url  # type: ignore
+    return response
 
 
 class _Document:
@@ -131,7 +163,7 @@ class _Document:
         Prevent recursion errors by putting a placeholder `None` in place of
         the parent object in the `pointer` cache
         """
-        pointer = sob.get_model_pointer(model)
+        pointer: str | None = sob.get_model_pointer(model)
         existing_value: sob.abc.Model | None = None
         if pointer:
             if pointer in self.pointers:
@@ -197,11 +229,6 @@ class _Document:
         """
         message: str
         array_meta: sob.abc.ArrayMeta | None = sob.read_array_meta(array)
-        if array_meta is None:
-            message = f"No metadata found for the array:\n{array!r}"
-            raise ValueError(message)
-        if TYPE_CHECKING:
-            assert array_meta.item_types is not None
         # Prevent recursion errors
         pointer: str | None
         existing: sob.abc.Model | None
@@ -214,7 +241,7 @@ class _Document:
                     raise ValueError(item)
                 array[index] = self.resolve(
                     item.ref,
-                    types=array_meta.item_types or (),
+                    types=(array_meta.item_types or () if array_meta else ()),
                     dereference=recursive,
                 )
             elif recursive and isinstance(item, sob.abc.Model):
@@ -232,11 +259,6 @@ class _Document:
         dictionary_meta: sob.abc.DictionaryMeta | None = (
             sob.read_dictionary_meta(dictionary)
         )
-        if dictionary_meta is None:
-            message = f"No metadata found for the dictionary:\n{dictionary!r}"
-            raise ValueError(message)
-        if TYPE_CHECKING:
-            assert dictionary_meta.value_types is not None
         # Prevent recursion errors
         pointer, existing = self.prevent_infinite_recursion(dictionary)
         key: str
@@ -247,7 +269,11 @@ class _Document:
                     raise ValueError(value)
                 dictionary[key] = self.resolve(
                     value.ref,
-                    types=dictionary_meta.value_types or (),
+                    types=(
+                        dictionary_meta.value_types or ()
+                        if dictionary_meta
+                        else ()
+                    ),
                     dereference=recursive,
                 )
             elif recursive and isinstance(value, sob.abc.Model):

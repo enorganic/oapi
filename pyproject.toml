@@ -74,6 +74,7 @@ dependencies = [
 [tool.hatch.envs.hatch-test]
 extra-dependencies = [
     "dependence~=1.0",
+	"pyyaml>2",
 ]
 extra-args = ["-s", "-vv", "--doctest-modules"]
 
