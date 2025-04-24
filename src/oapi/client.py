@@ -44,6 +44,7 @@ import sob
 
 from oapi._multipart_request import MultipartRequest, Part
 from oapi._utilities import (
+    deprecated,
     get_type_format_property,
     iter_distinct,
 )
@@ -1624,7 +1625,9 @@ def _iter_path_item_operations(
             yield name, value
 
 
-def _get_relative_module_path(from_path: str, to_path: str) -> str:
+def _get_relative_module_path(
+    from_path: str | Path, to_path: str | Path
+) -> str:
     """
     Get a relative import based on module file paths
 
@@ -1636,6 +1639,10 @@ def _get_relative_module_path(from_path: str, to_path: str) -> str:
     >>> _get_relative_module_path("a/b/c.py", "a/b/f.py")
     '.c'
     """
+    if isinstance(from_path, Path):
+        from_path = str(from_path)
+    if isinstance(to_path, Path):
+        from_path = str(to_path)
     return re.sub(
         r".py$",
         "",
@@ -1654,7 +1661,9 @@ def _get_relative_module_path(from_path: str, to_path: str) -> str:
     )
 
 
-def _get_relative_module_import(from_path: str, to_path: str) -> str:
+def _get_relative_module_import(
+    from_path: str | Path, to_path: str | Path
+) -> str:
     """
     Get a relative import based on module file paths
 
@@ -1899,7 +1908,7 @@ def get_default_method_name_from_path_method_operation(
     return method_name.rstrip("_")
 
 
-class Module:
+class ClientModule:
     """
     This class parses an Open API document and outputs a module defining
     a client class for interfacing with the API described by an OpenAPI
@@ -2191,7 +2200,7 @@ class Module:
         self._names.add(model_module_name)
         return model_module_name
 
-    def _get_model_module_import(self, client_module_path: str) -> str:
+    def _get_model_module_import(self, client_module_path: str | Path) -> str:
         relative_import: str = _get_relative_module_import(
             self._model_path, client_module_path
         )
@@ -2214,7 +2223,9 @@ class Module:
         return base_class_name
 
     @_str_lru_cache()
-    def _get_client_base_class_import(self, client_module_path: str) -> str:
+    def _get_client_base_class_import(
+        self, client_module_path: str | Path
+    ) -> str:
         if self._base_class is Client:
             return ""
         base_class_name: str = self._get_client_base_class_name()
@@ -3459,7 +3470,7 @@ class Module:
                     )
                     raise
 
-    def get_source(self, path: str) -> str:
+    def get_source(self, path: str | Path) -> str:
         """
         This generates source code for the client module.
 
@@ -3487,7 +3498,7 @@ class Module:
             f"{imports}\n\n\n{source.rstrip()}\n"
         )
 
-    def save(self, path: str) -> None:
+    def save(self, path: str | Path) -> None:
         """
         This method will save the generated module to a given path.
         """
@@ -3505,3 +3516,78 @@ class Module:
             and self._model_path == other._model_path
             and self.open_api == other.open_api
         )
+
+
+Module = deprecated(
+    "`oapi.client.Module` is deprecated and will be removed in oapi 3. "
+    "Please use `oapi.ClientModule` instead."
+)(ClientModule)
+
+
+def write_client_module(
+    client_path: str | Path,
+    *,
+    open_api: str | sob.abc.Readable | OpenAPI,
+    model_path: str | Path,
+    class_name: str = "Client",
+    base_class: type[Client] = Client,
+    imports: str | tuple[str, ...] = (),
+    init_decorator: str = "",
+    include_init_parameters: str | tuple[str, ...] = (),
+    add_init_parameters: str | tuple[str, ...] = (),
+    add_init_parameter_docs: str | tuple[str, ...] = (),
+    init_parameter_defaults: collections.abc.Mapping[str, typing.Any]
+    | collections.abc.Sequence[tuple[str, typing.Any]] = (),
+    init_parameter_defaults_source: collections.abc.Mapping[str, typing.Any]
+    | collections.abc.Sequence[tuple[str, typing.Any]] = (),
+    get_method_name_from_path_method_operation: typing.Callable[
+        [str, str, str | None], str
+    ] = get_default_method_name_from_path_method_operation,
+    use_operation_id: bool = False,
+) -> None:
+    """
+    This function parses an Open API document and outputs a module defining
+    a client class for interfacing with the API described by an OpenAPI
+    document.
+
+    Parameters:
+        client_path: The file path where the client module will be saved
+            (created or updated).
+        open_api: An OpenAPI document. This can be a URL, file-path, an
+            HTTP response (`http.client.HTTPResponse`), a file object, or
+            an instance of `oapi.oas.model.OpenAPI`.
+        model_path: The file path where the data model for this
+            client can be found. This must be a model generated using
+            `oapi.model`, and must be part of the same project that this
+            client will be saved into.
+        class_name:
+        base_class: The base class to use for the client. If provided,
+            this must be a sub-class of `oapi.client.Client`.
+        imports: One or more import statements to include
+            (in addition to those generated automatically).
+        init_decorator:  A decorator to apply to the client class
+            `.__init__` method. If used, make sure to include any modules
+            referenced in your `imports`. For example:
+            "@decorator_function(argument_a=1, argument_b=2)".
+        include_init_parameters: The name of all parameters to
+            include for the client's `.__init__` method.
+        add_init_parameters: Additional parameter
+            declarations to add to the client's `.__init__` method.
+            These should include a type hint and default value (not just
+            the parameter name). For example:
+            'additional_parameter_name: str | None = None'. Note:
+            additional parameters will not do anything without the use of a
+            decorator which utilizes the additional parameters, so use of
+            this parameter should be accompanied by an `init_decorator`.
+        add_init_parameter_docs:
+        init_parameter_defaults: A mapping of
+            parameter names to default values for the parameter.
+        init_parameter_defaults_source: A mapping of
+            parameter names to default values for the parameter *expressed
+            as source code*. This is to allow for the passing of imported
+            constants, expressions, etc.
+    """
+    locals_: dict[str, typing.Any] = dict(locals())
+    locals_.pop("client_path")
+    client_module: ClientModule = ClientModule(**locals_)
+    client_module.save(client_path)

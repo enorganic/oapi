@@ -8,6 +8,7 @@ from datetime import date, datetime
 from functools import partial
 from itertools import chain, starmap
 from logging import Logger
+from pathlib import Path
 from re import Match, Pattern
 from typing import (
     TYPE_CHECKING,
@@ -25,7 +26,7 @@ from sob.utilities import (
     iter_properties_values,
 )
 
-from oapi._utilities import get_type_format_property, iter_distinct
+from oapi._utilities import deprecated, get_type_format_property, iter_distinct
 from oapi.errors import OAPIDuplicateClassNameError
 from oapi.oas.model import (
     Items,
@@ -1485,13 +1486,16 @@ def _get_class_relative_url_pointer_and_name(
 
 
 class _ModuleParser:
-    def __init__(self, path: str = "") -> None:
+    def __init__(self, path: str | Path | None = None) -> None:
         self.namespace: dict[str, Any] = {}
         if path:
             self.open(path)
 
-    def open(self, path: str) -> None:
-        path = os.path.abspath(path)
+    def open(self, path: str | Path) -> None:
+        if isinstance(path, Path):
+            path = str(path.absolute())
+        else:
+            path = os.path.abspath(path)
         current_directory: str = os.path.abspath(os.curdir)
         os.chdir(os.path.dirname(path))
         try:
@@ -1532,7 +1536,7 @@ class _ModuleParser:
                 yield relative_url_pointer, name
 
 
-def _get_path_modeler(path: str) -> _Modeler:
+def _get_path_modeler(path: str | Path) -> _Modeler:
     with open(path) as model_io:
         if TYPE_CHECKING:
             assert isinstance(model_io, sob.abc.Readable)
@@ -1552,26 +1556,25 @@ def _get_open_api_modeler(open_api: OpenAPI) -> _Modeler:
     return _Modeler(open_api)
 
 
-class Module:
+class ModelModule:
     """
-    This class parses an Open API document and outputs a module defining
+    This class parses an Open API document and generates a module defining
     classes to represent each schema defined in the Open API document as a
     subclass of `sob.Object`, `sob.Array`, or
     `sob.Dictionary`.
 
-    Initialization Parameters:
-
-    - open_api: An OpenAPI document. This can be a URL, file-path, an
-      HTTP response (`http.client.HTTPResponse`), a file object, or an
-      instance of `oapi.oas.model.OpenAPI`.
-
-    - get_class_name_from_pointer: This argument defaults to
-      `oapi.model.get_default_class_name_from_pointer`. If an alternate
-      function is provided, it should accept two arguments, both being `str`
-      instances. The first argument is a JSON pointer, or concatenated
-      relative URL + JSON pointer, and the second being either an empty string
-      or a parameter name, where applicable. The function should return
-      a `str` which is a valid, unique, class name.
+    Parameters:
+        open_api: An OpenAPI document. This can be a URL, file-path, an
+            HTTP response (`http.client.HTTPResponse`), a file object, or an
+            instance of `oapi.oas.model.OpenAPI`.
+        get_class_name_from_pointer: This argument defaults to
+            `oapi.model.get_default_class_name_from_pointer`. If an alternate
+            function is provided, it should accept two arguments, both being
+            `str` instances. The first argument is a JSON pointer, or
+            concatenated relative URL + JSON pointer, and the second being
+            either an empty string or a parameter name, where applicable.
+            The function should return a `str` which is a valid, unique,
+            class name.
     """
 
     def __init__(
@@ -1606,7 +1609,7 @@ class Module:
     def __str__(self) -> str:
         return self._modeler.get_module_source()
 
-    def _parse_existing_module(self, path: str) -> None:
+    def _parse_existing_module(self, path: str | Path) -> None:
         if os.path.exists(path):
             self._parser.open(path)
             for (
@@ -1633,7 +1636,7 @@ class Module:
             relative_url = self._modeler.resolver.get_relative_url(url)
         return relative_url, pointer
 
-    def save(self, path: str) -> None:
+    def save(self, path: str | Path) -> None:
         """
         This method will save the generated module to a given path. If there is
         an existing module at that path--the existing module will be imported
@@ -1652,5 +1655,41 @@ class Module:
         return isinstance(other, self.__class__) and str(self) == str(other)
 
 
-# For backwards compatibility...
-Model: type = Module
+Module = deprecated(
+    "`oapi.model.Module` is deprecated and will be removed in oapi 3. "
+    "Please use `oapi.ModelModule` instead."
+)(ModelModule)
+
+
+def write_model_module(
+    model_path: str | Path,
+    *,
+    open_api: str | sob.abc.Readable | OpenAPI,
+    get_class_name_from_pointer: Callable[
+        [str, str], str
+    ] = get_default_class_name_from_pointer,
+) -> None:
+    """
+    This function creates or updates a module defining classes to represent
+    each schema in an Open API document as a subclass of `sob.Object`,
+    `sob.Array`, or `sob.Dictionary`.
+
+    Parameters:
+        model_path: The file path where the model module will be saved
+            (created or updated).
+        open_api: An OpenAPI document. This can be a URL, file-path, an
+            HTTP response (`http.client.HTTPResponse`), a file object, or an
+            instance of `oapi.oas.model.OpenAPI`.
+        get_class_name_from_pointer: This argument defaults to
+            `oapi.model.get_default_class_name_from_pointer`. If an alternate
+            function is provided, it should accept two arguments, both being
+            `str` instances. The first argument is a JSON pointer, or
+            concatenated relative URL + JSON pointer, and the second being
+            either an empty string or a parameter name, where applicable.
+            The function should return a `str` which is a valid, unique,
+            class name.
+    """
+    locals_: dict[str, Any] = dict(locals())
+    locals_.pop("model_path")
+    model_module: ModelModule = ModelModule(**locals_)
+    model_module.save(model_path)

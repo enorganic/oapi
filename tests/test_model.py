@@ -10,7 +10,7 @@ from urllib.request import Request
 
 import sob
 
-from oapi.model import Module, get_default_class_name_from_pointer
+from oapi.model import ModelModule, get_default_class_name_from_pointer
 from oapi.oas.model import OpenAPI
 from oapi.oas.references import Resolver, _urlopen
 
@@ -121,7 +121,7 @@ class TestModel(unittest.TestCase):
         with open(LANGUAGE_TOOL_SWAGGER_PATH) as language_tool_io:
             oa = OpenAPI(language_tool_io)
             sob.validate(oa)
-            model = Module(oa)
+            model = ModelModule(oa)
             if LANGUAGE_TOOL_PY.exists():
                 with open(LANGUAGE_TOOL_PY) as model_file:
                     model_file_data = model_file.read()
