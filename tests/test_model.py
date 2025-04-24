@@ -4,7 +4,7 @@ from contextlib import suppress
 from copy import deepcopy
 from itertools import chain
 from pathlib import Path
-from urllib.error import HTTPError
+from urllib.error import URLError
 from urllib.parse import urljoin
 from urllib.request import Request
 
@@ -106,12 +106,13 @@ class TestModel(unittest.TestCase):
 
     @staticmethod
     def test_languagetool() -> None:
-        with suppress(HTTPError):  # noqa: SIM117
-            with _urlopen(
-                Request(LANGUAGE_TOOL_URL, headers={"User-agent": ""})
-            ) as response:
-                with open(LANGUAGE_TOOL_PATH, "wb") as language_tool_io:
-                    language_tool_io.write(response.read())  # type: ignore
+        if not os.environ.get("CI"):
+            with suppress(URLError):  # noqa: SIM117
+                with _urlopen(
+                    Request(LANGUAGE_TOOL_URL, headers={"User-agent": ""})
+                ) as response:
+                    with open(LANGUAGE_TOOL_PATH, "wb") as language_tool_io:
+                        language_tool_io.write(response.read())  # type: ignore
         with open(LANGUAGE_TOOL_PATH) as language_tool_io:
             oa = OpenAPI(language_tool_io)
             sob.validate(oa)
