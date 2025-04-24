@@ -18,9 +18,17 @@ keywords = [
     "OpenAPI",
 ]
 dependencies = [
-	"sob~=2.0",
-	"jsonpointer<4.0,>2.3",
-    "typing-extensions"
+    "sob~=2.0",
+    "jsonpointer<4.0,>2.3",
+    "typing-extensions",
+]
+
+[project.optional-dependencies]
+yaml = [
+    "pyyaml>2",
+]
+all = [
+    "pyyaml>2",
 ]
 
 [project.urls]
@@ -31,16 +39,17 @@ Repository = "https://github.com/enorganic/oapi"
 packages = [
     "src/oapi",
 ]
-sources = ["src"]
+sources = [
+    "src",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = [
     "src/oapi",
 ]
-sources = ["src"]
-
-# [tool.hatch.build.targets.wheel.hooks.mypyc]
-# dependencies = ["hatch-mypyc"]
+sources = [
+    "src",
+]
 
 [tool.hatch.envs.default]
 python = "3.9"
@@ -49,7 +58,8 @@ dependencies = [
     "mypy",
     "dependence~=1.0",
     "gittable~=0.0",
-	"pyyaml>2",
+    "pyyaml>2",
+    "types-PyYAML",
 ]
 pre-install-commands = [
     "pip install --upgrade pip setuptools",
@@ -59,7 +69,9 @@ post-install-commands = [
 ]
 
 [tool.hatch.envs.hatch-static-analysis]
-extra-dependencies = ["dependence~=1.0"]
+extra-dependencies = [
+    "dependence~=1.0",
+]
 
 [tool.hatch.envs.docs]
 template = "docs"
@@ -74,12 +86,22 @@ dependencies = [
 [tool.hatch.envs.hatch-test]
 extra-dependencies = [
     "dependence~=1.0",
-	"pyyaml>2",
+    "pyyaml>2",
 ]
-extra-args = ["-s", "-vv", "--doctest-modules"]
+extra-args = [
+    "-s",
+    "-vv",
+    "--doctest-modules",
+]
 
 [[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.9", "3.10", "3.11", "3.12", "3.13"]
+python = [
+    "3.9",
+    "3.10",
+    "3.11",
+    "3.12",
+    "3.13",
+]
 
 [tool.ruff]
 line-length = 79
@@ -90,7 +112,8 @@ extend-exclude = [
 
 [tool.ruff.lint]
 ignore = [
-    "F842", "INP001"
+    "F842",
+    "INP001",
 ]
 extend-select = [
     "E",
@@ -130,7 +153,8 @@ disallow_untyped_defs = true
 disallow_incomplete_defs = true
 
 [tool.coverage.report]
-# fail_under = 70
 
 [tool.coverage.run]
-source = ["src"]
+source = [
+    "src",
+]

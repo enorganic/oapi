@@ -81,7 +81,11 @@ def _urlopen(
         else:
             response = cast(
                 sob.abc.Readable,
-                BytesIO(json.dumps(yaml.safe_load(response)).encode("utf-8")),
+                BytesIO(
+                    json.dumps(
+                        yaml.safe_load(response)  # type: ignore
+                    ).encode("utf-8")
+                ),
             )
             response.url = response_url  # type: ignore
     return response

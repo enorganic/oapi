@@ -71,6 +71,7 @@ requirements:
 	hatch run dependence update\
 	 --include-pointer /tool/hatch/envs/default\
 	 --include-pointer /project\
+	 -aen all\
 	 pyproject.toml && \
 	hatch run docs:dependence update pyproject.toml --include-pointer /tool/hatch/envs/docs && \
 	hatch run hatch-test.py$(MINIMUM_PYTHON_VERSION):dependence update pyproject.toml --include-pointer /tool/hatch/envs/hatch-test && \
