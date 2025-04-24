@@ -257,10 +257,9 @@ class _Modeler:
     This class parses an OpenAPI schema and produces a data model based on the
     `sob` library.
 
-    Initialization Parameters:
-
-    - root (oapi.oas.model.OpenAPI)
-    - get_class_name_from_pointer
+    Parameters:
+        root:
+        get_class_name_from_pointer:
     """
 
     def __init__(
@@ -416,9 +415,8 @@ class _Modeler:
         (repeatedly, if necessary) to make it unique.
 
         Parameters:
-
-        - relative_url_pointer (str)
-        - class_name_ (str)
+            relative_url_pointer:
+            class_name_:
         """
         if relative_url_pointer in self._relative_urls_pointers_class_names:
             # Use the previously mapped class name
@@ -845,9 +843,8 @@ class _Modeler:
         for a sub-class of `sob.Array`.
 
         Parameters:
-
-        - cls (typing.Type[sob.abc.Array])
-        - schemas (oapi.oas.model.Schema)
+            cls:
+            schemas:
         """
         meta: sob.abc.ArrayMeta = sob.get_writable_array_meta(cls)
         meta.item_types = sob.types.MutableTypes(  # type: ignore
@@ -869,9 +866,8 @@ class _Modeler:
         for a sub-class of `sob.Dictionary`.
 
         Parameters:
-
-        - cls (typing.Type[sob.abc.Dictionary])
-        - schemas (oapi.oas.model.Schema)
+            cls:
+            schemas:
         """
         meta: sob.abc.DictionaryMeta = sob.get_writable_dictionary_meta(cls)
         meta.value_types = sob.types.MutableTypes(  # type: ignore
@@ -896,9 +892,7 @@ class _Modeler:
         flattened anyOf/allOf/oneOf.
 
         Parameters:
-
-        - schemas (oapi.oas.model.Schema|oapi.oas.model.Reference|
-          [oapi.oas.model.Schema])
+            schemas:
         """
         if schemas:
             dereferenced_schemas: Iterable[Schema]
@@ -1046,11 +1040,10 @@ class _Modeler:
         properties), is must be interpreted as a dictionary.
 
         Parameters:
-
-        - schema (oapi.oas.model.Schema)
-        - name (str|None) = None
-        - relative_url_pointer (str|None) = None
-        - required (bool) = False
+            schema:
+            name:
+            relative_url_pointer:
+            required:
         """
         if (
             schema.properties or schema.additional_properties
@@ -1192,13 +1185,12 @@ class _Modeler:
     ) -> type[sob.abc.Object]:
         """
         Obtain a sub-class of `sob.Model` from an instance of
-        `oapi.oas.model.Schema`.
+        `oapi.oas.Schema`.
 
         Parameters:
-
-        - schema (oapi.oas.model.Schema)
-        - name (str|None) = None
-        - relative_url_pointer (str|None)
+            schema:
+            name:
+            relative_url_pointer:
         """
         cls: type[sob.abc.Object] | None = (
             self.get_merged_schemas_object_class(
@@ -1567,7 +1559,7 @@ class ModelModule:
     Parameters:
         open_api: An OpenAPI document. This can be a URL, file-path, an
             HTTP response (`http.client.HTTPResponse`), a file object, or an
-            instance of `oapi.oas.model.OpenAPI`.
+            instance of `oapi.oas.OpenAPI`.
         get_class_name_from_pointer: This argument defaults to
             `oapi.model.get_default_class_name_from_pointer`. If an alternate
             function is provided, it should accept two arguments, both being

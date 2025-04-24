@@ -1,6 +1,6 @@
 """
 This module provides functionality for resolving references within an instance
-of `oapi.oas.model.OpenAPI`.
+of `oapi.oas.OpenAPI`.
 
 The following will replace all references in the Open API
 document `open_api_document` with the objects targeted by the `ref` property
@@ -10,7 +10,7 @@ Example:
 
     import yaml
     from urllib.request import urlopen
-    from oapi.oas.model import OpenAPI
+    from oapi.oas import OpenAPI
     from oapi.oas.references import Resolver
 
 
@@ -346,28 +346,25 @@ class _Document:
 
 class Resolver:
     """
-    This class should be used, with an instance of `oapi.oas.model.OpenAPI`, to
+    This class should be used, with an instance of `oapi.oas.OpenAPI`, to
     resolve references.
 
     Parameters:
-
-        - root (oapi.oas.model.OpenAPI): The OpenAPI document against which
-          pointers will be resolved.
-
-        - url (str): The URL or file path from where `root` was retrieved. The
-          base URL for relative paths will be the directory above this URL.
-          This will not typically be needed, as it can be inferred from most
-          `Model` instances.
-
-        - urlopen (collections.Callable): If provided, this should be a
-          function taking one argument (a `str`), which can be used in lieu
-          of `urllib.request.urlopen` to retrieve a document and return an
-          instance of a sub-class of `IOBase` (such as
-          `http.client.HTTPResponse`). This should be used if authentication is
-          needed in order to retrieve external references in the document,
-          or if local file paths will be referenced instead of web URL's (use
-          `open` as the value for the `urlopen` parameter
-          in this case).
+            root: The OpenAPI document against which
+                pointers will be resolved.
+            url: The URL or file path from where `root` was retrieved. The
+                base URL for relative paths will be the directory above this
+                URL. This will not typically be needed, as it can be inferred
+                from most `Model` instances.
+            urlopen: If provided, this should be a
+                function taking one argument (a `str`), which can be used in
+                lieu of `urllib.request.urlopen` to retrieve a document and
+                return an instance of a sub-class of `IOBase` (such as
+                `http.client.HTTPResponse`). This should be used if
+                authentication is needed in order to retrieve external
+                references in the document, or if local file paths will be
+                referenced instead of web URL's (use `open` as the value for
+                the `urlopen` parameter in this case).
     """
 
     def __init__(
@@ -443,9 +440,8 @@ class Resolver:
         Retrieve a referenced object.
 
         Parameters:
-
-        - reference (oapi.oas.model.Reference)
-        - types ([Union[type, sob.abc.Property]]) = ()
+            reference:
+            types:
         """
         message: str
         url: str = sob.get_model_url(reference) or ""

@@ -1,7 +1,7 @@
 """
 This module contains models describing objects defined by the [OpenAPI
 Specification](https://github.com/OAI/OpenAPI-Specification). The root object,
-`oapi.oas.model.OpenAPI` is capable of representing either an [OpenAPI 3
+`oapi.oas.OpenAPI` is capable of representing either an [OpenAPI 3
 Document
 ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md)
 or an [OpenAPI 2 (Swagger) Document
@@ -3317,13 +3317,13 @@ class Schema(sob.Object):
             ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/
             2.0.md#data-types)
 
-                - "boolean"
-                - "object"
-                - "array"
-                - "number"
-                - "string"
-                - "integer"
-                - "file"
+            - "boolean"
+            - "object"
+            - "array"
+            - "number"
+            - "string"
+            - "integer"
+            - "file"
 
         format_: See [Open API 3 Data Type Format
             ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/

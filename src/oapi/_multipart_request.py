@@ -204,14 +204,11 @@ class Data:
         """
         Parameters:
 
-        - data (
-            bytes|str|collections.Sequence|collections.Set|dict|
-            sob.abc.Model
-          ): The payload.
-        - headers ({str: str}): A dictionary of headers (for this part of
-          the request body, not the main request). This should (almost)
-          always include values for "Content-Disposition" and
-          "Content-Type".
+            data:
+            headers: A dictionary of headers (for this part of
+                the request body, not the main request). This should (almost)
+                always include values for "Content-Disposition" and
+                "Content-Type".
         """
         self._bytes: bytes | None = None
         self._headers: Headers | None = None
@@ -290,14 +287,11 @@ class Part(Data):
         """
         Parameters:
 
-        - data (
-              bytes|str|collections.Sequence|collections.Set|dict|
-              abc.model.Model
-          ): The payload.
-        - headers ({str: str}): A dictionary of headers (for this part of
-          the request body, not the main request). This should (almost)
-          always include values for "Content-Disposition" and
-          "Content-Type".
+            data:
+            headers: A dictionary of headers (for this part of
+                the request body, not the main request). This should (almost)
+                always include values for "Content-Disposition" and
+                "Content-Type".
         """
         self._boundary: bytes | None = None
         self._parts: Parts | None = None

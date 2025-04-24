@@ -7,13 +7,11 @@ class OAPIError(Exception):
     """
 
 
-
 class OAPIReferenceError(OAPIError, ValueError):
     """
     This is base class for errors encountered while attempting to resolve
     references in an OpenAPI document.
     """
-
 
 
 class OAPIReferenceLoopError(OAPIReferenceError):
@@ -25,13 +23,11 @@ class OAPIReferenceLoopError(OAPIReferenceError):
     """
 
 
-
 class OAPIReferencePointerError(OAPIReferenceError):
     """
     This is an error raised when a reference has a pointer which
     cannot be resolved (no entity exists at the indicated position).
     """
-
 
 
 class OAPIDuplicateClassNameError(OAPIError):
@@ -42,4 +38,3 @@ class OAPIDuplicateClassNameError(OAPIError):
     callback function can be provided, so this scenario is possible in that
     case.
     """
-
