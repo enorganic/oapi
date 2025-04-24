@@ -1,8 +1,10 @@
 import os
 import unittest
+from contextlib import suppress
 from copy import deepcopy
 from itertools import chain
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.parse import urljoin
 from urllib.request import Request
 
@@ -22,6 +24,7 @@ LANGUAGE_TOOL_URL = (
 TESTS_PATH: Path = Path(__file__).absolute().parent
 REGRESSION_DATA_PATH: Path = TESTS_PATH / "regression-data"
 INPUT_DATA_PATH: Path = TESTS_PATH / "input-data"
+LANGUAGE_TOOL_PATH: Path = INPUT_DATA_PATH / "languagetool-swagger.json"
 
 
 class TestModel(unittest.TestCase):
@@ -103,10 +106,14 @@ class TestModel(unittest.TestCase):
 
     @staticmethod
     def test_languagetool() -> None:
-        with _urlopen(
-            Request(LANGUAGE_TOOL_URL, headers={"User-agent": ""})
-        ) as response:
-            oa = OpenAPI(response)
+        with suppress(HTTPError):  # noqa: SIM117
+            with _urlopen(
+                Request(LANGUAGE_TOOL_URL, headers={"User-agent": ""})
+            ) as response:
+                with open(LANGUAGE_TOOL_PATH, "wb") as language_tool_io:
+                    language_tool_io.write(response.read())  # type: ignore
+        with open(LANGUAGE_TOOL_PATH) as language_tool_io:
+            oa = OpenAPI(language_tool_io)
             sob.validate(oa)
             model = Module(oa)
             model_path: Path = REGRESSION_DATA_PATH / "languagetool.py"
