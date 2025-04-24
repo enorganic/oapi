@@ -2715,7 +2715,7 @@ class ClientModule:
         if all(map(functools.partial(hasattr, builtins), type_names)):
             type_hint = " | ".join(type_names)
         else:
-            type_hint = "(\n            {}\n       )".format(
+            type_hint = "(\n            {}\n        )".format(
                 "\n            | ".join(type_names)
             )
         if not required:
