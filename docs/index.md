@@ -3,7 +3,6 @@
 [![test](https://github.com/enorganic/oapi/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/enorganic/oapi/actions/workflows/test.yml)
 [![PyPI version](https://badge.fury.io/py/oapi.svg?icon=si%3Apython)](https://badge.fury.io/py/oapi)
 
-
 `oapi` is a library for authoring python client libraries for web APIs
 based on an OpenAPI specification (both
 OpenAPI/Swagger [version 2
@@ -40,8 +39,7 @@ Notable features of an `oapi` generated client/model library include:
   code flow (client_id/client_secret), API keys, bearer tokens, HTTP basic
   auth, and most cookie-based authentication patterns. Custom authentication
   methods are also easily accomplished by specifying custom base classes
-  and/or passing initialization decorators to the `oapi client` shell
-  command or to the `oapi.client.create()` function
+  and/or passing initialization decorators to `oapi.write_client_module`.
 - `oapi` generated clients and models are easily updated. For instance: `oapi`
   generated data model classes can be renamed using your favorite IDE's
   refactoring tools, and subsequent updates to that data model (such as
@@ -50,4 +48,4 @@ Notable features of an `oapi` generated client/model library include:
   schema from which the class was generated remains in the same location
   within the spec. Class naming can also be customized by passing a custom
   hook to the *get_class_name_from_pointer* parameter for
-  `oapi.model.Module` or `oapi.model.create`.
+  `oapi.write_model_module`.

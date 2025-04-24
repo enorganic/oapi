@@ -39,8 +39,7 @@ Notable features of an `oapi` generated client/model library include:
   code flow (client_id/client_secret), API keys, bearer tokens, HTTP basic
   auth, and most cookie-based authentication patterns. Custom authentication
   methods are also easily accomplished by specifying custom base classes
-  and/or passing initialization decorators to the `oapi client` shell
-  command or to the `oapi.client.create()` function
+  and/or passing initialization decorators to `oapi.write_client_module`.
 - `oapi` generated clients and models are easily updated. For instance: `oapi`
   generated data model classes can be renamed using your favorite IDE's
   refactoring tools, and subsequent updates to that data model (such as
@@ -49,4 +48,4 @@ Notable features of an `oapi` generated client/model library include:
   schema from which the class was generated remains in the same location
   within the spec. Class naming can also be customized by passing a custom
   hook to the *get_class_name_from_pointer* parameter for
-  `oapi.model.Module` or `oapi.model.create`.
+  `oapi.write_model_module`.
