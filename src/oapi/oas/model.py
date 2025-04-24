@@ -1,5 +1,12 @@
 """
-https://github.com/OAI/OpenAPI-Specification
+This module contains models describing objects defined by the [OpenAPI
+Specification](https://github.com/OAI/OpenAPI-Specification). The root object,
+`oapi.oas.model.OpenAPI` is capable of representing either an [OpenAPI 3
+Document
+](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md)
+or an [OpenAPI 2 (Swagger) Document
+](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md),
+depending on the specification version identified in the document.
 """
 from __future__ import annotations
 import sob
@@ -176,7 +183,14 @@ class Components(sob.Object):
 
 class Contact(sob.Object):
     """
-    https://bit.ly/3uLJCHF
+    [OpenAPI 3 Contact Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    contact-object)
+
+    Attributes:
+        name:
+        url:
+        email:
     """
 
     __slots__: tuple[str, ...] = (
@@ -260,14 +274,15 @@ class Definitions(sob.Dictionary):
 
 class Discriminator(sob.Object):
     """
-    https://bit.ly/3uFJ9Hi
+    [OpenAPI 3 Discriminator Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    discriminator-object)
 
-    Properties:
-
-    - property_name (str): The name of the property which will hold the
-      discriminating value.
-    - mapping ({str:str}): An mappings of payload values to schema names or
-      references.
+    Attributes:
+        property_name: The name of the property which will hold the
+            discriminating value.
+        mapping: An mappings of payload values to schema names or
+            references.
     """
 
     __slots__: tuple[str, ...] = (
@@ -323,7 +338,16 @@ class Discriminator(sob.Object):
 
 class Encoding(sob.Object):
     """
-    https://bit.ly/3qSyFTA
+    [OpenAPI 3 Encoding Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    encoding-object)
+
+    Attributes:
+        content_type:
+        headers:
+        style:
+        explode:
+        allow_reserved:
     """
 
     __slots__: tuple[str, ...] = (
@@ -408,7 +432,15 @@ class Encoding(sob.Object):
 
 class Example(sob.Object):
     """
-    https://bit.ly/3LyvV62
+    [OpenAPI 3 Example Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    example-object)
+
+    Attributes:
+        summary:
+        description:
+        value:
+        external_value:
     """
 
     __slots__: tuple[str, ...] = (
@@ -503,10 +535,13 @@ class Examples(sob.Dictionary):
 
 class ExternalDocumentation(sob.Object):
     """
-    Properties:
+    [OpenAPI 3 External Documentation Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    external-documentation-object)
 
-        - description (str)
-        - url (str)
+    Attributes:
+        description:
+        url:
     """
 
     __slots__: tuple[str, ...] = (
@@ -555,6 +590,41 @@ class ExternalDocumentation(sob.Object):
 
 
 class Header(sob.Object):
+    """
+    [OpenAPI 3 Header Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    header-object)
+
+    Attributes:
+        description:
+        required:
+        deprecated:
+        allow_empty_value:
+        style:
+        explode:
+        allow_reserved:
+        schema:
+        example:
+        examples:
+        content:
+        type_:
+        default:
+        maximum:
+        exclusive_maximum:
+        minimum:
+        exclusive_minimum:
+        max_length:
+        min_length:
+        pattern:
+        max_items:
+        min_items:
+        unique_items:
+        enum:
+        format_:
+        collection_format:
+        items:
+        multiple_of:
+    """
 
     __slots__: tuple[str, ...] = (
         "description",
@@ -896,7 +966,17 @@ class Headers(sob.Dictionary):
 
 class Info(sob.Object):
     """
-    https://bit.ly/3iUcY1k
+    [OpenAPI 3 Info Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    info-object)
+
+    Attributes:
+        title:
+        description:
+        terms_of_service:
+        contact:
+        license_:
+        version:
     """
 
     __slots__: tuple[str, ...] = (
@@ -982,7 +1062,28 @@ class Info(sob.Object):
 
 class Items(sob.Object):
     """
-    https://bit.ly/3K0BklW (OpenAPI/Swagger Version 2.0 Only)
+    [OpenAPI 2 Items Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#
+    items-object)
+
+    Attributes:
+        type_:
+        format_:
+        items:
+        collection_format:
+        default:
+        maximum:
+        exclusive_maximum:
+        minimum:
+        exclusive_minimum:
+        max_length:
+        min_length:
+        pattern:
+        max_items:
+        min_items:
+        unique_items:
+        enum:
+        multiple_of:
     """
 
     __slots__: tuple[str, ...] = (
@@ -1183,7 +1284,13 @@ class Items(sob.Object):
 
 class License(sob.Object):
     """
-    https://bit.ly/3NzSlFt
+    [OpenAPI 3 License Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    license-object)
+
+    Attributes:
+        name:
+        url:
     """
 
     __slots__: tuple[str, ...] = (
@@ -1280,8 +1387,17 @@ class Link(sob.Object):
 
 class LinkObject(sob.Object):
     """
-    https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#
-    link-object
+    [OpenAPI 3 Link Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    link-object)
+
+    Attributes:
+        operation_ref:
+        operation_id:
+        parameters:
+        request_body:
+        description:
+        server:
     """
 
     __slots__: tuple[str, ...] = (
@@ -1400,7 +1516,15 @@ class Links(sob.Dictionary):
 
 class MediaType(sob.Object):
     """
-    https://bit.ly/3tU0FYU
+    [OpenAPI 3 Media Type Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    media-type-object)
+
+    Attributes:
+        schema:
+        example:
+        examples:
+        encoding:
     """
 
     __slots__: tuple[str, ...] = (
@@ -1486,7 +1610,15 @@ class MediaType(sob.Object):
 
 class OAuthFlow(sob.Object):
     """
-    https://bit.ly/3iUiXD4
+    [OpenAPI 3 Parameter Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    parameter-object)
+
+    Attributes:
+        authorization_url:
+        token_url:
+        refresh_url:
+        scopes:
     """
 
     __slots__: tuple[str, ...] = (
@@ -1560,7 +1692,15 @@ class OAuthFlow(sob.Object):
 
 class OAuthFlows(sob.Object):
     """
-    https://bit.ly/36Ywwie
+    [OpenAPI 3 OAuth Flows Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    oauth-flows-object)
+
+    Attributes:
+        implicit:
+        password:
+        client_credentials:
+        authorization_code:
     """
 
     __slots__: tuple[str, ...] = (
@@ -1628,7 +1768,30 @@ class OAuthFlows(sob.Object):
 
 class OpenAPI(sob.Object):
     """
-    https://bit.ly/3Lu2zp9
+    [OpenAPI 3 OpenAPI (root) Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#
+    openapi-object)
+
+    Attributes:
+        openapi:
+        info:
+        json_schema_dialect:
+        host:
+        servers:
+        base_path:
+        schemes:
+        tags:
+        paths:
+        components:
+        consumes:
+        swagger:
+        definitions:
+        security_definitions:
+        produces:
+        external_docs:
+        parameters:
+        responses:
+        security:
     """
 
     __slots__: tuple[str, ...] = (
@@ -1870,45 +2033,44 @@ class OpenAPI(sob.Object):
 
 class Operation(sob.Object):
     """
-    https://bit.ly/3DpKi9I
+    [Open API 3 Operation Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    operation-object)
 
     Describes a single API operation on a path.
 
-    Properties:
-
-    - tags ([str]):  A list of tags for API documentation control. Tags can
-      be used for logical grouping of operations by resources or any other
-      qualifier.
-    - summary (str):  A short summary of what the operation does.
-    - description (str): A verbose explanation of the operation behavior. `
-      CommonMark <http://spec.commonmark.org>` syntax may be used for rich
-      text representation.
-    - external_docs (ExternalDocumentation):  Additional external
-      documentation for this operation.
-    - operation_id (str):  Unique string used to identify the operation.
-      The ID must be unique among all operations described in the API. Tools
-      and libraries may use the `operation_id` to uniquely identify an
-      operation, therefore, it is recommended to follow common programming
-      naming conventions.
-    - parameters ([Parameter|Reference]):  A list of parameters that are
-      applicable for this operation. If a parameter is already defined at the
-      `PathItem`, the new definition will override it, but can never remove it.
-    - request_body (RequestBody|Reference):  The request body applicable
-      for this operation. The requestBody is only
-      supported in HTTP methods where the HTTP 1.1 specification
-      `RFC7231 <https://tools.ietf.org/html/rfc7231#section-4.3.1>` has
-      explicitly defined semantics for request
-      bodies.
-    - responses (Responses): A mapping of HTTP
-      response codes to `Response` objects.
-    - callbacks ({str:{str:PathItem}|Reference})
-    - deprecated (bool)
-    - security ([SecurityRequirement])
-    - servers ([Server])
-
-    Version 2x Compatibility:
-
-    - produces ([str])
+    Attributes:
+        tags:  A list of tags for API documentation control. Tags can
+            be used for logical grouping of operations by resources or any
+            other qualifier.
+        summary:  A short summary of what the operation does.
+        description: A verbose explanation of the operation behavior. `
+            CommonMark <http://spec.commonmark.org>` syntax may be used for
+            rich text representation.
+        external_docs:  Additional external
+            documentation for this operation.
+        operation_id:  Unique string used to identify the operation.
+            The ID must be unique among all operations described in the API.
+            Tools and libraries may use the `operation_id` to uniquely identify
+            an operation, therefore, it is recommended to follow common
+            programming naming conventions.
+        parameters:  A list of parameters that are
+            applicable for this operation. If a parameter is already defined at
+            the `PathItem`, the new definition will override it, but can never
+            remove it.
+        request_body:  The request body applicable
+            for this operation. The requestBody is only
+            supported in HTTP methods where the HTTP 1.1 specification
+            `RFC7231 <https://tools.ietf.org/html/rfc7231#section-4.3.1>` has
+            explicitly defined semantics for request
+            bodies.
+        responses: A mapping of HTTP
+            response codes to `Response` objects.
+        callbacks:
+        deprecated:
+        security:
+        servers:
+        produces: (OpenAPI 2x only)
     """
 
     __slots__: tuple[str, ...] = (
@@ -2107,88 +2269,74 @@ class Operation(sob.Object):
 
 class Parameter(sob.Object):
     """
-    https://bit.ly/3wTpiXR
+    [OpenAPI 3 Parameter Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    parameter-object)
+    | [OpenAPI 2 Parameter Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#
+    parameter-object)
 
-    Properties:
+    Attributes:
+        name:
+        in_: "path", "query", "header", or "cookie"
+        description:
+        required:
+        deprecated:
+        allow_empty_value: Sets the ability to pass empty-valued
+            parameters. This is valid only for query parameters and allows
+            sending a parameter with an empty value. The default value is
+            `False`. If `style` is used, and if `behavior` is inapplicable
+            (cannot be serialized), the value of `allow_empty_value` will be
+            ignored.
+        style: Describes how the parameter value will be serialized,
+            depending on the type of the parameter value (see:
+            [Parameter Serialization
+            ](https://swagger.io/docs/specification/serialization)).
+            Valid values include: "matrix", "label", "form", "simple",
+            "spaceDelimited", "pipeDelimited", and "deepObject".
+            The default values vary by location (`in_`). For "query": "form",
+            path: "simple", header: "simple", and cookie: "form".
+        explode: When this is `True`, array or object parameter values
+            generate separate parameters for each value of the array or
+            name-value pair of the map. For other value_types of parameters
+            this property has no effect. When `style` is "form", the default
+            value is `True`. For all other styles, the default value is
+            `False`.
+        allow_reserved: Determines whether the parameter value SHOULD
+            allow reserved characters :/?#[]@!$&'()*+,;= (as defined by
+            [RFC3986](https://tools.ietf.org/html/rfc3986#section-2.2) to be
+            included without percent-encoding. This property only applies to
+            "query" parameters. The default value is `False`.
+        schema: The schema defining the type used for the parameter.
+        example: An example of the parameter's potential value—see
+            [Working With Examples
+            ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/
+            3.1.1.md#working-with-examples).
+            Either an `example` or `examples` parameter may be provided,
+            but not both.
+        examples: Examples of the parameter's potential values—see
+            [Working With Examples
+            ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/
+            3.1.1.md#working-with-examples).
+            Either an `example` or `examples` parameter may be provided,
+            but not both.
+        content: A mapping with a media type name and the object describing it.
+            The mapping must only contain one entry. See
+            [Fixed fields for use with content
+            ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/
+            3.1.1.md#fixed-fields-for-use-with-content).
+        type_: (Open API 2x only)
+        enum: (Open API 2x only)
+        collection_format: (Open API 2x only) Determines the format of the
+            array if `type_ == "array"`. Possible values include:
 
-    - name (str)
-    - in_ (str):
-      - "path"
-      - "query"
-      - "header"
-      - "cookie"
-    - description (str)
-    - required (bool)
-    - deprecated (bool)
-    - allow_empty_value (bool): Sets the ability to pass empty-valued
-      parameters. This is valid only for query parameters and allows sending a
-      parameter with an empty value. The
-      default value is `False`. If `style`
-      is used, and if `behavior` is inapplicable (cannot be serialized),
-      the value of `allow_empty_value` will be ignored.
-    - style (str): Describes how the parameter value will be serialized,
-      depending on the type of the parameter value (see:
-      https://swagger.io/docs/specification/serialization).
-      - "matrix"
-      - "label"
-      - "form"
-      - "simple"
-      - "spaceDelimited"
-      - "pipeDelimited"
-      - "deepObject"
-
-      Default values:
-      - query: "form"
-      - path: "simple"
-      - header: "simple"
-      - cookie: "form"
-
-    - explode (bool): When this is `True`, array or object parameter values
-      generate separate parameters for each value of the array or name-value
-      pair of the map. For other value_types of parameters this property has no
-      effect. When `style` is "form", the default value is `True`. For all
-      other styles, the default value is `False`.
-    - allow_reserved (bool): Determines whether the parameter value SHOULD
-      allow reserved characters :/?#[]@!$&'()*+,;= (as defined by
-      `RFC3986 <https://tools.ietf.org/ html/rfc3986#section-2.2>`) to be
-      included without percent-encoding. This property only applies to
-      "query" parameters. The default value is `False`.
-    - schema (Schema): The schema defining the type used for the parameter.
-    - example (Any): Example of the media type. The example should match
-      the specified schema and encoding properties if present. The `example`
-      parameter should not be present if `examples` is present. If
-      referencing a `schema` which contains an example--*this* example
-      overrides the example provided by the `schema`. To represent
-      examples of media value_types that cannot naturally be represented in
-      JSON or YAML, a string value can contain the example with escaping where
-      necessary.
-    - examples ({str:Example}): Examples of the media type. Each example
-      should contain a value in the correct format, as specified in the
-      parameter encoding. The `examples` parameter should not be present if
-      `example` is present. If referencing a `schema` which contains an
-      example--*these* example override the
-      example provided by the `schema`. To represent examples of media
-      value_types that cannot naturally be represented
-      in JSON or YAML, a string value can contain the example with escaping
-      where necessary. https://bit.ly/3LMUeNJ
-    - content ({str:MediaType}): A map containing the representations for
-      the parameter. The name is the media type and the value describing it.
-      The map must only contain one entry.
-
-    ...for [version 2x compatibility](https://bit.ly/3A45Mrw):
-
-    - type_ (str)
-    - enum ([Any])
-    - collection_format (str) = "csv":
-      Determines the format of the array if type array is used. Possible
-      values are:
-      - csv: comma separated values foo,bar.
-      - ssv: space separated values foo bar.
-      - tsv: tab separated values foo    bar.
-      - pipes: pipe separated values foo|bar.
-      - multi: corresponds to multiple parameter instances instead of multiple
-        values for a single instance foo=bar&foo=baz. This is valid only for
-        parameters in "query" or "formData".
+            -   csv: comma separated values foo,bar.
+            -   ssv: space separated values foo bar.
+            -   tsv: tab separated values foo    bar.
+            -   pipes: pipe separated values foo|bar.
+            -   multi: corresponds to multiple parameter instances instead of
+                multiple values for a single instance foo=bar&foo=baz. This
+                is valid only for parameters in "query" or "formData".
     """
 
     __slots__: tuple[str, ...] = (
@@ -2549,7 +2697,23 @@ class Parameters(sob.Dictionary):
 
 class PathItem(sob.Object):
     """
-    https://bit.ly/3Lt8wCO
+    [OpenAPI 3 Path Item Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    path-item-object)
+
+    Attributes:
+        summary:
+        description:
+        get:
+        put:
+        post:
+        delete:
+        options:
+        head:
+        patch:
+        trace:
+        servers:
+        parameters:
     """
 
     __slots__: tuple[str, ...] = (
@@ -2751,7 +2915,14 @@ class Properties(sob.Dictionary):
 
 class Reference(sob.Object):
     """
-    https://bit.ly/3IWdLJt
+    [OpenAPI 3 Reference Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    reference-object)
+
+    Attributes:
+        ref:
+        summary:
+        description:
     """
 
     __slots__: tuple[str, ...] = (
@@ -2836,6 +3007,16 @@ class RequestBodies(sob.Dictionary):
 
 
 class RequestBody(sob.Object):
+    """
+    [OpenAPI 3 Request Body Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    request-body-object)
+
+    Attributes:
+        description:
+        content:
+        required:
+    """
 
     __slots__: tuple[str, ...] = (
         "description",
@@ -2899,7 +3080,9 @@ class RequestBody(sob.Object):
 
 class Response(sob.Object):
     """
-    https://bit.ly/3qTo3Ed
+    [OpenAPI 3 Response Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    response-object)
 
     Attributes:
         description: A short description of the response. [CommonMark
@@ -2912,10 +3095,7 @@ class Response(sob.Object):
         links: A map of operations links that can be
             followed from the response.
         examples: Examples responses
-
-    ...for 2x compatibility:
-
-        schema:
+        schema: (OpenAPI 2x only)
     """
 
     __slots__: tuple[str, ...] = (
@@ -3062,131 +3242,155 @@ class Responses(sob.Dictionary):
 
 class Schema(sob.Object):
     """
-    https://bit.ly/3JZJWsP
-    http://json-schema.org
+    [Open API 3 Schema Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    schema-object)
+    | [JSON Schema](http://json-schema.org)
 
-    Properties:
+    Attributes:
+        title:
+        description:
+        multiple_of: The numeric value this schema describes
+            should be divisible by this number.
+        maximum: The number this schema describes should be less
+            than or equal to this value, or less than
+            this value, depending on the value of `exclusive_maximum`.
+        exclusive_maximum: If `True`, the numeric instance described
+            by this schema must be *less than*
+            `maximum`. If `False`, the numeric instance described by this
+            schema can be less than or *equal to* `maximum`.
+        minimum: The number this schema describes should be
+            greater than or equal to this value, or greater
+            than this value, depending on the value of `exclusive_minimum`.
+        exclusive_minimum: If `True`, the numeric instance described
+            by this schema must be *greater than* `minimum`. If `False`, the
+            numeric instance described by this schema can be greater than or
+            *equal to* `minimum`.
+        max_length: The number of characters in the string instance
+            described by this schema must be less than,
+            or equal to, the value of this property.
+        min_length: The number of characters in the string instance
+            described by this schema must be greater
+            than, or equal to, the value of this property.
+        pattern: The string instance described by this schema should
+            match this regular expression (ECMA 262).
+        items:
+            -   If `items` is a sub-schema--each item in the array instance
+                described by this schema should be valid as described by this
+                sub-schema.
+            -   If `items` is a sequence of sub-schemas, the array instance
+                described by this schema should be equal in length to this
+                sequence, and each value should be valid as described by the
+                sub-schema at the corresponding index within this sequence of
+                sub-schemas.
+        max_items: The array instance described by this schema should
+            contain no more than this number of items.
+        min_items: The array instance described by this schema should
+            contain at least this number of items.
+        unique_items: The array instance described by this schema
+            should contain only unique items.
+        max_properties:
+        min_properties:
+        properties: Any properties of the object
+            instance described by this schema which correspond to a name in
+            this mapping should be valid as described by the sub-schema
+            corresponding to that name.
+        additional_properties:
+            -   If `additional_properties` is `True`—properties may be
+                present in the object described by this schema with names which
+                do not match those in `properties`.
+            -   If `additional_properties` is `False`—all properties
+                present in the object described by this schema must correspond
+                to a property matched in `properties`.
+            -   If `additional_properties` is a schema object,
+                all properties not described in `properties` must have
+                values matching the `additional_properties` schema.
+        enum: The value/instance described by this schema should be
+            among those in this sequence.
+        type_: See [OpenAPI 3 Data Types
+            (https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.
+            1.1.md#data-types)],
+            [Swagger - OpenAPI 3 Data Types
+            ](https://swagger.io/docs/specification/v3_0/data-models/data-
+            types/)
+            and [OpenAPI 2 Data Types
+            ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/
+            2.0.md#data-types)
 
-    - title (str)
-    - description (str)
-    - multiple_of (int|float): The numeric value this schema describes
-      should be divisible by this number.
-    - maximum (int|float): The number this schema describes should be less
-      than or equal to this value, or less than
-      this value, depending on the value of `exclusive_maximum`.
-    - exclusive_maximum (bool): If `True`, the numeric instance described
-      by this schema must be *less than*
-      `maximum`. If `False`, the numeric instance described by this schema
-      can be less than or *equal to*
-      `maximum`.
-    - minimum (int|float): The number this schema describes should be
-      greater than or equal to this value, or greater
-      than this value, depending on the value of `exclusive_minimum`.
-    - exclusive_minimum (bool): If `True`, the numeric instance described
-      by this schema must be *greater than* `minimum`. If `False`, the
-      numeric instance described by this schema can be greater than or
-      *equal to* `minimum`.
-    - max_length (int): The number of characters in the string instance
-      described by this schema must be less than,
-      or equal to, the value of this property.
-    - min_length (int): The number of characters in the string instance
-      described by this schema must be greater
-      than, or equal to, the value of this property.
-    - pattern (str): The string instance described by this schema should
-      match this regular expression (ECMA 262).
-    - items (Reference|Schema|[Schema]):
-      - If `items` is a sub-schema--each item in the array instance
-        described by this schema should be valid as described by this
-        sub-schema.
-      - If `items` is a sequence of sub-schemas, the array instance
-        described by this schema should be equal in length to this
-        sequence, and each value should be valid as described by the
-        sub-schema at the corresponding index within this sequence of
-        sub-schemas.
-    - max_items (int): The array instance described by this schema should
-      contain no more than this number of items.
-    - min_items (int): The array instance described by this schema should
-      contain at least this number of items.
-    - unique_items (bool): The array instance described by this schema
-      should contain only unique items.
-    - max_properties (int)
-    - min_properties (int)
-    - properties ({str:Schema}): Any properties of the object
-      instance described by this schema which correspond to a name in
-      this mapping should be valid as described by the sub-schema
-      corresponding to that name.
-    - additional_properties (bool|Schema):
-      - If `additional_properties` is `True`--sob.properties may be
-      present in the object described by this schema with names which
-      do not match those in `sob.properties`.
-      - If `additional_properties` is `False`--all sob.properties present
-      in the object described by this schema must correspond to a
-      property matched in either `sob.properties`.
-    - enum ([Any]): The value/instance described by this schema should be
-      among those in this sequence.
-    - type_ (str): See https://bit.ly/35xdE9N, https://bit.ly/3j3iJJP and
-      https://bit.ly/3DzLF60
-      - "boolean"
-      - "object"
-      - "array"
-      - "number"
-      - "string"
-      - "integer"
-      - "file"
-    - format_ (str): See https://bit.ly/35xdE9N, https://bit.ly/3j3iJJP and
-      https://bit.ly/3DzLF60
-      - "date-time":
-        A date and time in the format YYYY-MM-DDThh:mm:ss.sTZD
-        (eg 1997-07-16T19:20:30.45+01:00),
-        YYYY-MM-DDThh:mm:ssTZD (eg 1997-07-16T19:20:30+01:00), or
-        YYYY-MM-DDThh:mmTZD (eg 1997-07-16T19:20+01:00).
-      - "email"
-      - "hostname"
-      - "ipv4"
-      - "ipv6"
-      - "uri"
-      - "uriref": A URI or a relative reference.
-    - all_of ([Schema]): The value/instance described by the schema should
-      *also* be valid as
-      described by all sub-schemas in this sequence.
-    - any_of ([Schema]): The value/instance described by the schema should
-      *also* be valid as
-      described in at least one of the sub-schemas in this sequence.
-    - one_of ([Schema]): The value/instance described by the schema should
-      *also* be valid as
-      described in one (but *only* one) of the sub-schemas in this
-      sequence.
-    - is_not (Schema): The value/instance described by this schema should *
-      not* be valid as described by this
-      sub-schema.
-    - definitions ({str:Schema}): A dictionary of sub-schemas, stored for
-      the purpose of referencing these sub-schemas elsewhere in the schema.
-    - required ([str]): A list of attributes which must be present on the
-      object instance described by this schema.
-    - default (Any): The value presumed if the value/instance described by
-      this schema is absent.
-    - content_media_type (str)
-    - content_encoding (str)
-    - examples ([Any]): A list of valid examples of this object
+                - "boolean"
+                - "object"
+                - "array"
+                - "number"
+                - "string"
+                - "integer"
+                - "file"
 
-    The following sob.properties are specific to OpenAPI (not part of the
-    core `JSON Schema <http://json-schema.org>`):
+        format_: See [Open API 3 Data Type Format
+            ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/
+            3.1.1.md#data-type-format)
 
-    - nullable (bool): If `True`, the value/instance described by this
-      schema may be a null value (`None`).
-    - discriminator (Discriminator): Adds support for polymorphism.
-    - read_only (bool): If `True`, the property described may be returned
-      as part of a response, but should not be part of a request.
-    - write_only (bool): If `True`, the property described may be sent as
-      part of a request, but should not be returned as part of a response.
-    - xml (XML): Provides additional information describing XML
-      representation of the property described by this schema.
-    - external_docs (ExternalDocumentation)
-    - example (Any)
-    - definitions (Any)
-    - depracated (bool): If `True`, the property or instance described by
-      this schema should be phased out, as if will no longer be supported
-      in future versions.
+            - "date-time":
+                A date and time in the format YYYY-MM-DDThh:mm:ss.sTZD
+                (eg 1997-07-16T19:20:30.45+01:00),
+                YYYY-MM-DDThh:mm:ssTZD (eg 1997-07-16T19:20:30+01:00), or
+                YYYY-MM-DDThh:mmTZD (eg 1997-07-16T19:20+01:00).
+            - "email"
+            - "hostname"
+            - "ipv4"
+            - "ipv6"
+            - "uri"
+            - "uriref": A URI or a relative reference.
+
+        all_of: The value/instance described by the schema should
+            *also* be valid as
+            described by all sub-schemas in this sequence.
+        any_of: The value/instance described by the schema should
+            *also* be valid as
+            described in at least one of the sub-schemas in this sequence.
+        one_of: The value/instance described by the schema should
+            *also* be valid as
+            described in one (but *only* one) of the sub-schemas in this
+            sequence.
+        is_not: The value/instance described by this schema should *
+            not* be valid as described by this
+            sub-schema.
+        definitions:Schema}): A dictionary of sub-schemas, stored for
+            the purpose of referencing these sub-schemas elsewhere in the
+            schema.
+        required: A list of attributes which must be present on the
+            object instance described by this schema.
+        default: The value presumed if the value/instance described by
+            this schema is absent.
+        content_media_type:
+        content_encoding:
+        examples: A list of valid examples of this object
+        nullable: If `True`, the value/instance described by this
+            schema may be a null value (`None`). (Specific to OpenAPI, not part
+            of the [JSON Schema](http://json-schema.org))
+        discriminator: Adds support for polymorphism. (Specific to OpenAPI,
+            not part of the [JSON Schema](http://json-schema.org))
+        read_only: If `True`, the property described may be returned
+            as part of a response, but should not be part of a request
+            (Specific to OpenAPI, not part of the
+            [JSON Schema](http://json-schema.org)).
+        write_only: If `True`, the property described may be sent as
+            part of a request, but should not be returned as part of a response
+            (Specific to OpenAPI, not part of the
+            [JSON Schema](http://json-schema.org)).
+        xml: Provides additional information describing XML
+            representation of the property described by this schema
+            (Specific to OpenAPI, not part of the
+            [JSON Schema](http://json-schema.org)).
+        external_docs: (Specific to OpenAPI, not part of the
+            [JSON Schema](http://json-schema.org))
+        example: (Specific to OpenAPI, not part of the
+            [JSON Schema](http://json-schema.org))
+        definitions: (Specific to OpenAPI, not part of the
+            [JSON Schema](http://json-schema.org))
+        depracated: If `True`, the property or instance described by
+            this schema should be phased out, as if will no longer be supported
+            in future versions (Specific to OpenAPI, not part of the
+            [JSON Schema](http://json-schema.org)).
     """
 
     __slots__: tuple[str, ...] = (
@@ -3698,23 +3902,27 @@ class SecurityRequirement(sob.Dictionary):
 
 class SecurityScheme(sob.Object):
     """
-    Properties (https://bit.ly/3qRtjIm):
+    [OpenAPI 3 Security Scheme Object]
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    security-scheme-object)
+    | [OpenAPI 2 Security Scheme Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#
+    security-scheme-object)
 
-    - type_ (str): https://tools.ietf.org/html/rfc7235#section-4
-    - description (str)
-    - name (str)
-    - in_ (str)
-    - scheme (str)
-    - bearer_format (str)
-    - flows (OAuthFlows)
-    - open_id_connect_url (str)
-    - scopes
-
-    OpenAPI 2x Only Properties (https://bit.ly/3Jpx3aA):
-
-    - flow (str): "implicit", "password", "application" or "accessCode"
-    - authorization_url (str)
-    - token_url (str)
+    Attributes:
+        type_: OpenAPI 3x: "apiKey", "http", "mutualTLS", "oauth2",
+            or "openIdConnect". OpenAPI 2x: "basic", "apiKey" or "oauth2".
+        description:
+        name:
+        in_:
+        scheme:
+        bearer_format:
+        flows:
+        open_id_connect_url:
+        scopes:
+        flow: "implicit", "password", "application" or "accessCode"
+        authorization_url:
+        token_url:
     """
 
     __slots__: tuple[str, ...] = (
@@ -3887,7 +4095,14 @@ class SecuritySchemes(sob.Dictionary):
 
 class Server(sob.Object):
     """
-    https://bit.ly/3iTqBxv
+    [OpenAPI 3 Server Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    server-object)
+
+    Attributes:
+        url:
+        description:
+        variables:
     """
 
     __slots__: tuple[str, ...] = (
@@ -3952,7 +4167,14 @@ class Server(sob.Object):
 
 class ServerVariable(sob.Object):
     """
-    https://bit.ly/3iYikZ7
+    [OpenAPI 3 Server Variable Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    server-variable-object)
+
+    Attributes:
+        enum:
+        default:
+        description:
     """
 
     __slots__: tuple[str, ...] = (
@@ -4015,7 +4237,14 @@ class ServerVariable(sob.Object):
 
 class Tag(sob.Object):
     """
-    https://bit.ly/36K2JtU
+    [OpenAPI 3 Tag Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    tag-object)
+
+    Attributes:
+        name:
+        description:
+        external_docs:
     """
 
     __slots__: tuple[str, ...] = (
@@ -4074,19 +4303,20 @@ class Tag(sob.Object):
 
 class XML(sob.Object):
     """
-    https://bit.ly/35sxt1Y
+    [OpenAPI 3 XML Object
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    xml-object)
 
-    Properties:
-
-    - name (str): The element name.
-    - name_space (str): The *absolute* URI of a namespace.
-    - prefix (str): The prefix to be used with the name to reference the
-      name-space.
-    - attribute (bool): If `True`, the property described is an attribute
-      rather than a sub-element.
-    - wrapped (bool): If `True`, an array instance described by the schema
-      will be wrapped by a tag (named according to the parent element's
-      property, while `name` refers to the child element name).
+    Attributes:
+        name: The element name.
+        name_space: The *absolute* URI of a namespace.
+        prefix: The prefix to be used with the name to reference the
+            name-space.
+        attribute: If `True`, the property described is an attribute
+            rather than a sub-element.
+        wrapped: If `True`, an array instance described by the schema
+            will be wrapped by a tag (named according to the parent element's
+            property, while `name` refers to the child element name).
     """
 
     __slots__: tuple[str, ...] = (
@@ -6544,7 +6774,7 @@ def _schema_after_validate(schema: sob.abc.Model) -> None:
                 type(schema)
             )
             message = (
-                f'"{schema.format_}" in not a valid value for '
+                f'"{schema.format_}" is not a valid value for '
                 f"`{qualified_class_name}.format_` in this circumstance. "
                 f'`{qualified_class_name}.format_` may be "int32" or "int64" '
                 f'when `{qualified_class_name}.type_` is "integer".'

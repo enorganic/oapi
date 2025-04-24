@@ -5,13 +5,21 @@ edit_uri: blob/main/docs/
 nav:
 - Introduction: 'index.md'
 - API Reference:
-    - oapi.client: 'api/client.md'
-    - oapi.errors: 'api/errors.md'
-    - oapi.model: 'api/model.md'
-    - oapi.oas:
-      - oapi.oas.model: 'api/oas/model.md'
-      - oapi.oas.references: 'api/oas/references.md'
-    - sob: https://sob.enorganic.org
+    - oapi.client: 'api/oapi.client.md'
+    - oapi.errors: 'api/oapi.errors.md'
+    - oapi.model: 'api/oapi.model.md'
+    - oapi.oas.model: 'api/oapi.oas.model.md'
+    - oapi.oas.references: 'api/oapi.oas.references.md'
+    - sob.abc: 'api/sob.abc.md'
+    - sob.errors: 'api/sob.errors.md'
+    - sob.hooks: 'api/sob.hooks.md'
+    - sob.meta: 'api/sob.meta.md'
+    - sob.model: 'api/sob.model.md'
+    - sob.properties: 'api/sob.properties.md'
+    - sob.thesaurus: 'api/sob.thesaurus.md'
+    - sob.types: 'api/sob.types.md'
+    - sob.utilities: 'api/sob.utilities.md'
+    - sob.version: 'api/sob.version.md'
 - Contributing: 'contributing.md'
 theme:
   name: material

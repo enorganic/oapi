@@ -1416,7 +1416,8 @@ class Client:
                 )
 
     def _api_key_authenticate_request(self, request: Request) -> None:
-        # API key authentication: https://bit.ly/3Jrvd8Q
+        # API key authentication:
+        # https://swagger.io/docs/specification/v3_0/authentication/api-keys/
         message: str
         if self.api_key_in == "cookie":
             cookie_header: str = request.get_header("Cookie", "")
@@ -1459,11 +1460,11 @@ class Client:
         Parameters:
             request:
         """
-        # HTTP authentication schemes
-        # TODO: Implement additional HTTP authentication schemes
-        # (https://bit.ly/35VOGRu)
+        # TODO: [Implement additional HTTP authentication schemes]
+        # (https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml)
         if self.user and self.password:
-            # Basic authentication: https://bit.ly/3Ob0LDV
+            # [Basic authentication]
+            # (https://swagger.io/docs/specification/v3_0/authentication/basic-authentication/)
             login: str = str(
                 b64encode(
                     bytes(f"{self.user}:{self.password}", encoding="utf-8")
@@ -1472,7 +1473,8 @@ class Client:
             )
             request.add_header("Authorization", f"Basic {login}")
         if self.bearer_token:
-            # Bearer authentication: https://bit.ly/3O3ciFg
+            # [Bearer authentication]
+            # (https://swagger.io/docs/specification/v3_0/authentication/bearer-authentication/)
             request.add_header("Authorization", f"Bearer {self.bearer_token}")
         # API Key & Cookie Authentication schemes
         if self.api_key:
@@ -2273,7 +2275,9 @@ class Module:
     def _get_api_key_in(self) -> str:
         """
         Determine the location where an API key should be provided
-        (header, query, or cookie) (see https://bit.ly/3LQua3X).
+        (header, query, or cookie) (see [API keys
+        ](https://swagger.io/docs/specification/v3_0/authentication/api-keys/)
+        ).
         """
         security_scheme: SecurityScheme
         for security_scheme in self._iter_security_schemes():
@@ -2287,7 +2291,9 @@ class Module:
     def _get_api_key_name(self) -> str:
         """
         Determine the name for the header, cookie parameter, or query parameter
-        where an API key should be provided (see https://bit.ly/3LQua3X).
+        where an API key should be provided (see [API keys
+        ](https://swagger.io/docs/specification/v3_0/authentication/api-keys/)
+        ).
         """
         security_scheme: SecurityScheme
         for security_scheme in self._iter_security_schemes():
@@ -2328,7 +2334,8 @@ class Module:
     def _get_oauth2_authorization_url(self) -> str:
         """
         Get the OAuth2 authorization URL, if one is provided
-        (https://bit.ly/3DYK7Cx).
+        (see [OAuth 2
+        ](https://swagger.io/docs/specification/v3_0/authentication/oauth2/)).
         """
         name: str
         flow: OAuthFlow | None
@@ -2346,7 +2353,8 @@ class Module:
     def _get_oauth2_token_url(self) -> str:
         """
         Get the OAuth2 token URL, if one is provided
-        (https://bit.ly/3DYK7Cx).
+        (see [OAuth 2
+        ](https://swagger.io/docs/specification/v3_0/authentication/oauth2/)).
         """
         name: str
         flow: OAuthFlow | None
@@ -2363,7 +2371,8 @@ class Module:
     def _get_oauth2_refresh_url(self) -> str:
         """
         Get the OAuth2 refresh URL, if one is provided
-        (https://bit.ly/3DYK7Cx).
+        (see [OAuth 2
+        ](https://swagger.io/docs/specification/v3_0/authentication/oauth2/)).
         """
         name: str
         flow: OAuthFlow | None
@@ -2375,7 +2384,8 @@ class Module:
     @_lru_cache()
     def _get_oauth2_flow_names(self) -> tuple[str, ...]:
         """
-        Get a `tuple` of supported OAuth2 flow names (https://bit.ly/3v96JfA).
+        Get a `tuple` of [supported OAuth2 flow names
+        ](https://swagger.io/docs/specification/v3_0/authentication/oauth2/).
         """
         item: tuple[str, OAuthFlow | None]
         return tuple(
@@ -2387,8 +2397,8 @@ class Module:
     @_lru_cache()
     def _get_open_id_connect_url(self) -> str:
         """
-        Get the OpenID Connect URL, if one is provided
-        (https://bit.ly/3DYK7Cx).
+        Get the OpenID Connect URL, if one is provided (see [OAuth 2
+        ](https://swagger.io/docs/specification/v3_0/authentication/oauth2/)).
         """
         security_scheme: SecurityScheme
         for security_scheme in self._iter_security_schemes():
@@ -2745,7 +2755,8 @@ class Module:
                     parameter.in_ == "header"
                     and parameter.name.lower()
                     in (
-                        # See: https://bit.ly/3iUmvVZ
+                        # See:
+                        # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#parameter-object
                         "accept",
                         "content-type",
                         "authorization",
@@ -2769,7 +2780,8 @@ class Module:
                 while parameter_name in parameter_names:
                     parameter_name = f"{parameter_name}_"
                 parameter_names.add(parameter_name)
-            # See: https://bit.ly/3uetijD
+            # See:
+            # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#fixed-fields-for-use-with-schema
             style: str = parameter.style or (
                 "form"
                 if (
@@ -2814,7 +2826,8 @@ class Module:
                 types=sob.types.Types(
                     [self._get_parameter_or_schema_type(parameter)]
                 ),
-                # See: https://bit.ly/3JaCXMF
+                # See:
+                # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#fixed-fields-for-use-with-schema
                 explode=explode,
                 style=style,
                 description=parameter.description or "",
