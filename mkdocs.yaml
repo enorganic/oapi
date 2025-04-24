@@ -1,0 +1,83 @@
+site_name: oapi
+site_url: https://enorganic.github.io/oapi/
+repo_url: https://github.com/enorganic/oapi/
+edit_uri: blob/main/docs/
+nav:
+- Introduction: 'index.md'
+- API Reference:
+    - oapi.client: 'api/oapi.client.md'
+    - oapi.errors: 'api/oapi.errors.md'
+    - oapi.model: 'api/oapi.model.md'
+    - oapi.oas.model: 'api/oapi.oas.model.md'
+    - oapi.oas.references: 'api/oapi.oas.references.md'
+    - sob.abc: 'api/sob.abc.md'
+    - sob.errors: 'api/sob.errors.md'
+    - sob.hooks: 'api/sob.hooks.md'
+    - sob.meta: 'api/sob.meta.md'
+    - sob.model: 'api/sob.model.md'
+    - sob.properties: 'api/sob.properties.md'
+    - sob.thesaurus: 'api/sob.thesaurus.md'
+    - sob.types: 'api/sob.types.md'
+    - sob.utilities: 'api/sob.utilities.md'
+    - sob.version: 'api/sob.version.md'
+- Contributing: 'contributing.md'
+theme:
+  name: material
+  color_mode: auto
+  user_color_mode_toggle: true
+  locale: en
+  features:
+    - navigation.top
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/link
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off
+        name: Switch to system preference
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            docstring_section_style: list
+            members_order: source
+            show_root_heading: true
+            show_source: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            separate_signature: true
+            inherited_members: true
+            heading_level: 1
+            annotations_path: full
+            merge_init_into_class: true
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_div_format
+  - pymdownx.highlight
+  - pymdownx.snippets
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+extra_css:
+  - assets/stylesheets/style.css
+extra_javascript:
+  - assets/javascripts/extra.js

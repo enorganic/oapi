@@ -1,25 +1,25 @@
-import os
+from __future__ import annotations
+
 import re
 from itertools import chain
-from typing import Any, Iterable, List, Match, Optional, Set, Tuple, Type
+from pathlib import Path
+from re import Match
+from typing import TYPE_CHECKING, Any
 
 import sob
 
 from oapi.oas import model
 
-PROJECT_PATH: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH: str = os.path.join(PROJECT_PATH, "oapi", "oas", "model.py")
-EXTENSIBLE_MODEL_SOURCE: str = (
-    """
-class ExtensibleObject(sob.model.Object):
-    pass
-""".strip()
-)
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+PROJECT_PATH: Path = Path(__file__).absolute().parent.parent
+MODEL_PATH: Path = PROJECT_PATH / "src" / "oapi" / "oas" / "model.py"
 
 
 def get_region_source(name: str) -> str:
     with open(MODEL_PATH) as model_io:
-        match: Optional[Match] = re.search(
+        match: Match | None = re.search(
             (
                 f"\\n#\\s*region\\s*{re.escape(name)}"
                 r"(\n|.)*?"
@@ -31,7 +31,7 @@ def get_region_source(name: str) -> str:
         return match.group().strip() if match else ""
 
 
-def iter_source_names_models() -> Iterable[Tuple[str, Type[sob.abc.Model]]]:
+def iter_source_names_models() -> Iterable[tuple[str, type[sob.abc.Model]]]:
     name: str
     value: Any
     for name in dir(model):
@@ -42,22 +42,23 @@ def iter_source_names_models() -> Iterable[Tuple[str, Type[sob.abc.Model]]]:
 
 
 def iter_names_metadata_docstrings_suffixes() -> (
-    Iterable[Tuple[str, sob.abc.Meta, str, str]]
+    Iterable[tuple[str, sob.abc.Meta, str, str]]
 ):
     def get_name_metadata(
-        item: Tuple[str, Type[sob.abc.Model]]
-    ) -> Tuple[str, sob.abc.Meta, str, str]:
+        item: tuple[str, type[sob.abc.Model]],
+    ) -> tuple[str, sob.abc.Meta, str, str]:
         line: str
+        meta: sob.abc.Meta | None = sob.read_model_meta(item[1])
+        if not meta:
+            raise ValueError(item[1])
         return (
             item[0],
-            sob.meta.read(item[1]),
+            meta,
             "\n".join(
-                map(
-                    lambda line: line[4:] if line.startswith("    ") else line,
-                    (item[1].__doc__ or "").strip().split("\n"),
-                )
+                line[4:] if line.startswith("    ") else line
+                for line in (item[1].__doc__ or "").strip().split("\n")
             ),
-            sob.utilities.inspect.get_source(item[1])
+            sob.utilities.get_source(item[1])
             .partition("super().__init__(_data)")[2]
             .strip(),
         )
@@ -66,7 +67,7 @@ def iter_names_metadata_docstrings_suffixes() -> (
 
 
 def iter_models_metadata_suffixes() -> (
-    Iterable[Tuple[Type[sob.abc.Model], sob.abc.Meta, str]]
+    Iterable[tuple[type[sob.abc.Model], sob.abc.Meta, str]]
 ):
     name: str
     suffix: str
@@ -78,43 +79,45 @@ def iter_models_metadata_suffixes() -> (
         suffix,
     ) in iter_names_metadata_docstrings_suffixes():
         if metadata:
-            yield sob.model.from_meta(
-                name,
+            yield (
+                sob.get_model_from_meta(
+                    name,
+                    metadata,
+                    module="oapi.oas.model",
+                    docstring=docstring.strip(),
+                ),
                 metadata,
-                module="oapi.oas.model",
-                docstring=docstring.strip(),
-            ), metadata, suffix
+                suffix,
+            )
 
 
 def main() -> None:
     suffix: str
-    cls: Type[sob.abc.Model]
+    cls: type[sob.abc.Model]
     metadata: sob.abc.Meta
-    imports: Set[str] = set()
-    classes: List[str] = []
-    metadatas: List[str] = []
+    imports: set[str] = {
+        "from oapi._utilities import deprecated as _deprecated",
+    }
+    classes: list[str] = []
+    metadatas: list[str] = []
     for cls, metadata, suffix in iter_models_metadata_suffixes():
         import_source: str
         class_source: str
         import_source, _, class_source = (
-            sob.utilities.inspect.get_source(cls)
+            sob.utilities.get_source(cls)
             .replace("oapi.oas.model.", "")
             .rpartition("\n\n\n")
-        )
-        class_source = re.sub(
-            r"\bsob\.model\.Object\b",
-            "ExtensibleObject",
-            class_source,
         )
         if suffix:
             class_source = f"{class_source.rstrip()}\n        {suffix}"
         if import_source:
             imports |= set(import_source.strip().split("\n"))
         classes.append(class_source.strip())
-        assert isinstance(
+        if not isinstance(
             metadata,
             (sob.abc.ObjectMeta, sob.abc.ArrayMeta, sob.abc.DictionaryMeta),
-        )
+        ):
+            raise TypeError(metadata)
         if isinstance(metadata, sob.abc.ObjectMeta):
             metadatas.append(
                 re.sub(
@@ -145,19 +148,32 @@ def main() -> None:
                     ),
                 )
             )
+    import_statement: str
     model_source: str = "\n\n".join(
         chain(
             (
                 "\n".join(
                     chain(
                         (f'"""{model.__doc__.rstrip()}\n"""',),
-                        sorted(imports),
+                        sorted(
+                            imports - {"import decimal"},
+                            key=lambda import_statement: (
+                                (0, import_statement)
+                                if import_statement.startswith(
+                                    "from __future__"
+                                )
+                                else (2, import_statement)
+                                if import_statement.startswith("from ")
+                                else (1, import_statement)
+                            ),
+                        ),
                     )
                 ),
             ),
-            (get_region_source("Base Classes"),),
+            ("\nif typing.TYPE_CHECKING:\n    import decimal\n",),
             ("\n{}\n".format("\n\n\n".join(classes)),),
             ("\n".join(metadatas),),
+            (get_region_source("Aliases"),),
             (get_region_source("Hooks"),),
         )
     )

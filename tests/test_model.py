@@ -1,42 +1,57 @@
 import os
 import unittest
+from contextlib import suppress
 from copy import deepcopy
 from itertools import chain
+from pathlib import Path
+from urllib.error import URLError
 from urllib.parse import urljoin
-from urllib.request import Request, urlopen
+from urllib.request import Request
 
 import sob
 
-from oapi.model import Module, get_default_class_name_from_pointer
+from oapi.model import ModelModule, get_default_class_name_from_pointer
 from oapi.oas.model import OpenAPI
-from oapi.oas.references import Resolver
+from oapi.oas.references import Resolver, _urlopen
 
 OPENAPI_EXAMPLE_URL = (
-    "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/"
+    "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/3.1.1/"
     "examples/"
 )
 LANGUAGE_TOOL_URL = (
     "https://languagetool.org/http-api/languagetool-swagger.json"
 )
+TESTS_PATH: Path = Path(__file__).absolute().parent
+REGRESSION_DATA_PATH: Path = TESTS_PATH / "regression-data"
+INPUT_DATA_PATH: Path = TESTS_PATH / "input-data"
+LANGUAGE_TOOL_SWAGGER_PATH: Path = (
+    INPUT_DATA_PATH / "languagetool-swagger.json"
+)
+LANGUAGE_TOOL_PY: Path = REGRESSION_DATA_PATH / "languagetool.py"
 
 
 class TestModel(unittest.TestCase):
-
     @staticmethod
     def test_get_default_class_name_from_pointer() -> None:
-        get_default_class_name_from_pointer(
-            pointer=(
-                "#/paths/~1directory~1sub-directory~1name/get/parameters/1"
-            ),
-            name="argument-name",
-        ) == "DirectorySubDirectoryNameGetArgumentName"
-        get_default_class_name_from_pointer(
-            pointer=(
-                "#/paths/~1directory~1sub-directory~1name/get/parameters/1"
-                "/item"
-            ),
-            name="argument-name",
-        ) == "DirectorySubDirectoryNameGetArgumentNameItem"
+        assert (
+            get_default_class_name_from_pointer(
+                pointer=(
+                    "#/paths/~1directory~1sub-directory~1name/get/parameters/1"
+                ),
+                name="argument-name",
+            )
+            == "DirectorySubDirectoryNameGetArgumentName"
+        )
+        assert (
+            get_default_class_name_from_pointer(
+                pointer=(
+                    "#/paths/~1directory~1sub-directory~1name/get/parameters/1"
+                    "/item"
+                ),
+                name="argument-name",
+            )
+            == "DirectorySubDirectoryNameGetArgumentNameItem"
+        )
 
     @staticmethod
     def test_openapi_examples() -> None:
@@ -63,41 +78,52 @@ class TestModel(unittest.TestCase):
             "v2.0/yaml/uber.yaml",
         ):
             url: str = urljoin(OPENAPI_EXAMPLE_URL, relative_path)
-            print(url)
-            with urlopen(url) as response:
-                oa = OpenAPI(response)
-                sob.test.json(oa)
-                oa2 = deepcopy(oa)
-                assert sob.meta.url(oa) == sob.meta.url(oa2)
-                Resolver(oa2).dereference()
+            print(url)  # noqa: T201
+            with _urlopen(url) as response:
+                openapi: OpenAPI = OpenAPI(response)
+                sob.validate(openapi)
+                openapi2: OpenAPI = deepcopy(openapi)
+                assert sob.get_model_url(openapi) == sob.get_model_url(
+                    openapi2
+                )
+                Resolver(openapi2).dereference()
                 try:
-                    assert "$ref" not in str(oa2)
-                except AssertionError as e:
-                    if e.args:
-                        e.args = tuple(
-                            chain((e.args[0] + "\n" + str(oa2),), e.args[1:])
+                    assert "$ref" not in str(openapi2)
+                except AssertionError as assertion_error:
+                    if assertion_error.args:
+                        assertion_error.args = tuple(
+                            chain(
+                                (
+                                    assertion_error.args[0]
+                                    + "\n"
+                                    + str(openapi2),
+                                ),
+                                assertion_error.args[1:],
+                            )
                         )
                     else:
-                        e.args = (str(oa2),)
-                    raise e
-                if oa2 != oa:
-                    sob.test.json(oa2)
+                        assertion_error.args = (str(openapi2),)
+                    raise
+                if openapi2 != openapi:
+                    sob.validate(openapi2)
 
     @staticmethod
     def test_languagetool() -> None:
-        with urlopen(
-            Request(LANGUAGE_TOOL_URL, headers={"User-agent": ""})
-        ) as response:
-            oa = OpenAPI(response)
-            sob.test.json(oa)
-            model = Module(oa)
-            model_path = os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                "data",
-                "languagetool.py"
-            )
-            if os.path.exists(model_path):
-                with open(model_path, "r") as model_file:
+        if not os.environ.get("CI"):
+            with suppress(URLError):  # noqa: SIM117
+                with _urlopen(
+                    Request(LANGUAGE_TOOL_URL, headers={"User-agent": ""})
+                ) as response:
+                    with open(
+                        LANGUAGE_TOOL_SWAGGER_PATH, "wb"
+                    ) as language_tool_io:
+                        language_tool_io.write(response.read())  # type: ignore
+        with open(LANGUAGE_TOOL_SWAGGER_PATH) as language_tool_io:
+            oa = OpenAPI(language_tool_io)
+            sob.validate(oa)
+            model = ModelModule(oa)
+            if LANGUAGE_TOOL_PY.exists():
+                with open(LANGUAGE_TOOL_PY) as model_file:
                     model_file_data = model_file.read()
                     if not isinstance(model_file_data, str):
                         model_file_data = str(
@@ -105,12 +131,11 @@ class TestModel(unittest.TestCase):
                         )
                     assert str(model) == model_file_data
             else:
+                if not REGRESSION_DATA_PATH.exists():
+                    os.makedirs(REGRESSION_DATA_PATH, exist_ok=True)
                 model_string: str = str(model)
-                if model_string.strip():
-                    with open(model_path, "w") as model_file:
-                        model_file.write(model_string)
-                else:
-                    raise ValueError()
+                with open(LANGUAGE_TOOL_PY, "w") as model_file:
+                    model_file.write(model_string)
 
 
 if __name__ == "__main__":
