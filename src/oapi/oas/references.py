@@ -350,21 +350,21 @@ class Resolver:
     resolve references.
 
     Parameters:
-            root: The OpenAPI document against which
-                pointers will be resolved.
-            url: The URL or file path from where `root` was retrieved. The
-                base URL for relative paths will be the directory above this
-                URL. This will not typically be needed, as it can be inferred
-                from most `Model` instances.
-            urlopen: If provided, this should be a
-                function taking one argument (a `str`), which can be used in
-                lieu of `urllib.request.urlopen` to retrieve a document and
-                return an instance of a sub-class of `IOBase` (such as
-                `http.client.HTTPResponse`). This should be used if
-                authentication is needed in order to retrieve external
-                references in the document, or if local file paths will be
-                referenced instead of web URL's (use `open` as the value for
-                the `urlopen` parameter in this case).
+        root: The OpenAPI document against which
+            pointers will be resolved.
+        url: The URL or file path from where `root` was retrieved. The
+            base URL for relative paths will be the directory above this
+            URL. This will not typically be needed, as it can be inferred
+            from most `Model` instances.
+        urlopen: If provided, this should be a
+            function taking one argument (a `str`), which can be used in
+            lieu of `urllib.request.urlopen` to retrieve a document and
+            return an instance of a sub-class of `IOBase` (such as
+            `http.client.HTTPResponse`). This should be used if
+            authentication is needed in order to retrieve external
+            references in the document, or if local file paths will be
+            referenced instead of web URL's (use `open` as the value for
+            the `urlopen` parameter in this case).
     """
 
     def __init__(
