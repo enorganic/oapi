@@ -24,7 +24,10 @@ LANGUAGE_TOOL_URL = (
 TESTS_PATH: Path = Path(__file__).absolute().parent
 REGRESSION_DATA_PATH: Path = TESTS_PATH / "regression-data"
 INPUT_DATA_PATH: Path = TESTS_PATH / "input-data"
-LANGUAGE_TOOL_PATH: Path = INPUT_DATA_PATH / "languagetool-swagger.json"
+LANGUAGE_TOOL_SWAGGER_PATH: Path = (
+    INPUT_DATA_PATH / "languagetool-swagger.json"
+)
+LANGUAGE_TOOL_PY: Path = REGRESSION_DATA_PATH / "languagetool.py"
 
 
 class TestModel(unittest.TestCase):
@@ -111,15 +114,16 @@ class TestModel(unittest.TestCase):
                 with _urlopen(
                     Request(LANGUAGE_TOOL_URL, headers={"User-agent": ""})
                 ) as response:
-                    with open(LANGUAGE_TOOL_PATH, "wb") as language_tool_io:
+                    with open(
+                        LANGUAGE_TOOL_SWAGGER_PATH, "wb"
+                    ) as language_tool_io:
                         language_tool_io.write(response.read())  # type: ignore
-        with open(LANGUAGE_TOOL_PATH) as language_tool_io:
+        with open(LANGUAGE_TOOL_SWAGGER_PATH) as language_tool_io:
             oa = OpenAPI(language_tool_io)
             sob.validate(oa)
             model = Module(oa)
-            model_path: Path = REGRESSION_DATA_PATH / "languagetool.py"
-            if model_path.exists():
-                with open(model_path) as model_file:
+            if LANGUAGE_TOOL_PY.exists():
+                with open(LANGUAGE_TOOL_PY) as model_file:
                     model_file_data = model_file.read()
                     if not isinstance(model_file_data, str):
                         model_file_data = str(
@@ -130,7 +134,7 @@ class TestModel(unittest.TestCase):
                 if not REGRESSION_DATA_PATH.exists():
                     os.makedirs(REGRESSION_DATA_PATH, exist_ok=True)
                 model_string: str = str(model)
-                with open(model_path, "w") as model_file:
+                with open(LANGUAGE_TOOL_PY, "w") as model_file:
                     model_file.write(model_string)
 
 
