@@ -1,5 +1,6 @@
 from oapi.oas import model, references
 from oapi.oas.model import (
+    XML,
     Callback,
     Callbacks,
     Components,
@@ -29,8 +30,8 @@ from oapi.oas.model import (
     Paths,
     Properties,
     Reference,
-    RequestBody,
     RequestBodies,
+    RequestBody,
     Response,
     Responses,
     Schema,
@@ -40,7 +41,6 @@ from oapi.oas.model import (
     Server,
     ServerVariable,
     Tag,
-    XML,
 )
 
 __all__: tuple[str, ...] = (

@@ -142,6 +142,7 @@ class _Document:
         """
         Recursively dereference this objects and all items/properties
         """
+        message: str
         try:
             if isinstance(model, sob.abc.Object):
                 self.dereference_object_properties(model, recursive=recursive)
@@ -150,12 +151,12 @@ class _Document:
             elif isinstance(model, sob.abc.Dictionary):
                 self.dereference_dictionary_values(model, recursive=recursive)
             else:
-                msg = (
+                message = (
                     "The argument must be an instance of "
                     f"`{sob.utilities.get_qualified_name(sob.Model)}`, "
                     f"not {model!r}"
                 )
-                raise TypeError(msg)
+                raise TypeError(message)
         except OAPIReferenceLoopError:
             if not recursive:
                 raise

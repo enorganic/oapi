@@ -1406,6 +1406,7 @@ class _Modeler:
             relative_url_pointer,
             model_class,
         ) in sorted(self.iter_pointers_model_classes()):
+            message: str
             class_name_: str = model_class.__name__
             class_imports: str
             class_source: str
@@ -1413,12 +1414,12 @@ class _Modeler:
                 model_class
             )
             if class_name_ in class_names_sources:
-                msg = (
+                message = (
                     f"The class name `{class_name_}` occured twice:\n\n"
                     f"{class_names_sources[class_name_]}\n\n"
                     f"{class_source}"
                 )
-                raise OAPIDuplicateClassNameError(msg)
+                raise OAPIDuplicateClassNameError(message)
             class_names_sources[class_name_] = class_source
             deque(
                 map(imports.add, filter(None, class_imports.split("\n"))),
