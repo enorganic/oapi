@@ -584,7 +584,7 @@ def _format_request_data(  # noqa: C901
     formatted_data: bytes | None = None
     if json:
         message: str
-        if not data:
+        if data:
             message = (
                 "A request may only contain form data or JSON data, not both."
             )
