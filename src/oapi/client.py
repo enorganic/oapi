@@ -1643,7 +1643,7 @@ def _get_relative_module_path(
     if isinstance(from_path, Path):
         from_path = str(from_path)
     if isinstance(to_path, Path):
-        from_path = str(to_path)
+        to_path = str(to_path)
     return re.sub(
         r".py$",
         "",
@@ -1679,9 +1679,12 @@ def _get_relative_module_import(
     relative_module_path: str = _get_relative_module_path(
         from_path=from_path, to_path=to_path
     )
-    groups: tuple[str, str, str] = re.match(  # type: ignore
+    matched: Match | None = re.match(  # type: ignore
         r"^(\.*)(?:(.*)\.)?([^.]+)", relative_module_path
-    ).groups()
+    )
+    if matched is None:
+        raise ValueError((from_path, to_path, relative_module_path))
+    groups: tuple[str, str, str] = matched.groups()
     if len(groups) != 3:  # noqa: PLR2004
         raise ValueError(relative_module_path)
     return f"from {groups[0] or ''}{groups[1] or ''} import {groups[2]}"
