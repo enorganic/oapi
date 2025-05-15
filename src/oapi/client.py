@@ -1960,8 +1960,13 @@ def get_default_method_name_from_path_method_operation(
     if operation_id:
         method_name = sob.utilities.get_property_name(operation_id)
     else:
-        method_name = (
-            f"{method.lower()}_{sob.utilities.get_property_name(path)}"
+        part: str
+        method_name = "{}_{}".format(
+            method.lower(),
+            "_".join(
+                sob.utilities.get_property_name(part)
+                for part in path.strip("/ ").split("/")
+            ),
         )
     return method_name.rstrip("_")
 
