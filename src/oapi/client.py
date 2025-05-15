@@ -29,7 +29,7 @@ from re import Match, Pattern
 from ssl import SSLError
 from time import sleep
 from urllib.error import HTTPError, URLError
-from urllib.parse import ParseResult, quote, urlparse, urlunparse
+from urllib.parse import ParseResult, parse_qs, quote, urlparse, urlunparse
 from urllib.parse import urlencode as _urlencode
 from urllib.request import (
     HTTPCookieProcessor,
@@ -81,12 +81,14 @@ _lru_cache: typing.Callable[
 
 # region Client ABC
 
+URLENCODE_SAFE: str = "|;,/=+"
+
 
 def urlencode(
     query: collections.abc.Mapping[str, typing.Any]
     | collections.abc.Sequence[tuple[str, typing.Any]],
     doseq: bool = True,  # noqa: FBT001 FBT002
-    safe: str = "|;,/=+",
+    safe: str = URLENCODE_SAFE,
     encoding: str = "utf-8",
     errors: str = "",
     quote_via: typing.Callable[[str, bytes | str, str, str], str] = quote,
@@ -109,7 +111,9 @@ def urlencode(
     for item in (
         query.items() if isinstance(query, collections.abc.Mapping) else query
     ):
-        if isinstance(item, collections.abc.Mapping):
+        if isinstance(
+            item, (collections.abc.Mapping, sob.abc.Dictionary, sob.abc.Object)
+        ):
             # The only dictionaries which should exist
             # for values which have been formatted are
             # intended to be bumped up into the top-level
@@ -402,6 +406,7 @@ def get_request_curl(
         "X-api-key",
         "Authorization",
     ),
+    censored_parameters: tuple[str, ...] = ("client_secret",),
 ) -> str:
     """
     Render an instance of `urllib.request.Request` as a `curl` command.
@@ -410,15 +415,16 @@ def get_request_curl(
         options: Any additional parameters to pass to `curl`,
             (such as "--compressed", "--insecure", etc.)
     """
-    lowercase_excluded_headers: tuple[str, ...] = tuple(
-        map(str.lower, censored_headers)
+    is_json: bool = bool(
+        request.headers.get("Content-Type", "").lower() == "application/json"
     )
+    censored_headers = tuple(map(str.lower, censored_headers))
 
     def _get_request_curl_header_item(item: tuple[str, str]) -> str:
         key: str
         value: str
         key, value = item
-        if key.lower() in lowercase_excluded_headers:
+        if key.lower() in censored_headers:
             value = "***"
         return "-H {}".format(shlex.quote(f"{key}: {value}"))
 
@@ -435,8 +441,19 @@ def get_request_curl(
     )
     repr_data: str = ""
     if data:
+        data_str = data.decode("utf-8")
+        if censored_parameters and not is_json:
+            query: dict[str, list[str]] = {}
+            key: str
+            value: list[str]
+            for key, value in parse_qs(data_str).items():
+                if key in censored_parameters:
+                    query[key] = ["***"]
+                else:
+                    query[key] = value
+            data_str = urlencode(query, safe=f"*{URLENCODE_SAFE}", doseq=True)
         try:
-            repr_data = shlex.quote(data.decode("utf-8"))
+            repr_data = shlex.quote(data_str)
         except UnicodeDecodeError:
             # If the data can't be represented as a command-line argument,
             # use a placeholder
@@ -461,7 +478,9 @@ def get_request_curl(
 
 
 def _represent_http_response(
-    response: HTTPResponse, data: bytes | None = None
+    response: HTTPResponse,
+    data: bytes | None = None,
+    censored_headers: tuple[str, ...] = (),
 ) -> str:
     data = HTTPResponse.read(response) if data is None else data
     content_encoding: str
@@ -471,9 +490,17 @@ def _represent_http_response(
         content_encoding = content_encoding.strip().lower()  # noqa: PLW2901
         if content_encoding and content_encoding == "gzip":
             data = gzip.decompress(data)
-    headers: str = "\n".join(
-        f"{key}: {value}" for key, value in response.headers.items()
+    if censored_headers:
+        censored_headers = tuple(map(str.lower, censored_headers))
+    header_items: tuple[tuple[str, typing.Any], ...] = (
+        tuple(
+            (key, "***" if key.lower() in censored_headers else value)
+            for key, value in response.headers.items()
+        )
+        if censored_headers
+        else tuple(response.headers.items())
     )
+    headers: str = "\n".join(f"{key}: {value}" for key, value in header_items)
     body: str = (
         f'\n\n{str(data, encoding="utf-8", errors="ignore")}' if data else ""
     )
@@ -822,6 +849,7 @@ class Client:
         "oauth2_password",
         "oauth2_authorization_url",
         "oauth2_token_url",
+        "oauth2_scope",
         "oauth2_refresh_url",
         "oauth2_flows",
         "open_id_connect_url",
@@ -854,6 +882,7 @@ class Client:
         oauth2_password: str | None = None,
         oauth2_authorization_url: str | None = None,
         oauth2_token_url: str | None = None,
+        oauth2_scope: str | tuple[str, ...] | None = None,
         oauth2_refresh_url: str | None = None,
         oauth2_flows: tuple[
             typing.Literal[
@@ -977,12 +1006,19 @@ class Client:
                 '"password", or "clientCredentials".'
             )
             raise ValueError(message)
-        # Ensure the OAuth2 token URL is valid (security concern)
-        if oauth2_token_url and (
-            oauth2_token_url.lower().rpartition(":")[0]
-            not in ("http", "https", "")
+        # Ensure URLs are HTTP/HTTPS (security concern) *or* are relative URLs
+        url_: str | None
+        for url_ in (
+            url,
+            oauth2_authorization_url,
+            oauth2_token_url,
+            oauth2_refresh_url,
+            open_id_connect_url,
         ):
-            raise ValueError(oauth2_token_url)
+            if url_ and (
+                url_.lower().rpartition(":")[0] not in ("http", "https", "")
+            ):
+                raise ValueError(url_)
         # Set properties
         self.url: str | None = url
         self.user: str | None = user
@@ -999,6 +1035,7 @@ class Client:
         self.oauth2_password: str | None = oauth2_password
         self.oauth2_authorization_url: str | None = oauth2_authorization_url
         self.oauth2_token_url: str | None = oauth2_token_url
+        self.oauth2_scope: str | tuple[str, ...] | None = oauth2_scope
         self.oauth2_refresh_url: str | None = oauth2_refresh_url
         self.oauth2_flows: (
             typing.Literal[
@@ -1251,21 +1288,28 @@ class Client:
         if self.oauth2_token_url is None:
             message = "No OAuth2 token URL was provided."
             raise RuntimeError(message)
+        if self.oauth2_username is None:
+            message = "No OAuth2 username was provided."
+            raise RuntimeError(message)
+        if self.oauth2_password is None:
+            message = "No OAuth2 password was provided."
+            raise RuntimeError(message)
         try:
+            data_dict: dict[str, str | tuple[str, ...] | None] = {
+                "grant_type": "password",
+                "client_id": self.oauth2_client_id,
+                "username": self.oauth2_username,
+                "password": self.oauth2_password,
+            }
+            if self.oauth2_scope is not None:
+                data_dict.update(scope=self.oauth2_scope)
             return self._opener.open(  # type: ignore
                 Request(  # noqa: S310
                     self.oauth2_token_url,
                     headers={"Host": urlparse(self.oauth2_token_url).netloc},
                     method="POST",
                     data=bytes(
-                        urlencode(
-                            {
-                                "grant_type": "password",
-                                "client_id": self.oauth2_client_id,
-                                "username": self.oauth2_username,
-                                "password": self.oauth2_password,
-                            }
-                        ),
+                        urlencode(data_dict),
                         encoding="ascii",
                     ),
                 )
@@ -1286,23 +1330,33 @@ class Client:
         if self.oauth2_token_url is None:
             message = "No OAuth2 token URL was provided."
             raise RuntimeError(message)
+        if self.oauth2_client_id is None:
+            message = "No OAuth2 client ID was provided."
+            raise RuntimeError(message)
+        if self.oauth2_client_secret is None:
+            message = "No OAuth2 client secret was provided."
+            raise RuntimeError(message)
         try:
+            data_dict: dict[str, str | tuple[str, ...] | None] = {
+                "grant_type": "client_credentials",
+                "client_id": self.oauth2_client_id,
+                "client_secret": self.oauth2_client_secret,
+            }
+            if self.oauth2_scope is not None:
+                data_dict.update(scope=self.oauth2_scope)
+            data: str = urlencode(data_dict)
+            request: Request = Request(  # noqa: S310
+                self.oauth2_token_url,
+                headers={"Host": urlparse(self.oauth2_token_url).netloc},
+                method="POST",
+                data=bytes(
+                    data,
+                    encoding="ascii",
+                ),
+            )
+            self._request_callback(request)
             return self._opener.open(  # type: ignore
-                Request(  # noqa: S310
-                    self.oauth2_token_url,
-                    headers={"Host": urlparse(self.oauth2_token_url).netloc},
-                    method="POST",
-                    data=bytes(
-                        urlencode(
-                            {
-                                "grant_type": "client_credentials",
-                                "client_id": self.oauth2_client_id,
-                                "client_secret": self.oauth2_client_secret,
-                            }
-                        ),
-                        encoding="ascii",
-                    ),
-                )
+                request
             )
         except HTTPError as error:
             location: str | None = error.headers.get(
