@@ -81,11 +81,36 @@ _lru_cache: typing.Callable[
 
 # region Client ABC
 
-URLENCODE_SAFE: str = "|;,/=+"
+URLENCODE_SAFE: str = "|;,/=+[]."
+_ITEMIZED_TYPES: tuple[
+    type[collections.abc.Mapping],
+    type[sob.abc.Dictionary],
+    type[sob.abc.Object],
+] = (
+    collections.abc.Mapping,
+    sob.abc.Dictionary,
+    sob.abc.Object,
+)
+
+
+def _iter_items(
+    itemized: collections.abc.Mapping[str, typing.Any]
+    | sob.abc.Dictionary
+    | sob.abc.Object
+    | collections.abc.Sequence[tuple[str, typing.Any]],
+) -> typing.Iterable[tuple[str, typing.Any]]:
+    if isinstance(itemized, (collections.abc.Mapping, sob.abc.Dictionary)):
+        yield from itemized.items()
+    elif isinstance(itemized, sob.abc.Object):
+        yield from sob.utilities.iter_properties_values(itemized)
+    else:
+        yield from itemized
 
 
 def urlencode(
     query: collections.abc.Mapping[str, typing.Any]
+    | sob.abc.Dictionary
+    | sob.abc.Object
     | collections.abc.Sequence[tuple[str, typing.Any]],
     doseq: bool = True,  # noqa: FBT001 FBT002
     safe: str = URLENCODE_SAFE,
@@ -108,18 +133,16 @@ def urlencode(
         quote_via:
     """
     items: list[tuple[str, typing.Any]] = []
-    for item in (
-        query.items() if isinstance(query, collections.abc.Mapping) else query
-    ):
-        if isinstance(
-            item, (collections.abc.Mapping, sob.abc.Dictionary, sob.abc.Object)
-        ):
-            # The only dictionaries which should exist
+    key: str
+    value: typing.Any
+    for key, value in _iter_items(query):
+        if isinstance(value, _ITEMIZED_TYPES):
+            # The only dictionaries/objects which should exist
             # for values which have been formatted are
             # intended to be bumped up into the top-level
-            items += list(item.items)
+            items.extend(_iter_items(value))
         else:
-            items.append(item)
+            items.append((key, value))
     return _urlencode(
         query=items,
         doseq=doseq,
@@ -328,18 +351,43 @@ def _format_deep_object_argument_value(
             "The `deepObject` argument style only supports `explode=True`."
         )
         raise ValueError(message)
-    if isinstance(value, collections.abc.Mapping):
+    if isinstance(value, _ITEMIZED_TYPES):
         key: str
         value_: sob.abc.MarshallableTypes
         return {
             f"{name}[{key}]": _format_primitive_value(value_) or ""
-            for key, value_ in value.items()
+            for key, value_ in _iter_items(value)
         }
     # This style is only valid for dictionaries
     raise ValueError(value)
 
 
-def format_argument_value(
+def _format_dot_object_argument_value(
+    name: str,
+    value: sob.abc.MarshallableTypes,
+    *,
+    explode: bool = False,
+) -> str | dict[str, str] | collections.abc.Sequence[str] | None:
+    if value is None or isinstance(value, _PRIMITIVE_VALUE_TYPES):
+        return _format_primitive_value(value)  # type: ignore
+    message: str
+    if not explode:
+        message = (
+            "The `dotObject` argument style only supports `explode=True`."
+        )
+        raise ValueError(message)
+    if isinstance(value, _ITEMIZED_TYPES):
+        key: str
+        value_: sob.abc.MarshallableTypes
+        return {
+            f"{name}.{key}": _format_primitive_value(value_) or ""
+            for key, value_ in _iter_items(value)
+        }
+    # This style is only valid for dictionaries
+    raise ValueError(value)
+
+
+def format_argument_value(  # noqa: C901
     name: str,
     value: sob.abc.MarshallableTypes | typing.IO[bytes],
     style: str,
@@ -396,6 +444,8 @@ def format_argument_value(
         return _format_pipe_delimited_argument_value(value, explode=explode)
     if style == "deepObject":
         return _format_deep_object_argument_value(name, value, explode=explode)
+    if style == "dotObject":
+        return _format_dot_object_argument_value(name, value, explode=explode)
     raise ValueError(style)
 
 
@@ -2857,7 +2907,7 @@ class ClientModule:
             explode: bool = (
                 (
                     bool(
-                        style in ("form", "deepObject")
+                        style in ("form", "deepObject", "dotObject")
                         # OpenAPI 2x compatibility
                         or parameter.collection_format == "multi"
                     )
