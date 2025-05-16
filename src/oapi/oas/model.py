@@ -2293,9 +2293,12 @@ class Parameter(sob.Object):
             [Parameter Serialization
             ](https://swagger.io/docs/specification/serialization)).
             Valid values include: "matrix", "label", "form", "simple",
-            "spaceDelimited", "pipeDelimited", and "deepObject".
+            "spaceDelimited", "pipeDelimited", "deepObject", and "dotObject".
             The default values vary by location (`in_`). For "query": "form",
             path: "simple", header: "simple", and cookie: "form".
+            The "dotObject" style is identical to "deepObject" except that
+            `object.attribute` notation is used instead of `object[attribute]`
+            notation.
         explode: When this is `True`, array or object parameter values
             generate separate parameters for each value of the array or
             name-value pair of the map. For other value_types of parameters
