@@ -282,32 +282,11 @@ def _format_matrix_argument_value(
     return argument_value
 
 
-def _format_form_argument_value(
-    value: sob.abc.MarshallableTypes,
-    *,
-    explode: bool = False,
-) -> str | dict[str, str] | collections.abc.Sequence[str] | None:
-    if value is None or isinstance(value, _PRIMITIVE_VALUE_TYPES):
-        return _format_primitive_value(value)  # type: ignore
-    if explode:
-        if isinstance(value, collections.abc.Mapping):
-            key: str
-            value_: sob.abc.MarshallableTypes
-            return {
-                key: _format_primitive_value(value_) or ""
-                for key, value_ in value.items()
-            }
-        if isinstance(value, collections.abc.Sequence):
-            return tuple(map(_format_primitive_value, value))  # type: ignore
-        raise ValueError(value)
-    return _format_simple_argument_value(value)
-
-
 def _format_space_delimited_argument_value(
     value: sob.abc.MarshallableTypes,
     *,
     explode: bool = False,
-) -> str | dict[str, str] | collections.abc.Sequence[str] | None:
+) -> str | dict[str, str | list[str]] | collections.abc.Sequence[str] | None:
     if value is None or isinstance(value, _PRIMITIVE_VALUE_TYPES):
         return _format_primitive_value(value)  # type: ignore
     if explode:
@@ -324,7 +303,7 @@ def _format_pipe_delimited_argument_value(
     value: sob.abc.MarshallableTypes,
     *,
     explode: bool = False,
-) -> str | dict[str, str] | collections.abc.Sequence[str] | None:
+) -> str | dict[str, str | list[str]] | collections.abc.Sequence[str] | None:
     if value is None or isinstance(value, _PRIMITIVE_VALUE_TYPES):
         return _format_primitive_value(value)  # type: ignore
     if explode:
@@ -335,6 +314,55 @@ def _format_pipe_delimited_argument_value(
         )
     # This style is only valid for arrays
     raise ValueError(value)
+
+
+def _format_form_argument_value(
+    value: sob.abc.MarshallableTypes,
+    *,
+    explode: bool = False,
+) -> str | dict[str, str | list[str]] | collections.abc.Sequence[str] | None:
+    if value is None or isinstance(value, _PRIMITIVE_VALUE_TYPES):
+        return _format_primitive_value(value)  # type: ignore
+    if explode:
+        if isinstance(value, _ITEMIZED_TYPES) or (
+            isinstance(value, collections.abc.Sequence)
+            and value
+            and isinstance(value[0], tuple)
+            and len(value[0]) == 2  # noqa: PLR2004
+            and isinstance(value[0][0], str)
+        ):
+            key: str
+            value_: sob.abc.MarshallableTypes
+            form_object: dict[str, str | list[str]] = {}
+            for key, value_ in _iter_items(value):  # type: ignore
+                if key in form_object:
+                    if isinstance(form_object[key], list):
+                        form_object[key].append(  # type: ignore
+                            _format_primitive_value(
+                                value_  # type: ignore
+                            )
+                            or ""
+                        )
+                    else:
+                        form_object[key] = [
+                            form_object[key],  # type: ignore
+                            _format_primitive_value(
+                                value_  # type: ignore
+                            )
+                            or "",
+                        ]
+                else:
+                    form_object[key] = (
+                        _format_primitive_value(
+                            value_  # type: ignore
+                        )
+                        or ""
+                    )
+            return form_object
+        if isinstance(value, collections.abc.Sequence):
+            return tuple(map(_format_primitive_value, value))  # type: ignore
+        raise ValueError(value)
+    return _format_simple_argument_value(value)
 
 
 def _format_deep_object_argument_value(
@@ -354,10 +382,43 @@ def _format_deep_object_argument_value(
     if isinstance(value, _ITEMIZED_TYPES):
         key: str
         value_: sob.abc.MarshallableTypes
-        return {
-            f"{name}[{key}]": _format_primitive_value(value_) or ""
-            for key, value_ in _iter_items(value)
-        }
+        deep_object: dict[str, typing.Any] = {}
+        for key, value_ in _iter_items(value):
+            if isinstance(value_, _ITEMIZED_TYPES):
+                deep_object.update(
+                    **typing.cast(
+                        dict,
+                        _format_deep_object_argument_value(
+                            name=f"{name}[{key}]",
+                            value=value_,
+                            explode=explode,
+                        ),
+                    )
+                )
+            elif isinstance(value_, _PRIMITIVE_VALUE_TYPES):
+                deep_object[f"{name}[{key}]"] = (
+                    _format_primitive_value(
+                        value_  # type: ignore
+                    )
+                    or ""
+                )
+            elif isinstance(value_, collections.abc.Sequence):
+                index: int
+                value_item: typing.Any
+                for index, value_item in enumerate(value_):
+                    deep_object.update(
+                        **typing.cast(
+                            dict,
+                            _format_deep_object_argument_value(
+                                name=f"{name}[{key}][{index}]",
+                                value=value_item,
+                                explode=explode,
+                            ),
+                        )
+                    )
+            else:
+                raise TypeError(value_)
+        return deep_object
     # This style is only valid for dictionaries
     raise ValueError(value)
 
@@ -379,10 +440,43 @@ def _format_dot_object_argument_value(
     if isinstance(value, _ITEMIZED_TYPES):
         key: str
         value_: sob.abc.MarshallableTypes
-        return {
-            f"{name}.{key}": _format_primitive_value(value_) or ""
-            for key, value_ in _iter_items(value)
-        }
+        dot_object: dict[str, typing.Any] = {}
+        for key, value_ in _iter_items(value):
+            if isinstance(value_, _ITEMIZED_TYPES):
+                dot_object.update(
+                    **typing.cast(
+                        dict,
+                        _format_dot_object_argument_value(
+                            name=f"{name}.{key}",
+                            value=value_,
+                            explode=explode,
+                        ),
+                    )
+                )
+            elif isinstance(value_, _PRIMITIVE_VALUE_TYPES):
+                dot_object[f"{name}.{key}"] = (
+                    _format_primitive_value(
+                        value_  # type: ignore
+                    )
+                    or ""
+                )
+            elif isinstance(value_, collections.abc.Sequence):
+                index: int
+                value_item: typing.Any
+                for index, value_item in enumerate(value_):
+                    dot_object.update(
+                        **typing.cast(
+                            dict,
+                            _format_dot_object_argument_value(
+                                name=f"{name}.{key}[{index}]",
+                                value=value_item,
+                                explode=explode,
+                            ),
+                        )
+                    )
+            else:
+                raise TypeError(value_)
+        return dot_object
     # This style is only valid for dictionaries
     raise ValueError(value)
 
@@ -397,6 +491,7 @@ def format_argument_value(  # noqa: C901
 ) -> (
     str
     | dict[str, str]
+    | dict[str, str | list[str]]
     | collections.abc.Sequence[str]
     | collections.abc.Sequence[bytes]
     | bytes
