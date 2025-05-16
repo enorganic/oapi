@@ -354,10 +354,27 @@ def _format_deep_object_argument_value(
     if isinstance(value, _ITEMIZED_TYPES):
         key: str
         value_: sob.abc.MarshallableTypes
-        return {
-            f"{name}[{key}]": _format_primitive_value(value_) or ""
-            for key, value_ in _iter_items(value)
-        }
+        deep_object: dict[str, typing.Any] = {}
+        for key, value_ in _iter_items(value):
+            if isinstance(value_, _ITEMIZED_TYPES):
+                deep_object.update(
+                    **typing.cast(
+                        dict,
+                        _format_deep_object_argument_value(
+                            name=f"{name}[{key}]",
+                            value=value_,
+                            explode=explode,
+                        ),
+                    )
+                )
+            else:
+                deep_object[f"{name}[{key}]"] = (
+                    _format_primitive_value(
+                        value_  # type: ignore
+                    )
+                    or ""
+                )
+        return deep_object
     # This style is only valid for dictionaries
     raise ValueError(value)
 
@@ -379,10 +396,27 @@ def _format_dot_object_argument_value(
     if isinstance(value, _ITEMIZED_TYPES):
         key: str
         value_: sob.abc.MarshallableTypes
-        return {
-            f"{name}.{key}": _format_primitive_value(value_) or ""
-            for key, value_ in _iter_items(value)
-        }
+        dot_object: dict[str, typing.Any] = {}
+        for key, value_ in _iter_items(value):
+            if isinstance(value_, _ITEMIZED_TYPES):
+                dot_object.update(
+                    **typing.cast(
+                        dict,
+                        _format_deep_object_argument_value(
+                            name=f"{name}.{key}",
+                            value=value_,
+                            explode=explode,
+                        ),
+                    )
+                )
+            else:
+                dot_object[f"{name}.{key}"] = (
+                    _format_primitive_value(
+                        value_  # type: ignore
+                    )
+                    or ""
+                )
+        return dot_object
     # This style is only valid for dictionaries
     raise ValueError(value)
 
