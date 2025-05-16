@@ -5630,7 +5630,7 @@ sob.get_writable_object_meta(  # type: ignore
                         "header",
                         "path",
                         "query",
-                        "querystring",
+                        "querystring"
                     },
                     versions=(
                         'openapi>=3.2',
@@ -5644,7 +5644,7 @@ sob.get_writable_object_meta(  # type: ignore
                         "cookie",
                         "header",
                         "path",
-                        "query",
+                        "query"
                     },
                     versions=(
                         'openapi>=3.0',
