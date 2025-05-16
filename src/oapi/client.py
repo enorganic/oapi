@@ -446,7 +446,7 @@ def _format_dot_object_argument_value(
                 dot_object.update(
                     **typing.cast(
                         dict,
-                        _format_deep_object_argument_value(
+                        _format_dot_object_argument_value(
                             name=f"{name}.{key}",
                             value=value_,
                             explode=explode,
@@ -467,7 +467,7 @@ def _format_dot_object_argument_value(
                     dot_object.update(
                         **typing.cast(
                             dict,
-                            _format_deep_object_argument_value(
+                            _format_dot_object_argument_value(
                                 name=f"{name}.{key}[{index}]",
                                 value=value_item,
                                 explode=explode,
