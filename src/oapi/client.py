@@ -1230,7 +1230,8 @@ class Client:
         data: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
         | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
         query: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
-        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
+        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]]
+        | str = (),
         headers: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
         | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
         multipart: bool = False,
@@ -1277,7 +1278,8 @@ class Client:
                 collections.abc.Mapping[str, sob.abc.MarshallableTypes]
                 | collections.abc.Sequence[
                     tuple[str, sob.abc.MarshallableTypes]
-                ],
+                ]
+                | str,
                 collections.abc.Mapping[str, sob.abc.MarshallableTypes]
                 | collections.abc.Sequence[
                     tuple[str, sob.abc.MarshallableTypes]
@@ -1591,7 +1593,8 @@ class Client:
         data: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
         | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
         query: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
-        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
+        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]]
+        | str = (),
         headers: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
         | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
         multipart: bool = False,  # noqa: FBT001 FBT002
@@ -1604,9 +1607,11 @@ class Client:
         timeout: int = 0,
     ) -> sob.abc.Readable:
         if query:
-            query = _remove_none(query)
-        if query:
-            path = f"{path}?{urlencode(query)}"
+            if not isinstance(query, str):
+                query = _remove_none(query)
+                query = urlencode(query)
+            if query:
+                path = f"{path}?{query}"
         # Prepend the base URL, if the URL is relative
         parse_result: ParseResult = urlparse(path)
         if parse_result.scheme:
@@ -1833,6 +1838,8 @@ class _ParameterLocations:
             parameter names to information about each parameter.
         cookie: A mapping of cookie
             parameter names to information about each parameter.
+        querystring: A parameter representing the complete query string.
+            This may not be used in conjunction with `query` parameters.
     """
 
     total_count: int = 0
@@ -1843,6 +1850,7 @@ class _ParameterLocations:
     form_data: dict[str, _Parameter] = field(default_factory=dict)
     multipart: bool = False
     cookie: dict[str, _Parameter] = field(default_factory=dict)
+    querystring: _Parameter | None = None
 
 
 def _iter_parameters(
@@ -1969,7 +1977,19 @@ def _iter_request_body_representation(
 def _iter_request_query_representation(
     parameter_locations: _ParameterLocations, *, use_kwargs: bool = False
 ) -> collections.abc.Iterable[str]:
-    if parameter_locations.query:
+    message: str
+    if parameter_locations.querystring:
+        if parameter_locations.query:
+            message = (
+                "You may not mix `querystring` and `query` parameters in the "
+                "same operation."
+            )
+            raise ValueError(message)
+        query: str = sob.utilities.represent(parameter_locations.querystring)
+        yield "            query=("
+        yield f"                {query},"
+        yield "            ),"
+    elif parameter_locations.query:
         yield "            query={"
         name: str
         parameter: _Parameter
@@ -2902,7 +2922,11 @@ class ClientModule:
                         and parameter.in_ in ("query", "formData")
                     )
                 )
-                else ("simple" if parameter.in_ in ("path", "header") else "")
+                else (
+                    "simple"
+                    if parameter.in_ in ("path", "header", "querystring")
+                    else ""
+                )
             )
             explode: bool = (
                 (
@@ -2953,7 +2977,19 @@ class ClientModule:
                     raise ValueError(message)
                 parameter_.name = parameter_name
                 parameter_locations.body = parameter_
+            elif parameter_in == "querystring":
+                if parameter_locations.query:
+                    message = (
+                        'You may not mix "querystring" and "query" parameters'
+                    )
+                    raise ValueError(message)
+                parameter_locations.querystring = parameter_
             else:
+                if parameter_in == "query" and parameter_locations.querystring:
+                    message = (
+                        'You may not mix "querystring" and "query" parameters'
+                    )
+                    raise ValueError(message)
                 getattr(
                     parameter_locations,
                     parameter_in,
