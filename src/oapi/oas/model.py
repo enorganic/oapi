@@ -5629,7 +5629,22 @@ sob.get_writable_object_meta(  # type: ignore
                         "cookie",
                         "header",
                         "path",
-                        "query"
+                        "query",
+                        "querystring",
+                    },
+                    versions=(
+                        'openapi>=3.2',
+                    )
+                ),
+                sob.EnumeratedProperty(
+                    types=sob.Types([
+                        str
+                    ]),
+                    values={
+                        "cookie",
+                        "header",
+                        "path",
+                        "query",
                     },
                     versions=(
                         'openapi>=3.0',
