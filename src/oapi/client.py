@@ -3410,7 +3410,7 @@ class ClientModule:
             if not response_type_names:
                 raise ValueError(response_types)
             if len(response_type_names) > 1:
-                response_class_names: str = "        | ".join(
+                response_class_names: str = "\n        | ".join(
                     response_type_names
                 )
                 response_type_hint = (
