@@ -935,7 +935,10 @@ def _assemble_request(  # noqa: C901
                 if "Content-disposition" not in part_headers:
                     filename: str = ""
                     if isinstance(datum, sob.abc.Readable):
-                        filename = _get_file_name(datum, name)
+                        filename = _get_file_name(
+                            datum,  # type: ignore
+                            name,
+                        )
                         datum = typing.cast(  # noqa: PLW2901
                             sob.abc.Readable, datum
                         ).read()

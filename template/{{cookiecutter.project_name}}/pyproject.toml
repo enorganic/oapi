@@ -5,39 +5,26 @@ requires = [
 build-backend = "hatchling.build"
 
 [project]
-name = "oapi"
-version = "2.2.3"
-description = "A library for generating web API clients from OpenAPI documents"
+name = "{{cookiecutter.project_name}}"
+version = "0.0.0"
+description = ""
 readme = "README.md"
 license = "MIT"
 requires-python = "~=3.9"
 authors = [
-    { email = "david@belais.me" },
-]
-keywords = [
-    "OpenAPI",
+    { email = "{{cookiecutter.author_email}}" },
 ]
 dependencies = [
-    "sob~=2.0",
-    "jsonpointer<4.0,>2.3",
-    "typing-extensions",
-]
-
-[project.optional-dependencies]
-yaml = [
-    "pyyaml>2",
-]
-all = [
-    "pyyaml>2",
+    "oapi~=2.0",
 ]
 
 [project.urls]
-Documentation = "https://oapi.enorganic.org"
-Repository = "https://github.com/enorganic/oapi"
+Documentation = "{{cookiecutter.documentation_url}}"
+Repository = "{{cookiecutter.repository_url}}"
 
 [tool.hatch.build.targets.sdist]
 packages = [
-    "src/oapi",
+    "{{cookiecutter.package_directory}}",
 ]
 sources = [
     "src",
@@ -45,10 +32,7 @@ sources = [
 
 [tool.hatch.build.targets.wheel]
 packages = [
-    "src/oapi",
-]
-sources = [
-    "src",
+    "{{cookiecutter.package_directory}}",
 ]
 
 [tool.hatch.envs.default]
@@ -60,9 +44,6 @@ dependencies = [
     "gittable~=0.0",
     "pyyaml>2",
     "types-PyYAML",
-]
-pre-install-commands = [
-    "pip install --upgrade pip setuptools",
 ]
 post-install-commands = [
     "hatch run mypy --install-types --non-interactive || echo",
@@ -106,9 +87,8 @@ python = [
 [tool.ruff]
 line-length = 79
 extend-exclude = [
-    "tests/regression-data/*",
-    "src/oapi/oas/model.py",
-    "template",
+    "{{cookiecutter.package_directory}}/client.py",
+    "{{cookiecutter.package_directory}}/model.py",
 ]
 
 [tool.ruff.lint]
@@ -149,11 +129,16 @@ python_version = "3.9"
 files = [
     "src",
     "tests",
+    "scripts",
 ]
+mypy_path = "src"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+namespace_packages = true
+explicit_package_bases = true
 
 [tool.coverage.report]
+fail_under = 80
 
 [tool.coverage.run]
 source = [
