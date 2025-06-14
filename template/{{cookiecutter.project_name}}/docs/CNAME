@@ -1,0 +1,1 @@
+{{cookiecutter.documentation_url.rpartition("://")[2]}}

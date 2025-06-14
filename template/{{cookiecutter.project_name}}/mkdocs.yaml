@@ -1,26 +1,12 @@
-site_name: oapi
-site_url: https://enorganic.github.io/oapi/
-repo_url: https://github.com/enorganic/oapi/
+site_name: {{cookiecutter.project_name}}
+site_url: {{cookiecutter.documentation_url}}
+repo_url: {{cookiecutter.repository_url}}
 edit_uri: blob/main/docs/
 nav:
 - Introduction: 'index.md'
 - API Reference:
-    - oapi.client: 'api/oapi.client.md'
-    - oapi.errors: 'api/oapi.errors.md'
-    - oapi.model: 'api/oapi.model.md'
-    - oapi.oas.model: 'api/oapi.oas.model.md'
-    - oapi.oas.references: 'api/oapi.oas.references.md'
-    - sob.abc: 'api/sob.abc.md'
-    - sob.errors: 'api/sob.errors.md'
-    - sob.hooks: 'api/sob.hooks.md'
-    - sob.meta: 'api/sob.meta.md'
-    - sob.model: 'api/sob.model.md'
-    - sob.properties: 'api/sob.properties.md'
-    - sob.thesaurus: 'api/sob.thesaurus.md'
-    - sob.types: 'api/sob.types.md'
-    - sob.utilities: 'api/sob.utilities.md'
-    - sob.version: 'api/sob.version.md'
-- Template: 'template.md'
+    - {{cookiecutter.project_name}}.client: 'api/{{cookiecutter.package}}.client.md'
+    - {{cookiecutter.project_name}}.model: 'api/{{cookiecutter.package}}.model.md'
 - Contributing: 'contributing.md'
 theme:
   name: material

@@ -1,0 +1,1 @@
+::: {{cookiecutter.package}}.client
