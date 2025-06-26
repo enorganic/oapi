@@ -1,4 +1,4 @@
-# Contributing to oapi
+# Contributing to {{cookiecutter.project_name}}
 
 Please note that you must have [hatch](https://hatch.pypa.io/latest/)
 installed prior to performing the following steps.
