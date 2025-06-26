@@ -5,8 +5,8 @@ edit_uri: blob/main/docs/
 nav:
 - Introduction: 'index.md'
 - API Reference:
-    - {{cookiecutter.project_name}}.client: 'api/{{cookiecutter.package}}.client.md'
-    - {{cookiecutter.project_name}}.model: 'api/{{cookiecutter.package}}.model.md'
+    - client: 'api/client.md'
+    - model: 'api/model.md'
 - Contributing: 'contributing.md'
 theme:
   name: material
