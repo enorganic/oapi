@@ -72,7 +72,6 @@ extra-dependencies = [
 extra-args = [
     "-s",
     "-vv",
-    "--doctest-modules",
 ]
 
 [[tool.hatch.envs.hatch-test.matrix]]
