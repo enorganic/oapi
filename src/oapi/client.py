@@ -94,10 +94,12 @@ _ITEMIZED_TYPES: tuple[
 
 
 def _iter_items(
-    itemized: collections.abc.Mapping[str, typing.Any]
-    | sob.abc.Dictionary
-    | sob.abc.Object
-    | collections.abc.Sequence[tuple[str, typing.Any]],
+    itemized: (
+        collections.abc.Mapping[str, typing.Any]
+        | sob.abc.Dictionary
+        | sob.abc.Object
+        | collections.abc.Sequence[tuple[str, typing.Any]]
+    ),
 ) -> typing.Iterable[tuple[str, typing.Any]]:
     if isinstance(itemized, (collections.abc.Mapping, sob.abc.Dictionary)):
         yield from itemized.items()
@@ -108,10 +110,12 @@ def _iter_items(
 
 
 def urlencode(
-    query: collections.abc.Mapping[str, typing.Any]
-    | sob.abc.Dictionary
-    | sob.abc.Object
-    | collections.abc.Sequence[tuple[str, typing.Any]],
+    query: (
+        collections.abc.Mapping[str, typing.Any]
+        | sob.abc.Dictionary
+        | sob.abc.Object
+        | collections.abc.Sequence[tuple[str, typing.Any]]
+    ),
     doseq: bool = True,  # noqa: FBT001 FBT002
     safe: str = URLENCODE_SAFE,
     encoding: str = "utf-8",
@@ -149,7 +153,7 @@ def urlencode(
         safe=safe,
         encoding=encoding,
         errors=errors,
-        quote_via=quote_via,
+        quote_via=quote_via,  # type: ignore
     )
 
 
@@ -292,9 +296,7 @@ def _format_space_delimited_argument_value(
     if explode:
         return _format_form_argument_value(value, explode=explode)
     if isinstance(value, collections.abc.Sequence):
-        return " ".join(
-            map(_format_primitive_value, value)  # type: ignore
-        )
+        return " ".join(map(_format_primitive_value, value))  # type: ignore
     # This style is only valid for arrays
     raise ValueError(value)
 
@@ -309,9 +311,7 @@ def _format_pipe_delimited_argument_value(
     if explode:
         return _format_form_argument_value(value, explode=explode)
     if isinstance(value, collections.abc.Sequence):
-        return "|".join(
-            map(_format_primitive_value, value)  # type: ignore
-        )
+        return "|".join(map(_format_primitive_value, value))  # type: ignore
     # This style is only valid for arrays
     raise ValueError(value)
 
@@ -338,25 +338,18 @@ def _format_form_argument_value(
                 if key in form_object:
                     if isinstance(form_object[key], list):
                         form_object[key].append(  # type: ignore
-                            _format_primitive_value(
-                                value_  # type: ignore
-                            )
+                            _format_primitive_value(value_)  # type: ignore
                             or ""
                         )
                     else:
                         form_object[key] = [
                             form_object[key],  # type: ignore
-                            _format_primitive_value(
-                                value_  # type: ignore
-                            )
+                            _format_primitive_value(value_)  # type: ignore
                             or "",
                         ]
                 else:
                     form_object[key] = (
-                        _format_primitive_value(
-                            value_  # type: ignore
-                        )
-                        or ""
+                        _format_primitive_value(value_) or ""  # type: ignore
                     )
             return form_object
         if isinstance(value, collections.abc.Sequence):
@@ -397,10 +390,7 @@ def _format_deep_object_argument_value(
                 )
             elif isinstance(value_, _PRIMITIVE_VALUE_TYPES):
                 deep_object[f"{name}[{key}]"] = (
-                    _format_primitive_value(
-                        value_  # type: ignore
-                    )
-                    or ""
+                    _format_primitive_value(value_) or ""  # type: ignore
                 )
             elif isinstance(value_, collections.abc.Sequence):
                 index: int
@@ -455,10 +445,7 @@ def _format_dot_object_argument_value(
                 )
             elif isinstance(value_, _PRIMITIVE_VALUE_TYPES):
                 dot_object[f"{name}.{key}"] = (
-                    _format_primitive_value(
-                        value_  # type: ignore
-                    )
-                    or ""
+                    _format_primitive_value(value_) or ""  # type: ignore
                 )
             elif isinstance(value_, collections.abc.Sequence):
                 index: int
@@ -739,8 +726,10 @@ def retry(
 
 
 def _remove_none(
-    items: collections.abc.Mapping[str, typing.Any]
-    | collections.abc.Sequence[tuple[str, typing.Any]],
+    items: (
+        collections.abc.Mapping[str, typing.Any]
+        | collections.abc.Sequence[tuple[str, typing.Any]]
+    ),
 ) -> collections.abc.Sequence[tuple[str, typing.Any]]:
     if isinstance(items, collections.abc.Mapping):
         items = tuple(items.items())
@@ -750,8 +739,10 @@ def _remove_none(
 
 def _format_request_data(  # noqa: C901
     json: str | bytes | sob.abc.Model | None,
-    data: collections.abc.Mapping[str, typing.Any]
-    | collections.abc.Sequence[tuple[str, typing.Any]],
+    data: (
+        collections.abc.Mapping[str, typing.Any]
+        | collections.abc.Sequence[tuple[str, typing.Any]]
+    ),
 ) -> bytes | None:
     formatted_data: bytes | None = None
     if json:
@@ -1032,22 +1023,26 @@ class Client:
         oauth2_token_url: str | None = None,
         oauth2_scope: str | tuple[str, ...] | None = None,
         oauth2_refresh_url: str | None = None,
-        oauth2_flows: tuple[
-            typing.Literal[
-                "authorizationCode",
-                "implicit",
-                "password",
-                "clientCredentials",
-                # OpenAPI 2.x Compatibility:
-                "accessCode",
-                "application",
-            ],
-            ...,
-        ]
-        | None = None,
+        oauth2_flows: (
+            tuple[
+                typing.Literal[
+                    "authorizationCode",
+                    "implicit",
+                    "password",
+                    "clientCredentials",
+                    # OpenAPI 2.x Compatibility:
+                    "accessCode",
+                    "application",
+                ],
+                ...,
+            ]
+            | None
+        ) = None,
         open_id_connect_url: str | None = None,
-        headers: collections.abc.Mapping[str, str]
-        | collections.abc.Sequence[tuple[str, str]] = (
+        headers: (
+            collections.abc.Mapping[str, str]
+            | collections.abc.Sequence[tuple[str, str]]
+        ) = (
             ("Accept", "application/json"),
             ("Content-type", "application/json"),
         ),
@@ -1084,6 +1079,8 @@ class Client:
                 OAuth2 flow. Can be relative to `url`.
             oauth2_token_url: The token URL to use for OAuth2
                 authentication. Can be relative to `url`.
+            oauth2_scope: One or more
+                [OAuth2 scopes](https://oauth.net/2/scope/)
             oauth2_refresh_url: The URL to be used for obtaining refresh
                 tokens for OAuth2 authentication.
             oauth2_flows: A tuple containing one or more of the
@@ -1295,10 +1292,7 @@ class Client:
         self.__init__(**kwargs)  # type: ignore
         # Set the remaining state slots
         deque(
-            (
-                setattr(self, *item)  # type: ignore
-                for item in state.items()
-            ),
+            (setattr(self, *item) for item in state.items()),  # type: ignore
             maxlen=0,
         )
 
@@ -1325,20 +1319,28 @@ class Client:
         method: str,
         *,
         json: str | bytes | sob.abc.Model | None = None,
-        data: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
-        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
-        query: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
-        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]]
-        | str = (),
-        headers: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
-        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
+        data: (
+            collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+            | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]]
+        ) = (),
+        query: (
+            collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+            | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]]
+            | str
+        ) = (),
+        headers: (
+            collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+            | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]]
+        ) = (),
         multipart: bool = False,
-        multipart_data_headers: collections.abc.Mapping[
-            str, collections.abc.MutableMapping[str, str]
-        ]
-        | collections.abc.Sequence[
-            tuple[str, collections.abc.MutableMapping[str, str]]
-        ] = (),
+        multipart_data_headers: (
+            collections.abc.Mapping[
+                str, collections.abc.MutableMapping[str, str]
+            ]
+            | collections.abc.Sequence[
+                tuple[str, collections.abc.MutableMapping[str, str]]
+            ]
+        ) = (),
         timeout: int = 0,
     ) -> sob.abc.Readable:
         """
@@ -1505,9 +1507,7 @@ class Client:
                 ),
             )
             self._request_callback(request)
-            return self._opener.open(  # type: ignore
-                request
-            )
+            return self._opener.open(request)  # type: ignore
         except HTTPError as error:
             location: str | None = error.headers.get(
                 "Location", self.oauth2_token_url
@@ -1688,20 +1688,28 @@ class Client:
         path: str,
         method: str,
         json: str | bytes | sob.abc.Model | None = None,
-        data: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
-        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
-        query: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
-        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]]
-        | str = (),
-        headers: collections.abc.Mapping[str, sob.abc.MarshallableTypes]
-        | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]] = (),
+        data: (
+            collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+            | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]]
+        ) = (),
+        query: (
+            collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+            | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]]
+            | str
+        ) = (),
+        headers: (
+            collections.abc.Mapping[str, sob.abc.MarshallableTypes]
+            | collections.abc.Sequence[tuple[str, sob.abc.MarshallableTypes]]
+        ) = (),
         multipart: bool = False,  # noqa: FBT001 FBT002
-        multipart_data_headers: collections.abc.Mapping[
-            str, collections.abc.MutableMapping[str, str]
-        ]
-        | collections.abc.Sequence[
-            tuple[str, collections.abc.MutableMapping[str, str]]
-        ] = (),
+        multipart_data_headers: (
+            collections.abc.Mapping[
+                str, collections.abc.MutableMapping[str, str]
+            ]
+            | collections.abc.Sequence[
+                tuple[str, collections.abc.MutableMapping[str, str]]
+            ]
+        ) = (),
         timeout: int = 0,
     ) -> sob.abc.Readable:
         if query:
@@ -2158,12 +2166,14 @@ class ClientModule:
         include_init_parameters: str | tuple[str, ...] = (),
         add_init_parameters: str | tuple[str, ...] = (),
         add_init_parameter_docs: str | tuple[str, ...] = (),
-        init_parameter_defaults: collections.abc.Mapping[str, typing.Any]
-        | collections.abc.Sequence[tuple[str, typing.Any]] = (),
-        init_parameter_defaults_source: collections.abc.Mapping[
-            str, typing.Any
-        ]
-        | collections.abc.Sequence[tuple[str, typing.Any]] = (),
+        init_parameter_defaults: (
+            collections.abc.Mapping[str, typing.Any]
+            | collections.abc.Sequence[tuple[str, typing.Any]]
+        ) = (),
+        init_parameter_defaults_source: (
+            collections.abc.Mapping[str, typing.Any]
+            | collections.abc.Sequence[tuple[str, typing.Any]]
+        ) = (),
         get_method_name_from_path_method_operation: typing.Callable[
             [str, str, str | None], str
         ] = get_default_method_name_from_path_method_operation,
@@ -2411,9 +2421,11 @@ class ClientModule:
             key=lambda import_statement: (
                 (0, import_statement)
                 if import_statement.startswith("from __future__")
-                else (2, import_statement)
-                if import_statement.startswith("from ")
-                else (1, import_statement)
+                else (
+                    (2, import_statement)
+                    if import_statement.startswith("from ")
+                    else (1, import_statement)
+                )
             ),
         )
 
@@ -2968,8 +2980,9 @@ class ClientModule:
         parameter_locations: _ParameterLocations,
         parameter_names: set[str] | None = None,
         content_type: str = "",
-        headers: collections.abc.Mapping[str, Header | Reference]
-        | None = None,
+        headers: (
+            collections.abc.Mapping[str, Header | Reference] | None
+        ) = None,
     ) -> collections.abc.Iterable[str]:
         """
         Yield lines for a parameter declaration.
@@ -3783,10 +3796,14 @@ def write_client_module(
     include_init_parameters: str | tuple[str, ...] = (),
     add_init_parameters: str | tuple[str, ...] = (),
     add_init_parameter_docs: str | tuple[str, ...] = (),
-    init_parameter_defaults: collections.abc.Mapping[str, typing.Any]
-    | collections.abc.Sequence[tuple[str, typing.Any]] = (),
-    init_parameter_defaults_source: collections.abc.Mapping[str, typing.Any]
-    | collections.abc.Sequence[tuple[str, typing.Any]] = (),
+    init_parameter_defaults: (
+        collections.abc.Mapping[str, typing.Any]
+        | collections.abc.Sequence[tuple[str, typing.Any]]
+    ) = (),
+    init_parameter_defaults_source: (
+        collections.abc.Mapping[str, typing.Any]
+        | collections.abc.Sequence[tuple[str, typing.Any]]
+    ) = (),
     get_method_name_from_path_method_operation: typing.Callable[
         [str, str, str | None], str
     ] = get_default_method_name_from_path_method_operation,

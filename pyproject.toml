@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "oapi"
-version = "2.2.3"
+version = "2.2.4"
 description = "A library for generating web API clients from OpenAPI documents"
 readme = "README.md"
 license = "MIT"
@@ -56,7 +56,7 @@ python = "3.9"
 dependencies = [
     "pytest",
     "mypy",
-    "dependence~=1.0",
+    "dependence~=1.1",
     "gittable~=0.0",
     "pyyaml>2",
     "types-PyYAML",
@@ -80,12 +80,12 @@ dependencies = [
     "mkdocs-material",
     "mkdocstrings[python]",
     "black",
-    "dependence~=1.0",
+    "dependence~=1.1",
 ]
 
 [tool.hatch.envs.hatch-test]
 extra-dependencies = [
-    "dependence~=1.0",
+    "dependence~=1.1",
     "pyyaml>2",
 ]
 extra-args = [
