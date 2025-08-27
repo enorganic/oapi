@@ -153,7 +153,7 @@ def urlencode(
         safe=safe,
         encoding=encoding,
         errors=errors,
-        quote_via=quote_via,
+        quote_via=quote_via,  # type: ignore
     )
 
 
