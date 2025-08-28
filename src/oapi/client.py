@@ -358,12 +358,15 @@ def _format_form_argument_value(
     return _format_simple_argument_value(value)
 
 
-def _format_deep_object_argument_value(
+def _format_deep_object_argument_value(  # noqa: C901
     name: str,
     value: sob.abc.MarshallableTypes,
     *,
     explode: bool = False,
+    use_dot_notation: bool = False,
 ) -> str | dict[str, str] | collections.abc.Sequence[str] | None:
+    index: int
+    value_item: typing.Any
     if value is None or isinstance(value, _PRIMITIVE_VALUE_TYPES):
         return _format_primitive_value(value)  # type: ignore
     message: str
@@ -372,44 +375,80 @@ def _format_deep_object_argument_value(
             "The `deepObject` argument style only supports `explode=True`."
         )
         raise ValueError(message)
+    deep_object: dict[str, typing.Any] = {}
+    formatted_value: typing.Any
     if isinstance(value, _ITEMIZED_TYPES):
         key: str
         value_: sob.abc.MarshallableTypes
-        deep_object: dict[str, typing.Any] = {}
         for key, value_ in _iter_items(value):
             if isinstance(value_, _ITEMIZED_TYPES):
                 deep_object.update(
                     **typing.cast(
                         dict,
                         _format_deep_object_argument_value(
-                            name=f"{name}[{key}]",
+                            name=(
+                                f"{name}.{key}"
+                                if use_dot_notation
+                                else f"{name}[{key}]"
+                            ),
                             value=value_,
                             explode=explode,
+                            use_dot_notation=use_dot_notation,
                         ),
                     )
                 )
             elif isinstance(value_, _PRIMITIVE_VALUE_TYPES):
-                deep_object[f"{name}[{key}]"] = (
+                deep_object[
+                    f"{name}.{key}" if use_dot_notation else f"{name}[{key}]"
+                ] = (
                     _format_primitive_value(value_) or ""  # type: ignore
                 )
             elif isinstance(value_, collections.abc.Sequence):
-                index: int
-                value_item: typing.Any
                 for index, value_item in enumerate(value_):
                     deep_object.update(
                         **typing.cast(
                             dict,
                             _format_deep_object_argument_value(
-                                name=f"{name}[{key}][{index}]",
+                                name=(
+                                    f"{name}.{key}[{index}]"
+                                    if use_dot_notation
+                                    else f"{name}[{key}][{index}]"
+                                ),
                                 value=value_item,
                                 explode=explode,
+                                use_dot_notation=use_dot_notation,
                             ),
                         )
                     )
             else:
                 raise TypeError(value_)
         return deep_object
-    # This style is only valid for dictionaries
+    if isinstance(value, collections.abc.Sequence):
+        for index, value_item in enumerate(value):
+            formatted_value = _format_deep_object_argument_value(
+                name=f"{name}[{index}]",
+                value=value_item,
+                explode=explode,
+                use_dot_notation=use_dot_notation,
+            )
+            if isinstance(formatted_value, _ITEMIZED_TYPES):
+                deep_object.update(
+                    **typing.cast(
+                        dict,
+                        formatted_value,
+                    )
+                )
+            elif isinstance(
+                formatted_value, typing.Iterable
+            ) and not isinstance(formatted_value, str):
+                if f"{name}[{index}]" in deep_object:
+                    deep_object[f"{name}[{index}]"].extend(formatted_value)
+                else:
+                    deep_object[f"{name}[{index}]"] = [formatted_value]
+            else:
+                deep_object[f"{name}[{index}]"] = formatted_value
+        return deep_object
+    # This style is only valid for dictionaries and lists
     raise ValueError(value)
 
 
@@ -419,53 +458,9 @@ def _format_dot_object_argument_value(
     *,
     explode: bool = False,
 ) -> str | dict[str, str] | collections.abc.Sequence[str] | None:
-    if value is None or isinstance(value, _PRIMITIVE_VALUE_TYPES):
-        return _format_primitive_value(value)  # type: ignore
-    message: str
-    if not explode:
-        message = (
-            "The `dotObject` argument style only supports `explode=True`."
-        )
-        raise ValueError(message)
-    if isinstance(value, _ITEMIZED_TYPES):
-        key: str
-        value_: sob.abc.MarshallableTypes
-        dot_object: dict[str, typing.Any] = {}
-        for key, value_ in _iter_items(value):
-            if isinstance(value_, _ITEMIZED_TYPES):
-                dot_object.update(
-                    **typing.cast(
-                        dict,
-                        _format_dot_object_argument_value(
-                            name=f"{name}.{key}",
-                            value=value_,
-                            explode=explode,
-                        ),
-                    )
-                )
-            elif isinstance(value_, _PRIMITIVE_VALUE_TYPES):
-                dot_object[f"{name}.{key}"] = (
-                    _format_primitive_value(value_) or ""  # type: ignore
-                )
-            elif isinstance(value_, collections.abc.Sequence):
-                index: int
-                value_item: typing.Any
-                for index, value_item in enumerate(value_):
-                    dot_object.update(
-                        **typing.cast(
-                            dict,
-                            _format_dot_object_argument_value(
-                                name=f"{name}.{key}[{index}]",
-                                value=value_item,
-                                explode=explode,
-                            ),
-                        )
-                    )
-            else:
-                raise TypeError(value_)
-        return dot_object
-    # This style is only valid for dictionaries
-    raise ValueError(value)
+    return _format_deep_object_argument_value(
+        name=name, value=value, explode=explode, use_dot_notation=True
+    )
 
 
 def format_argument_value(  # noqa: C901
