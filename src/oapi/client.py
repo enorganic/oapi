@@ -2135,7 +2135,7 @@ def get_default_method_name_from_path_method_operation(
         method_name = "{}_{}".format(
             method.lower(),
             "_".join(
-                sob.utilities.get_property_name(part)
+                sob.utilities.get_property_name(part).strip("_")
                 for part in path.strip("/ ").split("/")
             ),
         )
