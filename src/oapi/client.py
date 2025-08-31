@@ -2135,7 +2135,7 @@ def get_default_method_name_from_path_method_operation(
         method_name = "{}_{}".format(
             method.lower(),
             "_".join(
-                sob.utilities.get_property_name(part)
+                sob.utilities.get_property_name(part).strip("_")
                 for part in path.strip("/ ").split("/")
             ),
         )
@@ -3009,7 +3009,7 @@ class ClientModule:
         ):
             parameter_name: str = sob.utilities.get_property_name(
                 parameter.name
-            ).rstrip("_")
+            )
             # If a set of parameter names was provided, make sure
             # this one does not duplicate any
             if parameter_names is not None:
