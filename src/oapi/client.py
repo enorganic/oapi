@@ -3157,8 +3157,26 @@ class ClientModule:
                     map(self._represent_type, operation_response_types)
                 )
             )
+            operation_response_type: type[sob.abc.Model] | sob.abc.Property
+            deserialize_kwargs: str = (
+                ", coerce_unparseable=bytes"
+                if any(
+                    isinstance(operation_response_type, sob.abc.BytesProperty)
+                    for operation_response_type in operation_response_types
+                )
+                else (
+                    ", coerce_unparseable=str"
+                    if any(
+                        isinstance(
+                            operation_response_type, sob.abc.StringProperty
+                        )
+                        for operation_response_type in operation_response_types
+                    )
+                    else ""
+                )
+            )
             yield "        return sob.unmarshal(  # type: ignore"
-            yield "            sob.deserialize(response),"
+            yield f"            sob.deserialize(response{deserialize_kwargs}),"
             yield "            types=("
             yield f"                {response_types_representation},"
             yield "            )"
