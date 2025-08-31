@@ -950,7 +950,14 @@ def _assemble_request(  # noqa: C901
             headers=headers,
             parts=parts,
         )
-    if url.lower().rpartition(":")[0] not in ("http", "https", ""):
+    # Only HTTP/HTTPS and URLs without a scheme are allowed
+    if not (
+        (url.lower().partition("://")[0] in ("http", "https"))
+        or (
+            ":"
+            not in url.partition("?")[0].partition("#")[0].partition("/")[0]
+        )
+    ):
         raise ValueError(url)
     return Request(  # noqa: S310
         url,
