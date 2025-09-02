@@ -2180,6 +2180,8 @@ class ClientModule:
             [str, str, str | None], str
         ] = get_default_method_name_from_path_method_operation,
         use_operation_id: bool = False,
+        module_docstring: str | None = None,
+        class_docstring: str | None = None,
     ) -> None:
         """
         Parameters:
@@ -2216,6 +2218,8 @@ class ClientModule:
                 parameter names to default values for the parameter *expressed
                 as source code*. This is to allow for the passing of imported
                 constants, expressions, etc.
+            module_docstring: A docstring to insert at the top of the module.
+            class_docstring: A docstring to insert in the client class.
         """
         message: str
         if isinstance(model_path, Path):
@@ -2298,6 +2302,8 @@ class ClientModule:
             get_method_name_from_path_method_operation
         )
         self.use_operation_id = use_operation_id
+        self.module_docstring: str | None = module_docstring
+        self.class_docstring: str | None = class_docstring
 
     def _get_open_api_major_version(self) -> int:
         return int(
@@ -3761,6 +3767,19 @@ class ClientModule:
         source: str = "\n".join(
             chain(
                 self._iter_class_declaration_source(),
+                (
+                    (
+                        '    """',
+                        sob.utilities.split_long_docstring_lines(
+                            sob.utilities.indent(
+                                self.class_docstring.strip(), start=0
+                            )
+                        ),
+                        '    """',
+                    )
+                    if self.class_docstring
+                    else ()
+                ),
                 self._iter_init_method_source(),
                 self._iter_paths_operations_methods_source(),
                 ("",),
@@ -3774,8 +3793,13 @@ class ClientModule:
         }
         # Imports need to be generated last
         imports: str = "\n".join(self._iter_imports())
+        docstring: str = (
+            f'"""\n{self.module_docstring}\n"""\n\n'
+            if self.module_docstring
+            else ""
+        )
         return sob.utilities.suffix_long_lines(
-            f"{imports}\n\n\n{source.rstrip()}\n"
+            f"{docstring}{imports}\n\n\n{source.rstrip()}\n"
         )
 
     def save(self, path: str | Path) -> None:
@@ -3784,8 +3808,8 @@ class ClientModule:
         """
         client_source: str = self.get_source(path=path)
         # Save the module
-        with open(path, "w") as model_io:
-            model_io.write(client_source)
+        with open(path, "w") as client_io:
+            client_io.write(client_source)
 
     def __hash__(self) -> int:
         return id(self)
@@ -3828,6 +3852,8 @@ def write_client_module(
         [str, str, str | None], str
     ] = get_default_method_name_from_path_method_operation,
     use_operation_id: bool = False,
+    module_docstring: str | None = None,
+    class_docstring: str | None = None,
 ) -> None:
     """
     This function parses an Open API document and outputs a module defining
@@ -3870,6 +3896,8 @@ def write_client_module(
             parameter names to default values for the parameter *expressed
             as source code*. This is to allow for the passing of imported
             constants, expressions, etc.
+        module_docstring: A docstring to insert at the top of the module.
+        class_docstring: A docstring to insert in the client class.
     """
     locals_: dict[str, typing.Any] = dict(locals())
     locals_.pop("client_path")

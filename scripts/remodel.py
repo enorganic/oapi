@@ -162,9 +162,11 @@ def main() -> None:
                                 if import_statement.startswith(
                                     "from __future__"
                                 )
-                                else (2, import_statement)
-                                if import_statement.startswith("from ")
-                                else (1, import_statement)
+                                else (
+                                    (2, import_statement)
+                                    if import_statement.startswith("from ")
+                                    else (1, import_statement)
+                                )
                             ),
                         ),
                     )
