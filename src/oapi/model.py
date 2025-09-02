@@ -268,6 +268,7 @@ class _Modeler:
         get_class_name_from_pointer: Callable[[str, str], str] = partial(
             get_default_class_name_from_pointer, log=print
         ),
+        docstring: str | None = None,
     ) -> None:
         message: str
         # This ensures all elements have URLs and JSON pointers
@@ -303,6 +304,7 @@ class _Modeler:
         self.get_class_name_from_pointer: Callable[[str, str], str] = (
             get_class_name_from_pointer
         )
+        self.docstring: str | None = docstring
 
     def schema_defines_object(self, schema: Schema | Reference) -> bool:
         """
@@ -1444,6 +1446,13 @@ class _Modeler:
         import_statement: str
         return "\n".join(
             chain(
+                (
+                    '"""',
+                    self.docstring,
+                    '"""\n',
+                )
+                if self.docstring
+                else (),
                 sorted(
                     imports,
                     key=lambda import_statement: (
@@ -1568,6 +1577,8 @@ class ModelModule:
             either an empty string or a parameter name, where applicable.
             The function should return a `str` which is a valid, unique,
             class name.
+        docstring: If provided, this string will be inserts as the
+            module docstring.
     """
 
     def __init__(
@@ -1576,6 +1587,7 @@ class ModelModule:
         get_class_name_from_pointer: Callable[
             [str, str], str
         ] = get_default_class_name_from_pointer,
+        docstring: str | None = None,
     ) -> None:
         message: str
         self._parser = _ModuleParser()
@@ -1597,6 +1609,7 @@ class ModelModule:
                 f"{open_api!r}"
             )
             raise TypeError(message)
+        self._modeler.docstring = docstring
         self._modeler.get_class_name_from_pointer = get_class_name_from_pointer
 
     def __str__(self) -> str:
@@ -1661,6 +1674,7 @@ def write_model_module(
     get_class_name_from_pointer: Callable[
         [str, str], str
     ] = get_default_class_name_from_pointer,
+    docstring: str | None = None,
 ) -> None:
     """
     This function creates or updates a module defining classes to represent
@@ -1681,6 +1695,8 @@ def write_model_module(
             either an empty string or a parameter name, where applicable.
             The function should return a `str` which is a valid, unique,
             class name.
+        docstring: If provided, this string will be inserted at the top of the
+            module as the docstring.
     """
     locals_: dict[str, Any] = dict(locals())
     locals_.pop("model_path")
