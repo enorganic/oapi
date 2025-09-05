@@ -1162,9 +1162,7 @@ class Client:
             oauth2_refresh_url,
             open_id_connect_url,
         ):
-            if url_ and (
-                url_.lower().rpartition(":")[0] not in ("http", "https", "")
-            ):
+            if url_ and (urlparse(url_).scheme not in ("http", "https", "")):
                 raise ValueError(url_)
         # Set properties
         self.url: str | None = url
