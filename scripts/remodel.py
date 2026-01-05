@@ -41,9 +41,9 @@ def iter_source_names_models() -> Iterable[tuple[str, type[sob.abc.Model]]]:
             yield name, value
 
 
-def iter_names_metadata_docstrings_suffixes() -> (
-    Iterable[tuple[str, sob.abc.Meta, str, str]]
-):
+def iter_names_metadata_docstrings_suffixes() -> Iterable[
+    tuple[str, sob.abc.Meta, str, str]
+]:
     def get_name_metadata(
         item: tuple[str, type[sob.abc.Model]],
     ) -> tuple[str, sob.abc.Meta, str, str]:
@@ -55,7 +55,7 @@ def iter_names_metadata_docstrings_suffixes() -> (
             item[0],
             meta,
             "\n".join(
-                line[4:] if line.startswith("    ") else line
+                line.removeprefix("    ")
                 for line in (item[1].__doc__ or "").strip().split("\n")
             ),
             sob.utilities.get_source(item[1])
@@ -66,9 +66,9 @@ def iter_names_metadata_docstrings_suffixes() -> (
     return map(get_name_metadata, iter_source_names_models())
 
 
-def iter_models_metadata_suffixes() -> (
-    Iterable[tuple[type[sob.abc.Model], sob.abc.Meta, str]]
-):
+def iter_models_metadata_suffixes() -> Iterable[
+    tuple[type[sob.abc.Model], sob.abc.Meta, str]
+]:
     name: str
     suffix: str
     metadata: sob.abc.Meta

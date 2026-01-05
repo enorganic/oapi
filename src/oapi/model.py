@@ -6,14 +6,13 @@ from collections import deque
 from copy import copy
 from datetime import date, datetime
 from functools import partial
-from itertools import chain, starmap
+from itertools import chain
 from logging import Logger
 from pathlib import Path
 from re import Match, Pattern
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
 )
 from urllib.request import urlopen
 
@@ -39,7 +38,7 @@ from oapi.oas.model import (
 from oapi.oas.references import Resolver
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator, Sequence
+    from collections.abc import Callable, Iterable, Iterator, Sequence
 
 _META_PROPERTIES_QAULIFIED_NAME = get_qualified_name(sob.Properties)
 _META_PROPERTIES_QAULIFIED_NAME_LENGTH = len(_META_PROPERTIES_QAULIFIED_NAME)
@@ -252,6 +251,11 @@ def _append_property_type(
     return property_
 
 
+_get_default_class_name_from_pointer: Callable[[str, str], str] = partial(
+    get_default_class_name_from_pointer, log=print
+)
+
+
 class _Modeler:
     """
     This class parses an OpenAPI schema and produces a data model based on the
@@ -265,8 +269,8 @@ class _Modeler:
     def __init__(
         self,
         root: OpenAPI,
-        get_class_name_from_pointer: Callable[[str, str], str] = partial(
-            get_default_class_name_from_pointer, log=print
+        get_class_name_from_pointer: Callable[[str, str], str] = (
+            _get_default_class_name_from_pointer
         ),
         docstring: str | None = None,
     ) -> None:
@@ -490,12 +494,10 @@ class _Modeler:
         child_property_ = self.get_property(next_schema)
         if child_property_.types:
             deque(
-                starmap(
+                map(
                     _append_property_type,
-                    zip(
-                        (property_,) * len(child_property_.types),
-                        child_property_.types,
-                    ),
+                    (property_,) * len(child_property_.types),
+                    child_property_.types,
                 ),
                 maxlen=0,
             )
@@ -1611,6 +1613,9 @@ class ModelModule:
             raise TypeError(message)
         self._modeler.docstring = docstring
         self._modeler.get_class_name_from_pointer = get_class_name_from_pointer
+
+    def __hash__(self) -> int:
+        return hash(str(self))
 
     def __str__(self) -> str:
         return self._modeler.get_module_source()

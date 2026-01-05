@@ -32,7 +32,7 @@ import json
 from functools import wraps
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.error import HTTPError
 from urllib.parse import ParseResult, urljoin, urlparse
 from urllib.request import Request
@@ -45,7 +45,7 @@ from oapi.errors import OAPIReferenceLoopError, OAPIReferencePointerError
 from oapi.oas.model import OpenAPI, Reference
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
 
 def _unmarshal_resolved_reference(
@@ -75,12 +75,12 @@ def _urlopen(
     if response_url.lower().endswith(("yaml", "yml")):
         # Use pyyaml to parse yaml files, if it is installed
         try:
-            import yaml  # type: ignore
+            import yaml  # type: ignore  # noqa: PLC0415
         except ImportError:
             pass
         else:
             response = cast(
-                sob.abc.Readable,
+                "sob.abc.Readable",
                 BytesIO(
                     json.dumps(
                         yaml.safe_load(response)  # type: ignore
