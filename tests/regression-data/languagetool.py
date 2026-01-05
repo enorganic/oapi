@@ -1550,7 +1550,7 @@ sob.get_writable_object_meta(  # type: ignore
 ])
 # The following is used to retain class names when re-generating
 # this model from an updated OpenAPI document
-_POINTERS_CLASSES: typing.Dict[str, typing.Type[sob.abc.Model]] = {
+_POINTERS_CLASSES: dict[str, type[sob.abc.Model]] = {
     "#/paths/~1check/post/responses/200/schema": CheckPostResponse,
     "#/paths/~1check/post/responses/200/schema/properties/language":
     CheckPostResponseLanguage,

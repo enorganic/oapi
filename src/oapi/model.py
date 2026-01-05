@@ -1396,7 +1396,7 @@ class _Modeler:
             "re-generating\n"
             "# this model from an updated OpenAPI document\n"
             "_POINTERS_CLASSES: "
-            "typing.Dict[str, typing.Type[sob.abc.Model]] = {"
+            "dict[str, type[sob.abc.Model]] = {"
         ]
         for (
             relative_url_pointer,
