@@ -179,9 +179,9 @@ _PRIMITIVE_VALUE_TYPES: tuple[type, ...] = (
     date,
     datetime,
 )
-_PrimitiveValueTypes = typing.Union[
-    None, str, bool, int, float, decimal.Decimal, date, datetime, bytes
-]
+_PrimitiveValueTypes = (
+    None | str | bool | int | float | decimal.Decimal | date | datetime | bytes
+)
 
 
 def _format_primitive_value(
@@ -240,7 +240,7 @@ def _format_label_argument_value(
         item: tuple[str, _PrimitiveValueTypes]
         if isinstance(value, dict):
             argument_value = ".".join(
-                f"{item[0]}=" f"{_format_primitive_value(item[1])}"
+                f"{item[0]}={_format_primitive_value(item[1])}"
                 for item in value
             )
         elif isinstance(value, collections.abc.Sequence):
@@ -269,7 +269,7 @@ def _format_matrix_argument_value(
         item: tuple[str, _PrimitiveValueTypes]
         if isinstance(value, dict):
             argument_value = "".join(
-                (f";{item[0]}=" f"{_format_primitive_value(item[1])}")
+                (f";{item[0]}={_format_primitive_value(item[1])}")
                 for item in value
             )
         elif isinstance(value, collections.abc.Sequence):
@@ -384,7 +384,7 @@ def _format_deep_object_argument_value(  # noqa: C901
             if isinstance(value_, _ITEMIZED_TYPES):
                 deep_object.update(
                     **typing.cast(
-                        dict,
+                        "dict",
                         _format_deep_object_argument_value(
                             name=(
                                 f"{name}.{key}"
@@ -407,7 +407,7 @@ def _format_deep_object_argument_value(  # noqa: C901
                 for index, value_item in enumerate(value_):
                     deep_object.update(
                         **typing.cast(
-                            dict,
+                            "dict",
                             _format_deep_object_argument_value(
                                 name=(
                                     f"{name}.{key}[{index}]"
@@ -434,7 +434,7 @@ def _format_deep_object_argument_value(  # noqa: C901
             if isinstance(formatted_value, _ITEMIZED_TYPES):
                 deep_object.update(
                     **typing.cast(
-                        dict,
+                        "dict",
                         formatted_value,
                     )
                 )
@@ -629,14 +629,9 @@ def _represent_http_response(
     )
     headers: str = "\n".join(f"{key}: {value}" for key, value in header_items)
     body: str = (
-        f'\n\n{str(data, encoding="utf-8", errors="ignore")}' if data else ""
+        f"\n\n{str(data, encoding='utf-8', errors='ignore')}" if data else ""
     )
-    return (
-        f"{response.geturl()}\n"
-        f"{response.getcode()}\n"
-        f"{headers}"
-        f"{body}"
-    )
+    return f"{response.geturl()}\n{response.getcode()}\n{headers}{body}"
 
 
 def _set_response_callback(
@@ -660,9 +655,9 @@ def default_retry_hook(error: Exception) -> bool:
     By default, don't retry for HTTP 404 (NOT FOUND) errors
     and HTTP 401 (UNAUTHORIZED) errors.
     """
-    if isinstance(error, HTTPError) and error.code in (404, 401, 409, 410):
-        return False
-    return True
+    return not (
+        isinstance(error, HTTPError) and error.code in (404, 401, 409, 410)
+    )
 
 
 def retry(
@@ -926,7 +921,7 @@ def _assemble_request(  # noqa: C901
                             name,
                         )
                         datum = typing.cast(  # noqa: PLW2901
-                            sob.abc.Readable, datum
+                            "sob.abc.Readable", datum
                         ).read()
                     repr_filename: str = (
                         f'; filename="{filename}"' if filename else ""
@@ -977,34 +972,34 @@ class Client:
     """
 
     __slots__: tuple[str, ...] = (
-        "url",
-        "user",
-        "password",
-        "bearer_token",
+        "__opener",
+        "_cookie_jar",
+        "_oauth2_authorization_expires",
         "api_key",
         "api_key_in",
         "api_key_name",
+        "bearer_token",
+        "echo",
+        "headers",
+        "logger",
+        "oauth2_authorization_url",
         "oauth2_client_id",
         "oauth2_client_secret",
-        "oauth2_username",
-        "oauth2_password",
-        "oauth2_authorization_url",
-        "oauth2_token_url",
-        "oauth2_scope",
-        "oauth2_refresh_url",
         "oauth2_flows",
+        "oauth2_password",
+        "oauth2_refresh_url",
+        "oauth2_scope",
+        "oauth2_token_url",
+        "oauth2_username",
         "open_id_connect_url",
-        "headers",
-        "timeout",
-        "retry_number_of_attempts",
+        "password",
         "retry_for_errors",
         "retry_hook",
+        "retry_number_of_attempts",
+        "timeout",
+        "url",
+        "user",
         "verify_ssl_certificate",
-        "logger",
-        "echo",
-        "_cookie_jar",
-        "__opener",
-        "_oauth2_authorization_expires",
     )
 
     def __init__(
@@ -1241,10 +1236,8 @@ class Client:
         oauth2_authorization_expires: int = init_parameters.pop()
         cookie_jar: CookieJar = init_parameters.pop()
         client: Client = cls(*init_parameters)
-        client._cookie_jar = cookie_jar  # noqa: SLF001
-        client._oauth2_authorization_expires = (  # noqa: SLF001
-            oauth2_authorization_expires
-        )
+        client._cookie_jar = cookie_jar
+        client._oauth2_authorization_expires = oauth2_authorization_expires
         return client
 
     def __getstate__(self) -> dict[str, typing.Any]:
@@ -1533,8 +1526,8 @@ class Client:
                     int(time.time()) + int(response_data["expires_in"]) - 1
                 )
                 self.headers["Authorization"] = (
-                    f'{response_data["token_type"]} '
-                    f'{response_data["access_token"]}'
+                    f"{response_data['token_type']} "
+                    f"{response_data['access_token']}"
                 )
         return self.headers["Authorization"]
 
@@ -1552,8 +1545,8 @@ class Client:
                     int(time.time()) + int(response_data["expires_in"]) - 1
                 )
                 self.headers["Authorization"] = (
-                    f'{response_data["token_type"]} '
-                    f'{response_data["access_token"]}'
+                    f"{response_data['token_type']} "
+                    f"{response_data['access_token']}"
                 )
         return self.headers["Authorization"]
 
@@ -1616,7 +1609,7 @@ class Client:
             if cookie_header:
                 cookie_header = f"{cookie_header}; "
             cookie_header = (
-                f"{cookie_header}" f"{self.api_key_name}" f"={self.api_key}"
+                f"{cookie_header}{self.api_key_name}={self.api_key}"
             )
             request.add_header("Cookie", cookie_header)
         elif self.api_key_in == "query":
@@ -2499,8 +2492,7 @@ class ClientModule:
             except Exception:  # noqa: S110 BLE001
                 pass
         return (
-            f"from {base_class_module} "
-            f"import {self._base_class.__name__}{as_}"
+            f"from {base_class_module} import {self._base_class.__name__}{as_}"
         )
 
     def _get_security_schemes(self) -> SecuritySchemes | None:
@@ -2710,8 +2702,7 @@ class ClientModule:
 
     def _iter_class_declaration_source(self) -> collections.abc.Iterable[str]:
         class_declaration: str = (
-            f"class {self._class_name}"
-            f"({self._get_client_base_class_name()}):"
+            f"class {self._class_name}({self._get_client_base_class_name()}):"
         )
         if len(class_declaration) > sob.utilities.MAX_LINE_LENGTH:
             class_declaration = (
@@ -3334,7 +3325,7 @@ class ClientModule:
         schema = self._resolve_schema(media_type.schema)
         # Form data parameters cannot be open-ended
         if (not schema.properties) or schema.additional_properties:
-            message = "Form data parameters cannot be open-ended: " f"{schema}"
+            message = f"Form data parameters cannot be open-ended: {schema}"
             raise ValueError(message)
         properties: Properties = schema.properties
         # Get parameter encodings

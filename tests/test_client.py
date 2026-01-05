@@ -1,6 +1,6 @@
 import functools
 import unittest
-from typing import Callable
+from collections.abc import Callable
 
 from oapi.client import Client as _Client
 

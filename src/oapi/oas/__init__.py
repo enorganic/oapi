@@ -44,10 +44,7 @@ from oapi.oas.model import (
 )
 
 __all__: tuple[str, ...] = (
-    # Modules
-    "model",
-    "references",
-    # Classes
+    "XML",
     "Callback",
     "Callbacks",
     "Components",
@@ -77,8 +74,8 @@ __all__: tuple[str, ...] = (
     "Paths",
     "Properties",
     "Reference",
-    "RequestBody",
     "RequestBodies",
+    "RequestBody",
     "Response",
     "Responses",
     "Schema",
@@ -88,5 +85,6 @@ __all__: tuple[str, ...] = (
     "Server",
     "ServerVariable",
     "Tag",
-    "XML",
+    "model",
+    "references",
 )

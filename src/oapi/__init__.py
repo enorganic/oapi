@@ -6,15 +6,12 @@ from oapi.client import write_client_module, ClientModule
 from oapi.model import write_model_module, ModelModule
 
 __all__: tuple[str, ...] = (
-    # Modules
-    "oas",
+    "ClientModule",
+    "ModelModule",
     "client",
     "errors",
     "model",
-    # Functions
+    "oas",
     "write_client_module",
     "write_model_module",
-    # Classes
-    "ClientModule",
-    "ModelModule",
 )

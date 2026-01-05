@@ -1,6 +1,6 @@
 SHELL := bash
 .PHONY: docs
-MINIMUM_PYTHON_VERSION := 3.9
+MINIMUM_PYTHON_VERSION := 3.10
 
 # Create all environments
 install:
@@ -25,44 +25,22 @@ distribute:
 # This will upgrade all requirements, and refresh pinned requirements to
 # match
 upgrade:
-	hatch run dependence freeze\
+	hatch run dependence upgrade\
 	 --include-pointer /tool/hatch/envs/default\
 	 --include-pointer /project\
-	 -nv '*'\
-	 pyproject.toml > .requirements.txt && \
-	hatch run pip install --upgrade --upgrade-strategy eager\
-	 -r .requirements.txt && \
-	hatch run docs:dependence freeze\
+	 pyproject.toml && \
+	hatch run docs:dependence upgrade\
 	 --include-pointer /tool/hatch/envs/docs\
 	 --include-pointer /project\
-	 -nv '*'\
-	 pyproject.toml > .requirements.txt && \
-	hatch run docs:pip install --upgrade --upgrade-strategy eager\
-	 -r .requirements.txt && \
-	hatch run hatch-static-analysis:dependence freeze\
-	 --include-pointer /tool/hatch/envs/docs\
+	 pyproject.toml && \
+	hatch run hatch-static-analysis:dependence upgrade\
+	 --include-pointer /tool/hatch/envs/hatch-static-analysis\
 	 --include-pointer /project\
-	 -nv '*'\
-	 pyproject.toml > .requirements.txt && \
-	hatch run hatch-static-analysis:pip install --upgrade --upgrade-strategy eager\
-	 -r .requirements.txt && \
-	hatch run hatch-test.py$(MINIMUM_PYTHON_VERSION):dependence freeze\
+	 pyproject.toml && \
+	hatch run hatch-test.py$(MINIMUM_PYTHON_VERSION):dependence upgrade\
 	 --include-pointer /tool/hatch/envs/hatch-test\
 	 --include-pointer /project\
-	 -nv '*'\
-	 pyproject.toml > .requirements.txt && \
-	hatch run hatch-test.py$(MINIMUM_PYTHON_VERSION):pip install --upgrade --upgrade-strategy eager\
-	 -r .requirements.txt && \
-	hatch run hatch-test.py3.10:pip install --upgrade --upgrade-strategy eager\
-	 -r .requirements.txt && \
-	hatch run hatch-test.py3.11:pip install --upgrade --upgrade-strategy eager\
-	 -r .requirements.txt && \
-	hatch run hatch-test.py3.12:pip install --upgrade --upgrade-strategy eager\
-	 -r .requirements.txt && \
-	hatch run hatch-test.py3.13:pip install --upgrade --upgrade-strategy eager\
-	 -r .requirements.txt && \
-	rm .requirements.txt && \
-	make requirements
+	 pyproject.toml
 
 # This will update requirement specifiers to align with the
 # package versions installed in each environment, and will align the project
