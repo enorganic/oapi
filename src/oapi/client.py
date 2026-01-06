@@ -1497,7 +1497,6 @@ class Client:
                         self.open_id_connect_url,
                     )
                 )
-                print(f"!!! {url}")
                 oidc_configuration: dict[str, typing.Any] = json.load(
                     urlopen(url)  # noqa: S310
                 )
@@ -2658,20 +2657,6 @@ class ClientModule:
         security_scheme: SecurityScheme
         for security_scheme in self._iter_security_schemes():
             if security_scheme.open_id_connect_url:
-                return security_scheme.open_id_connect_url
-        return ".well-known/smart-configuration"
-
-    @_lru_cache()
-    def _get_open_id_connect_url(self) -> str:
-        """
-        Get the OpenID Connect configuration URL, if one is provided.
-        """
-        security_scheme: SecurityScheme
-        for security_scheme in self._iter_security_schemes():
-            if (
-                security_scheme.type_ == "openIdConnect"
-                and security_scheme.open_id_connect_url
-            ):
                 return security_scheme.open_id_connect_url
         return ".well-known/smart-configuration"
 
