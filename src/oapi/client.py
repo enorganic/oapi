@@ -29,7 +29,14 @@ from re import Match, Pattern
 from ssl import SSLError
 from time import sleep
 from urllib.error import HTTPError, URLError
-from urllib.parse import ParseResult, parse_qs, quote, urlparse, urlunparse
+from urllib.parse import (
+    ParseResult,
+    parse_qs,
+    quote,
+    urljoin,
+    urlparse,
+    urlunparse,
+)
 from urllib.parse import urlencode as _urlencode
 from urllib.request import (
     HTTPCookieProcessor,
@@ -1035,7 +1042,7 @@ class Client:
             ]
             | None
         ) = None,
-        open_id_connect_url: str | None = None,
+        open_id_connect_url: str = ".well-known/openid-configuration",
         headers: (
             collections.abc.Mapping[str, str]
             | collections.abc.Sequence[tuple[str, str]]
@@ -1083,8 +1090,10 @@ class Client:
             oauth2_flows: A tuple containing one or more of the
                 following: "authorizationCode", "implicit", "password" and/or
                 "clientCredentials".
-            open_id_connect_url: An OpenID connect URL where a JSON
-                web token containing OAuth2 information can be found.
+            open_id_connect_url: The URL where an OpenID
+                Provider's [configuration
+                ](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig)
+                can be obtained.
             headers: Default headers to include with all requests.
                 Method-specific header arguments will override or modify these,
                 where applicable, as will dynamically modified headers such as
@@ -1429,6 +1438,7 @@ class Client:
     def _request_oauth2_password_authorization(
         self,
     ) -> sob.abc.Readable:
+        self._get_oauth2_token_url()
         message: str
         if self.oauth2_token_url is None:
             message = "No OAuth2 token URL was provided."
@@ -1468,10 +1478,45 @@ class Client:
                 return self._request_oauth2_password_authorization()
             raise
 
+    @_lru_cache()
+    def _get_oauth2_token_url(self) -> str | None:
+        """
+        Get the OAuth2 token URL, whether explicitly provided or derived
+        from an OpenID Connect (OIDC) configuration.
+        """
+        if (self.oauth2_token_url is None) and self.open_id_connect_url:
+            try:
+                url: str = (
+                    self.open_id_connect_url
+                    if (
+                        urlparse(self.open_id_connect_url).scheme
+                        in ("http", "https")
+                    )
+                    else urljoin(
+                        self.url or "",
+                        self.open_id_connect_url,
+                    )
+                )
+                print(f"!!! {url}")
+                oidc_configuration: dict[str, typing.Any] = json.load(
+                    urlopen(url)  # noqa: S310
+                )
+            except HTTPError:
+                pass
+            else:
+                # Store the token endpoint URL to avoid re-requesting it
+                # after the client has been pickled/unpickled, or caches
+                # have been otherwise invalidated.
+                self.oauth2_token_url = oidc_configuration.get(
+                    "token_endpoint"
+                )
+        return self.oauth2_token_url
+
     def _request_oauth2_client_credentials_authorization(
         self,
     ) -> sob.abc.Readable:
         message: str
+        self._get_oauth2_token_url()
         if self.oauth2_token_url is None:
             message = "No OAuth2 token URL was provided."
             raise RuntimeError(message)
@@ -2594,9 +2639,8 @@ class ClientModule:
         (see [OAuth 2
         ](https://swagger.io/docs/specification/v3_0/authentication/oauth2/)).
         """
-        name: str
         flow: OAuthFlow | None
-        for _name, flow in self._iter_oauth2_flows():
+        for _, flow in self._iter_oauth2_flows():
             if flow and flow.token_url:
                 return flow.token_url
         # OpenAPI 2x compatibility
@@ -2604,6 +2648,32 @@ class ClientModule:
             if security_scheme.token_url:
                 return security_scheme.token_url
         return ""
+
+    @_lru_cache()
+    def _get_open_id_connect_url(self) -> str:
+        """
+        Get the OpenID Connect URL, if one is provided (see [OAuth 2
+        ](https://swagger.io/docs/specification/v3_0/authentication/oauth2/)).
+        """
+        security_scheme: SecurityScheme
+        for security_scheme in self._iter_security_schemes():
+            if security_scheme.open_id_connect_url:
+                return security_scheme.open_id_connect_url
+        return ".well-known/smart-configuration"
+
+    @_lru_cache()
+    def _get_open_id_connect_url(self) -> str:
+        """
+        Get the OpenID Connect configuration URL, if one is provided.
+        """
+        security_scheme: SecurityScheme
+        for security_scheme in self._iter_security_schemes():
+            if (
+                security_scheme.type_ == "openIdConnect"
+                and security_scheme.open_id_connect_url
+            ):
+                return security_scheme.open_id_connect_url
+        return ".well-known/smart-configuration"
 
     @_lru_cache()
     def _get_oauth2_refresh_url(self) -> str:
@@ -2631,18 +2701,6 @@ class ClientModule:
                 iter_distinct(item[0] for item in self._iter_oauth2_flows())
             )
         )
-
-    @_lru_cache()
-    def _get_open_id_connect_url(self) -> str:
-        """
-        Get the OpenID Connect URL, if one is provided (see [OAuth 2
-        ](https://swagger.io/docs/specification/v3_0/authentication/oauth2/)).
-        """
-        security_scheme: SecurityScheme
-        for security_scheme in self._iter_security_schemes():
-            if security_scheme.open_id_connect_url:
-                return security_scheme.open_id_connect_url
-        return ""
 
     def _iter_class_init_docstring_source(
         self,
