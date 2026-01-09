@@ -319,9 +319,7 @@ class _Modeler:
         instance of `Object`.
         """
         if isinstance(schema, Reference):
-            schema = self.resolver.resolve_reference(
-                schema  # , recursion_error_default=_DEFAULT_SCHEMA
-            )  # type: ignore
+            schema = self.resolver.resolve_reference(schema)  # type: ignore
             if not isinstance(schema, Schema):
                 raise TypeError(schema)
         if not isinstance(schema, Schema):
@@ -353,7 +351,7 @@ class _Modeler:
         """
         if isinstance(schema, Reference):
             schema = self.resolver.resolve_reference(
-                schema,  # recursion_error_default=_DEFAULT_SCHEMA
+                schema,
             )  # type: ignore
             if not isinstance(schema, Schema):
                 raise TypeError(schema)
@@ -380,7 +378,7 @@ class _Modeler:
         """
         if isinstance(schema, Reference):
             schema = self.resolver.resolve_reference(
-                schema,  # recursion_error_default=_DEFAULT_SCHEMA
+                schema,
             )  # type: ignore
             if not isinstance(schema, Schema):
                 raise TypeError(schema)
@@ -522,7 +520,7 @@ class _Modeler:
             return None
         if isinstance(next_schema, Reference):
             next_schema = self.resolver.resolve_reference(  # type: ignore
-                next_schema,  # recursion_error_default=_DEFAULT_SCHEMA
+                next_schema,
             )
             if not isinstance(next_schema, Schema):
                 raise TypeError(next_schema)
@@ -652,7 +650,6 @@ class _Modeler:
         if is_referenced:
             schema = self.resolver.resolve_reference(
                 schema,  # type: ignore
-                # recursion_error_default=_DEFAULT_SCHEMA,
             )
         if not isinstance(schema, (Schema, Items)):
             raise TypeError(schema)
@@ -932,7 +929,7 @@ class _Modeler:
             elif isinstance(schemas, Reference):
                 dereferenced_schemas = (
                     self.resolver.resolve_reference(
-                        schemas,  # recursion_error_default=_DEFAULT_SCHEMA
+                        schemas,
                     ),  # type: ignore
                 )
             else:
@@ -943,7 +940,6 @@ class _Modeler:
                         (
                             self.resolver.resolve_reference(  # type: ignore
                                 schema_or_reference,
-                                # recursion_error_default=_DEFAULT_SCHEMA,
                             )
                             if isinstance(schema_or_reference, Reference)
                             else schema_or_reference
@@ -1277,7 +1273,6 @@ class _Modeler:
                     if isinstance(schema.schema, Reference):
                         parameter_schema = self.resolver.resolve_reference(
                             schema.schema,
-                            # recursion_error_default=_DEFAULT_SCHEMA,
                         )
                     if not isinstance(parameter_schema, Schema):
                         raise TypeError(parameter_schema)
@@ -1376,7 +1371,7 @@ class _Modeler:
         if isinstance(model, Reference):
             model = self.resolver.resolve_reference(
                 model,
-                types,  # recursion_error_default=_DEFAULT_SCHEMA
+                types,
             )
             # Skipping logic doesn't apply to references objects
             skip = False

@@ -435,7 +435,6 @@ class Resolver:
         self,
         reference: Reference,
         types: sob.abc.Types | Sequence[type | sob.abc.Property] = (),
-        recursion_error_default: sob.abc.Model | None = None,
     ) -> sob.abc.Model:
         """
         Retrieve a referenced object.
@@ -443,11 +442,6 @@ class Resolver:
         Parameters:
             reference:
             types:
-            recursion_error_default: If a referential loop is detected, this
-                value will be returned instead of raising an error.
-                If this parameter is not provided, an
-                `OAPIReferenceLoopError` will be raised when a referential
-                loop is detected.
         """
         message: str
         url: str = sob.get_model_url(reference) or ""
@@ -464,8 +458,6 @@ class Resolver:
             isinstance(resolved_model, Reference)
             and resolved_model.ref == reference.ref
         ):
-            if recursion_error_default:
-                return recursion_error_default
             message = f"`Reference` instance is self-referential: {pointer}"
             raise OAPIReferenceLoopError(message)
         if isinstance(resolved_model, Reference):
