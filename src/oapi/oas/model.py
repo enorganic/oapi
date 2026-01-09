@@ -2270,11 +2270,9 @@ class Operation(sob.Object):
 class Parameter(sob.Object):
     """
     [OpenAPI 3 Parameter Object
-    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
-    parameter-object)
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#parameter-object)
     | [OpenAPI 2 Parameter Object
-    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#
-    parameter-object)
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#parameter-object)
 
     Attributes:
         name:
@@ -3310,6 +3308,8 @@ class Schema(sob.Object):
                 values matching the `additional_properties` schema.
         enum: The value/instance described by this schema should be
             among those in this sequence.
+        const: The value/instance described by this schema should be
+            exactly this value.
         type_: See [OpenAPI 3 Data Types
             (https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.
             1.1.md#data-types)],
@@ -3416,6 +3416,7 @@ class Schema(sob.Object):
         "properties",
         "additional_properties",
         "enum",
+        "const",
         "type_",
         "format_",
         "required",
@@ -3548,6 +3549,10 @@ class Schema(sob.Object):
             typing.Sequence[
                 sob.abc.MarshallableTypes | None
             ]
+            | None
+        ) = None,
+        const: (
+            typing.Any
             | None
         ) = None,
         type_: (
@@ -3743,6 +3748,10 @@ class Schema(sob.Object):
             ]
             | None
         ) = enum
+        self.const: (
+            typing.Any
+            | None
+        ) = const
         self.type_: (
             str
             | None
@@ -6276,6 +6285,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     ('enum', sob.ArrayProperty()),
+    ('const', sob.Property()),
     (
         'type_',
         sob.Property(

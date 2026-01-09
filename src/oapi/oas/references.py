@@ -37,6 +37,7 @@ from urllib.error import HTTPError
 from urllib.parse import ParseResult, urljoin, urlparse
 from urllib.request import Request
 from urllib.request import urlopen as urllib_request_urlopen
+from warnings import warn
 
 import sob
 from jsonpointer import resolve_pointer  # type: ignore
@@ -435,6 +436,7 @@ class Resolver:
         self,
         reference: Reference,
         types: sob.abc.Types | Sequence[type | sob.abc.Property] = (),
+        recursion_error_default: sob.abc.Model | None = None,
     ) -> sob.abc.Model:
         """
         Retrieve a referenced object.
@@ -442,22 +444,59 @@ class Resolver:
         Parameters:
             reference:
             types:
+            recursion_error_default: If a referential loop is detected, this
+                value will be returned instead of raising an error.
+                If this parameter is not provided, an
+                `OAPIReferenceLoopError` will be raised when a referential
+                loop is detected.
         """
         message: str
         url: str = sob.get_model_url(reference) or ""
         if not reference.ref:
             raise ValueError(reference)
-        pointer: str = urljoin(
-            sob.get_model_pointer(reference) or "",
-            reference.ref,
-        )
-        resolved_model: sob.abc.Model = self.get_document(url).resolve(
-            pointer, types
-        )
+        pointer: str
+        try:
+            pointer = urljoin(
+                sob.get_model_pointer(reference) or "",
+                reference.ref,
+            )
+        except RecursionError:
+            warn(
+                "RecursionError encountered while resolving reference:\n"
+                f"{reference}",
+                stacklevel=2,
+            )
+            pointer = reference.ref
+        try:
+            resolved_model: sob.abc.Model = self.get_document(url).resolve(
+                pointer, types
+            )
+        except RecursionError as error:
+            message = (
+                "Referential loop detected generating model for: "
+                f"{url}{pointer}"
+            )
+            if recursion_error_default:
+                warn(
+                    f"{message}\n{sob.errors.get_exception_text()}",
+                    stacklevel=2,
+                )
+                return recursion_error_default
+            raise OAPIReferenceLoopError(message) from error
+        except OAPIReferenceLoopError:
+            if recursion_error_default:
+                warn(
+                    sob.errors.get_exception_text(),
+                    stacklevel=2,
+                )
+                return recursion_error_default
+            raise
         if resolved_model is reference or (
             isinstance(resolved_model, Reference)
             and resolved_model.ref == reference.ref
         ):
+            if recursion_error_default:
+                return recursion_error_default
             message = f"`Reference` instance is self-referential: {pointer}"
             raise OAPIReferenceLoopError(message)
         if isinstance(resolved_model, Reference):
