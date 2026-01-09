@@ -37,7 +37,6 @@ from urllib.error import HTTPError
 from urllib.parse import ParseResult, urljoin, urlparse
 from urllib.request import Request
 from urllib.request import urlopen as urllib_request_urlopen
-from warnings import warn
 
 import sob
 from jsonpointer import resolve_pointer  # type: ignore
@@ -454,43 +453,13 @@ class Resolver:
         url: str = sob.get_model_url(reference) or ""
         if not reference.ref:
             raise ValueError(reference)
-        pointer: str
-        try:
-            pointer = urljoin(
-                sob.get_model_pointer(reference) or "",
-                reference.ref,
-            )
-        except RecursionError:
-            warn(
-                "RecursionError encountered while resolving reference:\n"
-                f"{reference}",
-                stacklevel=2,
-            )
-            pointer = reference.ref
-        try:
-            resolved_model: sob.abc.Model = self.get_document(url).resolve(
-                pointer, types
-            )
-        except RecursionError as error:
-            message = (
-                "Referential loop detected generating model for: "
-                f"{url}{pointer}"
-            )
-            if recursion_error_default:
-                warn(
-                    f"{message}\n{sob.errors.get_exception_text()}",
-                    stacklevel=2,
-                )
-                return recursion_error_default
-            raise OAPIReferenceLoopError(message) from error
-        except OAPIReferenceLoopError:
-            if recursion_error_default:
-                warn(
-                    sob.errors.get_exception_text(),
-                    stacklevel=2,
-                )
-                return recursion_error_default
-            raise
+        pointer: str = urljoin(
+            sob.get_model_pointer(reference) or "",
+            reference.ref,
+        )
+        resolved_model: sob.abc.Model = self.get_document(url).resolve(
+            pointer, types
+        )
         if resolved_model is reference or (
             isinstance(resolved_model, Reference)
             and resolved_model.ref == reference.ref

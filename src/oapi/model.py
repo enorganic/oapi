@@ -16,7 +16,6 @@ from typing import (
     Any,
 )
 from urllib.request import urlopen
-from warnings import warn
 
 import sob
 from sob.thesaurus import get_class_meta_attribute_assignment_source
@@ -42,10 +41,6 @@ from oapi.oas.references import Resolver
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator, Sequence
 
-_DEFAULT_SCHEMA: Schema = Schema()
-_DEFAULT_PROPERTY: sob.abc.Property = sob.properties.Property()
-sob.meta.set_model_url(_DEFAULT_SCHEMA, "")
-sob.meta.set_model_pointer(_DEFAULT_SCHEMA, "")
 _META_PROPERTIES_QAULIFIED_NAME: str = get_qualified_name(sob.Properties)
 _META_PROPERTIES_QAULIFIED_NAME_LENGTH: int = len(
     _META_PROPERTIES_QAULIFIED_NAME
@@ -739,8 +734,6 @@ class _Modeler:
         """
         Return a relative path in relation to the root document and the pointer
         """
-        if model is _DEFAULT_SCHEMA:
-            return "", ""
         url: str = sob.get_model_url(model) or ""
         pointer: str | None = sob.get_model_pointer(model)
         if not pointer:
@@ -992,15 +985,7 @@ class _Modeler:
         if not isinstance(schema, (Schema, Parameter, Items)):
             raise TypeError(schema)
         if self.schema_defines_model(schema):
-            try:
-                type_ = self.get_model_class(schema)
-            except RecursionError:
-                warn(
-                    "RecursionError encountered while processing "
-                    f"schema: {schema}",
-                    stacklevel=2,
-                )
-                return _DEFAULT_PROPERTY
+            type_ = self.get_model_class(schema)
         else:
             type_ = self.get_property(schema, required=required)
         return type_
@@ -1175,7 +1160,6 @@ class _Modeler:
                         self.resolver.resolve_reference(  # type: ignore
                             property_schema,
                             (Schema,),
-                            # recursion_error_default=_DEFAULT_SCHEMA,
                         )
                     )
                 if not isinstance(property_schema, Schema):
