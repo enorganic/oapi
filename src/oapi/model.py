@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 from collections import deque
 from copy import copy
 from datetime import date, datetime
@@ -40,9 +41,11 @@ from oapi.oas.references import Resolver
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator, Sequence
 
-_META_PROPERTIES_QAULIFIED_NAME = get_qualified_name(sob.Properties)
-_META_PROPERTIES_QAULIFIED_NAME_LENGTH = len(_META_PROPERTIES_QAULIFIED_NAME)
-_DOC_POINTER_RE = re.compile(
+_META_PROPERTIES_QAULIFIED_NAME: str = get_qualified_name(sob.Properties)
+_META_PROPERTIES_QAULIFIED_NAME_LENGTH: int = len(
+    _META_PROPERTIES_QAULIFIED_NAME
+)
+_DOC_POINTER_RE: re.Pattern = re.compile(
     (
         # Pointer
         r"^(.*?)"
@@ -51,7 +54,7 @@ _DOC_POINTER_RE = re.compile(
     ),
     re.DOTALL,
 )
-_SPACES_RE = re.compile(r"[\s\n]")
+_SPACES_RE: re.Pattern = re.compile(r"[\s\n]")
 
 
 def _get_schema_type(schema: Schema | Items) -> str | None:
@@ -347,7 +350,9 @@ class _Modeler:
         indicate the schema also defines an instance of `Array`.
         """
         if isinstance(schema, Reference):
-            schema = self.resolver.resolve_reference(schema)  # type: ignore
+            schema = self.resolver.resolve_reference(
+                schema,
+            )  # type: ignore
             if not isinstance(schema, Schema):
                 raise TypeError(schema)
         if not isinstance(schema, (Schema, Parameter, Items)):
@@ -372,7 +377,9 @@ class _Modeler:
         `sob.abc.Dictionary`.
         """
         if isinstance(schema, Reference):
-            schema = self.resolver.resolve_reference(schema)  # type: ignore
+            schema = self.resolver.resolve_reference(
+                schema,
+            )  # type: ignore
             if not isinstance(schema, Schema):
                 raise TypeError(schema)
         if not isinstance(schema, Schema):
@@ -513,7 +520,7 @@ class _Modeler:
             return None
         if isinstance(next_schema, Reference):
             next_schema = self.resolver.resolve_reference(  # type: ignore
-                next_schema
+                next_schema,
             )
             if not isinstance(next_schema, Schema):
                 raise TypeError(next_schema)
@@ -540,12 +547,17 @@ class _Modeler:
         if schema_properties:
             name_: str
             schema: Schema | Reference
+            visited_property_names: set[str] = set()
             for name_, schema in schema_properties.items():
                 property_name = sob.utilities.get_property_name(name_)
                 # Prevent property names from conflicting with the dependency
-                # module namespace
-                if property_name == sob.__name__:
-                    property_name = f"{sob.__name__}_"
+                # module namespace and/or other properties
+                while (
+                    property_name == sob.__name__
+                    or property_name in visited_property_names
+                ):
+                    property_name = f"{property_name}_"
+                visited_property_names.add(property_name)
                 property_: sob.abc.Property
                 if property_name in meta_properties:
                     if next_schema.required and (
@@ -627,7 +639,7 @@ class _Modeler:
             property_ = self.extend_property_schemas(property_, schema.all_of)
         return property_
 
-    def get_property(
+    def get_property(  # noqa: C901
         self,
         schema: Schema | Parameter | Reference | Items,
         *,
@@ -636,7 +648,9 @@ class _Modeler:
     ) -> sob.abc.Property:
         is_referenced: bool = isinstance(schema, Reference)
         if is_referenced:
-            schema = self.resolver.resolve_reference(schema)  # type: ignore
+            schema = self.resolver.resolve_reference(
+                schema,  # type: ignore
+            )
         if not isinstance(schema, (Schema, Items)):
             raise TypeError(schema)
         schema_type: str | None = _get_schema_type(schema)
@@ -671,6 +685,16 @@ class _Modeler:
                 types=(
                     property_.types
                     or _types_from_enum_values(schema.enum)
+                    or None
+                ),
+                required=required,
+            )
+        if isinstance(schema, Schema) and schema.const:
+            property_ = sob.EnumeratedProperty(
+                values=(schema.const,),
+                types=(
+                    property_.types
+                    or _types_from_enum_values((schema.const,))
                     or None
                 ),
                 required=required,
@@ -904,7 +928,9 @@ class _Modeler:
                 dereferenced_schemas = (schemas,)
             elif isinstance(schemas, Reference):
                 dereferenced_schemas = (
-                    self.resolver.resolve_reference(schemas),  # type: ignore
+                    self.resolver.resolve_reference(
+                        schemas,
+                    ),  # type: ignore
                 )
             else:
                 schema_or_reference: Schema | Reference
@@ -913,7 +939,7 @@ class _Modeler:
                     (
                         (
                             self.resolver.resolve_reference(  # type: ignore
-                                schema_or_reference
+                                schema_or_reference,
                             )
                             if isinstance(schema_or_reference, Reference)
                             else schema_or_reference
@@ -979,18 +1005,21 @@ class _Modeler:
                 None,
                 map(
                     (
-                        (self).get_required_schema_model_or_property  # type: ignore
+                        self.get_required_schema_model_or_property  # type: ignore
                         if required
                         else self.get_schema_model_or_property
                     ),
-                    (
-                        (schema.items,)
-                        if isinstance(schema.items, Items)
-                        else iter_distinct(
-                            self.iter_dereferenced_schemas(
-                                schema.items  # type: ignore
+                    filter(
+                        None,
+                        (
+                            (schema.items,)
+                            if isinstance(schema.items, Items)
+                            else iter_distinct(
+                                self.iter_dereferenced_schemas(
+                                    schema.items  # type: ignore
+                                )
                             )
-                        )
+                        ),
                     ),
                 ),
             )
@@ -1125,7 +1154,8 @@ class _Modeler:
                 if isinstance(property_schema, Reference):
                     property_schema = (  # noqa: PLW2901
                         self.resolver.resolve_reference(  # type: ignore
-                            property_schema, (Schema,)
+                            property_schema,
+                            (Schema,),
                         )
                     )
                 if not isinstance(property_schema, Schema):
@@ -1242,7 +1272,7 @@ class _Modeler:
                     parameter_schema: sob.abc.Model
                     if isinstance(schema.schema, Reference):
                         parameter_schema = self.resolver.resolve_reference(
-                            schema.schema
+                            schema.schema,
                         )
                     if not isinstance(parameter_schema, Schema):
                         raise TypeError(parameter_schema)
@@ -1339,7 +1369,10 @@ class _Modeler:
         skip: bool = False,
     ) -> Iterable[Schema | Parameter]:
         if isinstance(model, Reference):
-            model = self.resolver.resolve_reference(model, types)
+            model = self.resolver.resolve_reference(
+                model,
+                types,
+            )
             # Skipping logic doesn't apply to references objects
             skip = False
         if not self.is_traversed(model):
@@ -1705,5 +1738,11 @@ def write_model_module(
     """
     locals_: dict[str, Any] = dict(locals())
     locals_.pop("model_path")
-    model_module: ModelModule = ModelModule(**locals_)
-    model_module.save(model_path)
+    # Increase the recursion limit to allow deep models to be processed
+    recursion_limit: int = sys.getrecursionlimit()
+    sys.setrecursionlimit(recursion_limit * 100)
+    try:
+        model_module: ModelModule = ModelModule(**locals_)
+        model_module.save(model_path)
+    finally:
+        sys.setrecursionlimit(recursion_limit)
