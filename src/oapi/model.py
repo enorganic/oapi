@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 from collections import deque
 from copy import copy
 from datetime import date, datetime
@@ -324,7 +325,7 @@ class _Modeler:
         """
         if isinstance(schema, Reference):
             schema = self.resolver.resolve_reference(
-                schema, recursion_error_default=_DEFAULT_SCHEMA
+                schema  # , recursion_error_default=_DEFAULT_SCHEMA
             )  # type: ignore
             if not isinstance(schema, Schema):
                 raise TypeError(schema)
@@ -357,7 +358,7 @@ class _Modeler:
         """
         if isinstance(schema, Reference):
             schema = self.resolver.resolve_reference(
-                schema, recursion_error_default=_DEFAULT_SCHEMA
+                schema,  # recursion_error_default=_DEFAULT_SCHEMA
             )  # type: ignore
             if not isinstance(schema, Schema):
                 raise TypeError(schema)
@@ -384,7 +385,7 @@ class _Modeler:
         """
         if isinstance(schema, Reference):
             schema = self.resolver.resolve_reference(
-                schema, recursion_error_default=_DEFAULT_SCHEMA
+                schema,  # recursion_error_default=_DEFAULT_SCHEMA
             )  # type: ignore
             if not isinstance(schema, Schema):
                 raise TypeError(schema)
@@ -526,7 +527,7 @@ class _Modeler:
             return None
         if isinstance(next_schema, Reference):
             next_schema = self.resolver.resolve_reference(  # type: ignore
-                next_schema, recursion_error_default=_DEFAULT_SCHEMA
+                next_schema,  # recursion_error_default=_DEFAULT_SCHEMA
             )
             if not isinstance(next_schema, Schema):
                 raise TypeError(next_schema)
@@ -656,7 +657,7 @@ class _Modeler:
         if is_referenced:
             schema = self.resolver.resolve_reference(
                 schema,  # type: ignore
-                recursion_error_default=_DEFAULT_SCHEMA,
+                # recursion_error_default=_DEFAULT_SCHEMA,
             )
         if not isinstance(schema, (Schema, Items)):
             raise TypeError(schema)
@@ -938,7 +939,7 @@ class _Modeler:
             elif isinstance(schemas, Reference):
                 dereferenced_schemas = (
                     self.resolver.resolve_reference(
-                        schemas, recursion_error_default=_DEFAULT_SCHEMA
+                        schemas,  # recursion_error_default=_DEFAULT_SCHEMA
                     ),  # type: ignore
                 )
             else:
@@ -949,7 +950,7 @@ class _Modeler:
                         (
                             self.resolver.resolve_reference(  # type: ignore
                                 schema_or_reference,
-                                recursion_error_default=_DEFAULT_SCHEMA,
+                                # recursion_error_default=_DEFAULT_SCHEMA,
                             )
                             if isinstance(schema_or_reference, Reference)
                             else schema_or_reference
@@ -990,18 +991,18 @@ class _Modeler:
         type_: type[sob.abc.Model] | sob.abc.Property | None
         if not isinstance(schema, (Schema, Parameter, Items)):
             raise TypeError(schema)
-        try:
-            if self.schema_defines_model(schema):
+        if self.schema_defines_model(schema):
+            try:
                 type_ = self.get_model_class(schema)
-            else:
-                type_ = self.get_property(schema, required=required)
-        except RecursionError:
-            warn(
-                "RecursionError encountered while processing "
-                f"schema: {schema}",
-                stacklevel=2,
-            )
-            return _DEFAULT_PROPERTY
+            except RecursionError:
+                warn(
+                    "RecursionError encountered while processing "
+                    f"schema: {schema}",
+                    stacklevel=2,
+                )
+                return _DEFAULT_PROPERTY
+        else:
+            type_ = self.get_property(schema, required=required)
         return type_
 
     def get_schema_array_class(
@@ -1023,18 +1024,21 @@ class _Modeler:
                 None,
                 map(
                     (
-                        (self).get_required_schema_model_or_property  # type: ignore
+                        self.get_required_schema_model_or_property  # type: ignore
                         if required
                         else self.get_schema_model_or_property
                     ),
-                    (
-                        (schema.items,)
-                        if isinstance(schema.items, Items)
-                        else iter_distinct(
-                            self.iter_dereferenced_schemas(
-                                schema.items  # type: ignore
+                    filter(
+                        None,
+                        (
+                            (schema.items,)
+                            if isinstance(schema.items, Items)
+                            else iter_distinct(
+                                self.iter_dereferenced_schemas(
+                                    schema.items  # type: ignore
+                                )
                             )
-                        )
+                        ),
                     ),
                 ),
             )
@@ -1171,7 +1175,7 @@ class _Modeler:
                         self.resolver.resolve_reference(  # type: ignore
                             property_schema,
                             (Schema,),
-                            recursion_error_default=_DEFAULT_SCHEMA,
+                            # recursion_error_default=_DEFAULT_SCHEMA,
                         )
                     )
                 if not isinstance(property_schema, Schema):
@@ -1289,7 +1293,7 @@ class _Modeler:
                     if isinstance(schema.schema, Reference):
                         parameter_schema = self.resolver.resolve_reference(
                             schema.schema,
-                            recursion_error_default=_DEFAULT_SCHEMA,
+                            # recursion_error_default=_DEFAULT_SCHEMA,
                         )
                     if not isinstance(parameter_schema, Schema):
                         raise TypeError(parameter_schema)
@@ -1387,7 +1391,8 @@ class _Modeler:
     ) -> Iterable[Schema | Parameter]:
         if isinstance(model, Reference):
             model = self.resolver.resolve_reference(
-                model, types, recursion_error_default=_DEFAULT_SCHEMA
+                model,
+                types,  # recursion_error_default=_DEFAULT_SCHEMA
             )
             # Skipping logic doesn't apply to references objects
             skip = False
@@ -1754,5 +1759,11 @@ def write_model_module(
     """
     locals_: dict[str, Any] = dict(locals())
     locals_.pop("model_path")
-    model_module: ModelModule = ModelModule(**locals_)
-    model_module.save(model_path)
+    # Increase the recursion limit to allow deep models to be processed
+    recursion_limit: int = sys.getrecursionlimit()
+    sys.setrecursionlimit(recursion_limit * 100)
+    try:
+        model_module: ModelModule = ModelModule(**locals_)
+        model_module.save(model_path)
+    finally:
+        sys.setrecursionlimit(recursion_limit)
