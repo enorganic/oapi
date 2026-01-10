@@ -2148,7 +2148,7 @@ class Operation(sob.Object):
         parameters: (
             typing.Sequence[
                 Reference
-            | Parameter
+                | Parameter
             ]
             | None
         ) = None,
@@ -2225,7 +2225,7 @@ class Operation(sob.Object):
         self.parameters: (
             typing.Sequence[
                 Reference
-            | Parameter
+                | Parameter
             ]
             | None
         ) = parameters
@@ -2270,9 +2270,11 @@ class Operation(sob.Object):
 class Parameter(sob.Object):
     """
     [OpenAPI 3 Parameter Object
-    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#parameter-object)
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.1.md#
+    parameter-object)
     | [OpenAPI 2 Parameter Object
-    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#parameter-object)
+    ](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md#
+    parameter-object)
 
     Attributes:
         name:
@@ -2801,7 +2803,7 @@ class PathItem(sob.Object):
         parameters: (
             typing.Sequence[
                 Reference
-            | Parameter
+                | Parameter
             ]
             | None
         ) = None
@@ -2855,7 +2857,7 @@ class PathItem(sob.Object):
         self.parameters: (
             typing.Sequence[
                 Reference
-            | Parameter
+                | Parameter
             ]
             | None
         ) = parameters
@@ -3523,7 +3525,7 @@ class Schema(sob.Object):
             | Schema
             | typing.Sequence[
                 Reference
-            | Schema
+                | Schema
             ]
             | None
         ) = None,
@@ -3572,21 +3574,21 @@ class Schema(sob.Object):
         all_of: (
             typing.Sequence[
                 Reference
-            | Schema
+                | Schema
             ]
             | None
         ) = None,
         any_of: (
             typing.Sequence[
                 Reference
-            | Schema
+                | Schema
             ]
             | None
         ) = None,
         one_of: (
             typing.Sequence[
                 Reference
-            | Schema
+                | Schema
             ]
             | None
         ) = None,
@@ -3720,7 +3722,7 @@ class Schema(sob.Object):
             | Schema
             | typing.Sequence[
                 Reference
-            | Schema
+                | Schema
             ]
             | None
         ) = items
@@ -3769,21 +3771,21 @@ class Schema(sob.Object):
         self.all_of: (
             typing.Sequence[
                 Reference
-            | Schema
+                | Schema
             ]
             | None
         ) = all_of
         self.any_of: (
             typing.Sequence[
                 Reference
-            | Schema
+                | Schema
             ]
             | None
         ) = any_of
         self.one_of: (
             typing.Sequence[
                 Reference
-            | Schema
+                | Schema
             ]
             | None
         ) = one_of
@@ -4418,7 +4420,7 @@ sob.get_writable_object_meta(  # type: ignore
     Components
 ).properties = sob.Properties([
     (
-        'schemas',
+        "schemas",
         sob.Property(
             types=sob.MutableTypes([
                 Schemas
@@ -4426,7 +4428,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'responses',
+        "responses",
         sob.Property(
             types=sob.MutableTypes([
                 Responses
@@ -4434,7 +4436,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'parameters',
+        "parameters",
         sob.Property(
             types=sob.MutableTypes([
                 Parameters
@@ -4442,7 +4444,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'examples',
+        "examples",
         sob.Property(
             types=sob.MutableTypes([
                 Examples
@@ -4450,7 +4452,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'request_bodies',
+        "request_bodies",
         sob.Property(
             name="requestBodies",
             types=sob.MutableTypes([
@@ -4459,7 +4461,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'headers',
+        "headers",
         sob.Property(
             types=sob.MutableTypes([
                 Headers
@@ -4467,7 +4469,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'security_schemes',
+        "security_schemes",
         sob.Property(
             name="securitySchemes",
             types=sob.MutableTypes([
@@ -4476,7 +4478,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'links',
+        "links",
         sob.Property(
             types=sob.MutableTypes([
                 Links
@@ -4484,7 +4486,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'callbacks',
+        "callbacks",
         sob.Property(
             types=sob.MutableTypes([
                 Callbacks
@@ -4495,9 +4497,9 @@ sob.get_writable_object_meta(  # type: ignore
 sob.get_writable_object_meta(  # type: ignore
     Contact
 ).properties = sob.Properties([
-    ('name', sob.StringProperty()),
-    ('url', sob.StringProperty()),
-    ('email', sob.StringProperty())
+    ("name", sob.StringProperty()),
+    ("url", sob.StringProperty()),
+    ("email", sob.StringProperty())
 ])
 sob.get_writable_dictionary_meta(  # type: ignore
     Definitions
@@ -4508,7 +4510,7 @@ sob.get_writable_object_meta(  # type: ignore
     Discriminator
 ).properties = sob.Properties([
     (
-        'property_name',
+        "property_name",
         sob.StringProperty(
             name="propertyName",
             versions=(
@@ -4517,7 +4519,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'mapping',
+        "mapping",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 str
@@ -4532,13 +4534,13 @@ sob.get_writable_object_meta(  # type: ignore
     Encoding
 ).properties = sob.Properties([
     (
-        'content_type',
+        "content_type",
         sob.StringProperty(
             name="contentType"
         )
     ),
     (
-        'headers',
+        "headers",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 Reference,
@@ -4546,10 +4548,10 @@ sob.get_writable_object_meta(  # type: ignore
             ])
         )
     ),
-    ('style', sob.StringProperty()),
-    ('explode', sob.BooleanProperty()),
+    ("style", sob.StringProperty()),
+    ("explode", sob.BooleanProperty()),
     (
-        'allow_reserved',
+        "allow_reserved",
         sob.BooleanProperty(
             name="allowReserved"
         )
@@ -4559,7 +4561,7 @@ sob.get_writable_object_meta(  # type: ignore
     Example
 ).properties = sob.Properties([
     (
-        'summary',
+        "summary",
         sob.StringProperty(
             versions=(
                 'openapi>=3.0',
@@ -4567,7 +4569,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'description',
+        "description",
         sob.StringProperty(
             versions=(
                 'openapi>=3.0',
@@ -4575,7 +4577,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'value',
+        "value",
         sob.Property(
             versions=(
                 'openapi>=3.0',
@@ -4583,7 +4585,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'external_value',
+        "external_value",
         sob.StringProperty(
             name="externalValue",
             versions=(
@@ -4601,9 +4603,9 @@ sob.get_writable_dictionary_meta(  # type: ignore
 sob.get_writable_object_meta(  # type: ignore
     ExternalDocumentation
 ).properties = sob.Properties([
-    ('description', sob.StringProperty()),
+    ("description", sob.StringProperty()),
     (
-        'url',
+        "url",
         sob.StringProperty(
             required=True
         )
@@ -4612,9 +4614,9 @@ sob.get_writable_object_meta(  # type: ignore
 sob.get_writable_object_meta(  # type: ignore
     Header
 ).properties = sob.Properties([
-    ('description', sob.StringProperty()),
+    ("description", sob.StringProperty()),
     (
-        'required',
+        "required",
         sob.BooleanProperty(
             versions=(
                 'openapi>=3.0',
@@ -4622,7 +4624,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'deprecated',
+        "deprecated",
         sob.BooleanProperty(
             versions=(
                 'openapi>=3.0',
@@ -4630,7 +4632,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'allow_empty_value',
+        "allow_empty_value",
         sob.BooleanProperty(
             name="allowEmptyValue",
             versions=(
@@ -4639,7 +4641,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'style',
+        "style",
         sob.StringProperty(
             versions=(
                 'openapi>=3.0',
@@ -4647,7 +4649,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'explode',
+        "explode",
         sob.BooleanProperty(
             versions=(
                 'openapi>=3.0',
@@ -4655,7 +4657,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'allow_reserved',
+        "allow_reserved",
         sob.BooleanProperty(
             name="allowReserved",
             versions=(
@@ -4664,7 +4666,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'schema',
+        "schema",
         sob.Property(
             types=sob.MutableTypes([
                 Reference,
@@ -4676,7 +4678,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'example',
+        "example",
         sob.Property(
             versions=(
                 'openapi>=3.0',
@@ -4684,7 +4686,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'examples',
+        "examples",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 Reference,
@@ -4696,7 +4698,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'content',
+        "content",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 MediaType
@@ -4707,7 +4709,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'type_',
+        "type_",
         sob.EnumeratedProperty(
             name="type",
             types=sob.Types([
@@ -4726,7 +4728,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'default',
+        "default",
         sob.Property(
             versions=(
                 'openapi<3.0',
@@ -4734,7 +4736,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'maximum',
+        "maximum",
         sob.NumberProperty(
             versions=(
                 'openapi<3.0',
@@ -4742,7 +4744,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'exclusive_maximum',
+        "exclusive_maximum",
         sob.BooleanProperty(
             name="exclusiveMaximum",
             versions=(
@@ -4751,7 +4753,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'minimum',
+        "minimum",
         sob.NumberProperty(
             versions=(
                 'openapi<3.0',
@@ -4759,7 +4761,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'exclusive_minimum',
+        "exclusive_minimum",
         sob.BooleanProperty(
             name="exclusiveMinimum",
             versions=(
@@ -4768,7 +4770,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'max_length',
+        "max_length",
         sob.IntegerProperty(
             name="maxLength",
             versions=(
@@ -4777,7 +4779,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'min_length',
+        "min_length",
         sob.IntegerProperty(
             name="minLength",
             versions=(
@@ -4786,7 +4788,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'pattern',
+        "pattern",
         sob.StringProperty(
             versions=(
                 'openapi<3.0',
@@ -4794,7 +4796,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'max_items',
+        "max_items",
         sob.IntegerProperty(
             name="maxItems",
             versions=(
@@ -4803,7 +4805,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'min_items',
+        "min_items",
         sob.IntegerProperty(
             name="minItems",
             versions=(
@@ -4812,7 +4814,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'unique_items',
+        "unique_items",
         sob.BooleanProperty(
             name="uniqueItems",
             versions=(
@@ -4821,7 +4823,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'enum',
+        "enum",
         sob.ArrayProperty(
             versions=(
                 'openapi<3.0',
@@ -4829,7 +4831,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'format_',
+        "format_",
         sob.StringProperty(
             name="format",
             versions=(
@@ -4838,7 +4840,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'collection_format',
+        "collection_format",
         sob.EnumeratedProperty(
             name="collectionFormat",
             types=sob.Types([
@@ -4857,7 +4859,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'items',
+        "items",
         sob.Property(
             types=sob.MutableTypes([
                 Items
@@ -4868,7 +4870,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'multiple_of',
+        "multiple_of",
         sob.NumberProperty(
             name="multipleOf",
             versions=(
@@ -4887,20 +4889,20 @@ sob.get_writable_object_meta(  # type: ignore
     Info
 ).properties = sob.Properties([
     (
-        'title',
+        "title",
         sob.StringProperty(
             required=True
         )
     ),
-    ('description', sob.StringProperty()),
+    ("description", sob.StringProperty()),
     (
-        'terms_of_service',
+        "terms_of_service",
         sob.StringProperty(
             name="termsOfService"
         )
     ),
     (
-        'contact',
+        "contact",
         sob.Property(
             types=sob.MutableTypes([
                 Contact
@@ -4908,7 +4910,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'license_',
+        "license_",
         sob.Property(
             name="license",
             types=sob.MutableTypes([
@@ -4917,7 +4919,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'version',
+        "version",
         sob.StringProperty(
             required=True
         )
@@ -4927,7 +4929,7 @@ sob.get_writable_object_meta(  # type: ignore
     Items
 ).properties = sob.Properties([
     (
-        'type_',
+        "type_",
         sob.EnumeratedProperty(
             name="type",
             types=sob.Types([
@@ -4948,7 +4950,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'format_',
+        "format_",
         sob.StringProperty(
             name="format",
             versions=(
@@ -4957,7 +4959,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'items',
+        "items",
         sob.Property(
             types=sob.MutableTypes([
                 Items
@@ -4968,7 +4970,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'collection_format',
+        "collection_format",
         sob.EnumeratedProperty(
             name="collectionFormat",
             types=sob.Types([
@@ -4985,9 +4987,9 @@ sob.get_writable_object_meta(  # type: ignore
             )
         )
     ),
-    ('default', sob.Property()),
+    ("default", sob.Property()),
     (
-        'maximum',
+        "maximum",
         sob.NumberProperty(
             versions=(
                 'openapi<3.0',
@@ -4995,7 +4997,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'exclusive_maximum',
+        "exclusive_maximum",
         sob.BooleanProperty(
             name="exclusiveMaximum",
             versions=(
@@ -5004,7 +5006,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'minimum',
+        "minimum",
         sob.NumberProperty(
             versions=(
                 'openapi<3.0',
@@ -5012,7 +5014,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'exclusive_minimum',
+        "exclusive_minimum",
         sob.BooleanProperty(
             name="exclusiveMinimum",
             versions=(
@@ -5021,7 +5023,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'max_length',
+        "max_length",
         sob.IntegerProperty(
             name="maxLength",
             versions=(
@@ -5030,7 +5032,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'min_length',
+        "min_length",
         sob.IntegerProperty(
             name="minLength",
             versions=(
@@ -5039,7 +5041,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'pattern',
+        "pattern",
         sob.StringProperty(
             versions=(
                 'openapi<3.0',
@@ -5047,7 +5049,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'max_items',
+        "max_items",
         sob.IntegerProperty(
             name="maxItems",
             versions=(
@@ -5056,7 +5058,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'min_items',
+        "min_items",
         sob.IntegerProperty(
             name="minItems",
             versions=(
@@ -5065,7 +5067,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'unique_items',
+        "unique_items",
         sob.BooleanProperty(
             name="uniqueItems",
             versions=(
@@ -5074,7 +5076,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'enum',
+        "enum",
         sob.ArrayProperty(
             versions=(
                 'openapi<3.0',
@@ -5082,7 +5084,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'multiple_of',
+        "multiple_of",
         sob.NumberProperty(
             name="multipleOf",
             versions=(
@@ -5095,24 +5097,24 @@ sob.get_writable_object_meta(  # type: ignore
     License
 ).properties = sob.Properties([
     (
-        'name',
+        "name",
         sob.StringProperty(
             required=True
         )
     ),
-    ('url', sob.StringProperty())
+    ("url", sob.StringProperty())
 ])
 sob.get_writable_object_meta(  # type: ignore
     Link
 ).properties = sob.Properties([
-    ('rel', sob.StringProperty()),
-    ('href', sob.StringProperty())
+    ("rel", sob.StringProperty()),
+    ("href", sob.StringProperty())
 ])
 sob.get_writable_object_meta(  # type: ignore
     LinkObject
 ).properties = sob.Properties([
     (
-        'operation_ref',
+        "operation_ref",
         sob.StringProperty(
             name="operationRef",
             versions=(
@@ -5121,7 +5123,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'operation_id',
+        "operation_id",
         sob.StringProperty(
             name="operationId",
             versions=(
@@ -5130,7 +5132,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'parameters',
+        "parameters",
         sob.DictionaryProperty(
             versions=(
                 'openapi>=3.0',
@@ -5138,7 +5140,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'request_body',
+        "request_body",
         sob.Property(
             name="requestBody",
             versions=(
@@ -5147,7 +5149,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'description',
+        "description",
         sob.StringProperty(
             versions=(
                 'openapi>=3.0',
@@ -5155,7 +5157,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'server',
+        "server",
         sob.Property(
             types=sob.MutableTypes([
                 Server
@@ -5176,7 +5178,7 @@ sob.get_writable_object_meta(  # type: ignore
     MediaType
 ).properties = sob.Properties([
     (
-        'schema',
+        "schema",
         sob.Property(
             types=sob.MutableTypes([
                 Reference,
@@ -5188,7 +5190,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'example',
+        "example",
         sob.Property(
             versions=(
                 'openapi>=3.0',
@@ -5196,7 +5198,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'examples',
+        "examples",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 Reference,
@@ -5208,7 +5210,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'encoding',
+        "encoding",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 Reference,
@@ -5224,25 +5226,25 @@ sob.get_writable_object_meta(  # type: ignore
     OAuthFlow
 ).properties = sob.Properties([
     (
-        'authorization_url',
+        "authorization_url",
         sob.StringProperty(
             name="authorizationUrl"
         )
     ),
     (
-        'token_url',
+        "token_url",
         sob.StringProperty(
             name="tokenUrl"
         )
     ),
     (
-        'refresh_url',
+        "refresh_url",
         sob.StringProperty(
             name="refreshUrl"
         )
     ),
     (
-        'scopes',
+        "scopes",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 str
@@ -5254,7 +5256,7 @@ sob.get_writable_object_meta(  # type: ignore
     OAuthFlows
 ).properties = sob.Properties([
     (
-        'implicit',
+        "implicit",
         sob.Property(
             types=sob.MutableTypes([
                 OAuthFlow
@@ -5265,7 +5267,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'password',
+        "password",
         sob.Property(
             types=sob.MutableTypes([
                 OAuthFlow
@@ -5276,7 +5278,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'client_credentials',
+        "client_credentials",
         sob.Property(
             name="clientCredentials",
             types=sob.MutableTypes([
@@ -5288,7 +5290,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'authorization_code',
+        "authorization_code",
         sob.Property(
             name="authorizationCode",
             types=sob.MutableTypes([
@@ -5304,7 +5306,7 @@ sob.get_writable_object_meta(  # type: ignore
     OpenAPI
 ).properties = sob.Properties([
     (
-        'openapi',
+        "openapi",
         sob.StringProperty(
             required=True,
             versions=(
@@ -5313,7 +5315,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'info',
+        "info",
         sob.Property(
             required=True,
             types=sob.MutableTypes([
@@ -5322,7 +5324,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'json_schema_dialect',
+        "json_schema_dialect",
         sob.StringProperty(
             name="jsonSchemaDialect",
             versions=(
@@ -5331,7 +5333,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'host',
+        "host",
         sob.StringProperty(
             versions=(
                 'openapi<3.0',
@@ -5339,7 +5341,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'servers',
+        "servers",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 Server
@@ -5350,7 +5352,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'base_path',
+        "base_path",
         sob.StringProperty(
             name="basePath",
             versions=(
@@ -5359,7 +5361,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'schemes',
+        "schemes",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 str
@@ -5370,7 +5372,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'tags',
+        "tags",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 Tag
@@ -5378,7 +5380,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'paths',
+        "paths",
         sob.Property(
             required=True,
             types=sob.MutableTypes([
@@ -5387,7 +5389,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'components',
+        "components",
         sob.Property(
             types=sob.MutableTypes([
                 Components
@@ -5398,7 +5400,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'consumes',
+        "consumes",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 str
@@ -5409,7 +5411,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'swagger',
+        "swagger",
         sob.StringProperty(
             required=True,
             versions=(
@@ -5418,7 +5420,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'definitions',
+        "definitions",
         sob.Property(
             types=sob.MutableTypes([
                 Definitions
@@ -5429,7 +5431,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'security_definitions',
+        "security_definitions",
         sob.Property(
             name="securityDefinitions",
             types=sob.MutableTypes([
@@ -5441,7 +5443,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'produces',
+        "produces",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 str
@@ -5452,7 +5454,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'external_docs',
+        "external_docs",
         sob.Property(
             name="externalDocs",
             types=sob.MutableTypes([
@@ -5461,7 +5463,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'parameters',
+        "parameters",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 Parameter
@@ -5472,7 +5474,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'responses',
+        "responses",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 Response
@@ -5483,7 +5485,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'security',
+        "security",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 SecurityRequirement
@@ -5495,17 +5497,17 @@ sob.get_writable_object_meta(  # type: ignore
     Operation
 ).properties = sob.Properties([
     (
-        'tags',
+        "tags",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 str
             ])
         )
     ),
-    ('summary', sob.StringProperty()),
-    ('description', sob.StringProperty()),
+    ("summary", sob.StringProperty()),
+    ("description", sob.StringProperty()),
     (
-        'external_docs',
+        "external_docs",
         sob.Property(
             name="externalDocs",
             types=sob.MutableTypes([
@@ -5514,13 +5516,13 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'operation_id',
+        "operation_id",
         sob.StringProperty(
             name="operationId"
         )
     ),
     (
-        'consumes',
+        "consumes",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 str
@@ -5531,7 +5533,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'produces',
+        "produces",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 str
@@ -5542,7 +5544,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'parameters',
+        "parameters",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 Reference,
@@ -5551,7 +5553,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'request_body',
+        "request_body",
         sob.Property(
             name="requestBody",
             types=sob.MutableTypes([
@@ -5564,7 +5566,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'responses',
+        "responses",
         sob.Property(
             required=True,
             types=sob.MutableTypes([
@@ -5573,7 +5575,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'callbacks',
+        "callbacks",
         sob.Property(
             types=sob.MutableTypes([
                 Callbacks
@@ -5584,7 +5586,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'schemes',
+        "schemes",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 str
@@ -5594,9 +5596,9 @@ sob.get_writable_object_meta(  # type: ignore
             )
         )
     ),
-    ('deprecated', sob.BooleanProperty()),
+    ("deprecated", sob.BooleanProperty()),
     (
-        'security',
+        "security",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 SecurityRequirement
@@ -5604,7 +5606,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'servers',
+        "servers",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 Server
@@ -5619,13 +5621,13 @@ sob.get_writable_object_meta(  # type: ignore
     Parameter
 ).properties = sob.Properties([
     (
-        'name',
+        "name",
         sob.StringProperty(
             required=True
         )
     ),
     (
-        'in_',
+        "in_",
         sob.Property(
             name="in",
             required=True,
@@ -5677,17 +5679,17 @@ sob.get_writable_object_meta(  # type: ignore
             ])
         )
     ),
-    ('description', sob.StringProperty()),
-    ('required', sob.BooleanProperty()),
-    ('deprecated', sob.BooleanProperty()),
+    ("description", sob.StringProperty()),
+    ("required", sob.BooleanProperty()),
+    ("deprecated", sob.BooleanProperty()),
     (
-        'allow_empty_value',
+        "allow_empty_value",
         sob.BooleanProperty(
             name="allowEmptyValue"
         )
     ),
     (
-        'style',
+        "style",
         sob.StringProperty(
             versions=(
                 'openapi>=3.0',
@@ -5695,7 +5697,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'explode',
+        "explode",
         sob.BooleanProperty(
             versions=(
                 'openapi>=3.0',
@@ -5703,7 +5705,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'allow_reserved',
+        "allow_reserved",
         sob.BooleanProperty(
             name="allowReserved",
             versions=(
@@ -5712,7 +5714,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'schema',
+        "schema",
         sob.Property(
             types=sob.MutableTypes([
                 Reference,
@@ -5721,7 +5723,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'example',
+        "example",
         sob.Property(
             versions=(
                 'openapi>=3.0',
@@ -5729,7 +5731,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'examples',
+        "examples",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 Reference,
@@ -5741,7 +5743,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'content',
+        "content",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 MediaType
@@ -5752,7 +5754,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'type_',
+        "type_",
         sob.EnumeratedProperty(
             name="type",
             types=sob.Types([
@@ -5773,7 +5775,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'default',
+        "default",
         sob.Property(
             versions=(
                 'openapi<3.0',
@@ -5781,7 +5783,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'maximum',
+        "maximum",
         sob.NumberProperty(
             versions=(
                 'openapi<3.0',
@@ -5789,7 +5791,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'exclusive_maximum',
+        "exclusive_maximum",
         sob.BooleanProperty(
             name="exclusiveMaximum",
             versions=(
@@ -5798,7 +5800,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'minimum',
+        "minimum",
         sob.NumberProperty(
             versions=(
                 'openapi<3.0',
@@ -5806,7 +5808,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'exclusive_minimum',
+        "exclusive_minimum",
         sob.BooleanProperty(
             name="exclusiveMinimum",
             versions=(
@@ -5815,7 +5817,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'max_length',
+        "max_length",
         sob.IntegerProperty(
             name="maxLength",
             versions=(
@@ -5824,7 +5826,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'min_length',
+        "min_length",
         sob.IntegerProperty(
             name="minLength",
             versions=(
@@ -5833,7 +5835,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'pattern',
+        "pattern",
         sob.StringProperty(
             versions=(
                 'openapi<3.0',
@@ -5841,7 +5843,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'max_items',
+        "max_items",
         sob.IntegerProperty(
             name="maxItems",
             versions=(
@@ -5850,7 +5852,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'min_items',
+        "min_items",
         sob.IntegerProperty(
             name="minItems",
             versions=(
@@ -5859,7 +5861,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'unique_items',
+        "unique_items",
         sob.BooleanProperty(
             name="uniqueItems",
             versions=(
@@ -5868,7 +5870,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'enum',
+        "enum",
         sob.ArrayProperty(
             versions=(
                 'openapi<3.0',
@@ -5876,7 +5878,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'format_',
+        "format_",
         sob.StringProperty(
             name="format",
             versions=(
@@ -5885,7 +5887,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'collection_format',
+        "collection_format",
         sob.EnumeratedProperty(
             name="collectionFormat",
             types=sob.Types([
@@ -5904,7 +5906,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'items',
+        "items",
         sob.Property(
             types=sob.MutableTypes([
                 Items
@@ -5915,7 +5917,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'multiple_of',
+        "multiple_of",
         sob.NumberProperty(
             name="multipleOf",
             versions=(
@@ -5934,7 +5936,7 @@ sob.get_writable_object_meta(  # type: ignore
     PathItem
 ).properties = sob.Properties([
     (
-        'summary',
+        "summary",
         sob.StringProperty(
             versions=(
                 'openapi>=3.0',
@@ -5942,7 +5944,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'description',
+        "description",
         sob.StringProperty(
             versions=(
                 'openapi>=3.0',
@@ -5950,7 +5952,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'get',
+        "get",
         sob.Property(
             types=sob.MutableTypes([
                 Operation
@@ -5958,7 +5960,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'put',
+        "put",
         sob.Property(
             types=sob.MutableTypes([
                 Operation
@@ -5966,7 +5968,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'post',
+        "post",
         sob.Property(
             types=sob.MutableTypes([
                 Operation
@@ -5974,7 +5976,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'delete',
+        "delete",
         sob.Property(
             types=sob.MutableTypes([
                 Operation
@@ -5982,7 +5984,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'options',
+        "options",
         sob.Property(
             types=sob.MutableTypes([
                 Operation
@@ -5990,7 +5992,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'head',
+        "head",
         sob.Property(
             types=sob.MutableTypes([
                 Operation
@@ -5998,7 +6000,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'patch',
+        "patch",
         sob.Property(
             types=sob.MutableTypes([
                 Operation
@@ -6006,7 +6008,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'trace',
+        "trace",
         sob.Property(
             types=sob.MutableTypes([
                 Operation
@@ -6017,7 +6019,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'servers',
+        "servers",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 Server
@@ -6028,7 +6030,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'parameters',
+        "parameters",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 Reference,
@@ -6052,14 +6054,14 @@ sob.get_writable_object_meta(  # type: ignore
     Reference
 ).properties = sob.Properties([
     (
-        'ref',
+        "ref",
         sob.StringProperty(
             name="$ref",
             required=True
         )
     ),
-    ('summary', sob.StringProperty()),
-    ('description', sob.StringProperty())
+    ("summary", sob.StringProperty()),
+    ("description", sob.StringProperty())
 ])
 sob.get_writable_dictionary_meta(  # type: ignore
     RequestBodies
@@ -6071,7 +6073,7 @@ sob.get_writable_object_meta(  # type: ignore
     RequestBody
 ).properties = sob.Properties([
     (
-        'description',
+        "description",
         sob.StringProperty(
             versions=(
                 'openapi>=3.0',
@@ -6079,7 +6081,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'content',
+        "content",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 MediaType
@@ -6090,7 +6092,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'required',
+        "required",
         sob.BooleanProperty(
             versions=(
                 'openapi>=3.0',
@@ -6102,13 +6104,13 @@ sob.get_writable_object_meta(  # type: ignore
     Response
 ).properties = sob.Properties([
     (
-        'description',
+        "description",
         sob.StringProperty(
             required=True
         )
     ),
     (
-        'schema',
+        "schema",
         sob.Property(
             types=sob.MutableTypes([
                 Reference,
@@ -6120,7 +6122,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'headers',
+        "headers",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 Reference,
@@ -6129,7 +6131,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'examples',
+        "examples",
         sob.DictionaryProperty(
             versions=(
                 'openapi<3.0',
@@ -6137,7 +6139,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'content',
+        "content",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 Reference,
@@ -6149,7 +6151,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'links',
+        "links",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 Reference,
@@ -6185,61 +6187,61 @@ sob.get_writable_dictionary_meta(  # type: ignore
 sob.get_writable_object_meta(  # type: ignore
     Schema
 ).properties = sob.Properties([
-    ('title', sob.StringProperty()),
-    ('description', sob.StringProperty()),
+    ("title", sob.StringProperty()),
+    ("description", sob.StringProperty()),
     (
-        'multiple_of',
+        "multiple_of",
         sob.NumberProperty(
             name="multipleOf"
         )
     ),
-    ('maximum', sob.NumberProperty()),
+    ("maximum", sob.NumberProperty()),
     (
-        'exclusive_maximum',
+        "exclusive_maximum",
         sob.BooleanProperty(
             name="exclusiveMaximum"
         )
     ),
-    ('minimum', sob.NumberProperty()),
+    ("minimum", sob.NumberProperty()),
     (
-        'exclusive_minimum',
+        "exclusive_minimum",
         sob.BooleanProperty(
             name="exclusiveMinimum"
         )
     ),
     (
-        'max_length',
+        "max_length",
         sob.IntegerProperty(
             name="maxLength"
         )
     ),
     (
-        'min_length',
+        "min_length",
         sob.IntegerProperty(
             name="minLength"
         )
     ),
-    ('pattern', sob.StringProperty()),
+    ("pattern", sob.StringProperty()),
     (
-        'max_items',
+        "max_items",
         sob.IntegerProperty(
             name="maxItems"
         )
     ),
     (
-        'min_items',
+        "min_items",
         sob.IntegerProperty(
             name="minItems"
         )
     ),
     (
-        'unique_items',
+        "unique_items",
         sob.BooleanProperty(
             name="uniqueItems"
         )
     ),
     (
-        'items',
+        "items",
         sob.Property(
             types=sob.MutableTypes([
                 Reference,
@@ -6254,19 +6256,19 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'max_properties',
+        "max_properties",
         sob.IntegerProperty(
             name="maxProperties"
         )
     ),
     (
-        'min_properties',
+        "min_properties",
         sob.IntegerProperty(
             name="minProperties"
         )
     ),
     (
-        'properties',
+        "properties",
         sob.Property(
             types=sob.MutableTypes([
                 Properties
@@ -6274,7 +6276,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'additional_properties',
+        "additional_properties",
         sob.Property(
             name="additionalProperties",
             types=sob.MutableTypes([
@@ -6284,10 +6286,10 @@ sob.get_writable_object_meta(  # type: ignore
             ])
         )
     ),
-    ('enum', sob.ArrayProperty()),
-    ('const', sob.Property()),
+    ("enum", sob.ArrayProperty()),
+    ("const", sob.Property()),
     (
-        'type_',
+        "type_",
         sob.Property(
             name="type",
             types=sob.MutableTypes([
@@ -6309,13 +6311,13 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'format_',
+        "format_",
         sob.StringProperty(
             name="format"
         )
     ),
     (
-        'required',
+        "required",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 str
@@ -6323,7 +6325,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'all_of',
+        "all_of",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 Reference,
@@ -6333,7 +6335,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'any_of',
+        "any_of",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 Reference,
@@ -6343,7 +6345,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'one_of',
+        "one_of",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 Reference,
@@ -6353,7 +6355,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'is_not',
+        "is_not",
         sob.Property(
             name="isNot",
             types=sob.MutableTypes([
@@ -6362,10 +6364,10 @@ sob.get_writable_object_meta(  # type: ignore
             ])
         )
     ),
-    ('definitions', sob.Property()),
-    ('default', sob.Property()),
+    ("definitions", sob.Property()),
+    ("default", sob.Property()),
     (
-        'discriminator',
+        "discriminator",
         sob.Property(
             types=sob.MutableTypes([
                 sob.Property(
@@ -6388,13 +6390,13 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'read_only',
+        "read_only",
         sob.BooleanProperty(
             name="readOnly"
         )
     ),
     (
-        'write_only',
+        "write_only",
         sob.BooleanProperty(
             name="writeOnly",
             versions=(
@@ -6403,7 +6405,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'xml',
+        "xml",
         sob.Property(
             types=sob.MutableTypes([
                 XML
@@ -6411,7 +6413,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'external_docs',
+        "external_docs",
         sob.Property(
             name="externalDocs",
             types=sob.MutableTypes([
@@ -6419,9 +6421,9 @@ sob.get_writable_object_meta(  # type: ignore
             ])
         )
     ),
-    ('example', sob.Property()),
+    ("example", sob.Property()),
     (
-        'deprecated',
+        "deprecated",
         sob.BooleanProperty(
             versions=(
                 'openapi>=3.0',
@@ -6429,7 +6431,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'links',
+        "links",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 Link
@@ -6437,7 +6439,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'nullable',
+        "nullable",
         sob.BooleanProperty(
             versions=(
                 'openapi>=3.0',
@@ -6445,7 +6447,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'content_encoding',
+        "content_encoding",
         sob.StringProperty(
             name="contentEncoding",
             versions=(
@@ -6454,7 +6456,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'content_media_type',
+        "content_media_type",
         sob.StringProperty(
             name="contentMediaType",
             versions=(
@@ -6463,7 +6465,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'examples',
+        "examples",
         sob.ArrayProperty(
             name="examples",
             versions=(
@@ -6491,7 +6493,7 @@ sob.get_writable_object_meta(  # type: ignore
     SecurityScheme
 ).properties = sob.Properties([
     (
-        'type_',
+        "type_",
         sob.EnumeratedProperty(
             name="type",
             required=True,
@@ -6506,10 +6508,10 @@ sob.get_writable_object_meta(  # type: ignore
             }
         )
     ),
-    ('description', sob.StringProperty()),
-    ('name', sob.StringProperty()),
+    ("description", sob.StringProperty()),
+    ("name", sob.StringProperty()),
     (
-        'in_',
+        "in_",
         sob.Property(
             name="in",
             types=sob.MutableTypes([
@@ -6542,7 +6544,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'scheme',
+        "scheme",
         sob.StringProperty(
             versions=(
                 'openapi>=3.0',
@@ -6550,13 +6552,13 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'bearer_format',
+        "bearer_format",
         sob.StringProperty(
             name="bearerFormat"
         )
     ),
     (
-        'flows',
+        "flows",
         sob.Property(
             types=sob.MutableTypes([
                 OAuthFlows
@@ -6567,13 +6569,13 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'open_id_connect_url',
+        "open_id_connect_url",
         sob.StringProperty(
             name="openIdConnectUrl"
         )
     ),
     (
-        'flow',
+        "flow",
         sob.StringProperty(
             versions=(
                 'openapi<3.0',
@@ -6581,7 +6583,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'authorization_url',
+        "authorization_url",
         sob.StringProperty(
             name="authorizationUrl",
             versions=(
@@ -6590,7 +6592,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'token_url',
+        "token_url",
         sob.StringProperty(
             name="tokenUrl",
             versions=(
@@ -6599,7 +6601,7 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'scopes',
+        "scopes",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 str
@@ -6620,14 +6622,14 @@ sob.get_writable_object_meta(  # type: ignore
     Server
 ).properties = sob.Properties([
     (
-        'url',
+        "url",
         sob.StringProperty(
             required=True
         )
     ),
-    ('description', sob.StringProperty()),
+    ("description", sob.StringProperty()),
     (
-        'variables',
+        "variables",
         sob.DictionaryProperty(
             value_types=sob.MutableTypes([
                 ServerVariable
@@ -6639,7 +6641,7 @@ sob.get_writable_object_meta(  # type: ignore
     ServerVariable
 ).properties = sob.Properties([
     (
-        'enum',
+        "enum",
         sob.ArrayProperty(
             item_types=sob.MutableTypes([
                 str
@@ -6647,25 +6649,25 @@ sob.get_writable_object_meta(  # type: ignore
         )
     ),
     (
-        'default',
+        "default",
         sob.StringProperty(
             required=True
         )
     ),
-    ('description', sob.StringProperty())
+    ("description", sob.StringProperty())
 ])
 sob.get_writable_object_meta(  # type: ignore
     Tag
 ).properties = sob.Properties([
     (
-        'name',
+        "name",
         sob.StringProperty(
             required=True
         )
     ),
-    ('description', sob.StringProperty()),
+    ("description", sob.StringProperty()),
     (
-        'external_docs',
+        "external_docs",
         sob.Property(
             types=sob.MutableTypes([
                 ExternalDocumentation
@@ -6676,16 +6678,16 @@ sob.get_writable_object_meta(  # type: ignore
 sob.get_writable_object_meta(  # type: ignore
     XML
 ).properties = sob.Properties([
-    ('name', sob.StringProperty()),
+    ("name", sob.StringProperty()),
     (
-        'name_space',
+        "name_space",
         sob.StringProperty(
             name="nameSpace"
         )
     ),
-    ('prefix', sob.StringProperty()),
-    ('attribute', sob.BooleanProperty()),
-    ('wrapped', sob.BooleanProperty())
+    ("prefix", sob.StringProperty()),
+    ("attribute", sob.BooleanProperty()),
+    ("wrapped", sob.BooleanProperty())
 ])
 
 # region Aliases

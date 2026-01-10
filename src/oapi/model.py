@@ -204,7 +204,7 @@ def _types_from_enum_values(
     return types
 
 
-def _append_property_type(
+def _append_property_type(  # noqa: C901
     property_: sob.abc.Property, type_: type | sob.abc.Property
 ) -> sob.abc.Property:
     if type_ is datetime:
@@ -221,10 +221,21 @@ def _append_property_type(
         )
     ) | {sob.utilities.represent(property_)}
     if sob.utilities.represent(type_) not in type_representations:
-        if not isinstance(property_.types, sob.abc.MutableTypes):
+        if isinstance(property_.types, sob.abc.MutableTypes):
+            # When appending a class which is a sub-class of
+            # another property type, first remove the parent class
+            if isinstance(type_, type):
+                index: int
+                existing_type: type | sob.abc.Property
+                for index, existing_type in tuple(enumerate(property_.types)):
+                    if isinstance(existing_type, type) and issubclass(
+                        type_, existing_type
+                    ):
+                        property_.types.pop(index)
+        else:
             types: sob.abc.MutableTypes
             # If the existing property type is a base class of the
-            # type to be appended, the appended class supercedes
+            # type to be appended, the appended class supersedes
             # the original
             if (
                 property_.types
@@ -290,6 +301,9 @@ class _Modeler:
             str, type[sob.abc.Model] | None
         ] = {}
         self._class_names_models: dict[str, type[sob.abc.Model] | None] = {}
+        self._relative_urls_pointers_callbacks: dict[
+            str, deque[Callable[..., None]]
+        ] = {}
         # Validate arguments
         if not (isinstance(root, OpenAPI) and root):
             message = f"Invalid root document: {root!r}"
@@ -476,11 +490,48 @@ class _Modeler:
     def get_class_name_relative_url_pointer(self, class_name_: str) -> str:
         return self._class_names_relative_urls_pointers[class_name_]
 
+    def append_schema_relative_url_pointer_callback(
+        self, schema: Schema | Parameter | Items, callback: Callable[..., None]
+    ) -> None:
+        self._relative_urls_pointers_callbacks.setdefault(
+            self.get_model_relative_url_pointer(schema), deque()
+        ).append(callback)
+
+    def execute_schema_relative_url_pointer_callbacks(
+        self,
+        schema: Schema | Parameter | Items,
+    ) -> None:
+        """
+        Execute any callbacks previously registered for the given schemas,
+        and clear them from the registry.
+        """
+        callbacks: deque[Callable[..., None]] | None = (
+            self._relative_urls_pointers_callbacks.pop(
+                self.get_model_relative_url_pointer(schema), None
+            )
+        )
+        if callbacks:
+            callback: Callable[..., None]
+            for callback in callbacks:
+                callback()
+
     def extend_property_schemas(
         self,
         property_: sob.abc.Property,
         schemas: Iterable[Schema | Reference],
     ) -> sob.abc.Property:
+        """
+        Extend a properties types based on multiple one or more schemas.
+
+        Parameters:
+            property_:
+            schemas:
+
+        Returns:
+            A tuple containing the extended property and an optional callback
+            which may be invoked later to complete the type extension in the
+            case of recursive type definitions.
+        """
         schemas = iter(schemas)
         next_schema: Schema | None = self.next_schema(schemas)
         if next_schema is None:
@@ -508,7 +559,28 @@ class _Modeler:
                 ),
                 maxlen=0,
             )
-        return self.extend_property_schemas(property_, schemas)
+        else:
+            # If the child property has no types, it is likely because
+            # the type is recursive, so we defer appending the types
+
+            def callback() -> None:
+                child_property_ = self.get_property(next_schema)
+                if child_property_.types:
+                    deque(
+                        map(
+                            _append_property_type,
+                            (property_,) * len(child_property_.types),
+                            child_property_.types,
+                        ),
+                        maxlen=0,
+                    )
+
+            self.append_schema_relative_url_pointer_callback(
+                next_schema, callback
+            )
+
+        property_ = self.extend_property_schemas(property_, schemas)
+        return property_
 
     def next_schema(
         self, schemas: Iterator[Schema | Reference]
@@ -780,6 +852,9 @@ class _Modeler:
             )
             self.set_relative_url_pointer_model(relative_url_pointer, cls)
             self.set_model_class_name(cls)
+            # Execute any deferred callbacks to complete recursive type
+            # assignments
+            self.execute_schema_relative_url_pointer_callbacks(definition)
         return self.get_relative_url_pointer_model(relative_url_pointer)
 
     def iter_pointers_model_classes(
@@ -867,6 +942,8 @@ class _Modeler:
         self, cls: type[sob.abc.Array], schemas: Iterable[Schema]
     ) -> None:
         """
+        TODO: Can this be deleted?
+
         Incorporate additional schemas into a the allowed item types
         for a sub-class of `sob.Array`.
 
@@ -890,6 +967,8 @@ class _Modeler:
         self, cls: type[sob.abc.Dictionary], schemas: Iterable[Schema]
     ) -> None:
         """
+        TODO: Can this be deleted?
+
         Incorporate additional schemas into a the allowed value types
         for a sub-class of `sob.Dictionary`.
 
@@ -1403,7 +1482,7 @@ class _Modeler:
         lines: list[str] = []
         for property_name_, value in iter_properties_values(meta_):
             if value is not None:
-                value = repr(value)  # noqa: PLW2901
+                value = sob.utilities.represent(value)  # noqa: PLW2901
                 if value[: _META_PROPERTIES_QAULIFIED_NAME_LENGTH + 1] == (
                     f"{_META_PROPERTIES_QAULIFIED_NAME}("
                 ):
