@@ -549,8 +549,15 @@ def get_request_curl(
         options: Any additional parameters to pass to `curl`,
             (such as "--compressed", "--insecure", etc.)
     """
+    lowercase_content_type: str = request.headers.get(
+        "Content-Type", ""
+    ).lower()
     is_json: bool = bool(
-        request.headers.get("Content-Type", "").lower() == "application/json"
+        lowercase_content_type == "application/json"
+        or (
+            lowercase_content_type.endswith("+json")
+            and lowercase_content_type.startswith("application/")
+        )
     )
     censored_headers = tuple(map(str.lower, censored_headers))
 
@@ -3433,7 +3440,10 @@ class ClientModule:
         required: bool = bool(request_body.required)
         if request_body.content:
             for media_type_name, media_type in request_body.content.items():
-                if media_type_name == "application/json":
+                if media_type_name == "application/json" or (
+                    media_type_name.endswith("+json")
+                    and media_type_name.startswith("application/")
+                ):
                     yield self._get_request_body_json_parameter_source(
                         media_type,
                         parameter_locations=parameter_locations,
