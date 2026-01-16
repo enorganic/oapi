@@ -16,6 +16,7 @@ import sys
 import threading
 import time
 import typing
+import zlib
 from base64 import b64encode
 from collections import deque
 from dataclasses import dataclass, field
@@ -764,6 +765,8 @@ def _encode_content(data: bytes, content_encoding: str) -> bytes:
     content_encoding = content_encoding.lower().strip()
     if content_encoding == "gzip":
         data = gzip.compress(data)
+    elif content_encoding == "deflate":
+        data = zlib.compress(data)
     elif content_encoding == "zstd":
         import zstandard  # noqa: PLC0415
 
@@ -788,6 +791,8 @@ def _decode_content(data: bytes, content_encoding: str) -> bytes:
     content_encoding = content_encoding.lower().strip()
     if content_encoding == "gzip":
         data = gzip.decompress(data)
+    elif content_encoding == "deflate":
+        data = zlib.decompress(data)
     elif content_encoding == "zstd":
         import zstandard  # noqa: PLC0415
 
