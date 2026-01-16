@@ -631,10 +631,6 @@ def _represent_http_response(
     censored_headers: tuple[str, ...] = (),
 ) -> str:
     data = HTTPResponse.read(response) if data is None else data
-    if data:
-        content_encoding: str | None = response.getheader("Content-encoding")
-        if content_encoding:
-            data = _decode_content(data, content_encoding)
     if censored_headers:
         censored_headers = tuple(map(str.lower, censored_headers))
     header_items: tuple[tuple[str, typing.Any], ...] = (
