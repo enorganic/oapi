@@ -26,6 +26,7 @@ distribute:
 # match
 upgrade:
 	hatch run dependence upgrade\
+	 -aen all\
 	 --include-pointer /tool/hatch/envs/default\
 	 --include-pointer /project\
 	 pyproject.toml && \
