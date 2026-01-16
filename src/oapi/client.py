@@ -583,7 +583,7 @@ def get_request_curl(
             )
         )
     )
-    if content_encoding:
+    if data and content_encoding:
         data = _decode_content(data, content_encoding)
     repr_data: str = ""
     if data:
@@ -631,10 +631,6 @@ def _represent_http_response(
     censored_headers: tuple[str, ...] = (),
 ) -> str:
     data = HTTPResponse.read(response) if data is None else data
-    if data:
-        content_encoding: str | None = response.getheader("Content-encoding")
-        if content_encoding:
-            data = _decode_content(data, content_encoding)
     if censored_headers:
         censored_headers = tuple(map(str.lower, censored_headers))
     header_items: tuple[tuple[str, typing.Any], ...] = (
@@ -666,7 +662,7 @@ def _set_response_callback(
             content_encoding: str | None = response.headers.get(
                 "Content-encoding"
             )
-            if content_encoding:
+            if data and content_encoding:
                 data = _decode_content(
                     data,
                     content_encoding,
@@ -755,6 +751,8 @@ def _remove_none(
 
 
 def _encode_content(data: bytes, content_encoding: str) -> bytes:
+    if not data:
+        return data
     if "," in content_encoding:
         # Encode content in the order provided
         content_encodings: str
@@ -781,6 +779,8 @@ def _encode_content(data: bytes, content_encoding: str) -> bytes:
 
 
 def _decode_content(data: bytes, content_encoding: str) -> bytes:
+    if not data:
+        return data
     if "," in content_encoding:
         # Decode content in reverse order
         content_encodings: str
