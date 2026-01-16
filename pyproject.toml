@@ -77,6 +77,9 @@ pre-install-commands = [
 post-install-commands = [
     "hatch run mypy --install-types --non-interactive || echo",
 ]
+optional-dependencies = [
+    "all",
+]
 
 [tool.hatch.envs.hatch-static-analysis]
 extra-dependencies = [
