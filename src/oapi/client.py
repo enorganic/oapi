@@ -747,6 +747,7 @@ def _format_request_data(  # noqa: C901
         collections.abc.Mapping[str, typing.Any]
         | collections.abc.Sequence[tuple[str, typing.Any]]
     ),
+    content_encoding: str | None = None,
 ) -> bytes | None:
     formatted_data: bytes | None = None
     if json:
@@ -783,6 +784,26 @@ def _format_request_data(  # noqa: C901
                     encoding="ascii",
                 )
         formatted_data = bytes(urlencode(data), encoding="utf-8")
+    if formatted_data:
+        content_encoding = (
+            content_encoding.lower() if content_encoding else None
+        )
+        if content_encoding == "gzip":
+            formatted_data = gzip.compress(formatted_data)
+        elif content_encoding == "zstd":
+            import zstandard  # noqa: PLC0415
+
+            formatted_data = zstandard.ZstdCompressor().compress(
+                formatted_data
+            )
+        elif content_encoding in ("br", "dcb", "dcz"):
+            try:
+                import brotlicffi as brotli  # type: ignore[import-not-found] # noqa: PLC0415
+            except ImportError:
+                import brotli  # type: ignore # noqa: PLC0415
+            formatted_data = brotli.compress(
+                formatted_data, mode=brotli.MODE_TEXT
+            )
     return formatted_data
 
 
@@ -970,7 +991,11 @@ def _assemble_request(  # noqa: C901
         raise ValueError(url)
     return Request(  # noqa: S310
         url,
-        data=_format_request_data(json, data),
+        data=_format_request_data(
+            json,
+            data,
+            content_encoding=headers.get("Content-encoding"),
+        ),
         method=method.upper(),
         headers=headers,
     )
