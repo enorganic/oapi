@@ -549,14 +549,16 @@ def get_request_curl(
         options: Any additional parameters to pass to `curl`,
             (such as "--compressed", "--insecure", etc.)
     """
-    lowercase_content_type: str = request.headers.get(
-        "Content-Type", ""
-    ).lower()
+    content_type: str | None = request.headers.get("Content-type")
+    if content_type:
+        content_type = content_type.lower()
+    content_encoding: str | None = request.headers.get("Content-encoding")
     is_json: bool = bool(
-        lowercase_content_type == "application/json"
+        content_type == "application/json"
         or (
-            lowercase_content_type.endswith("+json")
-            and lowercase_content_type.startswith("application/")
+            content_type
+            and content_type.endswith("+json")
+            and content_type.startswith("application/")
         )
     )
     censored_headers = tuple(map(str.lower, censored_headers))
@@ -580,20 +582,24 @@ def get_request_curl(
             )
         )
     )
+    if content_encoding:
+        data = _decode_content(data, content_encoding)
     repr_data: str = ""
     if data:
-        data_str = data.decode("utf-8")
-        if censored_parameters and not is_json:
-            query: dict[str, list[str]] = {}
-            key: str
-            value: list[str]
-            for key, value in parse_qs(data_str).items():
-                if key in censored_parameters:
-                    query[key] = ["***"]
-                else:
-                    query[key] = value
-            data_str = urlencode(query, safe=f"*{URLENCODE_SAFE}", doseq=True)
         try:
+            data_str = data.decode("utf-8")
+            if censored_parameters and not is_json:
+                query: dict[str, list[str]] = {}
+                key: str
+                value: list[str]
+                for key, value in parse_qs(data_str).items():
+                    if key in censored_parameters:
+                        query[key] = ["***"]
+                    else:
+                        query[key] = value
+                data_str = urlencode(
+                    query, safe=f"*{URLENCODE_SAFE}", doseq=True
+                )
             repr_data = shlex.quote(data_str)
         except UnicodeDecodeError:
             # If the data can't be represented as a command-line argument,
@@ -624,13 +630,10 @@ def _represent_http_response(
     censored_headers: tuple[str, ...] = (),
 ) -> str:
     data = HTTPResponse.read(response) if data is None else data
-    content_encoding: str
-    for content_encoding in response.getheader("Content-encoding", "").split(
-        ","
-    ):
-        content_encoding = content_encoding.strip().lower()  # noqa: PLW2901
-        if content_encoding and content_encoding == "gzip":
-            data = gzip.decompress(data)
+    if data:
+        content_encoding: str | None = response.getheader("Content-encoding")
+        if content_encoding:
+            data = _decode_content(data, content_encoding)
     if censored_headers:
         censored_headers = tuple(map(str.lower, censored_headers))
     header_items: tuple[tuple[str, typing.Any], ...] = (
@@ -658,6 +661,15 @@ def _set_response_callback(
     @functools.wraps(response.read)
     def response_read(amt: int | None = None) -> bytes:
         data: bytes = HTTPResponse.read(response, amt)
+        if response.headers:
+            content_encoding: str | None = response.headers.get(
+                "Content-encoding"
+            )
+            if content_encoding:
+                data = _decode_content(
+                    data,
+                    content_encoding,
+                )
         callback(_represent_http_response(response, data))
         return data
 
@@ -741,6 +753,54 @@ def _remove_none(
     return tuple(filter(lambda item: item[1] is not None, items))
 
 
+def _encode_content(data: bytes, content_encoding: str) -> bytes:
+    if "," in content_encoding:
+        # Encode content in the order provided
+        content_encodings: str
+        content_encoding, _, content_encodings = content_encoding.partition(
+            ","
+        )
+        data = _decode_content(data, content_encodings)
+    content_encoding = content_encoding.lower().strip()
+    if content_encoding == "gzip":
+        data = gzip.compress(data)
+    elif content_encoding == "zstd":
+        import zstandard  # noqa: PLC0415
+
+        data = zstandard.ZstdCompressor().compress(data)
+    elif content_encoding in ("br", "dcb", "dcz"):
+        try:
+            import brotlicffi as brotli  # type: ignore[import-not-found] # noqa: PLC0415
+        except ImportError:
+            import brotli  # type: ignore # noqa: PLC0415
+        data = brotli.compress(data, mode=brotli.MODE_TEXT)
+    return data
+
+
+def _decode_content(data: bytes, content_encoding: str) -> bytes:
+    if "," in content_encoding:
+        # Decode content in reverse order
+        content_encodings: str
+        content_encoding, _, content_encodings = content_encoding.partition(
+            ","
+        )
+        data = _decode_content(data, content_encodings)
+    content_encoding = content_encoding.lower().strip()
+    if content_encoding == "gzip":
+        data = gzip.decompress(data)
+    elif content_encoding == "zstd":
+        import zstandard  # noqa: PLC0415
+
+        data = zstandard.ZstdDecompressor().decompress(data)
+    elif content_encoding in ("br", "dcb", "dcz"):
+        try:
+            import brotlicffi as brotli  # type: ignore[import-not-found] # noqa: PLC0415
+        except ImportError:
+            import brotli  # type: ignore # noqa: PLC0415
+        data = brotli.decompress(data)
+    return data
+
+
 def _format_request_data(  # noqa: C901
     json: str | bytes | sob.abc.Model | None,
     data: (
@@ -784,26 +844,8 @@ def _format_request_data(  # noqa: C901
                     encoding="ascii",
                 )
         formatted_data = bytes(urlencode(data), encoding="utf-8")
-    if formatted_data:
-        content_encoding = (
-            content_encoding.lower() if content_encoding else None
-        )
-        if content_encoding == "gzip":
-            formatted_data = gzip.compress(formatted_data)
-        elif content_encoding == "zstd":
-            import zstandard  # noqa: PLC0415
-
-            formatted_data = zstandard.ZstdCompressor().compress(
-                formatted_data
-            )
-        elif content_encoding in ("br", "dcb", "dcz"):
-            try:
-                import brotlicffi as brotli  # type: ignore[import-not-found] # noqa: PLC0415
-            except ImportError:
-                import brotli  # type: ignore # noqa: PLC0415
-            formatted_data = brotli.compress(
-                formatted_data, mode=brotli.MODE_TEXT
-            )
+    if formatted_data and content_encoding:
+        formatted_data = _encode_content(formatted_data, content_encoding)
     return formatted_data
 
 
@@ -1452,15 +1494,8 @@ class Client:
 
     def _request_callback(self, request: Request) -> None:
         curl_options: str = "-i"
-        content_encoding: str
-        for content_encoding in request.headers.get(
-            "Content-encoding", ""
-        ).split(","):
-            content_encoding = (  # noqa: PLW2901
-                content_encoding.strip().lower()
-            )
-            if content_encoding and content_encoding == "gzip":
-                curl_options = f"{curl_options} --compressed"
+        if request.headers.get("Content-encoding"):
+            curl_options = f"{curl_options} --compressed"
         if not self.verify_ssl_certificate:
             curl_options = f"{curl_options} -k"
         self._get_request_response_callback()(
