@@ -49,6 +49,11 @@ from urllib.request import (
 )
 from warnings import warn
 
+try:
+    from typing import Self  # type: ignore[attr-defined]
+except ImportError:
+    from typing_extensions import Self
+
 import sob
 
 from oapi._multipart_request import MultipartRequest, Part
@@ -916,6 +921,13 @@ class SSLContext(ssl.SSLContext):
     This class is a wrapper for `ssl.SSLContext` which makes it possible to
     connect to hosts which have an unverified SSL certificate.
     """
+
+    def __new__(
+        cls,
+        *args: typing.Any,  # noqa: ARG004
+        **kwargs: typing.Any,  # noqa: ARG004
+    ) -> Self:
+        return super().__new__(cls, protocol=ssl.PROTOCOL_TLS_CLIENT)
 
     def __init__(
         self,
