@@ -1551,7 +1551,11 @@ class Client:
                         urlencode(data_dict),
                         encoding="ascii",
                     ),
-                )
+                ),
+                timeout=self.timeout
+                or inspect.signature(OpenerDirector.open)
+                .parameters["timeout"]
+                .default,
             )
         except HTTPError as error:
             location: str = error.headers.get(
@@ -1582,10 +1586,17 @@ class Client:
                     )
                 )
                 oidc_configuration: dict[str, typing.Any] = json.load(
-                    urlopen(url)  # noqa: S310
+                    urlopen(url, timeout=self.timeout)  # noqa: S310
                 )
-            except HTTPError:
-                pass
+            except URLError as error:
+                if not isinstance(error, HTTPError) and (
+                    "timed out" in sob.errors.get_exception_text()
+                ):
+                    message: str = (
+                        "Failed to retrieve OpenID Connect configuration "
+                        f"from {url!r}."
+                    )
+                    raise TimeoutError(message) from error
             else:
                 # Store the token endpoint URL to avoid re-requesting it
                 # after the client has been pickled/unpickled, or caches
@@ -1628,7 +1639,10 @@ class Client:
                 ),
             )
             self._request_callback(request)
-            return self._opener.open(request)  # type: ignore
+            return self._opener.open(
+                request,
+                timeout=self.timeout,
+            )  # type: ignore
         except HTTPError as error:
             location: str | None = error.headers.get(
                 "Location", self.oauth2_token_url
