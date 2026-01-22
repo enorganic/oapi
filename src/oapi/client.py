@@ -1533,25 +1533,26 @@ class Client:
         if self.oauth2_password is None:
             message = "No OAuth2 password was provided."
             raise RuntimeError(message)
+        data_dict: dict[str, str | tuple[str, ...] | None] = {
+            "grant_type": "password",
+            "client_id": self.oauth2_client_id,
+            "username": self.oauth2_username,
+            "password": self.oauth2_password,
+        }
+        if self.oauth2_scope is not None:
+            data_dict.update(scope=self.oauth2_scope)
+        request: Request = Request(  # noqa: S310
+            self.oauth2_token_url,
+            headers={"Host": urlparse(self.oauth2_token_url).netloc},
+            method="POST",
+            data=bytes(
+                urlencode(data_dict),
+                encoding="ascii",
+            ),
+        )
         try:
-            data_dict: dict[str, str | tuple[str, ...] | None] = {
-                "grant_type": "password",
-                "client_id": self.oauth2_client_id,
-                "username": self.oauth2_username,
-                "password": self.oauth2_password,
-            }
-            if self.oauth2_scope is not None:
-                data_dict.update(scope=self.oauth2_scope)
             return self._opener.open(  # type: ignore
-                Request(  # noqa: S310
-                    self.oauth2_token_url,
-                    headers={"Host": urlparse(self.oauth2_token_url).netloc},
-                    method="POST",
-                    data=bytes(
-                        urlencode(data_dict),
-                        encoding="ascii",
-                    ),
-                ),
+                request,
                 timeout=self.timeout
                 or inspect.signature(OpenerDirector.open)
                 .parameters["timeout"]
@@ -1589,14 +1590,12 @@ class Client:
                     urlopen(url, timeout=self.timeout)  # noqa: S310
                 )
             except URLError as error:
-                if not isinstance(error, HTTPError) and (
-                    "timed out" in sob.errors.get_exception_text()
-                ):
-                    message: str = (
-                        "Failed to retrieve OpenID Connect configuration "
-                        f"from {url!r}."
-                    )
-                    raise TimeoutError(message) from error
+                sob.errors.append_exception_text(
+                    error,
+                    "Failed to retrieve OpenID Connect configuration "
+                    f"from {url!r}.",
+                )
+                raise
             else:
                 # Store the token endpoint URL to avoid re-requesting it
                 # after the client has been pickled/unpickled, or caches
@@ -1620,25 +1619,25 @@ class Client:
         if self.oauth2_client_secret is None:
             message = "No OAuth2 client secret was provided."
             raise RuntimeError(message)
+        data_dict: dict[str, str | tuple[str, ...] | None] = {
+            "grant_type": "client_credentials",
+            "client_id": self.oauth2_client_id,
+            "client_secret": self.oauth2_client_secret,
+        }
+        if self.oauth2_scope is not None:
+            data_dict.update(scope=self.oauth2_scope)
+        data: str = urlencode(data_dict)
+        request: Request = Request(  # noqa: S310
+            self.oauth2_token_url,
+            headers={"Host": urlparse(self.oauth2_token_url).netloc},
+            method="POST",
+            data=bytes(
+                data,
+                encoding="ascii",
+            ),
+        )
+        self._request_callback(request)
         try:
-            data_dict: dict[str, str | tuple[str, ...] | None] = {
-                "grant_type": "client_credentials",
-                "client_id": self.oauth2_client_id,
-                "client_secret": self.oauth2_client_secret,
-            }
-            if self.oauth2_scope is not None:
-                data_dict.update(scope=self.oauth2_scope)
-            data: str = urlencode(data_dict)
-            request: Request = Request(  # noqa: S310
-                self.oauth2_token_url,
-                headers={"Host": urlparse(self.oauth2_token_url).netloc},
-                method="POST",
-                data=bytes(
-                    data,
-                    encoding="ascii",
-                ),
-            )
-            self._request_callback(request)
             return self._opener.open(
                 request,
                 timeout=self.timeout,
