@@ -1593,7 +1593,7 @@ class Client:
                 sob.errors.append_exception_text(
                     error,
                     "Failed to retrieve OpenID Connect configuration "
-                    f"from {url!r}."
+                    f"from {url!r}.",
                 )
                 raise
             else:
