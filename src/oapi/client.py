@@ -3354,7 +3354,9 @@ class ClientModule:
                 parameter_docstring: str
                 if parameter.description:
                     description: str = re.sub(
-                        r"\n[\s\n]*\n+", "\n", parameter.description.strip()
+                        r"(?:\s*(?:\r\n|\r|\n)\s*)+",
+                        " ",
+                        parameter.description.strip(),
                     )
                     parameter_docstring = (
                         sob.utilities.split_long_docstring_lines(

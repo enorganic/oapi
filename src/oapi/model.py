@@ -1274,8 +1274,8 @@ class _Modeler:
                 property_docstring: str
                 if property_schema.description:
                     description: str = re.sub(
-                        r"\n[\s\n]*\n+",
-                        "\n",
+                        r"(?:\s*(?:\r\n|\r|\n)\s*)+",
+                        " ",
                         property_schema.description.strip(),
                     )
                     property_docstring = (
