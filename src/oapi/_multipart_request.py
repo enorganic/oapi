@@ -274,6 +274,7 @@ class Data:
             repr(bytes(self))[2:-1]
             .replace("\\r\\n", "\r\n")
             .replace("\\n", "\n")
+            .replace("\\r", "\r")
         )
 
 

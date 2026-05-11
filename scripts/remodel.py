@@ -56,7 +56,9 @@ def iter_names_metadata_docstrings_suffixes() -> Iterable[
             meta,
             "\n".join(
                 line.removeprefix("    ")
-                for line in (item[1].__doc__ or "").strip().split("\n")
+                for line in re.split(
+                    r"(?:\r\n|\r|\n)", (item[1].__doc__ or "").strip()
+                )
             ),
             sob.utilities.get_source(item[1])
             .partition("super().__init__(_data)")[2]
