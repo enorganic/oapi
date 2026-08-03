@@ -146,9 +146,17 @@ Every claim below was verified live against a real, running Keycloak
   have a working Linux-container Docker setup). This was the simpler
   design once the fixture became fully self-provisioning -- a separate
   job would only have duplicated coverage the matrix already provides.
-- **A new top-level `docker-compose.yml`** (not under `tests/`) --
-  matches where a `Makefile`-driven project would expect it, and is the
-  conventional location `docker compose` looks for it by default.
+- **A new `tests/docker-compose.yml`** (not repo root, superseding an
+  earlier version of this design that put it at the top level) -- it
+  exists solely to support this test suite and isn't part of the
+  package's runtime or distribution, so it's scoped under `tests/`
+  alongside everything else that exists only for testing. The
+  `keycloak_url` fixture invokes it explicitly via `docker compose -f
+  tests/docker-compose.yml ...`, so `docker compose`'s default
+  discovery behavior (looking for a compose file in the current
+  directory) doesn't matter for automated use; a contributor invoking
+  it manually needs `-f tests/docker-compose.yml` too (or `cd tests`
+  first).
 - **A new `tests/keycloak/realm.json`** (not `tests/input-data/`) --
   the existing `tests/input-data/` directory holds OpenAPI documents
   (a specific, consistent fixture type consumed by `OpenAPI(...)`); a
@@ -174,7 +182,7 @@ Every claim below was verified live against a real, running Keycloak
 
 ## Files this plan will add/change
 
-- `docker-compose.yml` (new)
+- `tests/docker-compose.yml` (new)
 - `tests/keycloak/realm.json` (new)
 - `tests/conftest.py` (add one new fixture, `keycloak_url`)
 - `tests/test_client_keycloak_integration.py` (new, 7 tests)

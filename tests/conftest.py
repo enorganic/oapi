@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import importlib
 import importlib.util
 import os
@@ -92,9 +93,7 @@ def generated_client_package(
         sys.path.remove(inserted_sys_path)
 
 
-_COMPOSE_FILE: Path = (
-    Path(__file__).resolve().parent.parent / "docker-compose.yml"
-)
+_COMPOSE_FILE: Path = Path(__file__).resolve().parent / "docker-compose.yml"
 
 
 @pytest.fixture(scope="session")
@@ -162,7 +161,9 @@ def keycloak_url() -> Iterator[str]:
     try:
         yield url
     finally:
-        subprocess.run(
-            ["docker", "compose", "-f", str(_COMPOSE_FILE), "down"],
-            check=False,
-        )
+        with contextlib.suppress(subprocess.TimeoutExpired):
+            subprocess.run(
+                ["docker", "compose", "-f", str(_COMPOSE_FILE), "down"],
+                check=False,
+                timeout=60,
+            )

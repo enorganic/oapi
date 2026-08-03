@@ -11,7 +11,6 @@ import logging
 import pickle
 import tempfile
 import threading
-import time
 import typing
 import warnings
 import zlib
@@ -1072,15 +1071,20 @@ def test_retry_returns_on_success_without_retrying() -> None:
     assert len(calls) == 1
 
 
-def test_retry_retries_warns_and_backs_off_until_success() -> None:
+def test_retry_retries_warns_and_backs_off_until_success(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """
     One assertion covers three behaviors of a single retry: the call is
     re-attempted until it succeeds, a `UserWarning` is emitted for the
     failed attempt, and the retry sleeps for `2 ** attempt_number`
-    seconds beforehand -- checked together so the ~2 second real sleep
-    is only paid once.
+    seconds beforehand -- verified by patching `oapi.client.sleep`
+    rather than waiting out a real sleep, which would otherwise be slow
+    and a source of CI flakiness.
     """
     calls: list[int] = []
+    sleep_calls: list[float] = []
+    monkeypatch.setattr("oapi.client.sleep", sleep_calls.append)
 
     @retry(number_of_attempts=2, errors=ValueError)
     def flaky() -> str:
@@ -1090,12 +1094,10 @@ def test_retry_retries_warns_and_backs_off_until_success() -> None:
             raise ValueError(message)
         return "ok"
 
-    start: float = time.monotonic()
     with pytest.warns(UserWarning, match="Attempt # 1"):
         assert flaky() == "ok"
-    elapsed: float = time.monotonic() - start
     assert len(calls) == 2
-    assert elapsed >= 1.9
+    assert sleep_calls == [2]
 
 
 def test_retry_exhausts_attempts_and_reraises() -> None:
@@ -1244,14 +1246,14 @@ def test_make_thread_locks_pickleable_is_idempotent_and_pickles_a_lock() -> (
     None
 ):
     _make_thread_locks_pickleable()
-    lock: threading.Lock = threading.Lock()
-    unpickled: threading.Lock = pickle.loads(pickle.dumps(lock))
+    lock: object = threading.Lock()
+    unpickled: object = pickle.loads(pickle.dumps(lock))
     assert type(unpickled) is type(lock)
 
 
 def test_make_thread_locks_pickleable_pickles_an_rlock() -> None:
-    rlock: threading.RLock = threading.RLock()
-    unpickled: threading.RLock = pickle.loads(pickle.dumps(rlock))
+    rlock: object = threading.RLock()
+    unpickled: object = pickle.loads(pickle.dumps(rlock))
     assert type(unpickled) is type(rlock)
 
 
@@ -1771,29 +1773,28 @@ def test_request_echo_prints_the_curl_representation() -> None:
         assert "200" in output
 
 
-def test_request_multipart_crashes_missing_content_encoding_header() -> None:
+def test_request_multipart_succeeds_without_a_content_encoding_header() -> (
+    None
+):
     """
-    Documents a real, verified, currently-unfixed bug: every multipart
-    `Client.request()` call crashes with `KeyError: 'Content-encoding'`.
-    `_request_callback` (client.py:1514) calls `request.headers.get(
-    "Content-encoding")` expecting normal `dict.get` semantics (`None`
-    when absent), but a `MultipartRequest`'s `.headers` is a custom
-    `Headers` object (`_multipart_request.py`) whose `.get()` defaults
-    to `sob.UNDEFINED` and *re-raises* `KeyError` when no explicit
-    `default` is passed and the key is missing. Since ordinary
-    multipart requests don't set a `Content-encoding` header, this
-    fires on essentially every real multipart upload. Not fixed here
-    (out of this test-only initiative's scope) -- flagged to the user
-    directly as well as documented here.
+    `_request_callback` (and `get_request_curl`, which it calls) used
+    to call `request.headers.get("Content-encoding")` expecting normal
+    `dict.get` semantics (`None` when absent), but a `MultipartRequest`
+    's `.headers` is a custom `Headers` object (`_multipart_request.py`)
+    whose `.get()` defaults to `sob.UNDEFINED` and *re-raises*
+    `KeyError` when no explicit `default` is passed and the key is
+    missing -- crashing every multipart request, since ordinary
+    multipart requests don't set a `Content-encoding` header. Fixed by
+    passing an explicit `None` default at each call site.
     """
     with http_test_server(
         responses={("POST", "/foo"): Response(status=200, body=b"{}")}
     ) as server:
         client: Client = Client(url=server.url)
-        with pytest.raises(KeyError, match="Content-encoding"):
-            client.request(
-                "/foo", "POST", data={"field": b"x"}, multipart=True
-            )
+        with client.request(
+            "/foo", "POST", data={"field": b"x"}, multipart=True
+        ) as response:
+            response.read()
 
 
 def test_request_rejects_a_non_readable_response() -> None:
@@ -2118,19 +2119,18 @@ def test_oauth2_client_credentials_flow_with_explicit_timeout() -> None:
         )
 
 
-def test_oauth2_client_credentials_flow_with_default_timeout_fails() -> None:
+def test_oauth2_client_credentials_flow_with_default_timeout() -> None:
     """
-    Documents a real, verified bug: with the `Client` default
-    `timeout=0`, `_request_oauth2_client_credentials_authorization`
-    passes `timeout=0` straight to `OpenerDirector.open`, which
-    ultimately reaches `socket.create_connection` with a `0` timeout --
-    Python's socket API treats `settimeout(0)` as "set the socket to
-    non-blocking mode", not "no timeout", so the connect step raises
-    immediately rather than actually connecting. Confirmed against a
-    real local server (not a network flake): the exact same client
-    configuration succeeds when constructed with a non-zero `timeout`
-    (see the test above). This is real, current, unfixed behavior --
-    documented here, not corrected.
+    With the `Client` default `timeout=0`,
+    `_request_oauth2_client_credentials_authorization` used to pass
+    `timeout=0` straight to `OpenerDirector.open`, which ultimately
+    reaches `socket.create_connection` with a `0` timeout -- Python's
+    socket API treats `settimeout(0)` as 'set the socket to
+    non-blocking mode', not 'no timeout', so the connect step raised
+    immediately rather than actually connecting. Fixed by falling back
+    to `OpenerDirector.open`'s own default timeout (matching the
+    pattern `_request_oauth2_password_authorization` already used)
+    whenever `self.timeout` is falsy.
     """
     with http_test_server(
         responses={
@@ -2143,8 +2143,7 @@ def test_oauth2_client_credentials_flow_with_default_timeout_fails() -> None:
             oauth2_client_secret="csecret",
             oauth2_token_url=server.url + "/token",
         )
-        with pytest.raises(OSError):
-            client._request_oauth2_client_credentials_authorization()
+        client._request_oauth2_client_credentials_authorization()
 
 
 def test_oauth2_client_credentials_flow_requires_a_client_id() -> None:
@@ -2285,11 +2284,11 @@ def test_get_oauth2_token_url_discovers_via_oidc_with_timeout() -> None:
         assert len(server.requests) == 1
 
 
-def test_get_oauth2_token_url_with_default_timeout_fails() -> None:
+def test_get_oauth2_token_url_with_default_timeout() -> None:
     """
-    Documents the same real, verified `timeout=0` bug as
-    `test_oauth2_client_credentials_flow_with_default_timeout_fails`,
-    for OIDC discovery's own real network call.
+    Same underlying fix as
+    `test_oauth2_client_credentials_flow_with_default_timeout`, for
+    OIDC discovery's own real network call.
     """
     with http_test_server(
         responses={
@@ -2299,8 +2298,7 @@ def test_get_oauth2_token_url_with_default_timeout_fails() -> None:
         }
     ) as server:
         client: Client = Client(url=server.url)
-        with pytest.raises(OSError):
-            client._get_oauth2_token_url()
+        client._get_oauth2_token_url()
 
 
 # endregion
@@ -2427,29 +2425,26 @@ def test_path_label_style(parameter_styles_client: ModuleType) -> None:
         assert server.requests[0].path == "/path/label/.1.2.3"
 
 
-def test_path_matrix_style_raises_key_error(
-    parameter_styles_client: ModuleType,
-) -> None:
+def test_path_matrix_style(parameter_styles_client: ModuleType) -> None:
     """
-    Documents a real, verified, currently-unfixed codegen bug: every
-    generated method for a `matrix`-style path parameter crashes with
-    `KeyError: 'id'`. `_represent_dictionary_parameter` (client.py)
-    prepends the matrix delimiter to the *dictionary key* used for
-    string formatting (`";id"`, since `_format_matrix_argument_value`'s
-    own output already includes the full `;id=value` fragment), but the
-    generated path template's `str.format(**{...})` placeholder is
-    still the bare `{id}` from the OpenAPI path -- `"{id}".format(
-    **{";id": ...})` cannot find an `"id"` key in the kwargs dict it was
-    given (only `";id"` is present) and raises `KeyError`. This means
-    matrix-style path parameters are completely unusable in any
-    generated client. Not fixed here (out of this test-only
-    initiative's scope) -- flagged to the user directly as well as
-    documented here.
+    `_represent_dictionary_parameter` used to prefix the generated
+    dictionary key with `;` for `matrix` style (matching what
+    `_format_matrix_argument_value`'s own output already includes),
+    but the generated path template's `str.format(**{...})`
+    placeholder is the bare `{id}` from the OpenAPI path -- the kwargs
+    dict had no `"id"` key to satisfy it, and even a matching key
+    would have doubled the `;` delimiter, since
+    `_format_matrix_argument_value` already adds it. Fixed by using
+    the plain, unprefixed parameter name in the generated code.
     """
-    with http_test_server(responses={}) as server:
+    with http_test_server(
+        responses={
+            ("GET", "/path/matrix/;id=1;id=2;id=3"): Response(body=b"{}")
+        }
+    ) as server:
         client = parameter_styles_client.Client(url=server.url)
-        with pytest.raises(KeyError, match="id"):
-            client.get_path_matrix_id(id_=[1, 2, 3])
+        client.get_path_matrix_id(id_=[1, 2, 3])
+        assert server.requests[0].path == "/path/matrix/;id=1;id=2;id=3"
 
 
 def test_query_form_style(parameter_styles_client: ModuleType) -> None:
@@ -2567,31 +2562,27 @@ def test_init_bakes_in_oauth2_and_oidc_urls_from_the_security_schemes(
     )
 
 
-def test_default_oauth2_flows_value_is_invalid(
+def test_default_oauth2_flows_value_is_valid(
     security_schemes_client: ModuleType,
 ) -> None:
     """
-    Documents a real, verified, currently-unfixed codegen bug: a
-    generated `Client` for an OpenAPI document with named OAuth2 flows
-    cannot be instantiated with its own defaults. `_iter_oauth2_flows`
-    (client.py) reads flow-type names via `sob.utilities.
-    iter_properties_values(security_scheme.flows)`, which yields the
-    Python-side (snake_case) *property* names of the generated
-    `OAuthFlows` model -- e.g. `"authorization_code"` -- rather than the
-    OpenAPI spec's own camelCase flow-type identifiers (`"authorization
-    Code"`) that `Client.__init__`'s own validation (and its `Literal`
-    parameter type) require. The baked-in default `oauth2_flows` tuple
-    therefore fails that same validation immediately on construction,
-    for *any* generated client whose OpenAPI document has a
-    multi-word-named OAuth2 flow (`authorizationCode`/
-    `clientCredentials` -- i.e. most real-world OAuth2 specs). The
-    workaround (used by every other test in this file) is passing an
-    explicit, valid `oauth2_flows` override. Not fixed here (out of
-    this test-only initiative's scope) -- flagged to the user directly
-    as well as documented here.
+    `_iter_oauth2_flows` used to read flow-type names via
+    `sob.utilities.iter_properties_values(security_scheme.flows)`,
+    which yields the Python-side (snake_case) *property* names of the
+    generated `OAuthFlows` model -- e.g. `"authorization_code"` --
+    rather than the OpenAPI spec's own camelCase flow-type identifiers
+    (`"authorizationCode"`) that `Client.__init__`'s own validation
+    (and its `Literal` parameter type) require. The baked-in default
+    `oauth2_flows` tuple therefore failed that same validation
+    immediately on construction, for any generated client whose
+    OpenAPI document had a multi-word-named OAuth2 flow
+    (`authorizationCode`/`clientCredentials` -- i.e. most real-world
+    OAuth2 specs). Fixed by translating each property name to its
+    spec-facing name via `sob.read_object_meta(...).properties[name]
+    .name` (falling back to the property name itself when unset,
+    i.e. when the JSON key and the Python name already match).
     """
-    with pytest.raises(ValueError, match="oauth2_flows"):
-        security_schemes_client.Client(url="http://example.com")
+    security_schemes_client.Client(url="http://example.com")
 
 
 def test_api_key_header_authentication(
@@ -2683,33 +2674,23 @@ def multipart_client(
     return client_module
 
 
-def test_generated_multipart_method_raises_key_error(
+def test_generated_multipart_method_succeeds(
     multipart_client: ModuleType,
 ) -> None:
     """
-    Documents the same real, verified, currently-unfixed bug already
-    covered directly against `Client.request()` in
-    `tests/test_client_request_runtime.py`'s
-    `test_request_multipart_crashes_missing_content_encoding_header`,
-    confirmed here to also break *generated* multipart operations (the
+    Same underlying fix as
+    `test_request_multipart_succeeds_without_a_content_encoding_header`,
+    confirmed here to also cover *generated* multipart operations (the
     exact scenario `tests/input-data/multipart-request-body.json` was
-    built to exercise, per the infrastructure plan): `_request_callback`
-    calls `request.headers.get("Content-encoding")` expecting ordinary
-    `dict.get` semantics, but a `MultipartRequest`'s custom `Headers`
-    object re-raises `KeyError` when no `default` is passed and the key
-    is missing -- which it always is for an ordinary multipart request.
-    Every generated multipart operation is therefore unusable as-is.
-    Not fixed here (out of this test-only initiative's scope) --
-    flagged to the user directly as well as documented here.
+    built to exercise, per the infrastructure plan).
     """
     with http_test_server(
         responses={("POST", "/upload"): Response(status=200, body=b"{}")}
     ) as server:
         client = multipart_client.Client(url=server.url)
-        with pytest.raises(KeyError, match="Content-encoding"):
-            client.post_upload(
-                file=b"filedata", description="a file", tags=["a", "b"]
-            )
+        client.post_upload(
+            file=b"filedata", description="a file", tags=["a", "b"]
+        )
 
 
 # endregion

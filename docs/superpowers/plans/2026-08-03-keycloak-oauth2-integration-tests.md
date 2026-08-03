@@ -32,7 +32,7 @@ exact content below, then re-run the verification commands in
 
 ## Files
 
-### 1. `docker-compose.yml` (new, repo root)
+### 1. `tests/docker-compose.yml` (new)
 
 ```yaml
 services:
@@ -44,10 +44,10 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_HEALTH_ENABLED: "true"
     ports:
-      - "8080:8080"
-      - "9000:9000"
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:9000:9000"
     volumes:
-      - ./tests/keycloak/realm.json:/opt/keycloak/data/import/realm.json:ro
+      - ./keycloak/realm.json:/opt/keycloak/data/import/realm.json:ro
     healthcheck:
       test:
         - CMD-SHELL
@@ -66,6 +66,13 @@ Notes for whoever executes this: the healthcheck avoids `curl`
 the management port's `/health/ready` endpoint. `Connection: close` is
 required in the crafted request -- without it, keep-alive means the
 socket never closes and the healthcheck hangs.
+
+The ports are bound explicitly to `127.0.0.1`, not just `8080:8080`/
+`9000:9000` -- Docker's default (no host IP given) binds `0.0.0.0`,
+exposing this admin/admin-credentialed, ephemeral Keycloak instance to
+the entire local network for the ~10 seconds it's up on a
+contributor's machine. Loopback-only binding is the correct default
+for a test fixture with no legitimate need for LAN access.
 
 ### 2. `tests/keycloak/realm.json` (new)
 
@@ -120,13 +127,14 @@ Keycloak 26's "User Profile" feature rejects the password grant with a
 real `400 invalid_grant: "Account is not fully set up"` for a user
 missing these, independent of anything `oapi` does.
 
-Trap to avoid while creating this file: if `docker compose up` ever
-runs *before* this file exists at this exact path, Docker silently
-creates an empty directory here instead of erroring, which then
-silently breaks the realm import (Keycloak just starts with an empty
-realm, no error, no "Full importing from file..." log line). Create
-this file first, and only then run `docker compose up` for the first
-time. If this happens anyway, `docker compose down`, `rm -rf
+Trap to avoid while creating this file: if `docker compose -f
+tests/docker-compose.yml up` ever runs *before* this file exists at
+this exact path, Docker silently creates an empty directory here
+instead of erroring, which then silently breaks the realm import
+(Keycloak just starts with an empty realm, no error, no "Full
+importing from file..." log line). Create this file first, and only
+then run `docker compose up` for the first time. If this happens
+anyway, `docker compose -f tests/docker-compose.yml down`, `rm -rf
 tests/keycloak`, recreate the real file, and confirm `file
 tests/keycloak/realm.json` reports "JSON data" (not "directory")
 before retrying.
@@ -136,6 +144,7 @@ before retrying.
 Add to the existing import block:
 
 ```python
+import contextlib
 import shutil
 import subprocess
 ```
@@ -147,9 +156,7 @@ tree where they aren't yet present, add those too.)
 Append at the end of the file:
 
 ```python
-_COMPOSE_FILE: Path = (
-    Path(__file__).resolve().parent.parent / "docker-compose.yml"
-)
+_COMPOSE_FILE: Path = Path(__file__).resolve().parent / "docker-compose.yml"
 
 
 @pytest.fixture(scope="session")
@@ -217,11 +224,20 @@ def keycloak_url() -> Iterator[str]:
     try:
         yield url
     finally:
-        subprocess.run(
-            ["docker", "compose", "-f", str(_COMPOSE_FILE), "down"],
-            check=False,
-        )
+        with contextlib.suppress(subprocess.TimeoutExpired):
+            subprocess.run(
+                ["docker", "compose", "-f", str(_COMPOSE_FILE), "down"],
+                check=False,
+                timeout=60,
+            )
 ```
+
+The teardown `docker compose down` call has its own `timeout=60` (and
+a `contextlib.suppress` around the `TimeoutExpired` it can raise),
+matching the `timeout=120` already on the `up` call -- without it, a
+hung or unresponsive Docker daemon at teardown would hang the entire
+pytest session with no clear error, rather than failing loudly or at
+least returning control to the test runner.
 
 Design note: the fixture makes no platform assumption. It works
 anywhere `docker` is on `PATH` and functional -- a Linux CI runner, or
@@ -255,10 +271,7 @@ def _token_url(keycloak_url: str) -> str:
 
 
 def _oidc_discovery_url(keycloak_url: str) -> str:
-    return (
-        f"{keycloak_url}/realms/oapi-test/"
-        ".well-known/openid-configuration"
-    )
+    return f"{keycloak_url}/realms/oapi-test/.well-known/openid-configuration"
 
 
 def test_oauth2_password_grant_against_a_real_keycloak(
@@ -426,9 +439,9 @@ After making the changes above, run:
 ```sh
 hatch run mypy --strict --ignore-missing-imports tests/conftest.py tests/test_client_keycloak_integration.py
 hatch fmt --check
-docker compose down 2>/dev/null || true
+docker compose -f tests/docker-compose.yml down 2>/dev/null || true
 hatch test tests/test_client_keycloak_integration.py -c -vv
-docker compose ps   # confirm no leftover container
+docker compose -f tests/docker-compose.yml ps   # confirm no leftover container
 make test
 git checkout -- tests/input-data/languagetool-swagger.json
 ```
