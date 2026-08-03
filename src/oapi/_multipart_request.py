@@ -112,8 +112,8 @@ class Headers:
     def get(
         self,
         key: str,
-        default: str | sob.Undefined = sob.UNDEFINED,
-    ) -> str:
+        default: str | None | sob.Undefined = sob.UNDEFINED,
+    ) -> str | None:
         try:
             return self.__getitem__(key)
         except KeyError:

@@ -100,6 +100,9 @@ dependencies = [
 extra-dependencies = [
     "dependence~=1.4",
     "pyyaml>2",
+    "zstandard~=0.25",
+    "brotli~=1.2; platform_python_implementation == 'CPython'",
+    "brotlicffi~=1.2; platform_python_implementation != 'CPython'",
 ]
 extra-args = [
     "-s",

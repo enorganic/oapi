@@ -1502,7 +1502,12 @@ class _Modeler:
         relative_url_pointer: str
         class_names_sources: dict[str, str] = {}
         classes: list[str] = []
-        imports: set[str] = set()
+        # `from __future__ import annotations` is required unconditionally,
+        # even when zero classes are generated: the trailing
+        # `_POINTERS_CLASSES` module variable is always annotated
+        # `dict[str, type[sob.abc.Model]]`, which needs deferred (string)
+        # evaluation to avoid requiring `sob` to be imported as well.
+        imports: set[str] = {"from __future__ import annotations"}
         pointers_classes: list[str] = [
             "# The following is used to retain class names when "
             "re-generating\n"

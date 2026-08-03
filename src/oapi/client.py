@@ -228,7 +228,7 @@ def _format_simple_argument_value(
         if explode:
             return ",".join(
                 f"{item[0]}={_format_primitive_value(item[1])}"
-                for item in value
+                for item in value.items()
             )
         return ",".join(
             map(
@@ -254,7 +254,7 @@ def _format_label_argument_value(
         if isinstance(value, dict):
             argument_value = ".".join(
                 f"{item[0]}={_format_primitive_value(item[1])}"
-                for item in value
+                for item in value.items()
             )
         elif isinstance(value, collections.abc.Sequence):
             argument_value = ".".join(
@@ -283,7 +283,7 @@ def _format_matrix_argument_value(
         if isinstance(value, dict):
             argument_value = "".join(
                 (f";{item[0]}={_format_primitive_value(item[1])}")
-                for item in value
+                for item in value.items()
             )
         elif isinstance(value, collections.abc.Sequence):
             value_: _PrimitiveValueTypes
@@ -417,22 +417,34 @@ def _format_deep_object_argument_value(  # noqa: C901
                     _format_primitive_value(value_) or ""  # type: ignore
                 )
             elif isinstance(value_, collections.abc.Sequence):
+                item_name: str
                 for index, value_item in enumerate(value_):
-                    deep_object.update(
-                        **typing.cast(
-                            "dict",
-                            _format_deep_object_argument_value(
-                                name=(
-                                    f"{name}.{key}[{index}]"
-                                    if use_dot_notation
-                                    else f"{name}[{key}][{index}]"
-                                ),
-                                value=value_item,
-                                explode=explode,
-                                use_dot_notation=use_dot_notation,
-                            ),
+                    item_name = (
+                        f"{name}.{key}[{index}]"
+                        if use_dot_notation
+                        else f"{name}[{key}][{index}]"
+                    )
+                    formatted_item_value: typing.Any = (
+                        _format_deep_object_argument_value(
+                            name=item_name,
+                            value=value_item,
+                            explode=explode,
+                            use_dot_notation=use_dot_notation,
                         )
                     )
+                    # A sequence item is itself a dict-like/itemized
+                    # value (e.g. `{"a": [{"x": 1}]}`) when the
+                    # recursive call returns a `dict` -- merge it in.
+                    # A *primitive* sequence item (e.g. `{"a": [1, 2]}`)
+                    # instead returns a plain `str`/`None`, which is
+                    # not a mapping and must be assigned directly
+                    # rather than passed to `dict.update(**...)`.
+                    if isinstance(formatted_item_value, _ITEMIZED_TYPES):
+                        deep_object.update(
+                            **typing.cast("dict", formatted_item_value)
+                        )
+                    else:
+                        deep_object[item_name] = formatted_item_value or ""
             else:
                 raise TypeError(value_)
         return deep_object
@@ -555,10 +567,12 @@ def get_request_curl(
         options: Any additional parameters to pass to `curl`,
             (such as "--compressed", "--insecure", etc.)
     """
-    content_type: str | None = request.headers.get("Content-type")
+    content_type: str | None = request.headers.get("Content-type", None)
     if content_type:
         content_type = content_type.lower()
-    content_encoding: str | None = request.headers.get("Content-encoding")
+    content_encoding: str | None = request.headers.get(
+        "Content-encoding", None
+    )
     is_json: bool = bool(
         content_type == "application/json"
         or (
@@ -759,12 +773,18 @@ def _encode_content(data: bytes, content_encoding: str) -> bytes:
     if not data:
         return data
     if "," in content_encoding:
-        # Encode content in the order provided
+        # Encode content in the order provided: the first-listed
+        # encoding is applied first (innermost), then each remaining
+        # encoding is applied on top of that result (outermost last)
+        # -- the exact inverse of `_decode_content`'s comma branch,
+        # which undoes the outermost (last-listed) encoding first.
         content_encodings: str
         content_encoding, _, content_encodings = content_encoding.partition(
             ","
         )
-        data = _decode_content(data, content_encodings)
+        return _encode_content(
+            _encode_content(data, content_encoding), content_encodings
+        )
     content_encoding = content_encoding.lower().strip()
     if content_encoding == "gzip":
         data = gzip.compress(data)
@@ -1511,7 +1531,7 @@ class Client:
 
     def _request_callback(self, request: Request) -> None:
         curl_options: str = "-i"
-        if request.headers.get("Content-encoding"):
+        if request.headers.get("Content-encoding", None):
             curl_options = f"{curl_options} --compressed"
         if not self.verify_ssl_certificate:
             curl_options = f"{curl_options} -k"
@@ -1587,7 +1607,13 @@ class Client:
                     )
                 )
                 oidc_configuration: dict[str, typing.Any] = json.load(
-                    urlopen(url, timeout=self.timeout)  # noqa: S310
+                    urlopen(  # noqa: S310
+                        url,
+                        timeout=self.timeout
+                        or inspect.signature(urlopen)
+                        .parameters["timeout"]
+                        .default,
+                    )
                 )
             except URLError as error:
                 sob.errors.append_exception_text(
@@ -1638,10 +1664,13 @@ class Client:
         )
         self._request_callback(request)
         try:
-            return self._opener.open(
+            return self._opener.open(  # type: ignore
                 request,
-                timeout=self.timeout,
-            )  # type: ignore
+                timeout=self.timeout
+                or inspect.signature(OpenerDirector.open)
+                .parameters["timeout"]
+                .default,
+            )
         except HTTPError as error:
             location: str | None = error.headers.get(
                 "Location", self.oauth2_token_url
@@ -2142,9 +2171,13 @@ def _represent_dictionary_parameter(
     value_type: str = "",
 ) -> str:
     represent_style: str = sob.utilities.represent(parameter.style)
+    # `parameter.name` is used as-is, unprefixed, even for `matrix`
+    # style: `_format_matrix_argument_value` already prepends the `;`
+    # delimiter(s) itself. Prefixing it here too would both produce a
+    # dict key that doesn't match the bare `{name}` path template
+    # placeholder (`KeyError` on `.format(**{...})`) and cause a
+    # doubled `;;name=value` delimiter in the formatted value.
     parameter_name: str = parameter.name
-    if parameter.style == "matrix":
-        parameter_name = f";{parameter_name}"
     if use_kwargs:
         name = f'kwargs.get("{name}", None)'
     represent_multipart_argument: str = ""
@@ -2689,12 +2722,39 @@ class ClientModule:
             # Use the first API key security scheme
             if security_scheme.type_ == "oauth2":
                 if security_scheme.flows:
-                    yield from filter(
+                    # `iter_properties_values` yields the *Python-side*
+                    # (snake_case) attribute names of the `OAuthFlows`
+                    # model (e.g. `"client_credentials"`), not the
+                    # OpenAPI spec's own camelCase flow-type
+                    # identifiers (`"clientCredentials"`) -- those are
+                    # only recoverable via each property's `sob` meta,
+                    # which is `None` when the JSON key matches the
+                    # Python name exactly (e.g. `"implicit"`/
+                    # `"password"`).
+                    flows_meta: sob.abc.ObjectMeta | None = (
+                        sob.read_object_meta(security_scheme.flows)
+                    )
+                    flow_name: str
+                    flow: OAuthFlow | None
+                    for flow_name, flow in filter(
                         None,
                         sob.utilities.iter_properties_values(
                             security_scheme.flows
                         ),
-                    )
+                    ):
+                        flow_property: sob.abc.Property | None = None
+                        if flows_meta and flows_meta.properties:
+                            flow_property = flows_meta.properties.get(
+                                flow_name
+                            )
+                        yield (
+                            (
+                                flow_property.name
+                                if flow_property and flow_property.name
+                                else flow_name
+                            ),
+                            flow,
+                        )
                 if security_scheme.flow:
                     yield (
                         (
