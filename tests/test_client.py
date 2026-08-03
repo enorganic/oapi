@@ -1826,7 +1826,15 @@ def test_request_rejects_a_non_readable_response() -> None:
                 headers={"Content-encoding": "identity"},
             )
     finally:
-        temp_path.unlink()
+        # `urllib`'s `FileHandler.open_local_file` opens the temp file
+        # and never gets a chance to close it (the response is
+        # discarded as soon as the expected `TypeError` is raised) --
+        # on Windows, an open file cannot be unlinked, unlike POSIX,
+        # where an unlinked-but-open file is simply removed once
+        # closed. Best-effort cleanup only; a leftover temp file is
+        # harmless.
+        with contextlib.suppress(PermissionError):
+            temp_path.unlink()
 
 
 def test_request_logs_at_info_level_on_success() -> None:
