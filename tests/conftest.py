@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
+import os
+import shutil
+import subprocess
 import sys
+import urllib.error
+import urllib.request
 from collections.abc import Callable, Iterator
 from pathlib import Path
 from types import ModuleType
@@ -85,3 +90,79 @@ def generated_client_package(
         sys.modules.pop(module_name, None)
     if inserted_sys_path is not None and inserted_sys_path in sys.path:
         sys.path.remove(inserted_sys_path)
+
+
+_COMPOSE_FILE: Path = (
+    Path(__file__).resolve().parent.parent / "docker-compose.yml"
+)
+
+
+@pytest.fixture(scope="session")
+def keycloak_url() -> Iterator[str]:
+    """
+    The base URL of a real Keycloak instance configured with this
+    repository's `tests/keycloak/realm.json` test realm.
+
+    If Keycloak is already reachable (e.g. a developer or CI step
+    already started it), that instance is used as-is. Otherwise, if
+    Docker is available, this fixture runs `docker compose up -d
+    --wait` itself and tears the service back down at the end of the
+    test session -- no manual setup step is required. If Docker isn't
+    available, or Keycloak never becomes reachable, every test
+    depending on this fixture is skipped rather than failed, since
+    these are opt-in integration tests, not required for a normal
+    `pytest`/`hatch test` run.
+    """
+    url: str = os.environ.get("KEYCLOAK_URL", "http://localhost:8080")
+    discovery_url: str = (
+        f"{url}/realms/oapi-test/.well-known/openid-configuration"
+    )
+
+    def reachable() -> bool:
+        try:
+            with urllib.request.urlopen(discovery_url, timeout=2) as response:
+                return bool(response.status == 200)
+        except (urllib.error.URLError, OSError):
+            return False
+
+    if reachable():
+        yield url
+        return
+    if shutil.which("docker") is None:
+        pytest.skip(
+            "Keycloak is not reachable at "
+            f"{url!r}, and Docker is not installed to start it "
+            "automatically -- install Docker to enable these tests."
+        )
+    try:
+        subprocess.run(
+            [
+                "docker",
+                "compose",
+                "-f",
+                str(_COMPOSE_FILE),
+                "up",
+                "-d",
+                "--wait",
+            ],
+            check=True,
+            timeout=120,
+        )
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        pytest.skip(
+            "Keycloak is not reachable at "
+            f"{url!r}, and `docker compose up` failed to start it -- "
+            "run `docker compose up -d --wait` manually to debug."
+        )
+    if not reachable():
+        pytest.skip(
+            f"Keycloak did not become reachable at {url!r} after "
+            "`docker compose up -d --wait`."
+        )
+    try:
+        yield url
+    finally:
+        subprocess.run(
+            ["docker", "compose", "-f", str(_COMPOSE_FILE), "down"],
+            check=False,
+        )
