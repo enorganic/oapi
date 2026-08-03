@@ -53,7 +53,8 @@ class HTTPTestServer(ThreadingHTTPServer):
     @property
     def url(self) -> str:
         host, port = self.server_address[:2]
-        return f"http://{host}:{port}"
+        host_str: str = host if isinstance(host, str) else host.decode()
+        return f"http://{host_str}:{port}"
 
     def record(self, request: RecordedRequest) -> None:
         with self._lock:
