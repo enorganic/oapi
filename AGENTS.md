@@ -21,7 +21,14 @@ serialization) and reject/validate data not matching the spec.
 - `template/` — cookiecutter template for scaffolding new `oapi`-based
   client projects (own `pyproject.toml`, own `scripts/remodel.py`
   pattern). Excluded from ruff/mypy/tests.
-- `tests/test_model.py`, `tests/test_client.py` — unit + doctest tests.
+- `tests/test_*.py` — exactly one test module per `src/oapi` module
+  (e.g. `test_client.py` for `client.py`, `test_oas_model.py` for
+  `oas/model.py`, `test_oas_references.py` for `oas/references.py`;
+  `test_client.py`'s real-Keycloak OAuth2 tests are opt-in/Docker-gated
+  via the `keycloak_url` fixture but still live in that one file), plus
+  `test_tests.py` (covers `conftest.py`, `servers.py`, and the
+  `tests/input-data/*.json` fixtures themselves -- test-support code
+  with no `src/oapi` module of its own to align with).
 - `tests/input-data/*.{yaml,json}` — sample OpenAPI specs used as fixtures.
 - `tests/regression-data/` — generated golden model/client modules,
   **tracked in git**; compared against on each test run.
