@@ -1814,19 +1814,19 @@ def test_request_rejects_a_non_readable_response() -> None:
     """
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         temp_file.write(b"hello")
-        temp_path: str = temp_file.name
+        temp_path: Path = Path(temp_file.name)
     try:
         client: Client = Client(url="http://example.com")
         with pytest.raises(TypeError):
             client.request(
-                f"file://{temp_path}",
+                temp_path.as_uri(),
                 "POST",
                 data={"field": b"x"},
                 multipart=True,
                 headers={"Content-encoding": "identity"},
             )
     finally:
-        Path(temp_path).unlink()
+        temp_path.unlink()
 
 
 def test_request_logs_at_info_level_on_success() -> None:

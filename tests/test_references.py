@@ -75,10 +75,9 @@ def test_document_normalizes_a_path_url_to_str() -> None:
     resolver: Resolver = Resolver(
         open_api, url="http://example.com/openapi.json"
     )
-    document: _Document = _Document(
-        resolver, open_api, url=Path("/tmp/openapi.json")
-    )
-    assert document.url == "/tmp/openapi.json"
+    path: Path = Path("/tmp/openapi.json")
+    document: _Document = _Document(resolver, open_api, url=path)
+    assert document.url == str(path)
     assert isinstance(document.url, str)
 
 
