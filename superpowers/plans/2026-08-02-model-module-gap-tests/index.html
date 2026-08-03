@@ -1,0 +1,1634 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://enorganic.github.io/oapi/superpowers/plans/2026-08-02-model-module-gap-tests/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>ModelModule Gap Tests Implementation Plan - oapi</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/style.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#modelmodule-gap-tests-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="oapi" class="md-header__button md-logo" aria-label="oapi" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            oapi
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ModelModule Gap Tests Implementation Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1M8 13h8v-2H8zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4a5 5 0 0 0 5-5 5 5 0 0 0-5-5"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5M7 15a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/enorganic/oapi/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="oapi" class="md-nav__button md-logo" aria-label="oapi" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    oapi
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/enorganic/oapi/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.oas.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.oas.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.oas.references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.oas.references
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.abc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.abc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.meta/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.meta
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.properties/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.properties
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.thesaurus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.thesaurus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.version/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.version
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-1-teststest_model_module_helperspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: tests/test_model_module_helpers.py
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-2-teststest_model_module_empty_schemapy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: tests/test_model_module_empty_schema.py
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-3-teststest_model_module_polymorphic_schemaspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: tests/test_model_module_polymorphic_schemas.py
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-4-whole-plan-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: Whole-plan verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#self-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self-Review
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="modelmodule-gap-tests-implementation-plan">ModelModule Gap Tests Implementation Plan</h1>
+<blockquote>
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use
+superpowers:subagent-driven-development (recommended) or
+superpowers:executing-plans to implement this plan task-by-task. Steps
+use checkbox (<code>- [ ]</code>) syntax for tracking.</p>
+</blockquote>
+<p><strong>Goal:</strong> Bring <code>src/oapi/model.py</code>'s <code>ModelModule</code>/<code>_Modeler</code> (the
+OpenAPI-to-Python-model code generator) from 69% to a moderately higher
+whole-file coverage, per
+<code>docs/superpowers/specs/2026-08-01-test-coverage-design.md</code>'s final
+step ("<code>model.py</code> <code>ModelModule</code> gaps"). This is the last plan in the
+test-coverage initiative.</p>
+<p><strong>Architecture:</strong> <code>model.py</code> already started this initiative at a much
+higher baseline (69%, vs. <code>client.py</code>'s 16%) thanks to <code>tests/
+test_model.py</code>'s existing real-world-document exercise (<code>test_openapi_
+examples</code>, <code>test_languagetool</code>). This plan targets the remaining gap
+with two complementary, appropriately-scoped approaches rather than
+chasing every one of <code>_Modeler</code>'s ~1300 lines (a deliberate choice --
+see Global Constraints for what's excluded and why):</p>
+<ul>
+<li><code>tests/test_model_module_helpers.py</code> -- direct unit tests for the
+  isolable free functions above <code>_Modeler</code>: <code>_get_schema_type</code>,
+  <code>_types_from_enum_values</code>, <code>_append_property_type</code>,
+  <code>get_default_class_name_from_pointer</code> (cases beyond its own docstring
+  examples, which already run via <code>--doctest-modules</code>).</li>
+<li><code>tests/test_model_module_empty_schema.py</code> -- documents a real,
+  verified, currently-unfixed bug (see Global Constraints) found while
+  building the prior (<code>ClientModule</code>) plan.</li>
+<li><code>tests/test_model_module_polymorphic_schemas.py</code> -- black-box:
+  generates a real model module from <code>tests/input-data/polymorphic-
+  schemas.json</code> (built in the infrastructure plan specifically "for
+  testing <code>oapi.model</code>'s <code>_Modeler</code> merge/polymorph code paths", per
+  its own <code>description</code> field, and only partially exercised so far --
+  the <code>ClientModule</code> plan used it for response-type resolution, not for
+  directly inspecting the generated <em>model</em> classes) via the
+  <code>generated_client_package</code> fixture (from the <code>ClientModule</code> plan),
+  and inspects/exercises the real generated classes: <code>allOf</code> merging
+  (properties and <code>required</code> combined from every member schema, with
+  real validation enforcement), enum-to-<code>EnumeratedProperty</code> generation
+  (with real, eager unmarshal-time rejection of invalid values --
+  confirmed live, not assumed, to raise at construction rather than
+  only at <code>sob.validate()</code> time), <code>oneOf</code>/<code>anyOf</code> producing genuinely
+  independent (non-merged) classes, and <code>additionalProperties</code>
+  generating a real <code>sob.Dictionary</code> subclass.</li>
+</ul>
+<p><strong>Tech Stack:</strong> Python 3.10, <code>pytest</code>, stdlib, <code>sob</code>, the
+<code>generated_client_package</code> fixture (<code>tests/conftest.py</code>, added in the
+<code>ClientModule</code> plan -- reused here since it already handles the
+model-module half of code generation, even though this plan doesn't
+need the paired client module).</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul>
+<li>Line length 79 (ruff + black), enforced via <code>hatch fmt --check</code>.</li>
+<li>mypy strict on <code>tests/</code>: explicit type annotations on every local
+  variable, per this project's standing preference. All code verified
+  against a real <code>hatch run mypy --strict --ignore-missing-imports</code>
+  run. <code>sob.read_object_meta(...)</code> returns <code>ObjectMeta | None</code>, and
+  <code>ObjectMeta.properties</code> is <code>Properties | None</code> -- both are narrowed
+  with explicit <code>assert ... is not None</code> lines in every test that reads
+  them (not a new exception to the annotation rule, just real <code>Optional</code>
+  types that need narrowing, same pattern used for <code>Client.parts</code>/
+  <code>.headers</code> in an earlier plan).</li>
+<li>Prefer real integration over mocks: no <code>unittest.mock</code>/<code>pytest-mock</code>
+  anywhere in any of the three new files. Every generated-class test in
+  <code>tests/test_model_module_polymorphic_schemas.py</code> inspects a real
+  class generated by a real <code>ModelModule</code> run and loaded via real
+  <code>importlib</code>; every validation assertion calls the real <code>sob.validate</code>/
+  real class constructor, not a stand-in.</li>
+<li><strong>A real, verified, currently-unfixed bug is documented, not
+  "fixed"</strong>: an OpenAPI document with no <code>components/schemas</code> (every
+  response schema inline and primitive-shaped) generates a <code>model.py</code>
+  that cannot be imported. <code>ModelModule.get_module_source</code> (model.py)
+  builds its <code>imports</code> set purely from each <em>generated class's own</em>
+  source text; when zero classes are generated, that set stays empty,
+  so neither <code>from __future__ import annotations</code> nor <code>import sob</code> get
+  emitted -- but the module's own trailing <code>_POINTERS_CLASSES: dict[str,
+  type[sob.abc.Model]] = {...}</code> line always references <code>sob.abc.Model</code>
+  in a variable annotation regardless, and without the lazy-annotation
+  future import, <code>sob</code> is genuinely undefined at execution. Verified
+  live: <code>exec()</code>-ing the generated source for a real minimal
+  empty-schema document raises <code>NameError: name 'sob' is not defined</code>.
+  This is the same bug already discovered (and worked around, via one
+  added fixture schema) while building the prior <code>ClientModule</code> plan --
+  this plan adds the first <em>direct</em> regression test for <code>ModelModule</code>
+  itself. <strong>A genuine testing subtlety was hit and corrected while
+  validating this test</strong>: <code>compile(source, "&lt;generated&gt;", "exec")</code>
+  called from <em>inside</em> a test file that itself has <code>from __future__
+  import annotations</code> silently inherits that future-import flag (<code>compile</code>'s
+  <code>dont_inherit</code> parameter defaults to <code>False</code>), which makes the
+  generated <code>_POINTERS_CLASSES</code> line's annotation lazy and masks the
+  real bug -- caught because the test failed to reproduce the error the
+  first time it was run, not assumed. The fix is <code>dont_inherit=True</code>,
+  documented in the test's own comment.</li>
+<li><strong>Deliberately out of scope for this plan</strong> (diminishing returns, a
+  reasonable stopping point for the initiative's final piece): the
+  remaining missing lines in <code>_Modeler</code> (roughly lines 300-1650)
+  represent deep internal state-tracking across a ~1300-line class
+  (pointer/class-name bookkeeping, <code>$ref</code> resolution edge cases,
+  format-specific type mapping for every OpenAPI <code>format</code> value,
+  <code>_ModuleParser</code>'s re-generation-preserving-custom-code logic). Real
+  code, but reaching significantly further would mean either building
+  several more purpose-specific fixtures (this plan's black-box
+  strategy scales with fixture variety, and only one -- <code>polymorphic-
+  schemas.json</code> -- was available and unused for this purpose) or
+  unit-testing <code>_Modeler</code>'s internals directly against hand-built
+  partial state, which reintroduces the brittle/tautological problem
+  already avoided for <code>ClientModule</code>. This plan's coverage delta (Task
+  4) reflects a real, if more modest, improvement -- the initiative
+  overall has already taken <code>client.py</code> from 16% to 83% and <code>model.py</code>
+  from a 69% starting point; this is a reasonable point to close out
+  the initiative rather than keep expanding scope.</li>
+<li>Verify commands: <code>hatch run hatch-test.py3.10:pytest
+  tests/test_model_module_helpers.py
+  tests/test_model_module_empty_schema.py
+  tests/test_model_module_polymorphic_schemas.py -v</code> (26 tests total:
+  16 + 1 + 9). <code>hatch run mypy --strict --ignore-missing-imports &lt;file&gt;</code>
+  per file -- expect a fully clean result (no pre-existing findings;
+  these three files don't import <code>tests/servers.py</code>).</li>
+<li>Commit scope: this working tree has unrelated pre-existing staged
+  files (<code>.claude/settings.json</code>, <code>.claude/skills/fableplan/SKILL.md</code>,
+  <code>AGENTS.md</code>, <code>.gitignore</code>) belonging to other work-in-progress --
+  <strong>never</strong> include them in a commit. Never a bare <code>git commit -m
+  "..."</code> -- always <code>git commit &lt;exact-path(s)&gt; -m "..."</code> (paths before
+  <code>-m</code>). Never <code>git add -A</code>/<code>.</code>/<code>-u</code>, never <code>git reset</code> in any form to
+  self-fix a mistake -- if a commit's scope looks wrong, stop and
+  report it. Never touch <code>src/oapi/model.py</code> or <code>tests/conftest.py</code> --
+  this plan only adds new test files, reusing the existing <code>generated_
+  client_package</code> fixture from the <code>ClientModule</code> plan unmodified.</li>
+<li>Known, out-of-scope, pre-existing issue: running the full suite
+  (<code>hatch test -c</code> or <code>hatch run hatch-test.py3.10:pytest tests/</code>) has
+  the unrelated, pre-existing side effect of <code>test_languagetool</code>
+  re-downloading and overwriting <code>tests/input-data/languagetool-
+  swagger.json</code>; run <code>git checkout -- tests/input-data/languagetool-
+  swagger.json</code> afterward if you ran the full suite, before checking
+  <code>git status --porcelain</code>.</li>
+</ul>
+<hr />
+<h2 id="task-1-teststest_model_module_helperspy">Task 1: <code>tests/test_model_module_helpers.py</code></h2>
+<p><strong>Files:</strong>
+- Create: <code>tests/test_model_module_helpers.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi.model._get_schema_type</code>, <code>_types_from_enum_values</code>,
+  <code>_append_property_type</code>, <code>get_default_class_name_from_pointer</code>
+  (existing). <code>oapi.oas.model.Items</code>, <code>Schema</code> (existing).
+- Produces: <code>tests/test_model_module_helpers.py</code>, 16 tests.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the test file</strong></li>
+</ul>
+<p>Create <code>tests/test_model_module_helpers.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">sob</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.model</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_append_property_type</span><span class="p">,</span>
+    <span class="n">_get_schema_type</span><span class="p">,</span>
+    <span class="n">_types_from_enum_values</span><span class="p">,</span>
+    <span class="n">get_default_class_name_from_pointer</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Items</span><span class="p">,</span> <span class="n">Schema</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_schema_type_returns_the_explicit_type</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">_get_schema_type</span><span class="p">(</span><span class="n">Schema</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}))</span> <span class="o">==</span> <span class="s2">&quot;string&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_schema_type_infers_object_from_properties</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">({</span><span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}}})</span>
+    <span class="k">assert</span> <span class="n">_get_schema_type</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_schema_type_infers_object_from_additional_properties</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">({</span><span class="s2">&quot;additionalProperties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}})</span>
+    <span class="k">assert</span> <span class="n">_get_schema_type</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_schema_type_infers_array_from_items</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">({</span><span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}})</span>
+    <span class="k">assert</span> <span class="n">_get_schema_type</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;array&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_schema_type_returns_none_when_nothing_is_inferable</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">_get_schema_type</span><span class="p">(</span><span class="n">Schema</span><span class="p">({}))</span> <span class="ow">is</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_schema_type_accepts_an_items_instance</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">items</span><span class="p">:</span> <span class="n">Items</span> <span class="o">=</span> <span class="n">Items</span><span class="p">({</span><span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}})</span>
+    <span class="k">assert</span> <span class="n">_get_schema_type</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;array&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_types_from_enum_values_maps_python_types</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">types</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Types</span> <span class="o">=</span> <span class="n">_types_from_enum_values</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">types</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_types_from_enum_values_maps_date_and_datetime_specially</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">types</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Types</span> <span class="o">=</span> <span class="n">_types_from_enum_values</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="p">)</span>
+    <span class="n">represented</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">represent</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span> <span class="k">for</span> <span class="n">type_</span> <span class="ow">in</span> <span class="n">types</span>
+    <span class="p">]</span>
+    <span class="k">assert</span> <span class="n">represented</span> <span class="o">==</span> <span class="p">[</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">represent</span><span class="p">(</span><span class="n">sob</span><span class="o">.</span><span class="n">DateProperty</span><span class="p">()),</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">represent</span><span class="p">(</span><span class="n">sob</span><span class="o">.</span><span class="n">DateTimeProperty</span><span class="p">()),</span>
+    <span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_types_from_enum_values_deduplicates_by_type</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">types</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Types</span> <span class="o">=</span> <span class="n">_types_from_enum_values</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">types</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_append_property_type_adds_a_new_type</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">property_</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">sob</span><span class="o">.</span><span class="n">Property</span><span class="p">()</span>
+    <span class="n">result</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">_append_property_type</span><span class="p">(</span><span class="n">property_</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">types</span> <span class="ow">or</span> <span class="p">())</span> <span class="o">==</span> <span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_append_property_type_accumulates_distinct_types</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">property_</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">_append_property_type</span><span class="p">(</span><span class="n">sob</span><span class="o">.</span><span class="n">Property</span><span class="p">(),</span> <span class="nb">str</span><span class="p">)</span>
+    <span class="n">property_</span> <span class="o">=</span> <span class="n">_append_property_type</span><span class="p">(</span><span class="n">property_</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">property_</span><span class="o">.</span><span class="n">types</span> <span class="ow">or</span> <span class="p">())</span> <span class="o">==</span> <span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_append_property_type_is_idempotent_for_the_same_type</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">property_</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">_append_property_type</span><span class="p">(</span><span class="n">sob</span><span class="o">.</span><span class="n">Property</span><span class="p">(),</span> <span class="nb">str</span><span class="p">)</span>
+    <span class="n">property_</span> <span class="o">=</span> <span class="n">_append_property_type</span><span class="p">(</span><span class="n">property_</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">property_</span><span class="o">.</span><span class="n">types</span> <span class="ow">or</span> <span class="p">())</span> <span class="o">==</span> <span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_append_property_type_maps_date_and_datetime_specially</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">property_</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">_append_property_type</span><span class="p">(</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">Property</span><span class="p">(),</span> <span class="n">datetime</span>
+    <span class="p">)</span>
+    <span class="n">types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">represent</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span> <span class="k">for</span> <span class="n">type_</span> <span class="ow">in</span> <span class="p">(</span><span class="n">property_</span><span class="o">.</span><span class="n">types</span> <span class="ow">or</span> <span class="p">())</span>
+    <span class="p">]</span>
+    <span class="k">assert</span> <span class="n">types</span> <span class="o">==</span> <span class="p">[</span><span class="n">sob</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">represent</span><span class="p">(</span><span class="n">sob</span><span class="o">.</span><span class="n">DateTimeProperty</span><span class="p">())]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_default_class_name_from_pointer_for_a_named_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">result</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">get_default_class_name_from_pointer</span><span class="p">(</span>
+        <span class="s2">&quot;#/components/schemas/Foo&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="s2">&quot;Foo&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_default_class_name_from_pointer_for_a_200_response</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">result</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">get_default_class_name_from_pointer</span><span class="p">(</span>
+        <span class="s2">&quot;#/paths/~1foo/get/responses/200/content/application~1json/schema&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="s2">&quot;FooGetResponse&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_default_class_name_from_pointer_for_a_non_200_response</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">result</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">get_default_class_name_from_pointer</span><span class="p">(</span>
+        <span class="s2">&quot;#/paths/~1foo/get/responses/404/schema&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="s2">&quot;FooGetResponse404&quot;</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/test_model_module_helpers.py<span class="w"> </span>-v
+hatch<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>--strict<span class="w"> </span>--ignore-missing-imports<span class="w"> </span>tests/test_model_module_helpers.py
+hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+</code></pre></div>
+Expected: 16 passed; mypy <code>Success: no issues found in 1 source file</code>;
+<code>hatch fmt --check</code> clean. Every assertion's expected value was
+produced by actually calling the real function -- note that a 17th
+planned test for <code>_get_model_import_class_source</code> was dropped during
+validation: calling it on an already-imported, already-defined class
+(rather than mid-generation, inside <code>_Modeler</code>'s own live process)
+produces a different split than expected (the whole class landed in
+the "imports" half, the "class source" half was empty) -- the function
+is already fully, transitively exercised by every generated-module test
+in this plan and the prior <code>ClientModule</code> plan, so it wasn't worth
+reconstructing <code>_Modeler</code>'s internal generation-time state just to unit
+-test this one helper in isolation.</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/test_model_module_helpers.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_model_module_helpers.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add coverage for ModelModule&#39;s isolable schema/type/naming helper functions&quot;</span>
+</code></pre></div>
+<h2 id="task-2-teststest_model_module_empty_schemapy">Task 2: <code>tests/test_model_module_empty_schema.py</code></h2>
+<p><strong>Files:</strong>
+- Create: <code>tests/test_model_module_empty_schema.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi.model.ModelModule</code>, <code>oapi.oas.model.OpenAPI</code>
+  (existing).
+- Produces: <code>tests/test_model_module_empty_schema.py</code>, 1 test.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the test file</strong></li>
+</ul>
+<p>Create <code>tests/test_model_module_empty_schema.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelModule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAPI</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_a_document_with_no_named_schemas_generates_unimportable_source</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span>
+    <span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Documents a real, verified, currently-unfixed bug: an OpenAPI</span>
+<span class="sd">    document with no `components/schemas` (every response schema</span>
+<span class="sd">    inline and primitive-shaped, e.g. bare `{&quot;type&quot;: &quot;object&quot;}`)</span>
+<span class="sd">    generates a `model.py` that cannot actually be imported.</span>
+<span class="sd">    `ModelModule.get_module_source` builds its `imports` set purely</span>
+<span class="sd">    from each *generated class&#39;s own* source text -- when there are</span>
+<span class="sd">    zero generated classes, that set stays empty, so neither `from</span>
+<span class="sd">    __future__ import annotations` nor `import sob` gets emitted. But</span>
+<span class="sd">    the module&#39;s own trailing `_POINTERS_CLASSES: dict[str,</span>
+<span class="sd">    type[sob.abc.Model]] = {...}` line always references `sob.abc.</span>
+<span class="sd">    Model` in a variable annotation regardless -- and without `from</span>
+<span class="sd">    __future__ import annotations` to make that annotation lazy, `sob`</span>
+<span class="sd">    is genuinely undefined when the module is executed. Not fixed here</span>
+<span class="sd">    (out of this test-only initiative&#39;s scope) -- flagged to the user</span>
+<span class="sd">    directly as well as documented here.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">open_api_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;/foo&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;get&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;responses&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;200&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;OK&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                <span class="s2">&quot;application/json&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                    <span class="s2">&quot;schema&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">}</span>
+                                <span class="p">}</span>
+                            <span class="p">},</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">OpenAPI</span><span class="p">(</span><span class="n">open_api_data</span><span class="p">)</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">ModelModule</span> <span class="o">=</span> <span class="n">ModelModule</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s2">&quot;import sob&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source</span>
+    <span class="k">assert</span> <span class="s2">&quot;from __future__ import annotations&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">source</span>
+    <span class="k">assert</span> <span class="s2">&quot;sob.abc.Model&quot;</span> <span class="ow">in</span> <span class="n">source</span>
+    <span class="c1"># `dont_inherit=True` is required here: without it, `compile()`</span>
+    <span class="c1"># inherits the *calling* module&#39;s `__future__` flags -- since this</span>
+    <span class="c1"># test file itself has `from __future__ import annotations`, that</span>
+    <span class="c1"># would silently make `_POINTERS_CLASSES`&#39;s annotation lazy (PEP</span>
+    <span class="c1"># 563) even though the generated source string has no such import</span>
+    <span class="c1"># of its own, masking the real bug. A real `import`/`importlib`</span>
+    <span class="c1"># load of this generated file (as every other test in this</span>
+    <span class="c1"># initiative does) never has this problem, since each file&#39;s</span>
+    <span class="c1"># `__future__` behavior is self-contained -- `dont_inherit=True`</span>
+    <span class="c1"># makes `exec()` behave the same way, for a faithful reproduction.</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">NameError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;sob&quot;</span><span class="p">):</span>
+        <span class="n">exec</span><span class="p">(</span>  <span class="c1"># noqa: S102</span>
+            <span class="nb">compile</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="s2">&quot;&lt;generated&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;exec&quot;</span><span class="p">,</span> <span class="n">dont_inherit</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="p">{}</span>
+        <span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/test_model_module_empty_schema.py<span class="w"> </span>-v
+hatch<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>--strict<span class="w"> </span>--ignore-missing-imports<span class="w"> </span>tests/test_model_module_empty_schema.py
+hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+</code></pre></div>
+Expected: 1 passed; mypy <code>Success: no issues found in 1 source file</code>;
+<code>hatch fmt --check</code> clean. Pay close attention to the <code>dont_inherit=
+True</code> argument in the <code>compile()</code> call and its explanatory comment --
+transcribe it exactly; omitting it makes the test pass for the wrong
+reason (silently not reproducing the real bug at all) rather than fail.</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/test_model_module_empty_schema.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_model_module_empty_schema.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: document that an empty-schema OpenAPI document generates an unimportable model module&quot;</span>
+</code></pre></div>
+<h2 id="task-3-teststest_model_module_polymorphic_schemaspy">Task 3: <code>tests/test_model_module_polymorphic_schemas.py</code></h2>
+<p><strong>Files:</strong>
+- Create: <code>tests/test_model_module_polymorphic_schemas.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: the <code>generated_client_package</code> fixture (existing, from the
+  <code>ClientModule</code> plan). <code>tests/input-data/polymorphic-schemas.json</code>
+  (existing, from the infrastructure plan).
+- Produces: <code>tests/test_model_module_polymorphic_schemas.py</code>, 9 tests.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the test file</strong></li>
+</ul>
+<p>Create <code>tests/test_model_module_polymorphic_schemas.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModuleType</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sob</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAPI</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">polymorphic_model</span><span class="p">(</span>
+    <span class="n">generated_client_package</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span>
+        <span class="p">[</span><span class="n">OpenAPI</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">]</span>
+    <span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModuleType</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;tests/input-data/polymorphic-schemas.json&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">OpenAPI</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">model_module</span><span class="p">,</span> <span class="n">_client_module</span> <span class="o">=</span> <span class="n">generated_client_package</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_module</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_allof_merges_properties_from_every_member_schema</span><span class="p">(</span>
+    <span class="n">polymorphic_model</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    `Pet` is `allOf: [NamedEntity, {species, status}]` -- the generated</span>
+<span class="sd">    class should have properties from both member schemas merged into</span>
+<span class="sd">    one, including `NamedEntity`&#39;s `required: [name]`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">meta</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">ObjectMeta</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">sob</span><span class="o">.</span><span class="n">read_object_meta</span><span class="p">(</span>
+        <span class="n">polymorphic_model</span><span class="o">.</span><span class="n">Pet</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">meta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">meta</span><span class="o">.</span><span class="n">properties</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;species&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">}</span>
+    <span class="k">assert</span> <span class="n">meta</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">required</span> <span class="ow">is</span> <span class="kc">True</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_allof_merged_class_enforces_the_merged_required_property</span><span class="p">(</span>
+    <span class="n">polymorphic_model</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">pet</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Object</span> <span class="o">=</span> <span class="n">polymorphic_model</span><span class="o">.</span><span class="n">Pet</span><span class="p">({</span><span class="s2">&quot;species&quot;</span><span class="p">:</span> <span class="s2">&quot;dog&quot;</span><span class="p">})</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">sob</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">):</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">pet</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_allof_merged_class_accepts_a_fully_populated_instance</span><span class="p">(</span>
+    <span class="n">polymorphic_model</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">pet</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Object</span> <span class="o">=</span> <span class="n">polymorphic_model</span><span class="o">.</span><span class="n">Pet</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Rex&quot;</span><span class="p">,</span> <span class="s2">&quot;species&quot;</span><span class="p">:</span> <span class="s2">&quot;dog&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;sold&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">pet</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_enum_schema_generates_an_enumerated_property_with_real_values</span><span class="p">(</span>
+    <span class="n">polymorphic_model</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">meta</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">ObjectMeta</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">sob</span><span class="o">.</span><span class="n">read_object_meta</span><span class="p">(</span>
+        <span class="n">polymorphic_model</span><span class="o">.</span><span class="n">Pet</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">meta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">meta</span><span class="o">.</span><span class="n">properties</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">status_property</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">status_property</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">EnumeratedProperty</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">status_property</span><span class="o">.</span><span class="n">values</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;available&quot;</span><span class="p">,</span> <span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="s2">&quot;sold&quot;</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_enum_schema_rejects_an_unlisted_value_at_construction</span><span class="p">(</span>
+    <span class="n">polymorphic_model</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">sob</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">UnmarshalValueError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">):</span>
+        <span class="n">polymorphic_model</span><span class="o">.</span><span class="n">Pet</span><span class="p">({</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;unknown&quot;</span><span class="p">})</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_oneof_generates_independent_non_merged_classes</span><span class="p">(</span>
+    <span class="n">polymorphic_model</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    `Shape` is `oneOf: [Circle, Square]` -- unlike `allOf`, this should</span>
+<span class="sd">    *not* merge `Circle` and `Square` into one class; each keeps only</span>
+<span class="sd">    its own properties.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">circle_meta</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">ObjectMeta</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">sob</span><span class="o">.</span><span class="n">read_object_meta</span><span class="p">(</span>
+        <span class="n">polymorphic_model</span><span class="o">.</span><span class="n">Circle</span>
+    <span class="p">)</span>
+    <span class="n">square_meta</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">ObjectMeta</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">sob</span><span class="o">.</span><span class="n">read_object_meta</span><span class="p">(</span>
+        <span class="n">polymorphic_model</span><span class="o">.</span><span class="n">Square</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">circle_meta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">square_meta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">circle_meta</span><span class="o">.</span><span class="n">properties</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">square_meta</span><span class="o">.</span><span class="n">properties</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">circle_meta</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">}</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">square_meta</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;side&quot;</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_oneof_member_schemas_validate_independently</span><span class="p">(</span>
+    <span class="n">polymorphic_model</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">circle</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Object</span> <span class="o">=</span> <span class="n">polymorphic_model</span><span class="o">.</span><span class="n">Circle</span><span class="p">({</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">circle</span><span class="p">)</span>
+    <span class="n">square</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Object</span> <span class="o">=</span> <span class="n">polymorphic_model</span><span class="o">.</span><span class="n">Square</span><span class="p">({</span><span class="s2">&quot;side&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">square</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_anyof_generates_independent_non_merged_classes</span><span class="p">(</span>
+    <span class="n">polymorphic_model</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">email_meta</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">ObjectMeta</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">sob</span><span class="o">.</span><span class="n">read_object_meta</span><span class="p">(</span>
+        <span class="n">polymorphic_model</span><span class="o">.</span><span class="n">EmailContact</span>
+    <span class="p">)</span>
+    <span class="n">phone_meta</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">ObjectMeta</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">sob</span><span class="o">.</span><span class="n">read_object_meta</span><span class="p">(</span>
+        <span class="n">polymorphic_model</span><span class="o">.</span><span class="n">PhoneContact</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">email_meta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">phone_meta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">email_meta</span><span class="o">.</span><span class="n">properties</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">phone_meta</span><span class="o">.</span><span class="n">properties</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">email_meta</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;email&quot;</span><span class="p">}</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">phone_meta</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;phone&quot;</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_additional_properties_schema_generates_a_dictionary_subclass</span><span class="p">(</span>
+    <span class="n">polymorphic_model</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">polymorphic_model</span><span class="o">.</span><span class="n">TagsGetResponse</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">Dictionary</span><span class="p">)</span>
+    <span class="n">tags</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Dictionary</span> <span class="o">=</span> <span class="n">polymorphic_model</span><span class="o">.</span><span class="n">TagsGetResponse</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">dict</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/test_model_module_polymorphic_schemas.py<span class="w"> </span>-v
+hatch<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>--strict<span class="w"> </span>--ignore-missing-imports<span class="w"> </span>tests/test_model_module_polymorphic_schemas.py
+hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+</code></pre></div>
+Expected: 9 passed; mypy <code>Success: no issues found in 1 source file</code>;
+<code>hatch fmt --check</code> clean. Confirms real, correct schema-composition
+behavior end-to-end: <code>allOf</code> merges properties and <code>required</code> from
+every member schema (and a real <code>sob.validate()</code> call enforces the
+merged requirement); enum schemas produce a real <code>sob.EnumeratedProperty</code>
+whose invalid-value rejection happens eagerly, at construction/unmarshal
+time (a real <code>sob.errors.UnmarshalValueError</code>, not the more commonly
+expected <code>sob.errors.ValidationError</code> raised by <code>sob.validate()</code> --
+confirmed live, this was a genuine surprise during validation); <code>oneOf</code>/
+<code>anyOf</code> do <em>not</em> merge their member schemas into one class, unlike
+<code>allOf</code>; <code>additionalProperties</code> schemas generate a real <code>sob.Dictionary</code>
+subclass.</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/test_model_module_polymorphic_schemas.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_model_module_polymorphic_schemas.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add coverage for ModelModule&#39;s allOf/oneOf/anyOf/enum/dictionary schema generation&quot;</span>
+</code></pre></div>
+<h2 id="task-4-whole-plan-verification">Task 4: Whole-plan verification</h2>
+<p><strong>Files:</strong>
+- None modified (verification only).</p>
+<ul>
+<li>[ ] <strong>Step 1: Run every new file together, plus the full existing suite</strong></li>
+</ul>
+<p><div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/test_model_module_helpers.py<span class="w"> </span>tests/test_model_module_empty_schema.py<span class="w"> </span>tests/test_model_module_polymorphic_schemas.py<span class="w"> </span>-v
+hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/<span class="w"> </span>-q
+git<span class="w"> </span>checkout<span class="w"> </span>--<span class="w"> </span>tests/input-data/languagetool-swagger.json
+</code></pre></div>
+Expected: 26 passed for the three new files together; 399 passed for
+the full suite (373 before this plan's tests existed, plus 26).</p>
+<ul>
+<li>[ ] <strong>Step 2: Confirm the coverage delta</strong></li>
+</ul>
+<p><div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:coverage<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/<span class="w"> </span>-q
+hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:coverage<span class="w"> </span>report<span class="w"> </span>-m<span class="w"> </span>--include<span class="o">=</span><span class="s2">&quot;*/model.py&quot;</span>
+git<span class="w"> </span>checkout<span class="w"> </span>--<span class="w"> </span>tests/input-data/languagetool-swagger.json
+</code></pre></div>
+Expected: <code>src/oapi/model.py</code> moves from 69% (this plan's starting
+point) to roughly 71%, file-wide -- a real, if modest, improvement
+given <code>_Modeler</code>'s remaining internals are deliberately out of scope
+(see Global Constraints).</p>
+<ul>
+<li>[ ] <strong>Step 3: Update project memory</strong></li>
+</ul>
+<p>Update the <code>project-oapi-test-coverage-initiative</code> memory file to note
+this plan complete -- <strong>this is the last plan in the initiative</strong>, per
+the spec's sequencing. Summarize the initiative's overall result
+(<code>client.py</code> 16%→83%, <code>model.py</code> 69%→71%, seven real bugs found and
+documented across the whole initiative) and mark the initiative
+complete, per the standing blanket-execution-approval instruction -- no
+user confirmation needed for this step.</p>
+<hr />
+<h2 id="self-review">Self-Review</h2>
+<p><strong>1. Spec coverage:</strong> The spec's final step ("<code>model.py</code> <code>ModelModule</code>
+gaps") is addressed within a deliberately bounded scope, explained in
+Global Constraints rather than silently stopping short -- the isolable
+free functions get direct unit tests (Task 1), the one concrete,
+already-identified bug gets its own regression test (Task 2), and the
+one fixture genuinely built for exercising <code>_Modeler</code>'s merge/polymorph
+paths (<code>polymorphic-schemas.json</code>, per its own <code>description</code> field)
+gets used for that stated purpose via real generated-class inspection
+(Task 3) rather than left further unused. The initiative's overall goal
+(real, integration-first coverage, <code>client.py</code>'s runtime and codegen
+both substantially covered) is achieved; this final plan closes out
+the remaining, most defensible slice of <code>model.py</code> rather than
+over-extending into diminishing-returns internal-method unit testing.</p>
+<p><strong>2. Placeholder scan:</strong> No "TBD"/"add appropriate handling"/"similar to
+Task N" language. Every line of test code was executed against the real
+library before being written into this document. One genuine
+test-authoring surprise was caught and fixed during validation (not
+buried): a dropped test (<code>_get_model_import_class_source</code>, noted in
+Task 1's Step 2) whose live behavior didn't match the assumption drawn
+from its calling convention in <code>get_module_source</code>, and a subtle
+<code>compile()</code>/<code>dont_inherit</code> testing pitfall in Task 2 that initially
+made the empty-schema regression test pass for the wrong reason (the
+test's own <code>from __future__ import annotations</code> leaking into the
+<code>exec()</code>'d generated code) until caught by the test unexpectedly not
+reproducing the bug on a first run.</p>
+<p><strong>3. Type consistency:</strong> All three files declare complete import blocks.
+<code>sob.read_object_meta(...)</code>'s <code>Optional</code> return type is narrowed
+identically (<code>assert ... is not None</code>) everywhere it's used in Task 3,
+matching the established pattern from the <code>ClientModule</code>-plan's
+<code>Client.parts</code>/<code>.headers</code> narrowing.</p>
+<hr />
+<p><strong>Plan complete and saved to
+<code>docs/superpowers/plans/2026-08-02-model-module-gap-tests.md</code>.</strong>
+Per the standing blanket authorization for this initiative
+([[feedback-autonomous-plan-execution]]), proceeding directly to
+subagent-driven execution on branch <code>test-coverage</code> without further
+confirmation. This is the final plan in the initiative.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.top"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../../assets/javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>

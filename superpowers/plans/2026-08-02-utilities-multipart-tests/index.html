@@ -1,0 +1,2304 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://enorganic.github.io/oapi/superpowers/plans/2026-08-02-utilities-multipart-tests/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Utilities & Multipart Request Tests Implementation Plan - oapi</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/style.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#utilities-multipart-request-tests-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="oapi" class="md-header__button md-logo" aria-label="oapi" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            oapi
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Utilities &amp; Multipart Request Tests Implementation Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1M8 13h8v-2H8zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4a5 5 0 0 0 5-5 5 5 0 0 0-5-5"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5M7 15a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/enorganic/oapi/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="oapi" class="md-nav__button md-logo" aria-label="oapi" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    oapi
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/enorganic/oapi/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.oas.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.oas.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.oas.references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.oas.references
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.abc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.abc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.meta/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.meta
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.properties/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.properties
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.thesaurus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.thesaurus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.version/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.version
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-1-rename_parameters-legacy-kwarg-translation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: rename_parameters — legacy-kwarg translation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-2-get_type_format_property-get_string_format_property" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: get_type_format_property / get_string_format_property
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-3-iter_distinct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: iter_distinct
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-4-deprecated-via-the-three-real-public-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: deprecated — via the three real public aliases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-5-headers-dict-protocol-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 5: Headers — dict-protocol behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-6-data-serialization-and-cache-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 6: Data — serialization and cache behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-7-part-boundary-computation-and-collision-avoidance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 7: Part — boundary computation and collision avoidance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-8-parts-sequence-protocol-and-cache-invalidation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 8: Parts — sequence protocol and cache invalidation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-9-real-multipart-wire-format-oracle-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 9: Real multipart wire-format oracle test
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-10-request-multipartrequest-real-end-to-end-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 10: Request / MultipartRequest — real end-to-end HTTP
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-11-full-suite-sanity-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 11: Full-suite sanity check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#self-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self-Review
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="utilities-multipart-request-tests-implementation-plan">Utilities &amp; Multipart Request Tests Implementation Plan</h1>
+<blockquote>
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use
+superpowers:subagent-driven-development (recommended) or
+superpowers:executing-plans to implement this plan task-by-task. Steps
+use checkbox (<code>- [ ]</code>) syntax for tracking.</p>
+</blockquote>
+<p><strong>Goal:</strong> Bring <code>src/oapi/_utilities.py</code> (59% → ~100%) and
+<code>src/oapi/_multipart_request.py</code> (31% → ~90%+) to real, integration-first
+test coverage, per
+<code>docs/superpowers/specs/2026-08-01-test-coverage-design.md</code>'s step 2
+("self-contained, fast, cheap wins toward 100%").</p>
+<p><strong>Architecture:</strong> Two new test files, <code>tests/test_utilities.py</code> and
+<code>tests/test_multipart_request.py</code>. <code>_utilities.py</code>'s pure functions are
+tested directly (nothing to fake — they have no I/O), plus its
+<code>deprecated</code> decorator is tested through the three <em>real</em> public aliases
+that already use it (<code>oapi.oas.model.Link_</code>, <code>oapi.model.Module</code>,
+<code>oapi.client.Module</code>) rather than a throwaway decorated function, so the
+test also proves the library's actual deprecated-alias surface works.
+<code>_multipart_request.py</code>'s wire-format correctness is verified against
+the stdlib <code>email.parser</code> as an independent oracle, and its <code>Request</code>/
+<code>MultipartRequest</code> classes are exercised end-to-end over a real socket
+using the <code>http_test_server</code> infrastructure built in
+<code>docs/superpowers/plans/2026-08-01-test-infrastructure.md</code> (already
+merged into this branch as <code>tests/servers.py</code>). Three small module-level
+helpers (<code>_headers</code>, <code>_data_bytes</code>, <code>_parts</code>) narrow <code>Data.headers</code>/
+<code>Data.data</code>/<code>Part.parts</code> from their real <code>X | None</code> return types down
+to <code>X</code> via <code>assert ... is not None</code> — these properties are only ever
+<code>None</code> before the corresponding setter normalizes them (verified: after
+<code>__init__</code>, <code>Data.headers</code> and <code>Part.parts</code> are never <code>None</code> at
+runtime), so the assertion documents a real invariant rather than
+papering over one; it's also what satisfies this project's mypy-strict
+<code>disallow_untyped_defs</code> gate without loosening any type. Every local
+variable in both files carries an explicit type annotation (not just
+function signatures) — see Global Constraints.</p>
+<p><strong>Tech Stack:</strong> Python 3.10, <code>pytest</code>, stdlib <code>email</code>/<code>random</code>/<code>warnings</code>
+(no new dependencies), <code>sob</code> (already a dependency), the existing
+<code>tests/input-data/multipart-request-body.json</code> fixture (from the prior
+plan — reused here, not recreated) and <code>tests/servers.py</code>'s
+<code>http_test_server</code>.</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul>
+<li>Line length 79 (ruff + black), enforced via <code>hatch fmt --check</code>.</li>
+<li>mypy strict on <code>tests/</code>: <code>disallow_untyped_defs</code>,
+  <code>disallow_incomplete_defs</code> — every function/method signature fully
+  annotated. All code in this plan was verified against a real
+  <code>mypy --strict</code> run (not just the project's <code>hatch run mypy</code>, which
+  fails to <em>sync</em> in this checkout on a pre-existing, unrelated
+  <code>dependence~=1.4</code> issue — see the infrastructure plan's ledger).
+  <code>Data.headers</code>, <code>Data.data</code>, and <code>Part.parts</code> are typed <code>X | None</code> on
+  the real class, so every test that uses them goes through the
+  <code>_headers</code>/<code>_data_bytes</code>/<code>_parts</code> helpers introduced in Tasks 5, 7,
+  and 8 rather than accessing the properties directly.</li>
+<li><strong>Explicit type annotations on every local variable, not only
+  function signatures.</strong> This is a project-wide, user-stated preference
+  applying beyond what mypy strict alone requires (mypy strict mandates
+  annotated signatures; it does not require annotating a local like
+  <code>data = Data(...)</code> — this plan does so anyway, throughout). Two narrow
+  exceptions, both verified necessary rather than assumed:</li>
+<li>Python does not support inline annotation on a <code>with ... as name:</code>
+    context-manager target (e.g. <code>with warnings.catch_warnings(record=True) as caught:</code>,
+    <code>with open(path) as io_:</code>) — there is no syntax for it, so these
+    stay unannotated.</li>
+<li><code>email.message.Message.get_payload()</code> (used in Tasks 9-10) has a
+    real, verified return type of
+    <code>Message[str, str] | str | list[Message[str, str] | str] | Any</code>
+    (confirmed via <code>reveal_type</code> against a real <code>mypy --strict</code> run) —
+    narrower than that (e.g. <code>list[object]</code>) is a genuine mypy error,
+    not a style choice, because <code>list</code> is invariant. The pattern used
+    here is: leave <code>payloads = message.get_payload()</code> unannotated
+    (correct inference), <code>assert isinstance(payloads, list)</code>, then bind
+    the narrowed, explicitly-annotated <code>typed_payloads: list[Message[str, str]] = cast(...)</code>
+    for everything used afterward.</li>
+<li>No new dependencies — stdlib + <code>pytest</code> + <code>sob</code> only.</li>
+<li>Python <code>~=3.10</code>.</li>
+<li>Tests run with <code>--doctest-modules</code> — no ambiguous <code>&gt;&gt;&gt;</code> sequences in
+  new test docstrings.</li>
+<li>Prefer real integration over mocks: no <code>unittest.mock</code>/<code>pytest-mock</code>
+  anywhere in either new test file. Where true non-determinism must be
+  made reproducible (the boundary-collision retry loop in Task 7), use
+  <code>random.seed(N)</code> — real randomness made deterministic — never patch
+  <code>random.choice</code> itself.</li>
+<li><strong>Imports go at the top of the file, grouped stdlib / third-party /
+  first-party (this project's ruff config enforces <code>I001</code> import
+  sorting).</strong> Every task after Task 1/5 (file creation) adds new import
+  lines to the existing top-of-file import block. You do not need to
+  place them in perfect sorted order by hand — add the line(s) shown,
+  anywhere in a sensible existing <code>import</code>/<code>from</code> group, then run
+  <code>hatch fmt --formatter</code> (auto-sorts and reformats) followed by
+  <code>hatch fmt --check</code> (must report <code>All checks passed!</code> /
+  <code>N files already formatted</code>) before every commit in this plan. This
+  is not optional — skipping it is what produces <code>E402</code>/<code>I001</code>
+  failures.</li>
+<li>Verify commands: <code>hatch run hatch-test.py3.10:pytest tests/test_utilities.py tests/test_multipart_request.py -v</code>
+  (the <code>hatch-test</code> env has <code>pytest</code> and this project installed; the
+  bare <code>default</code> env in this checkout currently fails to sync — don't
+  use it for <code>hatch run mypy</code>, and don't treat that sync failure as a
+  real type error).</li>
+<li>Commit scope: this working tree has unrelated pre-existing staged
+  files (<code>.claude/settings.json</code>, <code>.claude/skills/fableplan/SKILL.md</code>,
+  <code>AGENTS.md</code>, <code>.gitignore</code>) belonging to other work-in-progress —
+  <strong>never</strong> include them in a commit. A bare <code>git commit -m "..."</code>
+  commits everything currently staged, not just what you just added —
+  always commit with an explicit pathspec naming exactly the task's
+  files: <code>git commit &lt;exact-path(s)&gt; -m "..."</code> (paths before <code>-m</code>).
+  Never <code>git add -A</code>/<code>.</code>/<code>-u</code>, never <code>git reset</code> in any form to
+  self-fix a mistake — if a commit's scope looks wrong, stop and report
+  it rather than trying to fix it with git surgery.</li>
+<li>Known, out-of-scope, pre-existing issue (do not fix as part of this
+  plan): a real <code>mypy --strict</code> run also flags
+  <code>tests/servers.py:56: error: If x = b'abc' then f"{x}" ... [str-bytes-safe]</code>
+  in the <em>prior</em> plan's <code>http_test_server</code> code
+  (<code>f"http://{host}:{port}"</code> where <code>port</code>'s inferred type includes
+  <code>bytes</code> per some <code>socket</code> typeshed overload). This predates this plan
+  and is unrelated to <code>_utilities.py</code>/<code>_multipart_request.py</code> — note it
+  if asked, but do not touch <code>tests/servers.py</code> in this plan.</li>
+</ul>
+<hr />
+<h2 id="task-1-rename_parameters-legacy-kwarg-translation">Task 1: <code>rename_parameters</code> — legacy-kwarg translation</h2>
+<p><strong>Files:</strong>
+- Create: <code>tests/test_utilities.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi._utilities.rename_parameters</code> (existing,
+  <code>**old_new_parameter_names: str -&gt; Callable[..., Callable[..., Any]]</code>).
+- Produces: <code>tests/test_utilities.py</code> as a new file — later tasks in
+  this plan append to it.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing test</strong></li>
+</ul>
+<p>Create <code>tests/test_utilities.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi._utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">rename_parameters</span>
+
+
+<span class="nd">@rename_parameters</span><span class="p">(</span><span class="n">old_name</span><span class="o">=</span><span class="s2">&quot;new_name&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_greet</span><span class="p">(</span><span class="n">new_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">other</span><span class="si">}</span><span class="s2">&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_rename_parameters_translates_old_kwarg_to_new</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">_greet</span><span class="p">(</span><span class="n">old_name</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;a-x&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_rename_parameters_passes_through_new_kwarg_unchanged</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">_greet</span><span class="p">(</span><span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;b-x&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_rename_parameters_passes_through_other_kwargs</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">_greet</span><span class="p">(</span><span class="n">old_name</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;a-y&quot;</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">test_rename_parameters_translates_old_kwarg_to_new</span><span class="p">()</span>
+</code></pre></div>
+<p>(No local variables in this task's tests to annotate — every value is
+consumed directly in an <code>assert</code>.)</p>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_utilities.py -v</code>
+Expected: collects and PASSES immediately — <code>rename_parameters</code> already
+exists and works; this task adds <em>coverage</em> of existing behavior, not
+new behavior. There is no red step for this particular function; the
+"failing" state to confirm is that before this file exists, the test
+command errors with "no tests ran" / file-not-found.</p>
+<ul>
+<li>[ ] <strong>Step 3: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_utilities.py -v</code>
+Expected: PASS (3 tests). Verified against the real function:
+<code>_greet(old_name="a")</code> → <code>"a-x"</code>, <code>_greet(new_name="b")</code> → <code>"b-x"</code>,
+<code>_greet(old_name="a", other="y")</code> → <code>"a-y"</code>.</p>
+<ul>
+<li>[ ] <strong>Step 4: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_utilities.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_utilities.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add rename_parameters coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-2-get_type_format_property-get_string_format_property">Task 2: <code>get_type_format_property</code> / <code>get_string_format_property</code></h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_utilities.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi._utilities.get_type_format_property</code>,
+  <code>oapi._utilities.get_string_format_property</code> (existing), <code>sob</code>'s
+  property classes.</p>
+<ul>
+<li>[ ] <strong>Step 1: Add imports and append the test</strong></li>
+</ul>
+<p>Add these lines to the top import block (anywhere reasonable — <code>hatch
+fmt --formatter</code> will sort them):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sob</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi._utilities</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_string_format_property</span><span class="p">,</span>
+    <span class="n">get_type_format_property</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>(<code>rename_parameters</code> is already imported from <code>oapi._utilities</code> on its
+own line from Task 1 — merge it into one <code>from oapi._utilities import
+(...)</code> block with the two new names, don't leave two separate <code>from
+oapi._utilities import</code> statements. <code>hatch fmt --formatter</code> will not
+merge them for you.)</p>
+<p>Append to <code>tests/test_utilities.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="p">(</span><span class="s2">&quot;type_&quot;</span><span class="p">,</span> <span class="s2">&quot;expected_class&quot;</span><span class="p">),</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;number&quot;</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">NumberProperty</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">IntegerProperty</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;boolean&quot;</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">BooleanProperty</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">BytesProperty</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;array&quot;</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">ArrayProperty</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;object&quot;</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">Property</span><span class="p">),</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_type_format_property_maps_simple_types</span><span class="p">(</span>
+    <span class="n">type_</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">expected_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">property_</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">get_type_format_property</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">property_</span><span class="p">)</span> <span class="ow">is</span> <span class="n">expected_class</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="p">(</span><span class="s2">&quot;format_&quot;</span><span class="p">,</span> <span class="s2">&quot;content_encoding&quot;</span><span class="p">,</span> <span class="s2">&quot;expected_class&quot;</span><span class="p">),</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;date-time&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">DateTimeProperty</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">DateProperty</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;byte&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">BytesProperty</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;binary&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">BytesProperty</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;base64&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">BytesProperty</span><span class="p">),</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">StringProperty</span><span class="p">),</span>
+        <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;base64&quot;</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">BytesProperty</span><span class="p">),</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_string_format_property_maps_formats</span><span class="p">(</span>
+    <span class="n">format_</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">content_encoding</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">expected_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">property_</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">get_string_format_property</span><span class="p">(</span>
+        <span class="n">format_</span><span class="p">,</span> <span class="n">content_encoding</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">property_</span><span class="p">)</span> <span class="ow">is</span> <span class="n">expected_class</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_type_format_property_string_delegates</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">property_</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">get_type_format_property</span><span class="p">(</span>
+        <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;date-time&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">property_</span><span class="p">)</span> <span class="ow">is</span> <span class="n">sob</span><span class="o">.</span><span class="n">DateTimeProperty</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_type_format_property_none_type_without_media_or_encoding</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span>
+    <span class="kc">None</span>
+<span class="p">):</span>
+    <span class="n">property_</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">get_type_format_property</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">property_</span><span class="p">)</span> <span class="ow">is</span> <span class="n">sob</span><span class="o">.</span><span class="n">Property</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_type_format_property_none_type_uses_default_type</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">property_</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">get_type_format_property</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">default_type</span><span class="o">=</span><span class="n">sob</span><span class="o">.</span><span class="n">StringProperty</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">property_</span><span class="p">)</span> <span class="ow">is</span> <span class="n">sob</span><span class="o">.</span><span class="n">StringProperty</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_type_format_property_none_type_with_content_media_type</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span>
+    <span class="kc">None</span>
+<span class="p">):</span>
+    <span class="n">property_</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">get_type_format_property</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">content_media_type</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">property_</span><span class="p">)</span> <span class="ow">is</span> <span class="n">sob</span><span class="o">.</span><span class="n">BytesProperty</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_type_format_property_none_type_with_content_encoding</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span>
+    <span class="kc">None</span>
+<span class="p">):</span>
+    <span class="n">property_</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">get_type_format_property</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">content_encoding</span><span class="o">=</span><span class="s2">&quot;base64&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">property_</span><span class="p">)</span> <span class="ow">is</span> <span class="n">sob</span><span class="o">.</span><span class="n">BytesProperty</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_type_format_property_unknown_type_raises</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;Unknown schema type: bogus&quot;</span><span class="p">):</span>
+        <span class="n">get_type_format_property</span><span class="p">(</span><span class="s2">&quot;bogus&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_type_format_property_required_is_propagated</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">property_</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Property</span> <span class="o">=</span> <span class="n">get_type_format_property</span><span class="p">(</span>
+        <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">property_</span><span class="o">.</span><span class="n">required</span> <span class="ow">is</span> <span class="kc">True</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_utilities.py -v</code>
+Expected: PASS (all tests so far, 23 total). Verified against the real
+functions: every <code>(type_, expected_class)</code> and <code>(format_,
+content_encoding, expected_class)</code> pair above was executed against
+<code>oapi._utilities</code> directly and produced exactly the stated class; the
+unknown-type case raises <code>ValueError: Unknown schema type: bogus</code>;
+<code>required=True</code> propagates to <code>property_.required</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_utilities.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_utilities.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add get_type_format_property/get_string_format_property coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-3-iter_distinct">Task 3: <code>iter_distinct</code></h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_utilities.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi._utilities.iter_distinct</code> (existing).</p>
+<ul>
+<li>[ ] <strong>Step 1: Add import and append the test</strong></li>
+</ul>
+<p>Add <code>iter_distinct</code> into the existing <code>from oapi._utilities import
+(...)</code> block from Task 2 (now: <code>get_string_format_property,
+get_type_format_property, iter_distinct, rename_parameters</code> — merge
+<code>rename_parameters</code> in too if it's still on its own line from Task 1).</p>
+<p>Append to <code>tests/test_utilities.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_iter_distinct_deduplicates_preserving_order</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">iter_distinct</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]))</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_iter_distinct_empty_iterable</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">iter_distinct</span><span class="p">([]))</span> <span class="o">==</span> <span class="p">[]</span>
+</code></pre></div>
+<p>(No local variables to annotate — both assertions consume the
+generator's result directly.)</p>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_utilities.py -v</code>
+Expected: PASS (25 total). Verified: <code>list(iter_distinct([1, 2, 1, 3, 2,
+4]))</code> → <code>[1, 2, 3, 4]</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_utilities.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_utilities.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add iter_distinct coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-4-deprecated-via-the-three-real-public-aliases">Task 4: <code>deprecated</code> — via the three real public aliases</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_utilities.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi.oas.model.Link_</code> / <code>oapi.oas.model.LinkObject</code>,
+  <code>oapi.model.Module</code> / <code>oapi.model.ModelModule</code>, <code>oapi.client.Module</code> /
+  <code>oapi.client.ClientModule</code>, <code>oapi.oas.model.OpenAPI</code> (all existing) —
+  these three aliases are the <em>only</em> real usages of the <code>deprecated</code>
+  decorator in this codebase today (confirmed: <code>rename_parameters</code> and
+  a bare <code>@deprecated</code> are not applied anywhere else). Testing through
+  them, rather than a throwaway decorated function, proves the
+  library's actual deprecated surface works, not just the decorator in
+  isolation.
+- Consumes: <code>tests/input-data/multipart-request-body.json</code> (already
+  exists from the prior plan — reused, not recreated) as the <code>OpenAPI</code>
+  document <code>ClientModule</code>/<code>ModelModule</code> need.</p>
+<ul>
+<li>[ ] <strong>Step 1: Add imports and append the test</strong></li>
+</ul>
+<p>Add these lines to the top import block:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClientModule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Module</span> <span class="k">as</span> <span class="n">ClientModuleAlias</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelModule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Module</span> <span class="k">as</span> <span class="n">ModelModuleAlias</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Link_</span><span class="p">,</span> <span class="n">LinkObject</span><span class="p">,</span> <span class="n">OpenAPI</span>
+</code></pre></div>
+<p>Append to <code>tests/test_utilities.py</code> (constants near the top of the
+test-function section, then the three tests):</p>
+<div class="highlight"><pre><span></span><code><span class="n">TESTS_PATH</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+<span class="n">MULTIPART_FIXTURE_PATH</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">TESTS_PATH</span> <span class="o">/</span> <span class="s2">&quot;input-data&quot;</span> <span class="o">/</span> <span class="s2">&quot;multipart-request-body.json&quot;</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_deprecated_link_alias_warns_and_returns_link_object</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">caught</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;always&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="p">:</span> <span class="n">LinkObject</span> <span class="o">=</span> <span class="n">Link_</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">caught</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">caught</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s2">&quot;oapi.oas.model.Link_&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">caught</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s2">&quot;oapi.oas.model.LinkObject&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">caught</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">link</span><span class="p">,</span> <span class="n">LinkObject</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_deprecated_model_module_alias_warns_and_returns_model_module</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span>
+    <span class="kc">None</span>
+<span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">MULTIPART_FIXTURE_PATH</span><span class="p">)</span> <span class="k">as</span> <span class="n">io_</span><span class="p">:</span>
+        <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">OpenAPI</span><span class="p">(</span><span class="n">io_</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">caught</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;always&quot;</span><span class="p">)</span>
+        <span class="n">model_module</span><span class="p">:</span> <span class="n">ModelModule</span> <span class="o">=</span> <span class="n">ModelModuleAlias</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">caught</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">caught</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s2">&quot;oapi.model.Module&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">caught</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s2">&quot;oapi.ModelModule&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">caught</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model_module</span><span class="p">,</span> <span class="n">ModelModule</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_deprecated_client_module_alias_warns_and_returns_client_module</span><span class="p">(</span>
+    <span class="n">tmp_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">MULTIPART_FIXTURE_PATH</span><span class="p">)</span> <span class="k">as</span> <span class="n">io_</span><span class="p">:</span>
+        <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">OpenAPI</span><span class="p">(</span><span class="n">io_</span><span class="p">)</span>
+    <span class="n">model_module</span><span class="p">:</span> <span class="n">ModelModule</span> <span class="o">=</span> <span class="n">ModelModule</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="n">model_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">tmp_path</span> <span class="o">/</span> <span class="s2">&quot;model.py&quot;</span>
+    <span class="n">model_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_module</span><span class="p">))</span>
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">caught</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;always&quot;</span><span class="p">)</span>
+        <span class="n">client_module</span><span class="p">:</span> <span class="n">ClientModule</span> <span class="o">=</span> <span class="n">ClientModuleAlias</span><span class="p">(</span>
+            <span class="n">open_api</span><span class="p">,</span> <span class="n">model_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">caught</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">caught</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s2">&quot;oapi.client.Module&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">caught</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s2">&quot;oapi.ClientModule&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">caught</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">client_module</span><span class="p">,</span> <span class="n">ClientModule</span><span class="p">)</span>
+</code></pre></div>
+<p>Note: <code>with open(...) as io_:</code> and <code>with warnings.catch_warnings(...) as
+caught:</code> are the documented exception from Global Constraints — Python
+doesn't support annotating a <code>with ... as name:</code> target inline, so
+those two stay unannotated; every other local (<code>link</code>, <code>open_api</code>,
+<code>model_module</code>, <code>model_path</code>, <code>client_module</code>) is explicitly annotated.</p>
+<p>Place the <code>TESTS_PATH</code>/<code>MULTIPART_FIXTURE_PATH</code> constants after the
+imports and before the first test function in the file (i.e., move
+them up, don't leave them appended at the very bottom below the
+<code>_greet</code> helper) — <code>hatch fmt --formatter</code> does not reorder statements,
+only imports, so put them in a sensible place yourself.</p>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_utilities.py -v</code>
+Expected: PASS (28 total). Verified against the real library: <code>Link_()</code>
+emits exactly one <code>DeprecationWarning</code> with message <code>`oapi.oas.model.Link_`
+is deprecated and will be removed in oapi 3. Please use
+`oapi.oas.model.LinkObject` instead.</code> and returns a real
+<code>LinkObject</code> instance; <code>ModelModuleAlias(open_api)</code> (loaded from the
+real <code>multipart-request-body.json</code> fixture) emits the analogous
+<code>oapi.model.Module</code>/<code>oapi.ModelModule</code> warning and returns a real
+<code>ModelModule</code>; <code>ClientModuleAlias(open_api, model_path=...)</code> (given a
+real, freshly-generated <code>model.py</code> written to <code>tmp_path</code>) emits the
+analogous <code>oapi.client.Module</code>/<code>oapi.ClientModule</code> warning and returns a
+real <code>ClientModule</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format, verify with mypy if available, and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_utilities.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_utilities.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add deprecated-alias coverage via real public aliases&quot;</span>
+</code></pre></div>
+<p>The final <code>tests/test_utilities.py</code> (all of Tasks 1-4 combined) should
+be 187 lines, <code>hatch fmt --check</code>-clean, and pass a <code>mypy --strict</code>
+run with zero errors if you have a way to run it directly (the
+project's own <code>hatch run mypy</code> is blocked by the known pre-existing
+<code>dependence~=1.4</code> sync issue — see Global Constraints).</p>
+<h2 id="task-5-headers-dict-protocol-behavior">Task 5: <code>Headers</code> — dict-protocol behavior</h2>
+<p><strong>Files:</strong>
+- Create: <code>tests/test_multipart_request.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi._multipart_request.Data</code>, <code>Headers</code> (existing).
+- Produces: <code>tests/test_multipart_request.py</code> as a new file — later
+  tasks in this plan append to it. Produces the <code>_headers(data: Data)
+  -&gt; Headers</code> module-level helper (asserts <code>data.headers is not None</code>
+  and returns it) — every later task in this file that touches
+  <code>.headers</code> uses this helper instead of the raw property, to satisfy
+  mypy strict against the real <code>Headers | None</code> return type.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the test</strong></li>
+</ul>
+<p>Create <code>tests/test_multipart_request.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi._multipart_request</span><span class="w"> </span><span class="kn">import</span> <span class="n">Data</span><span class="p">,</span> <span class="n">Headers</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Headers</span><span class="p">:</span>
+    <span class="n">headers</span><span class="p">:</span> <span class="n">Headers</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">headers</span>
+    <span class="k">assert</span> <span class="n">headers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">headers</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_capitalizes_keys</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;x-custom&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">})</span>
+    <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="p">[</span>
+        <span class="s2">&quot;X-custom&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Content-length&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_contains_is_case_insensitive</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;X-Custom&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">})</span>
+    <span class="k">assert</span> <span class="s2">&quot;x-custom&quot;</span> <span class="ow">in</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_get_returns_default_for_missing_key</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;missing&quot;</span><span class="p">,</span> <span class="s2">&quot;fallback&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;fallback&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_get_raises_without_default</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">):</span>
+        <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;missing&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_content_length_is_always_present_for_data</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)[</span><span class="s2">&quot;Content-length&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;5&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;Content-length&quot;</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_setitem_and_getitem</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{})</span>
+    <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)[</span><span class="s2">&quot;New-Header&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;val&quot;</span>
+    <span class="k">assert</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)[</span><span class="s2">&quot;New-header&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;val&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_pop_removes_and_returns_value</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;New-Header&quot;</span><span class="p">:</span> <span class="s2">&quot;val&quot;</span><span class="p">})</span>
+    <span class="k">assert</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;New-Header&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;val&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;New-header&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_setdefault_adds_missing_key</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{})</span>
+    <span class="k">assert</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;Another&quot;</span><span class="p">,</span> <span class="s2">&quot;def&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;def&quot;</span>
+    <span class="k">assert</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)[</span><span class="s2">&quot;Another&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;def&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_setdefault_keeps_existing_value</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Another&quot;</span><span class="p">:</span> <span class="s2">&quot;orig&quot;</span><span class="p">})</span>
+    <span class="k">assert</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;Another&quot;</span><span class="p">,</span> <span class="s2">&quot;def&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;orig&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_update_with_mapping_and_kwargs</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;X-custom&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">})</span>
+    <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;X-custom&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">},</span> <span class="n">extra</span><span class="o">=</span><span class="s2">&quot;3&quot;</span><span class="p">)</span>
+    <span class="n">items</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="k">assert</span> <span class="n">items</span><span class="p">[</span><span class="s2">&quot;X-custom&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span>
+    <span class="k">assert</span> <span class="n">items</span><span class="p">[</span><span class="s2">&quot;Extra&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_delitem_removes_key</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Extra&quot;</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">})</span>
+    <span class="k">del</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)[</span><span class="s2">&quot;Extra&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="s2">&quot;Extra&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_popitem_removes_and_returns_pair</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Only&quot;</span><span class="p">:</span> <span class="s2">&quot;val&quot;</span><span class="p">})</span>
+    <span class="n">key</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">popitem</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="s2">&quot;Only&quot;</span><span class="p">,</span> <span class="s2">&quot;val&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_copy_produces_independent_equal_copy</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;X-custom&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">})</span>
+    <span class="n">copied</span><span class="p">:</span> <span class="n">Headers</span> <span class="o">=</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">dict</span><span class="p">(</span><span class="n">copied</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="k">assert</span> <span class="n">copied</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_headers_content_type_only_present_for_part_with_parts</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s2">&quot;Content-type&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+</code></pre></div>
+<p>Note: <code>test_headers_popitem_removes_and_returns_pair</code> cannot write
+<code>key: str, value: str = _headers(data).popitem()</code> — Python doesn't
+support annotating a tuple-unpacking assignment inline. Instead,
+pre-declare both names on their own lines (<code>key: str</code> / <code>value: str</code>)
+immediately before the unpacking assignment, as shown.</p>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_multipart_request.py -v</code>
+Expected: PASS (14 tests). Verified against the real library: header
+keys are <code>.capitalize()</code>d (<code>"x-custom"</code> → <code>"X-custom"</code>), containment
+checks are case-insensitive via the same capitalization,
+<code>Headers.get(key)</code> without a default re-raises the real <code>KeyError</code>,
+<code>Content-length</code> is always present in a <code>Data</code>'s (non-<code>Part</code>) header
+iteration even though never explicitly set (computed from
+<code>len(data or b"")</code>), and <code>Content-type</code> is absent unless the request is
+a <code>Part</code> with a non-empty <code>parts</code> list (covered directly in Task 7 —
+this task only asserts its absence on plain <code>Data</code>, checked via
+<code>dict(data.headers.items())</code> since <code>Data</code> has no <code>.parts</code> attribute at
+all).</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_multipart_request.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_multipart_request.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add Headers dict-protocol coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-6-data-serialization-and-cache-behavior">Task 6: <code>Data</code> — serialization and cache behavior</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_multipart_request.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi._multipart_request.Data</code>, <code>Part</code> (existing).</p>
+<ul>
+<li>[ ] <strong>Step 1: Add import and append the test</strong></li>
+</ul>
+<p>Add <code>Part</code> to the existing <code>from oapi._multipart_request import Data,
+Headers</code> line (now <code>Data, Headers, Part</code>).</p>
+<p>Append to <code>tests/test_multipart_request.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_data_bytes_serializes_headers_and_body</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span>
+        <span class="sa">b</span><span class="s2">&quot;Content-type: application/json</span><span class="se">\r\n</span><span class="s2">&quot;</span>
+        <span class="sa">b</span><span class="s2">&quot;Content-length: 8</span><span class="se">\r\n\r\n</span><span class="s2">&quot;</span>
+        <span class="sa">b</span><span class="s1">&#39;{&quot;a&quot;: 1}</span><span class="se">\r\n</span><span class="s1">&#39;</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_data_str_matches_bytes_decoded</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;X&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">})</span>
+    <span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_data_deleter_clears_data</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span>
+    <span class="k">assert</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_data_serializes_sob_model_via_sob_serialize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;[1, 2, 3]&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_data_bytes_cache_is_not_invalidated_by_later_header_mutation</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span>
+    <span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Documents actual behavior: `Data` (unlike `Part`) does not reset its</span>
+<span class="sd">    `__bytes__` cache when headers are mutated after the first render,</span>
+<span class="sd">    because `Headers._reset_part` only acts when `self.request` is a</span>
+<span class="sd">    `Part`. This is the current, real behavior of the class -- not</span>
+<span class="sd">    something this test judges as correct or incorrect.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">})</span>
+    <span class="n">first</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">_headers</span><span class="p">(</span><span class="n">data</span><span class="p">)[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;2&quot;</span>
+    <span class="n">second</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">first</span> <span class="o">==</span> <span class="n">second</span>
+    <span class="k">assert</span> <span class="sa">b</span><span class="s2">&quot;A: 1&quot;</span> <span class="ow">in</span> <span class="n">first</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_part_bytes_cache_is_invalidated_by_header_mutation</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Contrasts with the `Data` case above: `Part` DOES reset its cache</span>
+<span class="sd">    on header mutation, because `Headers._reset_part` checks</span>
+<span class="sd">    `isinstance(self.request, Part)`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">})</span>
+    <span class="n">first</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+    <span class="n">_headers</span><span class="p">(</span><span class="n">part</span><span class="p">)[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;2&quot;</span>
+    <span class="n">second</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">first</span> <span class="o">!=</span> <span class="n">second</span>
+    <span class="k">assert</span> <span class="sa">b</span><span class="s2">&quot;A: 2&quot;</span> <span class="ow">in</span> <span class="n">second</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_multipart_request.py -v</code>
+Expected: PASS (20 tests). Verified against the real library, including
+the exact byte string for the JSON-serialized <code>Data</code> example
+(<code>sob.serialize</code> renders <code>{"a": 1}</code> with a space after the colon, 8
+bytes) and the real, confirmed cache-invalidation asymmetry between
+<code>Data</code> and <code>Part</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_multipart_request.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_multipart_request.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add Data serialization and cache-behavior coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-7-part-boundary-computation-and-collision-avoidance">Task 7: <code>Part</code> — boundary computation and collision avoidance</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_multipart_request.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi._multipart_request.Part</code> (existing), stdlib <code>random</code>.
+- Produces: the <code>_data_bytes(data: Data) -&gt; bytes</code> module-level helper
+  (asserts <code>data.data is not None</code> and returns it), for the same
+  mypy-strict reason as <code>_headers</code>.</p>
+<ul>
+<li>[ ] <strong>Step 1: Add import and helper, then append the test</strong></li>
+</ul>
+<p>Add <code>import random</code> to the top import block (stdlib group).</p>
+<p>Add this helper next to <code>_headers</code> (near the top of the file, after the
+imports):</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_data_bytes</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span>
+    <span class="k">assert</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">value</span>
+</code></pre></div>
+<p>Append to <code>tests/test_multipart_request.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_part_boundary_does_not_collide_with_field_content</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Note: the boundary DOES appear in `top.data` -- it&#39;s the delimiter</span>
+<span class="sd">    (`--{boundary}--`) between parts, by design. The real invariant is</span>
+<span class="sd">    that the computed boundary isn&#39;t a substring of any field&#39;s actual</span>
+<span class="sd">    content (which is what the `while boundary in data:` loop guards</span>
+<span class="sd">    against; see the collision test below for a direct exercise of</span>
+<span class="sd">    that loop).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_a</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;field-a-value&quot;</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Disposition&quot;</span><span class="p">:</span> <span class="s1">&#39;form-data; name=&quot;a&quot;&#39;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">part_b</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;field-b-value&quot;</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Disposition&quot;</span><span class="p">:</span> <span class="s1">&#39;form-data; name=&quot;b&quot;&#39;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">top</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="n">part_a</span><span class="p">,</span> <span class="n">part_b</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">top</span><span class="o">.</span><span class="n">boundary</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_data_bytes</span><span class="p">(</span><span class="n">part_a</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">top</span><span class="o">.</span><span class="n">boundary</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_data_bytes</span><span class="p">(</span><span class="n">part_b</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_part_content_type_header_includes_boundary</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">part_a</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+    <span class="n">top</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="n">part_a</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">_headers</span><span class="p">(</span><span class="n">top</span><span class="p">)[</span><span class="s2">&quot;Content-type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;multipart/form-data; boundary=</span><span class="si">{</span><span class="n">top</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_part_boundary_retries_on_collision</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Forces a real collision (not mocked): seed `random`, observe the</span>
+<span class="sd">    first 16-character candidate it would produce, then construct data</span>
+<span class="sd">    that literally contains that candidate. The real collision-avoidance</span>
+<span class="sd">    `while boundary in data` loop must then extend the boundary at least</span>
+<span class="sd">    one character -- proven by re-seeding identically and checking the</span>
+<span class="sd">    final boundary is longer than 16 bytes, starts with the original</span>
+<span class="sd">    candidate, and (still) does not appear in the data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">12345</span><span class="p">)</span>
+    <span class="n">probe</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;irrelevant&quot;</span><span class="p">)</span>
+    <span class="n">first_candidate</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">probe</span><span class="o">.</span><span class="n">boundary</span>
+
+    <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">12345</span><span class="p">)</span>
+    <span class="n">colliding_data</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">b</span><span class="s2">&quot;here is some data containing &quot;</span>
+        <span class="o">+</span> <span class="n">first_candidate</span>
+        <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot; right in the middle&quot;</span>
+    <span class="p">)</span>
+    <span class="n">part</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">colliding_data</span><span class="p">)</span>
+    <span class="n">boundary</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">part</span><span class="o">.</span><span class="n">boundary</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">boundary</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">16</span>
+    <span class="k">assert</span> <span class="n">boundary</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">first_candidate</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">boundary</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">colliding_data</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_part_boundary_deleter_forces_recalculation</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">part_a</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+    <span class="n">top</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="n">part_a</span><span class="p">])</span>
+    <span class="n">first</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">boundary</span>
+    <span class="k">del</span> <span class="n">top</span><span class="o">.</span><span class="n">boundary</span>
+    <span class="n">second</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">boundary</span>
+    <span class="k">assert</span> <span class="n">first</span> <span class="o">!=</span> <span class="n">second</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_part_without_parts_has_no_content_type_header</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">part</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s2">&quot;Content-type&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dict</span><span class="p">(</span><span class="n">_headers</span><span class="p">(</span><span class="n">part</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_part_data_property_returns_none_when_empty</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">part</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">part</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_multipart_request.py -v</code>
+Expected: PASS (26 tests). Verified against the real library, including
+the seeded collision scenario: with <code>random.seed(12345)</code>, the first
+candidate boundary is <code>b'qK0QQPjSnXchAran'</code>; constructing data
+containing that exact 16-byte string and re-seeding identically
+produces a final boundary of <code>b'qK0QQPjSnXchAran7'</code> (17 bytes,
+extending the original candidate by one real random character) which
+does not appear anywhere in the data — proving the <code>while boundary in
+data:</code> retry loop actually executed, using real randomness made
+reproducible via seeding, not a mock of <code>random.choice</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_multipart_request.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_multipart_request.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add Part boundary computation and collision-avoidance coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-8-parts-sequence-protocol-and-cache-invalidation">Task 8: <code>Parts</code> — sequence protocol and cache invalidation</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_multipart_request.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi._multipart_request.Part</code>, <code>Parts</code> (existing).
+- Produces: the <code>_parts(part: Part) -&gt; Parts</code> module-level helper
+  (asserts <code>part.parts is not None</code> and returns it), for the same
+  mypy-strict reason as <code>_headers</code>/<code>_data_bytes</code>.</p>
+<ul>
+<li>[ ] <strong>Step 1: Add import and helper, then append the test</strong></li>
+</ul>
+<p>Add <code>Parts</code> to the <code>from oapi._multipart_request import Data, Headers,
+Part</code> line (now <code>Data, Headers, Part, Parts</code>).</p>
+<p>Add this helper next to <code>_headers</code>/<code>_data_bytes</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_parts</span><span class="p">(</span><span class="n">part</span><span class="p">:</span> <span class="n">Part</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parts</span><span class="p">:</span>
+    <span class="n">parts</span><span class="p">:</span> <span class="n">Parts</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">part</span><span class="o">.</span><span class="n">parts</span>
+    <span class="k">assert</span> <span class="n">parts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">parts</span>
+</code></pre></div>
+<p>Append to <code>tests/test_multipart_request.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_parts_append_invalidates_boundary_cache</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">top</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;a&quot;</span><span class="p">)])</span>
+    <span class="n">_</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">boundary</span>  <span class="c1"># populate the cache</span>
+    <span class="k">assert</span> <span class="n">top</span><span class="o">.</span><span class="n">_boundary</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>  <span class="c1"># noqa: SLF001</span>
+    <span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">)</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;b&quot;</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">top</span><span class="o">.</span><span class="n">_boundary</span> <span class="ow">is</span> <span class="kc">None</span>  <span class="c1"># noqa: SLF001</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parts_clear_invalidates_boundary_cache_and_empties</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">top</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;a&quot;</span><span class="p">),</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;b&quot;</span><span class="p">)])</span>
+    <span class="n">_</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">boundary</span>
+    <span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">)</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">top</span><span class="o">.</span><span class="n">_boundary</span> <span class="ow">is</span> <span class="kc">None</span>  <span class="c1"># noqa: SLF001</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parts_extend_adds_all_items</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">top</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;a&quot;</span><span class="p">)])</span>
+    <span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">)</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;b&quot;</span><span class="p">),</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;c&quot;</span><span class="p">)])</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">))</span> <span class="o">==</span> <span class="mi">3</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parts_reverse_reorders_in_place</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">part_a</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+    <span class="n">part_b</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;b&quot;</span><span class="p">)</span>
+    <span class="n">top</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="n">part_a</span><span class="p">,</span> <span class="n">part_b</span><span class="p">])</span>
+    <span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">)</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">))</span> <span class="o">==</span> <span class="p">[</span><span class="n">part_b</span><span class="p">,</span> <span class="n">part_a</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parts_delitem_removes_item</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">part_a</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+    <span class="n">part_b</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;b&quot;</span><span class="p">)</span>
+    <span class="n">top</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="n">part_a</span><span class="p">,</span> <span class="n">part_b</span><span class="p">])</span>
+    <span class="k">del</span> <span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">))</span> <span class="o">==</span> <span class="p">[</span><span class="n">part_b</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parts_setitem_replaces_item</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">part_a</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+    <span class="n">part_b</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;b&quot;</span><span class="p">)</span>
+    <span class="n">top</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="n">part_a</span><span class="p">])</span>
+    <span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">part_b</span>
+    <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="n">_parts</span><span class="p">(</span><span class="n">top</span><span class="p">))</span> <span class="o">==</span> <span class="p">[</span><span class="n">part_b</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parts_bool_reflects_emptiness</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">empty_top</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="n">_parts</span><span class="p">(</span><span class="n">empty_top</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">False</span>
+    <span class="n">non_empty_top</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="n">Part</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;a&quot;</span><span class="p">)])</span>
+    <span class="k">assert</span> <span class="nb">bool</span><span class="p">(</span><span class="n">_parts</span><span class="p">(</span><span class="n">non_empty_top</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">True</span>
+</code></pre></div>
+<p>Note: <code>test_parts_reverse_reorders_in_place</code>,
+<code>test_parts_delitem_removes_item</code>, and <code>test_parts_setitem_replaces_item</code>
+each split what could be a one-line tuple assignment
+(<code>part_a, part_b = Part(data=b"a"), Part(data=b"b")</code>) into two
+separately-annotated lines, since Python doesn't support annotating a
+tuple-unpacking assignment inline (same reasoning as Task 5's
+<code>popitem()</code> test).</p>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_multipart_request.py -v</code>
+Expected: PASS (33 tests). Verified against the real library: every
+mutating <code>Parts</code> method (<code>append</code>, <code>clear</code>, <code>extend</code>, <code>reverse</code>,
+<code>__delitem__</code>, <code>__setitem__</code>) resets the owning <code>Part</code>'s
+<code>_boundary</code>/<code>_bytes</code> cache attributes to <code>None</code> as a real, observable
+side effect (accessed via the documented private attribute <code>_boundary</code>
+— hence the <code># noqa: SLF001</code> matching this project's existing
+convention for that pattern inside <code>_multipart_request.py</code> itself).</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_multipart_request.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_multipart_request.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add Parts sequence-protocol coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-9-real-multipart-wire-format-oracle-test">Task 9: Real multipart wire-format oracle test</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_multipart_request.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi._multipart_request.Part</code> (existing), stdlib
+  <code>email.message.Message</code>, <code>email.parser.BytesParser</code>,
+  <code>email.policy.compat32</code>, <code>typing.cast</code>.</p>
+<ul>
+<li>[ ] <strong>Step 1: Add imports and append the test</strong></li>
+</ul>
+<p>Add these lines to the top import block:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">email.message</span><span class="w"> </span><span class="kn">import</span> <span class="n">Message</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">email.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytesParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">email.policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">compat32</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">cast</span>
+</code></pre></div>
+<p>Append to <code>tests/test_multipart_request.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_assembled_multipart_data_parses_with_stdlib_email_parser</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Independent verification that this module&#39;s hand-rolled multipart</span>
+<span class="sd">    encoding is genuinely valid RFC 1341 multipart/form-data -- parsed</span>
+<span class="sd">    by Python&#39;s own `email` package, not by any code in this library.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_a</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;field-a-value&quot;</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Disposition&quot;</span><span class="p">:</span> <span class="s1">&#39;form-data; name=&quot;a&quot;&#39;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">part_b</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span>
+        <span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;field-b-value&quot;</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Disposition&quot;</span><span class="p">:</span> <span class="s1">&#39;form-data; name=&quot;b&quot;&#39;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">top</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span><span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="n">part_a</span><span class="p">,</span> <span class="n">part_b</span><span class="p">])</span>
+
+    <span class="n">message_bytes</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">b</span><span class="s2">&quot;Content-type: &quot;</span>
+        <span class="o">+</span> <span class="n">_headers</span><span class="p">(</span><span class="n">top</span><span class="p">)[</span><span class="s2">&quot;Content-type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+        <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n\r\n</span><span class="s2">&quot;</span>
+        <span class="o">+</span> <span class="n">_data_bytes</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">BytesParser</span><span class="p">(</span><span class="n">policy</span><span class="o">=</span><span class="n">compat32</span><span class="p">)</span><span class="o">.</span><span class="n">parsebytes</span><span class="p">(</span>
+        <span class="n">message_bytes</span>
+    <span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">message</span><span class="o">.</span><span class="n">is_multipart</span><span class="p">()</span>
+    <span class="n">payloads</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">get_payload</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">payloads</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+    <span class="n">typed_payloads</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Message</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span>
+        <span class="s2">&quot;list[Message[str, str]]&quot;</span><span class="p">,</span> <span class="n">payloads</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">typed_payloads</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+    <span class="k">assert</span> <span class="n">typed_payloads</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Content-Disposition&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span>
+        <span class="s1">&#39;form-data; name=&quot;a&quot;&#39;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">typed_payloads</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">decode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;field-a-value&quot;</span>
+    <span class="k">assert</span> <span class="n">typed_payloads</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Content-Disposition&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span>
+        <span class="s1">&#39;form-data; name=&quot;b&quot;&#39;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">typed_payloads</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">decode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;field-b-value&quot;</span>
+</code></pre></div>
+<p>Note on <code>payloads</code> being left unannotated: this is the documented
+exception from Global Constraints, not an oversight. <code>message.get_payload()</code>'s
+real return type (confirmed via <code>reveal_type</code> against a real
+<code>mypy --strict</code> run) is
+<code>Message[str, str] | str | list[Message[str, str] | str] | Any</code> — a
+hand-written annotation narrower than that (e.g. <code>list[object]</code>) is a
+genuine mypy error because <code>list</code> is invariant, not just a style
+choice. Let mypy infer <code>payloads</code>' type correctly, narrow it with
+<code>assert isinstance(payloads, list)</code>, then bind the explicitly-annotated
+<code>typed_payloads: list[Message[str, str]]</code> via <code>cast(...)</code> for
+everything used afterward — every other local in this test (<code>part_a</code>,
+<code>part_b</code>, <code>top</code>, <code>message_bytes</code>, <code>message</code>, <code>typed_payloads</code>) is
+explicitly annotated.</p>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_multipart_request.py -v</code>
+Expected: PASS (34 tests). Verified against the real library: assembling
+a top-level <code>Part</code> with two sub-<code>Part</code>s and feeding the real
+<code>Content-type</code> header plus real <code>.data</code> bytes to Python's stdlib
+<code>email.BytesParser</code> produces <code>message.is_multipart() is True</code> with
+exactly 2 payloads, each with the correct <code>Content-Disposition</code> and
+decoded body — confirmed by direct execution, not asserted from theory.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_multipart_request.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_multipart_request.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: verify multipart wire format against stdlib email parser&quot;</span>
+</code></pre></div>
+<h2 id="task-10-request-multipartrequest-real-end-to-end-http">Task 10: <code>Request</code> / <code>MultipartRequest</code> — real end-to-end HTTP</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_multipart_request.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi._multipart_request.Request</code>, <code>MultipartRequest</code>
+  (existing), <code>tests.servers.http_test_server</code>, <code>tests.servers.Response</code>,
+  <code>tests.servers.RecordedRequest</code> (from
+  <code>docs/superpowers/plans/2026-08-01-test-infrastructure.md</code>, already
+  merged into this branch as <code>tests/servers.py</code>) — this is the one task
+  in this plan that needs the local HTTP test server, since it's the
+  only place actual network I/O is exercised.</p>
+<ul>
+<li>[ ] <strong>Step 1: Add imports and append the test</strong></li>
+</ul>
+<p>Add these lines to the top import block:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.request</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlopen</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">servers</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecordedRequest</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">http_test_server</span>
+</code></pre></div>
+<p>Add <code>MultipartRequest, Request</code> to the existing <code>from
+oapi._multipart_request import Data, Headers, Part, Parts</code> line (now:
+<code>Data, Headers, MultipartRequest, Part, Parts, Request</code>).</p>
+<p>Append to <code>tests/test_multipart_request.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_request_sends_real_json_body_over_http</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;/echo&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">)}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">request</span><span class="p">:</span> <span class="n">Request</span> <span class="o">=</span> <span class="n">Request</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">/echo&quot;</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;widget&quot;</span><span class="p">,</span> <span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+            <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">},</span>
+            <span class="n">method</span><span class="o">=</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="mi">200</span>
+        <span class="n">recorded</span><span class="p">:</span> <span class="n">RecordedRequest</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">recorded</span><span class="o">.</span><span class="n">body</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;widget&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">assert</span> <span class="n">recorded</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">recorded</span><span class="o">.</span><span class="n">body</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_multipart_request_sends_real_multipart_body_over_http</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;/upload&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">)}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">part</span><span class="p">:</span> <span class="n">Part</span> <span class="o">=</span> <span class="n">Part</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;file-contents-here&quot;</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;Content-Disposition&quot;</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s1">&#39;form-data; name=&quot;file&quot;; filename=&quot;a.txt&quot;&#39;</span>
+                <span class="p">),</span>
+                <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;text/plain&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+        <span class="n">request</span><span class="p">:</span> <span class="n">MultipartRequest</span> <span class="o">=</span> <span class="n">MultipartRequest</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">/upload&quot;</span><span class="p">,</span> <span class="n">parts</span><span class="o">=</span><span class="p">[</span><span class="n">part</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;POST&quot;</span>
+        <span class="p">)</span>
+        <span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">response</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="mi">200</span>
+
+        <span class="n">recorded</span><span class="p">:</span> <span class="n">RecordedRequest</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">content_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">recorded</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">content_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;multipart/form-data; boundary=&quot;</span><span class="p">)</span>
+
+        <span class="n">message_bytes</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">b</span><span class="s2">&quot;Content-type: &quot;</span>
+            <span class="o">+</span> <span class="n">content_type</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+            <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n\r\n</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="n">recorded</span><span class="o">.</span><span class="n">body</span>
+        <span class="p">)</span>
+        <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">BytesParser</span><span class="p">(</span><span class="n">policy</span><span class="o">=</span><span class="n">compat32</span><span class="p">)</span><span class="o">.</span><span class="n">parsebytes</span><span class="p">(</span>
+            <span class="n">message_bytes</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">message</span><span class="o">.</span><span class="n">is_multipart</span><span class="p">()</span>
+        <span class="n">payloads</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">get_payload</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">payloads</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="n">typed_payloads</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Message</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span>
+            <span class="s2">&quot;list[Message[str, str]]&quot;</span><span class="p">,</span> <span class="n">payloads</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">typed_payloads</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">assert</span> <span class="n">typed_payloads</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Content-Disposition&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span>
+            <span class="s1">&#39;form-data; name=&quot;file&quot;; filename=&quot;a.txt&quot;&#39;</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">typed_payloads</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_payload</span><span class="p">(</span><span class="n">decode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span>
+            <span class="sa">b</span><span class="s2">&quot;file-contents-here&quot;</span>
+        <span class="p">)</span>
+</code></pre></div>
+<p>Note: <code>Part</code> is already imported (Task 6); <code>Message</code>, <code>BytesParser</code>,
+<code>compat32</code>, <code>cast</code> are already imported (Task 9) — do not re-import any
+of them. <code>payloads</code> is left unannotated for the same documented reason
+as Task 9. <code>recorded.headers["Content-Length"]</code> — capital <code>L</code> — is the
+real key <code>http.server</code>'s request parser uses (confirmed by direct
+execution: lowercase <code>Content-length</code> returns <code>None</code>/<code>KeyError</code> from
+the recorded headers dict, which is a plain
+<code>email.message.Message</code>-backed mapping that preserves the wire-format
+casing, unlike this library's own <code>Headers</code> class which normalizes via
+<code>.capitalize()</code>).</p>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_multipart_request.py -v</code>
+Expected: PASS (36 tests). Verified against the real library and a real
+local socket: a plain <code>Request</code> with a dict <code>data</code> payload and
+<code>Content-Type: application/json</code> is sent via <code>urlopen</code> to a real
+<code>http_test_server</code>, and the server-recorded body round-trips through
+<code>json.loads</code> to the original dict, with a correct real <code>Content-Length</code>
+header. A <code>MultipartRequest</code> wrapping one file <code>Part</code> is sent the same
+way; the server-recorded <code>Content-Type</code> header carries the real
+generated boundary, and feeding the server's actual received body to
+the stdlib <code>email</code> parser confirms it decodes to exactly the one part
+sent, with the correct <code>Content-Disposition</code> and file contents.</p>
+<ul>
+<li>[ ] <strong>Step 3: Run the full pair of new test files together</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_utilities.py tests/test_multipart_request.py -v</code>
+Expected: all 28 + 36 = 64 tests from Tasks 1-10 pass together (no
+cross-task interference — nothing in <code>tests/test_utilities.py</code> shares
+state with <code>tests/test_multipart_request.py</code>).</p>
+<ul>
+<li>[ ] <strong>Step 4: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_multipart_request.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_multipart_request.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add Request/MultipartRequest end-to-end HTTP coverage&quot;</span>
+</code></pre></div>
+<p>The final <code>tests/test_multipart_request.py</code> (all of Tasks 5-10
+combined) should be 427 lines, <code>hatch fmt --check</code>-clean, and pass a
+<code>mypy --strict</code> run with zero errors (verified directly against this
+exact plan's code before it was written down — the only other error a
+real <code>mypy --strict tests/</code> run reports is the known, out-of-scope,
+pre-existing <code>tests/servers.py:56</code> issue from the prior plan, listed in
+Global Constraints).</p>
+<h2 id="task-11-full-suite-sanity-check">Task 11: Full-suite sanity check</h2>
+<p><strong>Files:</strong> none (verification only)</p>
+<ul>
+<li>[ ] <strong>Step 1: Run the project's standard test gate</strong></li>
+</ul>
+<p>Run: <code>make test</code>
+Expected: <code>hatch fmt --check &amp;&amp; hatch run mypy &amp;&amp; hatch test -c -vv</code> — if
+<code>hatch run mypy</code> fails specifically at the dependency-<em>sync</em> step with a
+<code>dependence~=1.4</code> resolution error (not an actual type error in code),
+that's the same known pre-existing environment issue documented in the
+prior plan — report it as such rather than treating it as a new
+failure, and separately confirm <code>hatch fmt --check</code> and
+<code>hatch test -c -vv</code> pass cleanly on their own.</p>
+<ul>
+<li>[ ] <strong>Step 2: Confirm the coverage improvement</strong></li>
+</ul>
+<p>Run: <code>hatch test -c &amp;&amp; hatch run hatch-test.py3.10:coverage report -m --include="*/_utilities.py,*/_multipart_request.py"</code>
+Expected: <code>_utilities.py</code> at or near 100%, <code>_multipart_request.py</code>
+materially above its 31% baseline (target ~90%+; some lines may remain
+uncovered — if any remaining gap looks reachable and valuable, note it
+rather than silently accepting it).</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit (if Step 1 required any fixes)</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>-A
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: fix formatting/typing issues from full-suite check&quot;</span>
+</code></pre></div>
+<p>(Skip if Step 1 passed with no changes needed. If you do need this
+step, review <code>git status</code> first per the Global Constraints — never
+stage the unrelated pre-existing files.)</p>
+<hr />
+<h2 id="self-review">Self-Review</h2>
+<p><strong>1. Spec coverage:</strong> Every function in <code>_utilities.py</code>
+(<code>rename_parameters</code>, <code>get_string_format_property</code>,
+<code>get_type_format_property</code>, <code>iter_distinct</code>, <code>deprecated</code>) has a task.
+Every class in <code>_multipart_request.py</code> (<code>Headers</code>, <code>Data</code>, <code>Part</code>,
+<code>Parts</code>, <code>Request</code>, <code>MultipartRequest</code>) has a task. The spec's called-out
+approach for <code>_multipart_request.py</code> -- "real, unmocked, <code>email.parser</code>
+as an oracle" and "end-to-end via <code>MultipartRequest</code> sent through
+<code>urlopen</code>" -- are both present (Tasks 9-10). The spec's approach for
+<code>deprecated</code> -- test via real usage rather than a synthetic decorated
+function -- is followed in Task 4. The user's mid-plan "always use
+explicit type annotation" instruction is reflected as a Global
+Constraint and applied throughout every task's code, with the two
+narrow, individually-verified exceptions (<code>with ... as</code> targets;
+<code>email.message.get_payload()</code>'s real union return type) called out
+inline rather than silently dropped.</p>
+<p><strong>2. Placeholder scan:</strong> No "TBD"/"add appropriate handling"/"similar to
+Task N" language. Every step has runnable code. All test code in this
+plan was executed against the real <code>oapi</code> package (via
+<code>hatch-test.py3.10</code>) before being written here -- including the exact
+byte strings, header values, warning messages, and the seeded
+boundary-collision scenario. Beyond that first pass, the fully-assembled
+contents of both files (all tasks combined, with explicit local-variable
+annotations throughout) were placed at their real destination paths in
+this checkout and verified: <code>hatch fmt --check</code> clean, a real
+<code>mypy --strict</code> run clean (aside from the documented, out-of-scope
+<code>tests/servers.py:56</code> issue), and a live <code>pytest</code> run of both files
+together passing all 64 tests. Two real bugs were caught and fixed
+during this process, not left in the plan: (a) an incorrect test
+assertion (<code>test_part_boundary_does_not_collide_with_field_content</code>
+originally, and incorrectly, assumed the boundary never appears in the
+final rendered multipart bytes -- it does, as the delimiter -- corrected
+to assert against field content instead); (b) an incorrect hand-written
+annotation on <code>message.get_payload()</code>'s result (<code>list[object]</code> is not
+assignable from the real <code>Message[str, str] | str | list[...] | Any</code>
+union under mypy's invariant-list rules) -- corrected by leaving that
+one variable to inference and casting into a separately-named,
+explicitly-typed variable, which is now the documented pattern for
+Tasks 9-10.</p>
+<p><strong>3. Type consistency:</strong> <code>_headers</code>, <code>_data_bytes</code>, and <code>_parts</code> are
+each defined once (Tasks 5, 7, 8 respectively) and reused verbatim by
+every later task that needs them, with no re-declaration or signature
+drift. Import names introduced in one task (e.g. <code>Part</code> in Task 6,
+<code>Parts</code> in Task 8) are added to the same shared <code>from
+oapi._multipart_request import (...)</code> line and reused by later tasks
+without renaming. Every local variable across both files carries the
+same annotation for the same real type every time it recurs (e.g.
+<code>data: Data</code>, <code>part: Part</code>, <code>top: Part</code>, <code>first</code>/<code>second: bytes</code> appear
+dozens of times across tasks, always with the same type).</p>
+<hr />
+<p><strong>Plan complete and saved to
+<code>docs/superpowers/plans/2026-08-02-utilities-multipart-tests.md</code>.</strong> Two
+execution options:</p>
+<p><strong>1. Subagent-Driven (recommended)</strong> - I dispatch a fresh subagent per
+task, review between tasks, fast iteration</p>
+<p><strong>2. Inline Execution</strong> - Execute tasks in this session using
+executing-plans, batch execution with checkpoints</p>
+<p><strong>Which approach?</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.top"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../../assets/javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2298 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://enorganic.github.io/oapi/superpowers/plans/2026-08-02-references-model-validation-tests/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>References & Model Validation Tests Implementation Plan - oapi</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/style.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#references-model-validation-tests-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="oapi" class="md-header__button md-logo" aria-label="oapi" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            oapi
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              References &amp; Model Validation Tests Implementation Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1M8 13h8v-2H8zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4a5 5 0 0 0 5-5 5 5 0 0 0-5-5"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5M7 15a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/enorganic/oapi/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="oapi" class="md-nav__button md-logo" aria-label="oapi" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    oapi
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/enorganic/oapi/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.oas.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.oas.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.oas.references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.oas.references
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.abc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.abc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.meta/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.meta
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.properties/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.properties
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.thesaurus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.thesaurus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.version/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.version
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-1-resolver_document-construction-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Resolver/_Document construction validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-2-dereference-error-branches-and-empty-ref-rejection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: dereference() error branches and empty-ref rejection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-3-real-reference-loop-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: Real reference-loop detection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-4-resolve-pointer-error-and-type-error-edge-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: resolve() pointer-error and type-error edge cases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-5-resolve_reference-previously-zero-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 5: resolve_reference() — previously zero coverage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-6-get_relative_url" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 6: get_relative_url()
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-7-real-multi-document-http-resolution-fetch-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 7: Real multi-document HTTP resolution + fetch errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-8-_schema_after_validate-real-formattype-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 8: _schema_after_validate — real format/type validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-9-_parameter_after_validate-contentschema-conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 9: _parameter_after_validate — content/schema conflicts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-10-reference-unmarshal-validation-and-arbitrary-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 10: Reference unmarshal validation and arbitrary properties
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-11-full-suite-sanity-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 11: Full-suite sanity check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#self-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self-Review
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="references-model-validation-tests-implementation-plan">References &amp; Model Validation Tests Implementation Plan</h1>
+<blockquote>
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use
+superpowers:subagent-driven-development (recommended) or
+superpowers:executing-plans to implement this plan task-by-task. Steps
+use checkbox (<code>- [ ]</code>) syntax for tracking.</p>
+</blockquote>
+<p><strong>Goal:</strong> Bring <code>src/oapi/oas/references.py</code> (79% → ~98%) and the
+hand-written validation hooks in <code>src/oapi/oas/model.py</code> (92% → ~95%,
+file-wide) to real, integration-first test coverage, per
+<code>docs/superpowers/specs/2026-08-01-test-coverage-design.md</code>'s step 3
+("self-contained, no server needed except the one HTTP-<code>$ref</code> test").</p>
+<p><strong>Architecture:</strong> Two new test files, <code>tests/test_references.py</code> and
+<code>tests/test_oas_model_hooks.py</code>. <code>references.py</code>'s happy-path reference
+resolution is already exercised indirectly by <code>tests/test_model.py</code>'s
+<code>test_openapi_examples</code> (which calls <code>Resolver(...).dereference()</code> on
+real-world OpenAPI documents) — this plan targets the <em>error</em> and
+<em>edge-case</em> paths that well-formed real-world specs never trigger:
+malformed/self-referencing/empty-ref documents built directly with
+<code>oapi.oas.model</code> classes, real multi-document HTTP resolution (via the
+<code>http_test_server</code> infrastructure from
+<code>docs/superpowers/plans/2026-08-01-test-infrastructure.md</code>, already
+merged into this branch), and <code>resolve_reference()</code> — which had <em>zero</em>
+prior coverage. <code>oas/model.py</code>'s targets are its hand-written
+<code>after_validate</code>/<code>after_unmarshal</code>/<code>before_setitem</code> hooks near the end
+of the file (<code>_schema_after_validate</code>, <code>_parameter_after_validate</code>,
+<code>_reference_after_unmarshal</code>, <code>_add_object_property</code>) — real validation
+logic, not the surrounding generated constructor boilerplate (which
+this plan deliberately does not chase; see Global Constraints).</p>
+<p><strong>Tech Stack:</strong> Python 3.10, <code>pytest</code>, stdlib (no new dependencies),
+<code>sob</code> (already a dependency), <code>tests/servers.py</code>'s <code>http_test_server</code>
+(one task only).</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul>
+<li>Line length 79 (ruff + black), enforced via <code>hatch fmt --check</code>.</li>
+<li>mypy strict on <code>tests/</code>: <code>disallow_untyped_defs</code>,
+  <code>disallow_incomplete_defs</code>, and — per this project's standing
+  preference — <strong>explicit type annotations on every local variable</strong>,
+  not only function signatures. All code in this plan was verified
+  against a real <code>mypy --strict</code> run (not the project's own <code>hatch run
+  mypy</code>, which fails to <em>sync</em> in this checkout on a pre-existing,
+  unrelated <code>dependence~=1.4</code> issue).</li>
+<li>No new dependencies — stdlib + <code>pytest</code> + <code>sob</code> only.</li>
+<li>Python <code>~=3.10</code>.</li>
+<li>Prefer real integration over mocks: no <code>unittest.mock</code>/<code>pytest-mock</code>
+  anywhere in either new test file. Malformed/edge-case OpenAPI
+  documents are built as real <code>oapi.oas.model</code> object graphs (or real
+  JSON dicts passed through the real <code>OpenAPI(...)</code> constructor), never
+  faked. The one test needing genuine network I/O uses the real
+  <code>http_test_server</code> from the prior infrastructure plan.</li>
+<li><strong>Imports go at the top of the file</strong> (this project's ruff config
+  enforces <code>I001</code> import sorting). Add new import lines to the existing
+  top-of-file block in each task, then run <code>hatch fmt --formatter</code>
+  (auto-sorts) followed by <code>hatch fmt --check</code> before every commit —
+  not optional.</li>
+<li>Private members are imported and called directly where that's the
+  only way to reach real, reachable-but-not-currently-publicly-wired
+  code (e.g. <code>_Document</code>, <code>_reference_after_unmarshal</code>,
+  <code>_schema_after_validate</code>). This mirrors the pattern already used for
+  <code>tests/test_model.py</code> (which imports <code>_urlopen</code> from
+  <code>oapi.oas.references</code>) and is not a project-specific new convention.</li>
+<li><strong>Two verified, real, non-obvious behaviors this plan's tests
+  document rather than "fix" (do not treat as bugs, do not deviate from
+  the specified test code trying to make them "more correct")</strong>:</li>
+<li><code>_Document.dereference(model, recursive=True)</code> — the setting every
+     current public caller uses — silently <strong>swallows</strong>
+     <code>OAPIReferenceLoopError</code> rather than raising it (see
+     <code>dereference</code>'s <code>except OAPIReferenceLoopError: if not recursive:
+     raise</code>). The error only propagates when <code>recursive=False</code>, which
+     no public method currently passes. Task 3 tests both: the real,
+     reachable raise (calling <code>_Document.dereference</code> directly with
+     <code>recursive=False</code>) and the real, current swallow-and-continue
+     behavior (via the public <code>Resolver.dereference()</code>).</li>
+<li><code>Reference.summary</code> and <code>Reference.description</code> are <strong>already
+     pre-declared properties</strong> on the generated <code>Reference</code> class
+     (confirmed via <code>sob.read_object_meta(Reference).properties</code> —
+     <code>['ref', 'summary', 'description']</code>), so they do <em>not</em> exercise
+     <code>_add_object_property</code>'s "this is a genuinely new property"
+     branch. Task 10 uses an <code>x-</code>-prefixed key (OpenAPI's own
+     convention for arbitrary extensions) instead.</li>
+<li><strong><code>src/oapi/oas/model.py:6748-6749</code> (the <code>except KeyError: ref = None</code>
+  lines inside <code>_reference_after_unmarshal</code>) is dead code for
+  <code>Reference</code>, not a coverage-tool bug</strong> — an earlier draft of this
+  plan wrongly attributed the "missing" report for these two lines to a
+  <code>coverage.py</code> measurement quirk. That was wrong: verified directly
+  (<code>Reference()["$ref"]</code> returns <code>None</code>, it does not raise <code>KeyError</code>,
+  because <code>sob</code> returns <code>None</code> for a declared-but-unset property rather
+  than raising), the <code>try</code> block's <code>ref = typing.cast(str,
+  data["$ref"])</code> simply assigns <code>None</code> and succeeds — the <code>except
+  KeyError:</code> handler never runs for this or any other <code>Reference</code>
+  input, since <code>$ref</code> is always a declared property on the class.
+  <code>coverage.py</code>'s "missing" report for 6748-6749 was accurate the whole
+  time. Task 10's test (<code>test_reference_after_unmarshal_requires_a_ref_attribute</code>)
+  still correctly asserts the real, resulting <code>ValueError</code> — only the
+  <em>mechanism</em> described in its docstring was wrong, and has been
+  corrected to match this explanation. This branch is in the same
+  category as the acknowledged-dead <code>6721</code> branch below: real code,
+  genuinely unreachable under the current <code>sob</code> behavior, not worth
+  chasing further.</li>
+<li><strong>Deliberately out of scope for this plan</strong> — the <em>other</em> remaining
+  gaps in <code>oas/model.py</code> (<code>325-336, 406-430, 533, 964, 1377-1385, 2698,
+  3009, 4385-4405</code>) are generated constructor-body boilerplate
+  (<code>self.x: ... = x</code> assignments for classes like <code>Discriminator</code>/
+  <code>Encoding</code> that no current test happens to instantiate with those
+  specific kwargs) — real code, but low-value, tautological coverage
+  (testing that a generated <code>__init__</code> assigns its own parameters).
+  <code>references.py:79-80</code> (the <code>except ImportError: pass</code> branch requiring
+  <code>pyyaml</code> to be genuinely absent) and <code>references.py:202-203</code>/<code>313</code>
+  (a <code>None</code>-metadata branch requiring a schema-less <code>sob.Object</code>, and an
+  effectively-unreachable defensive <code>RuntimeError</code>) are similarly
+  excluded — each was investigated and found to require either
+  destabilizing the shared test environment (uninstalling a real
+  dependency) or fabricating a scenario with no real-world trigger.
+  <code>oas/model.py:6721</code> (<code>_add_object_property</code>'s <code>if object_meta.properties
+  is None:</code> branch) is dead code specifically for <code>Reference</code> (its
+  properties are never <code>None</code> — see the second bullet above); note it
+  if asked, don't chase it.</li>
+<li>Verify commands: <code>hatch run hatch-test.py3.10:pytest tests/test_references.py tests/test_oas_model_hooks.py -v</code>
+  (the <code>hatch-test</code> env has <code>pytest</code> and this project installed; the
+  bare <code>default</code> env fails to sync — don't use it for <code>hatch run mypy</code>,
+  and don't treat that sync failure as a real type error).</li>
+<li>Commit scope: this working tree has unrelated pre-existing staged
+  files (<code>.claude/settings.json</code>, <code>.claude/skills/fableplan/SKILL.md</code>,
+  <code>AGENTS.md</code>, <code>.gitignore</code>) belonging to other work-in-progress —
+  <strong>never</strong> include them in a commit. Never a bare <code>git commit -m
+  "..."</code> — always <code>git commit &lt;exact-path(s)&gt; -m "..."</code> (paths before
+  <code>-m</code>). Never <code>git add -A</code>/<code>.</code>/<code>-u</code>, never <code>git reset</code> in any form to
+  self-fix a mistake — if a commit's scope looks wrong, stop and report
+  it.</li>
+<li>Known, out-of-scope, pre-existing issue: a real <code>mypy --strict</code> run
+  also flags <code>tests/servers.py:56</code> (<code>[str-bytes-safe]</code>, from the
+  infrastructure plan) — unrelated to this plan's files, don't touch
+  <code>tests/servers.py</code>.</li>
+</ul>
+<hr />
+<h2 id="task-1-resolver_document-construction-validation">Task 1: <code>Resolver</code>/<code>_Document</code> construction validation</h2>
+<p><strong>Files:</strong>
+- Create: <code>tests/test_references.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi.oas.references.Resolver</code>, <code>_Document</code> (existing),
+  <code>oapi.oas.model.OpenAPI</code> (existing).
+- Produces: <code>tests/test_references.py</code> as a new file — later tasks in
+  this plan append to it. Produces the <code>_openapi(data: dict[str,
+  typing.Any]) -&gt; OpenAPI</code> module-level helper, used by every later
+  task to build a real <code>OpenAPI</code> document from a plain dict literal.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the test</strong></li>
+</ul>
+<p>Create <code>tests/test_references.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sob</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.references</span><span class="w"> </span><span class="kn">import</span> <span class="n">Resolver</span><span class="p">,</span> <span class="n">_Document</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_openapi</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">OpenAPI</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">OpenAPI</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">open_api</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_resolver_rejects_non_openapi_root</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
+        <span class="n">Resolver</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="s2">&quot;not-an-openapi&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_resolver_rejects_non_callable_urlopen</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
+        <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="n">urlopen</span><span class="o">=</span><span class="s2">&quot;not-callable&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_resolver_rejects_non_string_url</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
+        <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="mi">123</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_document_requires_an_inferable_url</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span>
+        <span class="n">open_api</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://example.com/openapi.json&quot;</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;You must provide a URL&quot;</span><span class="p">):</span>
+        <span class="n">_Document</span><span class="p">(</span><span class="n">resolver</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="n">open_api</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_document_rejects_non_resolver_argument</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
+        <span class="n">_Document</span><span class="p">(</span>
+            <span class="s2">&quot;not-a-resolver&quot;</span><span class="p">,</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="n">root</span><span class="o">=</span><span class="n">open_api</span><span class="p">,</span>
+            <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_document_normalizes_a_path_url_to_str</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span>
+        <span class="n">open_api</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://example.com/openapi.json&quot;</span>
+    <span class="p">)</span>
+    <span class="n">document</span><span class="p">:</span> <span class="n">_Document</span> <span class="o">=</span> <span class="n">_Document</span><span class="p">(</span>
+        <span class="n">resolver</span><span class="p">,</span> <span class="n">open_api</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;/tmp/openapi.json&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">document</span><span class="o">.</span><span class="n">url</span> <span class="o">==</span> <span class="s2">&quot;/tmp/openapi.json&quot;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">document</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_document_infers_url_from_roots_model_url</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/inferred.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span>
+        <span class="n">open_api</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://example.com/openapi.json&quot;</span>
+    <span class="p">)</span>
+    <span class="n">document</span><span class="p">:</span> <span class="n">_Document</span> <span class="o">=</span> <span class="n">_Document</span><span class="p">(</span><span class="n">resolver</span><span class="p">,</span> <span class="n">open_api</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">document</span><span class="o">.</span><span class="n">url</span> <span class="o">==</span> <span class="s2">&quot;http://example.com/inferred.json&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_absolute_url_and_get_url_pointer</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span>
+        <span class="n">open_api</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://example.com/dir/openapi.json&quot;</span>
+    <span class="p">)</span>
+    <span class="n">document</span><span class="p">:</span> <span class="n">_Document</span> <span class="o">=</span> <span class="n">_Document</span><span class="p">(</span>
+        <span class="n">resolver</span><span class="p">,</span> <span class="n">open_api</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://example.com/dir/openapi.json&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">document</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">(</span><span class="s2">&quot;other.json&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span>
+        <span class="s2">&quot;http://example.com/dir/other.json&quot;</span>
+    <span class="p">)</span>
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">pointer</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">url</span><span class="p">,</span> <span class="n">pointer</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">get_url_pointer</span><span class="p">(</span><span class="s2">&quot;other.json#/foo/bar&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">url</span> <span class="o">==</span> <span class="s2">&quot;http://example.com/dir/other.json&quot;</span>
+    <span class="k">assert</span> <span class="n">pointer</span> <span class="o">==</span> <span class="s2">&quot;#/foo/bar&quot;</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_references.py -v</code>
+Expected: PASS (8 tests). Verified against the real library: each
+constructor-validation branch (<code>TypeError</code>/<code>ValueError</code>) was traced
+directly against <code>Resolver.__init__</code>/<code>_Document.__init__</code>'s actual
+guard clauses; <code>Path("/tmp/openapi.json")</code> really normalizes to the str
+<code>"/tmp/openapi.json"</code>; a root with a real <code>sob.set_model_url</code> really
+gets inferred when no explicit <code>url</code> is passed to <code>_Document</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_references.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_references.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add Resolver/_Document construction validation coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-2-dereference-error-branches-and-empty-ref-rejection">Task 2: <code>dereference()</code> error branches and empty-ref rejection</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_references.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi.oas.model.Reference</code>, <code>Schema</code>, <code>Properties</code>
+  (existing).</p>
+<ul>
+<li>[ ] <strong>Step 1: Add imports and append the test</strong></li>
+</ul>
+<p>Add these lines to the top import block:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Properties</span><span class="p">,</span> <span class="n">Reference</span><span class="p">,</span> <span class="n">Schema</span>
+</code></pre></div>
+<p>Append to <code>tests/test_references.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_dereference_rejects_a_non_model_argument</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="n">document</span><span class="p">:</span> <span class="n">_Document</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">documents</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
+        <span class="n">document</span><span class="o">.</span><span class="n">dereference</span><span class="p">(</span><span class="s2">&quot;just a string&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_dereference_object_properties_rejects_an_empty_ref</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="n">document</span><span class="p">:</span> <span class="n">_Document</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">documents</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">()</span>
+    <span class="n">schema</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="n">Reference</span><span class="p">({</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">})</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;\{&quot;\$ref&quot;: &quot;&quot;\}&#39;</span><span class="p">):</span>
+        <span class="n">document</span><span class="o">.</span><span class="n">dereference_object_properties</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_dereference_array_items_rejects_an_empty_ref</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="n">document</span><span class="p">:</span> <span class="n">_Document</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">documents</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">()</span>
+    <span class="n">schema</span><span class="o">.</span><span class="n">all_of</span> <span class="o">=</span> <span class="p">[</span><span class="n">Reference</span><span class="p">({</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">})]</span>
+    <span class="n">all_of</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Reference</span> <span class="o">|</span> <span class="n">Schema</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">all_of</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">all_of</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Array</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;\{&quot;\$ref&quot;: &quot;&quot;\}&#39;</span><span class="p">):</span>
+        <span class="n">document</span><span class="o">.</span><span class="n">dereference_array_items</span><span class="p">(</span><span class="n">all_of</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_dereference_dictionary_values_rejects_an_empty_ref</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="n">document</span><span class="p">:</span> <span class="n">_Document</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">documents</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">()</span>
+    <span class="n">schema</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="n">Properties</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">Reference</span><span class="p">({</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">})})</span>
+    <span class="n">properties</span><span class="p">:</span> <span class="n">Properties</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">schema</span><span class="o">.</span><span class="n">properties</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Dictionary</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;\{&quot;\$ref&quot;: &quot;&quot;\}&#39;</span><span class="p">):</span>
+        <span class="n">document</span><span class="o">.</span><span class="n">dereference_dictionary_values</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
+</code></pre></div>
+<p>Note on <code>all_of</code>/<code>properties</code>: <code>Schema.all_of</code> is statically typed
+<code>Sequence[Reference | Schema] | None</code> and <code>Schema.properties</code> is typed
+<code>Properties | None</code> — neither is <code>sob.abc.Array</code>/<code>sob.abc.Dictionary</code>
+per the type checker, even though the real runtime value is (confirmed:
+<code>type(schema.all_of)</code> is <code>sob.Array</code>, a <code>list</code> subclass). Rather than a
+blind <code>cast(...)</code>, both use a real <code>isinstance</code> check to narrow — the
+same honest-narrowing idiom as elsewhere in this codebase, not a
+type-checker workaround.</p>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_references.py -v</code>
+Expected: PASS (12 tests). Verified against the real library: <code>Schema.items</code>
+directly holding an empty-<code>$ref</code> <code>Reference</code>, <code>Schema.all_of</code>/<code>Schema.properties</code>
+each containing one, and a plain string passed to <code>dereference()</code> — all
+four raise their real, exact exceptions.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_references.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_references.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add dereference() error-branch coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-3-real-reference-loop-detection">Task 3: Real reference-loop detection</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_references.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi.errors.OAPIReferenceLoopError</code> (existing).</p>
+<ul>
+<li>[ ] <strong>Step 1: Add import and append the test</strong></li>
+</ul>
+<p>Add to the top import block:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">oapi.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">OAPIReferenceLoopError</span>
+</code></pre></div>
+<p>Append to <code>tests/test_references.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_dereference_raises_loop_error_for_self_referencing_array</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    `Schema.items` is a direct `Reference | Schema` attribute (not nested</span>
+<span class="sd">    inside a dict/list container), so a schema whose `items` refers back</span>
+<span class="sd">    to itself is visited directly by `dereference_object_properties` --</span>
+<span class="sd">    unlike a self-reference nested inside `properties`, which would only</span>
+<span class="sd">    be reached with `recursive=True`, and `recursive=True` is exactly</span>
+<span class="sd">    the setting under which `dereference()` catches and suppresses</span>
+<span class="sd">    `OAPIReferenceLoopError` (see the module docstring/`dereference`</span>
+<span class="sd">    implementation: `except OAPIReferenceLoopError: if not recursive:</span>
+<span class="sd">    raise`). Calling `_Document.dereference` directly with</span>
+<span class="sd">    `recursive=False` is therefore the only way to observe this real,</span>
+<span class="sd">    reachable error -- no public caller currently passes</span>
+<span class="sd">    `recursive=False`, but the code path is real production code, not</span>
+<span class="sd">    dead code invented for this test.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;components&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;schemas&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;Node&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schemas/Node&quot;</span><span class="p">},</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="n">document</span><span class="p">:</span> <span class="n">_Document</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">documents</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">schemas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">node</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">schemas</span><span class="p">[</span><span class="s2">&quot;Node&quot;</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">OAPIReferenceLoopError</span><span class="p">):</span>
+        <span class="n">document</span><span class="o">.</span><span class="n">dereference</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_dereference_with_recursive_true_silently_absorbs_the_loop</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Contrasts with the test above: the real, public-facing behavior for</span>
+<span class="sd">    `recursive=True` (what every public caller actually uses) is to</span>
+<span class="sd">    swallow the loop error rather than raise it, leaving the</span>
+<span class="sd">    self-referencing structure as-is. This is current, real behavior,</span>
+<span class="sd">    not something this test judges as correct or incorrect.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;components&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;schemas&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;Node&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schemas/Node&quot;</span><span class="p">},</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="o">.</span><span class="n">dereference</span><span class="p">()</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_references.py -v</code>
+Expected: PASS (14 tests). Verified against the real library: this
+exact scenario (a self-referencing array schema's <code>items</code>) was traced
+by hand against <code>dereference_object_properties</code>'s real
+<code>prevent_infinite_recursion</code>/<code>resolve</code> interaction — with
+<code>recursive=False</code>, <code>_Document.dereference</code> genuinely raises
+<code>OAPIReferenceLoopError</code>; with <code>recursive=True</code> (via the public
+<code>Resolver.dereference()</code>), it genuinely does not.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_references.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_references.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add real reference-loop detection coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-4-resolve-pointer-error-and-type-error-edge-cases">Task 4: <code>resolve()</code> pointer-error and type-error edge cases</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_references.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi.errors.OAPIReferencePointerError</code> (existing).</p>
+<ul>
+<li>[ ] <strong>Step 1: Add import and append the test</strong></li>
+</ul>
+<p>Add to the top import block:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">oapi.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">OAPIReferenceLoopError</span><span class="p">,</span> <span class="n">OAPIReferencePointerError</span>
+</code></pre></div>
+<p>(replacing the single-name <code>OAPIReferenceLoopError</code> import from Task 3
+with this combined one).</p>
+<p>Append to <code>tests/test_references.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_resolve_raises_pointer_error_for_a_falsy_but_existing_target</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span>
+    <span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    `resolve_pointer` (the `jsonpointer` library) raises its own</span>
+<span class="sd">    `JsonPointerException` for a pointer path that doesn&#39;t exist at</span>
+<span class="sd">    all -- that is a different, real failure mode, not this one.</span>
+<span class="sd">    `OAPIReferencePointerError` is specifically for a pointer that</span>
+<span class="sd">    *does* resolve, but to a falsy value (e.g. a real, empty</span>
+<span class="sd">    `sob.Array`), which the `if not model:` check at the end of</span>
+<span class="sd">    `resolve()` treats as &quot;not found.&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;components&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;schemas&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Color&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;enum&quot;</span><span class="p">:</span> <span class="p">[]}}</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">OAPIReferencePointerError</span><span class="p">):</span>
+        <span class="n">resolver</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="s2">&quot;#/components/schemas/Color/enum&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_resolve_raises_type_error_for_a_null_valued_target</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Resolving a pointer to a location whose real, unmarshalled value is</span>
+<span class="sd">    `None` hits `_unmarshal_resolved_reference`&#39;s own `TypeError` guard</span>
+<span class="sd">    (it only accepts already-`sob.abc.Model` results, or something</span>
+<span class="sd">    `sob.unmarshal` can turn into one) before `resolve()`&#39;s own</span>
+<span class="sd">    falsy-value check is ever reached.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+            <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
+        <span class="n">resolver</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="s2">&quot;#/info/description&quot;</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_references.py -v</code>
+Expected: PASS (16 tests). Verified against the real library: resolving
+<code>#/components/schemas/Color/enum</code> where <code>enum: []</code> (a real, empty
+<code>sob.Array</code>, confirmed falsy via <code>bool([]) is False</code>) raises
+<code>OAPIReferencePointerError</code>; resolving <code>#/info/description</code> where
+<code>description: null</code> raises a real <code>TypeError</code> from
+<code>_unmarshal_resolved_reference</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_references.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_references.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add resolve() pointer-error and type-error coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-5-resolve_reference-previously-zero-coverage">Task 5: <code>resolve_reference()</code> — previously zero coverage</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_references.py</code></p>
+<p><strong>Interfaces:</strong> none new — reuses <code>_openapi</code>, <code>Resolver</code>,
+<code>OAPIReferenceLoopError</code> from earlier tasks.</p>
+<ul>
+<li>[ ] <strong>Step 1: Append the test</strong></li>
+</ul>
+<p><code>resolve_reference()</code> had no test coverage at all before this plan.
+Append to <code>tests/test_references.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_resolve_reference_follows_a_chain_to_the_real_target</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;components&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;schemas&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
+                    <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schemas/A&quot;</span><span class="p">},</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">schemas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">b_reference</span><span class="p">:</span> <span class="n">Reference</span> <span class="o">=</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">schemas</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">]</span>
+    <span class="n">resolved</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Model</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">resolve_reference</span><span class="p">(</span><span class="n">b_reference</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resolved</span><span class="p">,</span> <span class="n">Schema</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">resolved</span><span class="o">.</span><span class="n">type_</span> <span class="o">==</span> <span class="s2">&quot;string&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_resolve_reference_recurses_through_a_two_level_chain</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    `B` above resolves to a real `Schema` in one hop, so it never</span>
+<span class="sd">    exercises `resolve_reference`&#39;s own recursive</span>
+<span class="sd">    `self.resolve_reference(resolved_model, types=types)` call (that</span>
+<span class="sd">    branch only fires when the *result* of resolving one reference is</span>
+<span class="sd">    itself still a `Reference`). This test adds one more hop</span>
+<span class="sd">    (`C -&gt; B -&gt; A`) specifically to reach that recursive call for real.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;components&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;schemas&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
+                    <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schemas/A&quot;</span><span class="p">},</span>
+                    <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schemas/B&quot;</span><span class="p">},</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">schemas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">c_reference</span><span class="p">:</span> <span class="n">Reference</span> <span class="o">=</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">schemas</span><span class="p">[</span><span class="s2">&quot;C&quot;</span><span class="p">]</span>
+    <span class="n">resolved</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Model</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">resolve_reference</span><span class="p">(</span><span class="n">c_reference</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resolved</span><span class="p">,</span> <span class="n">Schema</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">resolved</span><span class="o">.</span><span class="n">type_</span> <span class="o">==</span> <span class="s2">&quot;string&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_resolve_reference_rejects_an_empty_ref</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="n">empty_reference</span><span class="p">:</span> <span class="n">Reference</span> <span class="o">=</span> <span class="n">Reference</span><span class="p">({</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">})</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;\{&quot;\$ref&quot;: &quot;&quot;\}&#39;</span><span class="p">):</span>
+        <span class="n">resolver</span><span class="o">.</span><span class="n">resolve_reference</span><span class="p">(</span><span class="n">empty_reference</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_resolve_reference_raises_a_real_loop_error_for_self_reference</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span>
+    <span class="kc">None</span>
+<span class="p">):</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;components&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;schemas&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;SelfRef&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schemas/SelfRef&quot;</span><span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;http://example.com/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">schemas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">self_reference</span><span class="p">:</span> <span class="n">Reference</span> <span class="o">=</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">schemas</span><span class="p">[</span><span class="s2">&quot;SelfRef&quot;</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">OAPIReferenceLoopError</span><span class="p">):</span>
+        <span class="n">resolver</span><span class="o">.</span><span class="n">resolve_reference</span><span class="p">(</span><span class="n">self_reference</span><span class="p">)</span>
+</code></pre></div>
+<p>Note: unlike <code>_Document.dereference</code>, <code>resolve_reference</code>'s own
+self-referential check (<code>resolved_model is reference or
+(isinstance(resolved_model, Reference) and resolved_model.ref ==
+reference.ref)</code>) does not have the same recursive/swallow behavior as
+Task 3 — it's a direct equality/identity check against the resolved
+result, and raises for real through the normal public call path (no
+<code>recursive=False</code> workaround needed here).</p>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_references.py -v</code>
+Expected: PASS (20 tests). Verified against the real library: a
+one-hop chain (<code>B -&gt; A</code>) resolves to the real <code>A</code> schema; a two-hop
+chain (<code>C -&gt; B -&gt; A</code>) genuinely exercises the method's own recursive
+call and still resolves to <code>A</code>; an empty-ref <code>Reference</code> raises
+<code>ValueError</code>; a schema that refers to itself
+(<code>SelfRef -&gt; SelfRef</code>) raises a real <code>OAPIReferenceLoopError</code> with
+message <code>`Reference` instance is self-referential: ...</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_references.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_references.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add resolve_reference() coverage (previously untested)&quot;</span>
+</code></pre></div>
+<h2 id="task-6-get_relative_url">Task 6: <code>get_relative_url()</code></h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_references.py</code></p>
+<p><strong>Interfaces:</strong> none new.</p>
+<ul>
+<li>[ ] <strong>Step 1: Append the test</strong></li>
+</ul>
+<p>Append to <code>tests/test_references.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_get_relative_url_for_the_root_document_itself</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span>
+        <span class="n">open_api</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://example.com/docs/openapi.json&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">resolver</span><span class="o">.</span><span class="n">get_relative_url</span><span class="p">(</span><span class="s2">&quot;http://example.com/docs/openapi.json&quot;</span><span class="p">)</span>
+        <span class="o">==</span> <span class="s2">&quot;&quot;</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_relative_url_for_a_different_absolute_url</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span>
+        <span class="n">open_api</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://example.com/docs/openapi.json&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">resolver</span><span class="o">.</span><span class="n">get_relative_url</span><span class="p">(</span><span class="s2">&quot;http://example.com/docs/other.json&quot;</span><span class="p">)</span>
+        <span class="o">==</span> <span class="s2">&quot;other.json&quot;</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_relative_url_passes_through_a_relative_looking_url</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span>
+        <span class="n">open_api</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://example.com/docs/openapi.json&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">resolver</span><span class="o">.</span><span class="n">get_relative_url</span><span class="p">(</span><span class="s2">&quot;other.json&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;other.json&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_relative_url_for_an_empty_url</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span>
+        <span class="n">open_api</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://example.com/docs/openapi.json&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">resolver</span><span class="o">.</span><span class="n">get_relative_url</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span>
+</code></pre></div>
+<p>Note: a <code>file://</code> URL variant was investigated and dropped — it hits an
+unrelated <code>ValueError</code> deep inside <code>sob.utilities.get_url_relative_to</code>
+(a real bug or edge case in the <code>sob</code> dependency itself, not in
+<code>oapi</code>), which is out of scope for this plan. The "different absolute
+url" case above already exercises the same <code>netloc</code>-truthy branch in
+<code>get_relative_url</code> that a <code>file://</code> URL would, via the simpler,
+uncomplicated <code>http://</code> case.</p>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_references.py -v</code>
+Expected: PASS (24 tests). Verified against the real library: all four
+branches (same URL, different absolute URL, relative passthrough,
+empty) produce exactly the strings asserted.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_references.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_references.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add get_relative_url() coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-7-real-multi-document-http-resolution-fetch-errors">Task 7: Real multi-document HTTP resolution + fetch errors</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_references.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>tests.servers.http_test_server</code>, <code>tests.servers.Response</code>
+  (from the prior infrastructure plan, already merged into this branch
+  as <code>tests/servers.py</code>) — the one task in this plan that needs the
+  local HTTP test server.</p>
+<ul>
+<li>[ ] <strong>Step 1: Add imports and append the test</strong></li>
+</ul>
+<p>Add these lines to the top import block:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.error</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPError</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">servers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Response</span><span class="p">,</span> <span class="n">http_test_server</span>
+</code></pre></div>
+<p>Append to <code>tests/test_references.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_resolver_resolves_a_reference_in_a_real_external_http_document</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span>
+    <span class="kc">None</span>
+<span class="p">):</span>
+    <span class="n">external_document</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;external&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;components&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;schemas&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;Widget&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{</span>
+            <span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/external.json&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                <span class="n">body</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">external_document</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span>
+                <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">},</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">},</span>
+                <span class="s2">&quot;paths&quot;</span><span class="p">:</span> <span class="p">{},</span>
+                <span class="s2">&quot;components&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;schemas&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;Local&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">/external.json&quot;</span>
+                                <span class="s2">&quot;#/components/schemas/Widget&quot;</span>
+                            <span class="p">)</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+                <span class="p">},</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">/openapi.json&quot;</span><span class="p">)</span>
+        <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">assert</span> <span class="n">open_api</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">schemas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">local_reference</span><span class="p">:</span> <span class="n">Reference</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">open_api</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">schemas</span><span class="p">[</span><span class="s2">&quot;Local&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">resolved</span><span class="p">:</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Model</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">resolve_reference</span><span class="p">(</span>
+            <span class="n">local_reference</span>
+        <span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resolved</span><span class="p">,</span> <span class="n">sob</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Dictionary</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">resolved</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_document_raises_a_real_http_error_for_a_404</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{</span>
+            <span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/missing.json&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;n/a&quot;</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+        <span class="p">)</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">/openapi.json&quot;</span><span class="p">)</span>
+        <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">HTTPError</span><span class="p">):</span>
+            <span class="n">resolver</span><span class="o">.</span><span class="n">get_document</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">/missing.json&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_document_raises_a_real_file_not_found_error</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">_openapi</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;openapi&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}}</span>
+    <span class="p">)</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">set_model_url</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="s2">&quot;/tmp/openapi.json&quot;</span><span class="p">)</span>
+    <span class="n">resolver</span><span class="p">:</span> <span class="n">Resolver</span> <span class="o">=</span> <span class="n">Resolver</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="n">urlopen</span><span class="o">=</span><span class="nb">open</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">FileNotFoundError</span><span class="p">):</span>
+        <span class="n">resolver</span><span class="o">.</span><span class="n">get_document</span><span class="p">(</span><span class="s2">&quot;/tmp/does-not-exist-oapi-test.json&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Note: <code>Resolver(open_api, urlopen=open)</code> is the exact pattern documented
+in <code>Resolver</code>'s own class docstring for resolving local file-path
+references (<code>"use</code>open<code>as the value for the</code>urlopen<code>parameter in
+this case"</code>) — this test exercises that documented usage for real, not
+a synthetic scenario.</p>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_references.py -v</code>
+Expected: PASS (27 tests). Verified against the real library and a real
+local socket: a <code>$ref</code> pointing at a real second document served by
+<code>http_test_server</code> resolves to that document's real <code>Widget</code> schema
+data (as a <code>sob.Dictionary</code>, since it wasn't given explicit <code>types=</code>);
+fetching a URL that the server answers with a real 404 raises a real
+<code>urllib.error.HTTPError</code>; fetching a genuinely nonexistent local file
+path via <code>urlopen=open</code> raises a real <code>FileNotFoundError</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Run the full file and check coverage</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_references.py -v</code>
+Expected: 27/27 pass — this is the complete <code>tests/test_references.py</code>
+for this plan (Tasks 1-7 combined, 493 lines).</p>
+<ul>
+<li>[ ] <strong>Step 4: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_references.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_references.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add multi-document HTTP resolution and fetch-error coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-8-_schema_after_validate-real-formattype-validation">Task 8: <code>_schema_after_validate</code> — real format/type validation</h2>
+<p><strong>Files:</strong>
+- Create: <code>tests/test_oas_model_hooks.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi.oas.model.Schema</code>, <code>_schema_after_validate</code>
+  (existing).
+- Produces: <code>tests/test_oas_model_hooks.py</code> as a new file — later tasks
+  in this plan append to it.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the test</strong></li>
+</ul>
+<p>Create <code>tests/test_oas_model_hooks.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sob</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">_schema_after_validate</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span>
+    <span class="p">(</span><span class="s2">&quot;type_&quot;</span><span class="p">,</span> <span class="s2">&quot;format_&quot;</span><span class="p">),</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;int32&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;int64&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;number&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;number&quot;</span><span class="p">,</span> <span class="s2">&quot;double&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;byte&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;binary&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;date&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;date-time&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_schema_validate_accepts_matching_type_and_format</span><span class="p">(</span>
+    <span class="n">type_</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">format_</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">type_</span><span class="p">,</span> <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="n">format_</span><span class="p">})</span>
+    <span class="n">sob</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_schema_validate_rejects_integer_with_a_string_format</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;date&quot;</span><span class="p">})</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">sob</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;int32.*int64&quot;</span><span class="p">):</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_schema_validate_rejects_number_with_an_integer_format</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;number&quot;</span><span class="p">,</span> <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;int32&quot;</span><span class="p">})</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">sob</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;float.*double&quot;</span><span class="p">):</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_schema_validate_rejects_string_with_a_numeric_format</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;int32&quot;</span><span class="p">})</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">sob</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;byte.*binary&quot;</span><span class="p">):</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_schema_after_validate_rejects_a_non_schema_argument</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
+        <span class="n">_schema_after_validate</span><span class="p">(</span><span class="s2">&quot;not a schema&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_oas_model_hooks.py -v</code>
+Expected: PASS (13 tests). Verified against the real library: all 9
+valid <code>(type_, format_)</code> pairs pass <code>sob.validate</code> cleanly; the three
+mismatched combinations (<code>integer</code>/<code>date</code>, <code>number</code>/<code>int32</code>,
+<code>string</code>/<code>int32</code>) each raise the real <code>sob.errors.ValidationError</code> with
+the expected message content; calling the hook directly with a
+non-<code>Schema</code> argument raises <code>TypeError</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_oas_model_hooks.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_oas_model_hooks.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add _schema_after_validate coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-9-_parameter_after_validate-contentschema-conflicts">Task 9: <code>_parameter_after_validate</code> — content/schema conflicts</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_oas_model_hooks.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi.oas.model.Parameter</code>, <code>_parameter_after_validate</code>
+  (existing).</p>
+<ul>
+<li>[ ] <strong>Step 1: Add import and append the test</strong></li>
+</ul>
+<p>Add <code>Parameter</code> and <code>_parameter_after_validate</code> to the existing <code>from
+oapi.oas.model import (...)</code> block (now: <code>Parameter, Schema,
+_parameter_after_validate, _schema_after_validate</code>).</p>
+<p>Append to <code>tests/test_oas_model_hooks.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_parameter_validate_rejects_more_than_one_content_entry</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">parameter</span><span class="p">:</span> <span class="n">Parameter</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;in&quot;</span><span class="p">:</span> <span class="s2">&quot;query&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;application/json&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;schema&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
+                <span class="s2">&quot;application/xml&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;schema&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;only one mapped value&quot;</span>
+    <span class="p">):</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parameter_validate_rejects_both_content_and_schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">parameter</span><span class="p">:</span> <span class="n">Parameter</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;in&quot;</span><span class="p">:</span> <span class="s2">&quot;query&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;schema&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;application/json&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;schema&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}}},</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">sob</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;not </span><span class="se">\\</span><span class="s2">*both</span><span class="se">\\</span><span class="s2">*&quot;</span><span class="p">):</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parameter_validate_delegates_to_schema_validation</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    `_parameter_after_validate` calls `_schema_after_validate(parameter)`</span>
+<span class="sd">    as its last step (a `Parameter` shares the `type_`/`format_` fields a</span>
+<span class="sd">    `Schema` has), so an invalid format/type combination on a</span>
+<span class="sd">    `Parameter` itself -- not on a nested `schema` -- is also rejected.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parameter</span><span class="p">:</span> <span class="n">Parameter</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;in&quot;</span><span class="p">:</span> <span class="s2">&quot;query&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span><span class="p">,</span> <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;date&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="n">sob</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;int32.*int64&quot;</span><span class="p">):</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parameter_after_validate_rejects_a_non_parameter_argument</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
+        <span class="n">_parameter_after_validate</span><span class="p">(</span><span class="s2">&quot;not a parameter&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_oas_model_hooks.py -v</code>
+Expected: PASS (17 tests). Verified against the real library: a
+<code>Parameter</code> with two <code>content</code> entries raises <code>ValidationError</code> with
+"only one mapped value" in the message; one with both <code>content</code> and
+<code>schema</code> set raises with "not <em>both</em>"; a <code>Parameter</code> with its own
+mismatched <code>type_</code>/<code>format_</code> (not nested in a <code>schema</code>) is rejected via
+the real delegation to <code>_schema_after_validate</code>; calling the hook
+directly with a non-<code>Parameter</code> argument raises <code>TypeError</code>.</p>
+<ul>
+<li>[ ] <strong>Step 3: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_oas_model_hooks.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_oas_model_hooks.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add _parameter_after_validate coverage&quot;</span>
+</code></pre></div>
+<h2 id="task-10-reference-unmarshal-validation-and-arbitrary-properties">Task 10: <code>Reference</code> unmarshal validation and arbitrary properties</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/test_oas_model_hooks.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi.oas.model.Reference</code>, <code>_reference_after_unmarshal</code>
+  (existing).</p>
+<ul>
+<li>[ ] <strong>Step 1: Add import and append the test</strong></li>
+</ul>
+<p>Add <code>Reference</code> and <code>_reference_after_unmarshal</code> to the existing <code>from
+oapi.oas.model import (...)</code> block (now: <code>Parameter, Reference, Schema,
+_parameter_after_validate, _reference_after_unmarshal,
+_schema_after_validate</code>).</p>
+<p>Append to <code>tests/test_oas_model_hooks.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_reference_after_unmarshal_rejects_a_non_reference_argument</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
+        <span class="n">_reference_after_unmarshal</span><span class="p">(</span><span class="s2">&quot;not a reference&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_reference_after_unmarshal_requires_a_ref_attribute</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    `Reference()` (no data) has no `$ref` set. `data[&quot;$ref&quot;]` does NOT</span>
+<span class="sd">    raise `KeyError` here -- `$ref` is a declared property on</span>
+<span class="sd">    `Reference`, and `sob` returns `None` for a declared-but-unset</span>
+<span class="sd">    property rather than raising. So `ref = typing.cast(str,</span>
+<span class="sd">    data[&quot;$ref&quot;])` in the real `try` block simply succeeds with `ref =</span>
+<span class="sd">    None`, and the `except KeyError:` handler never runs for this (or</span>
+<span class="sd">    any) `Reference` -- it&#39;s dead code under current `sob` behavior.</span>
+<span class="sd">    The real, asserted `ValueError` comes from the `if ref is None:`</span>
+<span class="sd">    check that follows.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;must have a&quot;</span><span class="p">):</span>
+        <span class="n">_reference_after_unmarshal</span><span class="p">(</span><span class="n">Reference</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_unmarshal_also_rejects_a_reference_missing_ref</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The same real validation is reachable through the public</span>
+<span class="sd">    `sob.unmarshal` entry point (not just by calling the private hook</span>
+<span class="sd">    directly): `sob.unmarshal` wraps the underlying `ValueError` in its</span>
+<span class="sd">    own composite &quot;does not match any of the expected types&quot; error, but</span>
+<span class="sd">    that wrapper&#39;s message embeds the original text.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;must have a&quot;</span><span class="p">):</span>
+        <span class="n">sob</span><span class="o">.</span><span class="n">unmarshal</span><span class="p">({},</span> <span class="n">types</span><span class="o">=</span><span class="p">(</span><span class="n">Reference</span><span class="p">,))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_reference_accepts_a_genuinely_arbitrary_extra_property</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exercises `_add_object_property`&#39;s &quot;this is a genuinely new</span>
+<span class="sd">    property&quot; branch: OpenAPI 3.1 allows arbitrary extra attributes on a</span>
+<span class="sd">    `Reference` object (its `patternProperties`), and</span>
+<span class="sd">    `_reference_before_setitem` dynamically adds a property definition</span>
+<span class="sd">    for any key it hasn&#39;t seen before. `summary` and `description` are</span>
+<span class="sd">    already pre-declared properties on `Reference` (confirmed via</span>
+<span class="sd">    `sob.read_object_meta(Reference).properties`), so a genuinely novel</span>
+<span class="sd">    key is needed to exercise this -- OpenAPI&#39;s own convention for</span>
+<span class="sd">    arbitrary extensions (`x-`-prefixed keys) is used here.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">reference</span><span class="p">:</span> <span class="n">Reference</span> <span class="o">=</span> <span class="n">Reference</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/components/schemas/Foo&quot;</span><span class="p">,</span> <span class="s2">&quot;x-custom&quot;</span><span class="p">:</span> <span class="s2">&quot;a value&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">reference</span><span class="p">[</span><span class="s2">&quot;x-custom&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;a value&quot;</span>
+</code></pre></div>
+<p>Note on the <code>except KeyError: ref = None</code> lines inside
+<code>_reference_after_unmarshal</code>: <code>coverage.py</code> correctly reports these two
+lines as "missing" — they are genuinely dead code for <code>Reference</code>
+(<code>$ref</code> is always a declared property, so <code>data["$ref"]</code> returns <code>None</code>
+rather than raising <code>KeyError</code>; see the Global Constraints section's
+dedicated bullet). <code>test_reference_after_unmarshal_requires_a_ref_attribute</code>
+still correctly asserts the real <code>ValueError</code> this function raises —
+it just doesn't (and can't) go through the <code>except</code> handler to get
+there. Do not try to restructure this test to hit those two lines; they
+aren't reachable through any <code>Reference</code> input.</p>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_oas_model_hooks.py -v</code>
+Expected: PASS (21 tests). Verified against the real library: calling
+<code>_reference_after_unmarshal</code> with a non-<code>Reference</code> argument raises
+<code>TypeError</code>; calling it with a real, empty <code>Reference()</code> raises the
+real <code>ValueError</code> (message contains "must have a"); the same failure is
+independently reachable through the public <code>sob.unmarshal({},
+types=(Reference,))</code> entry point (its composite error message embeds
+the original text); a <code>Reference</code> constructed with a genuinely novel
+<code>x-custom</code> key round-trips that value through real subscript access.</p>
+<ul>
+<li>[ ] <strong>Step 3: Run the full file and confirm the plan's combined total</strong></li>
+</ul>
+<p>Run: <code>hatch run hatch-test.py3.10:pytest tests/test_references.py tests/test_oas_model_hooks.py -v</code>
+Expected: all 27 + 21 = 48 tests from Tasks 1-10 pass together (no
+cross-task interference).</p>
+<ul>
+<li>[ ] <strong>Step 4: Format and commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+git<span class="w"> </span>add<span class="w"> </span>tests/test_oas_model_hooks.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_oas_model_hooks.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add Reference unmarshal and arbitrary-property coverage&quot;</span>
+</code></pre></div>
+<p>The final <code>tests/test_oas_model_hooks.py</code> (Tasks 8-10 combined) should
+be 152 lines; the final <code>tests/test_references.py</code> (Tasks 1-7 combined)
+should be 493 lines. Both are <code>hatch fmt --check</code>-clean and pass a real
+<code>mypy --strict</code> run with zero errors (verified directly against this
+exact plan's code before it was written down — the only other error a
+real <code>mypy --strict tests/</code> run reports is the known, out-of-scope
+<code>tests/servers.py:56</code> issue from the infrastructure plan).</p>
+<h2 id="task-11-full-suite-sanity-check">Task 11: Full-suite sanity check</h2>
+<p><strong>Files:</strong> none (verification only)</p>
+<ul>
+<li>[ ] <strong>Step 1: Run the project's standard test gate</strong></li>
+</ul>
+<p>Run: <code>make test</code>
+Expected: <code>hatch fmt --check &amp;&amp; hatch run mypy &amp;&amp; hatch test -c -vv</code> — if
+<code>hatch run mypy</code> fails specifically at the dependency-<em>sync</em> step with a
+<code>dependence~=1.4</code> resolution error (not an actual type error in code),
+that's the same known pre-existing environment issue documented in
+prior plans — report it as such, and separately confirm <code>hatch fmt
+--check</code> and <code>hatch test -c -vv</code> pass cleanly on their own.</p>
+<ul>
+<li>[ ] <strong>Step 2: Confirm the coverage improvement</strong></li>
+</ul>
+<p>Run: <code>hatch test -c &amp;&amp; hatch run hatch-test.py3.10:coverage report -m --include="*/oas/references.py,*/oas/model.py"</code>
+Expected: <code>oas/references.py</code> at or near 98% (baseline 79%; remaining
+gaps are the documented, deliberately-out-of-scope ones in Global
+Constraints), <code>oas/model.py</code> at or near 95% file-wide (baseline 92%;
+the hooks-region target lines are covered — except <code>6748-6749</code>, which
+is genuinely dead code for <code>Reference</code> (see Global Constraints) — the
+remaining gaps are the deliberately-out-of-scope generated constructor
+boilerplate).</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit (if Step 1 required any fixes)</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>-A
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: fix formatting/typing issues from full-suite check&quot;</span>
+</code></pre></div>
+<p>(Skip if Step 1 passed with no changes needed. If you do need this
+step, review <code>git status</code> first per the Global Constraints — never
+stage the unrelated pre-existing files.)</p>
+<hr />
+<h2 id="self-review">Self-Review</h2>
+<p><strong>1. Spec coverage:</strong> The spec's step 3 ("<code>oas/references.py</code> and
+<code>oas/model.py</code> validation hooks") is fully addressed: every method on
+<code>_Document</code>/<code>Resolver</code> with a previously-uncovered branch has a task
+(Tasks 1-7), and all four hand-written validation/unmarshal hooks in
+<code>oas/model.py</code> (<code>_schema_after_validate</code>, <code>_parameter_after_validate</code>,
+<code>_reference_after_unmarshal</code>, <code>_add_object_property</code>) have a task
+(Tasks 8-10). The spec's explicit call-out that this step needs "no
+server needed except the one HTTP-<code>$ref</code> test" is followed exactly —
+<code>http_test_server</code> appears only in Task 7. <code>resolve_reference()</code>, which
+had zero prior coverage, is now covered in Task 5. Generated
+constructor-body boilerplate elsewhere in <code>oas/model.py</code> is explicitly
+and reasoned-out excluded, matching the spec's own guidance
+("likely just needs a couple of targeted small fixtures... not new
+infrastructure" — investigated and found not worth chasing for
+tautological <code>self.x = x</code> coverage).</p>
+<p><strong>2. Placeholder scan:</strong> No "TBD"/"add appropriate handling"/"similar to
+Task N" language. Every step has runnable code, executed against the
+real <code>oapi</code> package before being written here. Two genuinely surprising,
+real behaviors were discovered during that verification and are now
+documented rather than papered over: (a) loop-error swallowing under
+<code>recursive=True</code> (Task 3, Global Constraints); (b) two <code>Reference</code>
+fields (<code>summary</code>, <code>description</code>) that turned out to already be
+pre-declared, not arbitrary (Task 10, Global Constraints). A third
+claimed behavior — a supposed <code>coverage.py</code> line-attribution quirk for
+<code>model.py:6748-6749</code> — was written into an earlier draft of this plan
+based on a flawed reading of a real <code>coverage run</code>: the tool's
+"missing" report for those two lines was correct all along; they are
+genuinely dead code (<code>Reference()["$ref"]</code> returns <code>None</code> rather than
+raising <code>KeyError</code>, so the <code>except KeyError:</code> handler never runs). This
+was caught and corrected during the final whole-branch review (see the
+ledger) rather than left standing — the test itself was always correct
+(it asserts the real, resulting <code>ValueError</code>), only the plan's and the
+test docstring's <em>mechanism</em> explanation was wrong, and both have been
+fixed to match the traced, real behavior.</p>
+<p><strong>3. Type consistency:</strong> <code>_openapi()</code> is defined once (Task 1) and
+reused verbatim by every later task. Import names introduced in one
+task (e.g. <code>Properties</code>, <code>Reference</code>, <code>Schema</code> in Task 2;
+<code>OAPIReferencePointerError</code> in Task 4) are added to the same shared
+import lines and reused without renaming. <code>Parameter</code>/<code>Reference</code> and
+their corresponding <code>_..._after_validate</code>/<code>_..._after_unmarshal</code>
+private functions in <code>tests/test_oas_model_hooks.py</code> are added to one
+growing <code>from oapi.oas.model import (...)</code> block across Tasks 8-10, not
+re-declared per task.</p>
+<hr />
+<p><strong>Plan complete and saved to
+<code>docs/superpowers/plans/2026-08-02-references-model-validation-tests.md</code>.</strong>
+Two execution options:</p>
+<p><strong>1. Subagent-Driven (recommended)</strong> - I dispatch a fresh subagent per
+task, review between tasks, fast iteration</p>
+<p><strong>2. Inline Execution</strong> - Execute tasks in this session using
+executing-plans, batch execution with checkpoints</p>
+<p><strong>Which approach?</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.top"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../../assets/javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>

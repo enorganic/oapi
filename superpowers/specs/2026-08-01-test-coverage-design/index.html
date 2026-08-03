@@ -1,0 +1,1488 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://enorganic.github.io/oapi/superpowers/specs/2026-08-01-test-coverage-design/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Test Coverage Plan - oapi</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/style.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#test-coverage-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="oapi" class="md-header__button md-logo" aria-label="oapi" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            oapi
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Test Coverage Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1M8 13h8v-2H8zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4a5 5 0 0 0 5-5 5 5 0 0 0-5-5"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5M7 15a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/enorganic/oapi/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="oapi" class="md-nav__button md-logo" aria-label="oapi" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    oapi
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/enorganic/oapi/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.oas.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.oas.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.oas.references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.oas.references
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.abc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.abc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.meta/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.meta
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.properties/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.properties
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.thesaurus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.thesaurus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.version/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.version
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#philosophy-real-integration-over-mocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Philosophy: real integration over mocks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#new-test-infrastructure-build-once-reuse-everywhere" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New test infrastructure (build once, reuse everywhere)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-module-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-module plan
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Per-module plan">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#srcoapiclientpy-16-target-85" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        src/oapi/client.py (16% → target ~85%+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#srcoapimodelpy-64-target-90" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        src/oapi/model.py (64% → target ~90%+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#srcoapi_multipart_requestpy-31-target-90" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        src/oapi/_multipart_request.py (31% → target ~90%+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#srcoapi_utilitiespy-59-target-100" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        src/oapi/_utilities.py (59% → target 100%)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#srcoapioasreferencespy-79-target-95" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        src/oapi/oas/references.py (79% → target ~95%+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#srcoapioasmodelpy-90-target-97" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        src/oapi/oas/model.py (90% → target ~97%+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sequencing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sequencing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#definition-of-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Definition of done
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="test-coverage-plan">Test Coverage Plan</h1>
+<p>Spec for closing coverage gaps in <code>oapi</code>. Baseline measured via
+<code>hatch test -c</code> on 2026-08-01:</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th style="text-align: right;">Stmts</th>
+<th style="text-align: right;">Miss</th>
+<th style="text-align: right;">Cover</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/oapi/__init__.py</code></td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">100%</td>
+</tr>
+<tr>
+<td><code>src/oapi/errors.py</code></td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">100%</td>
+</tr>
+<tr>
+<td><code>src/oapi/oas/__init__.py</code></td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">100%</td>
+</tr>
+<tr>
+<td><code>src/oapi/oas/model.py</code></td>
+<td style="text-align: right;">518</td>
+<td style="text-align: right;">52</td>
+<td style="text-align: right;">90%</td>
+</tr>
+<tr>
+<td><code>src/oapi/oas/references.py</code></td>
+<td style="text-align: right;">202</td>
+<td style="text-align: right;">42</td>
+<td style="text-align: right;">79%</td>
+</tr>
+<tr>
+<td><code>src/oapi/model.py</code></td>
+<td style="text-align: right;">637</td>
+<td style="text-align: right;">229</td>
+<td style="text-align: right;">64%</td>
+</tr>
+<tr>
+<td><code>src/oapi/_utilities.py</code></td>
+<td style="text-align: right;">54</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">59%</td>
+</tr>
+<tr>
+<td><code>src/oapi/_multipart_request.py</code></td>
+<td style="text-align: right;">238</td>
+<td style="text-align: right;">164</td>
+<td style="text-align: right;">31%</td>
+</tr>
+<tr>
+<td><code>src/oapi/client.py</code></td>
+<td style="text-align: right;">1447</td>
+<td style="text-align: right;">1212</td>
+<td style="text-align: right;"><strong>16%</strong></td>
+</tr>
+<tr>
+<td><strong>TOTAL</strong></td>
+<td style="text-align: right;">3110</td>
+<td style="text-align: right;">1721</td>
+<td style="text-align: right;"><strong>45%</strong></td>
+</tr>
+</tbody>
+</table>
+<p><code>client.py</code> is the priority: it's the largest file (4039 lines) and the
+least covered, and it holds both the runtime HTTP client and the client
+<em>code generator</em> (<code>ClientModule</code>). <code>tests/test_client.py</code> is currently a
+stub (<code>TODO</code>, no assertions) — every real client test is new work.</p>
+<p>Rerun the baseline any time with:</p>
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-c<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:coverage<span class="w"> </span>report<span class="w"> </span>-m
+</code></pre></div>
+<h2 id="philosophy-real-integration-over-mocks">Philosophy: real integration over mocks</h2>
+<p>This library's job is to talk real HTTP and generate real, runnable Python
+source. Mocking <code>urlopen</code> or stubbing the code generator would only prove
+the mocks were configured correctly, not that generated clients work
+against real servers or that formatting matches the OpenAPI spec byte for
+byte. Concretely:</p>
+<ul>
+<li><strong>Runtime HTTP behavior</strong> (<code>Client</code>, retries, auth, encoding,
+  multipart) is tested against a <strong>real local HTTP server</strong> in the test
+  process — not <code>unittest.mock.patch</code>/<code>responses</code>/<code>requests-mock</code>. The
+  server is stdlib-only (<code>http.server.ThreadingHTTPServer</code> +
+  <code>BaseHTTPRequestHandler</code>) so no new dependency is needed; it runs on an
+  ephemeral port in a background thread, per-test, and is torn down in a
+  <code>finally</code>/fixture teardown.</li>
+<li><strong>Code generation</strong> (<code>ClientModule</code>, <code>ModelModule</code>) is tested by
+  generating real <code>.py</code> source from real OpenAPI fixture documents,
+  <code>exec</code>/importing the result as an actual module, and — for the client —
+  instantiating the generated <code>Client</code> subclass and firing real requests
+  at the local test server. This is the only way to exercise the
+  hundreds of <code>_iter_*</code>/<code>_get_*</code> source-fragment branches: generate many
+  small, deliberately varied specs and assert on the <em>behavior</em> of the
+  generated code, with golden-file source comparison (existing
+  <code>tests/regression-data</code> pattern) as a secondary regression check, not
+  the primary assertion.</li>
+<li><strong>Pure functions with no I/O</strong> (arg-formatting helpers, content
+  encode/decode, <code>_utilities.py</code>) are exercised directly with real inputs
+  and real codecs (<code>gzip</code>, <code>zlib</code>, <code>brotli</code>, <code>zstandard</code> — all already
+  optional deps of this project) — no mocking needed since there's
+  nothing to isolate from.</li>
+<li>The only place a double is arguably justified is simulating <em>transient
+  network failure</em> for retry tests (killing/delaying a real socket is
+  fiddly). Prefer a real flaky server (fails N times by real HTTP 5xx /
+  real connection-reset, then succeeds) over mocking <code>retry()</code>'s
+  internals — this is still achievable for real with a small stateful
+  request handler, so plan A is "real flaky server," not a mock.</li>
+</ul>
+<h2 id="new-test-infrastructure-build-once-reuse-everywhere">New test infrastructure (build once, reuse everywhere)</h2>
+<ol>
+<li><strong><code>tests/servers.py</code></strong> — a small stdlib-only local HTTP test server:</li>
+<li><code>class HTTPTestServer(ThreadingHTTPServer)</code> started on <code>("127.0.0.1", 0)</code>
+     (OS-assigned free port) in a <code>threading.Thread(daemon=True)</code>.</li>
+<li>A pluggable handler: either (a) a <code>RequestHandler</code> that records each
+     received request (method, path, query string, headers, body) into a
+     thread-safe list the test can assert against and returns a
+     configurable canned response, or (b) a routing handler keyed by
+     <code>(method, path)</code> for tests that need distinct responses per
+     generated-client operation.</li>
+<li>A context manager / pytest fixture <code>def http_server() -&gt; Iterator[HTTPTestServer]</code> yielding the server with <code>.url</code> and <code>.requests</code> (recorded requests), used by every <code>Client</code>/<code>ClientModule</code> integration test.</li>
+<li>A <code>FlakyRequestHandler</code> variant for retry tests: returns real
+     <code>503</code>/connection-drop for the first <em>N</em> requests to a given path,
+     then a real <code>200</code>.</li>
+<li>A minimal real OAuth2 token-endpoint handler (<code>POST /token</code> reading
+     real <code>grant_type=password|client_credentials</code> form bodies, real
+     <code>Authorization: Basic</code> header, returning a real JSON access-token
+     payload) for the OAuth2 auth tests — this is a fake <em>authorization
+     server</em>, not a mock of <code>oapi</code>'s own auth code, so the client's HTTP
+     and parsing logic still runs for real.</li>
+<li><strong>New minimal OpenAPI fixtures under <code>tests/input-data/</code></strong> — the
+   existing fixtures (petstore, uspto, languagetool, etc.) don't exercise
+   several client-generation branches at all (checked via grep):
+   no <code>matrix</code>/<code>label</code>/<code>spaceDelimited</code>/<code>pipeDelimited</code>/<code>deepObject</code>
+   parameter styles anywhere, no <code>multipart/form-data</code> request bodies,
+   no OAuth2 security schemes. Add small, purpose-built specs (a few
+   paths each, not full pet-store-sized documents) rather than editing
+   the existing golden-file fixtures (would perturb existing
+   regression-data):</li>
+<li><code>tests/input-data/parameter-styles.yaml</code> — one path per style
+     (<code>simple</code>, <code>label</code>, <code>matrix</code>, <code>form</code>, <code>spaceDelimited</code>,
+     <code>pipeDelimited</code>, <code>deepObject</code>) across path/query/header/cookie
+     locations, <code>explode</code> true/false variants.</li>
+<li><code>tests/input-data/security-schemes.yaml</code> — <code>apiKey</code> in
+     header/query/cookie, <code>oauth2</code> with <code>password</code> and
+     <code>clientCredentials</code> flows (and <code>authorizationCode</code>/<code>implicit</code> for
+     source-generation coverage even if not runtime-exercised),
+     <code>openIdConnect</code>, <code>http bearer</code>.</li>
+<li><code>tests/input-data/multipart-request-body.yaml</code> — a path whose
+     request body is <code>multipart/form-data</code> with file (<code>format: binary</code>)
+     and non-file fields, to drive both <code>_multipart_request.py</code> and the
+     <code>_iter_request_body_form_parameters_source</code> / form-parameter
+     branches in <code>client.py</code>.</li>
+<li><code>tests/input-data/polymorphic-schemas.yaml</code> (for <code>ModelModule</code>) —
+     <code>allOf</code>/<code>oneOf</code>/<code>anyOf</code>, schema merging, array/dictionary schemas,
+     enums, to hit <code>model.py</code>'s merge/polymorph branches.
+   These become new golden entries in <code>tests/regression-data/</code> the same
+   way <code>languagetool.py</code> is today (generate once, commit, compare on
+   every run).</li>
+<li><strong><code>tests/conftest.py</code></strong> — if not already implied by the above, house
+   shared fixtures (<code>http_server</code>, <code>tmp_path</code>-based generated-module
+   loader helper: write generated source to a temp <code>.py</code> file, import it
+   via <code>importlib</code>, return the module).</li>
+</ol>
+<h2 id="per-module-plan">Per-module plan</h2>
+<h3 id="srcoapiclientpy-16-target-85"><code>src/oapi/client.py</code> (16% → target ~85%+)</h3>
+<p>Split by concern; each bullet is a test group, not necessarily one test
+function.</p>
+<p><strong>Argument formatting (lines ~109–479, currently almost entirely
+uncovered: <code>urlencode</code>, <code>_format_simple_argument_value</code>,
+<code>_format_label_argument_value</code>, <code>_format_matrix_argument_value</code>,
+<code>_format_space_delimited_argument_value</code>,
+<code>_format_pipe_delimited_argument_value</code>, <code>_format_form_argument_value</code>,
+<code>_format_deep_object_argument_value</code>, <code>_format_dot_object_argument_value</code>,
+<code>format_argument_value</code>)</strong>
+- Call these functions directly with real primitive/array/object values
+  (they're pure — no need to route through HTTP for the <em>unit</em> of
+  formatting logic), covering: primitives, arrays, objects, <code>explode</code>
+  true/false, <code>None</code>/empty values (<code>_item_is_not_empty</code>), non-ASCII/
+  reserved characters (percent-encoding correctness).
+- Then close the loop end-to-end: generate a client from
+  <code>parameter-styles.yaml</code>, call each generated operation method against
+  <code>http_server</code>, and assert the <strong>actual request line / query string /
+  headers the server received</strong> match the OpenAPI-spec-defined
+  serialization for that style — this is what proves the formatter is
+  wired correctly into request assembly, not just correct in isolation.</p>
+<p><strong><code>get_request_curl</code> / <code>_represent_http_response</code></strong>
+- Build a real <code>urllib.request.Request</code> (and a real multipart <code>Request</code>
+  from <code>_multipart_request.py</code>), call <code>get_request_curl</code>, assert the
+  produced curl command's structure (method, <code>-H</code> headers, <code>--data</code>)
+  round-trips the request's real content — e.g., shell-split the string
+  and check the pieces, rather than exact string matching, to avoid
+  over-fitting to formatting.
+- <code>_represent_http_response</code>: perform a real request against
+  <code>http_server</code>, pass the real <code>http.client.HTTPResponse</code> in.</p>
+<p><strong><code>retry</code> / <code>default_retry_hook</code></strong>
+- Real flaky server (<code>FlakyRequestHandler</code>): assert a decorated function
+  making real requests succeeds after N real failures and that the
+  number of attempts matches configuration (max retries, backoff).
+- Assert exhausting retries re-raises the real underlying exception.
+- <code>default_retry_hook</code>: exercise with real exception instances raised by
+  a real failing connection (e.g., connect to a closed port) rather than
+  constructing exceptions by hand, where practical.</p>
+<p><strong>Content encoding (<code>_encode_content</code>, <code>_decode_content</code>,
+<code>_format_request_data</code>)</strong>
+- Round-trip real payloads through <code>gzip</code>, <code>deflate</code>, <code>br</code> (brotli),
+  <code>zstd</code> — all are already installed via the <code>all</code> extra used by the
+  <code>hatch-test</code> env. Assert decode(encode(x)) == x for each, and that
+  <code>_decode_content</code> correctly rejects/handles an unsupported encoding.
+- End-to-end: local server that echoes back whatever <code>Content-Encoding</code>
+  it received and the raw bytes, generated/raw client sends compressed
+  body, test asserts the server saw genuinely compressed bytes.</p>
+<p><strong><code>_assemble_request</code> (largest single uncovered function, ~965–1063)</strong>
+- Exercise via real generated-client operation calls (not by calling the
+  private function directly) covering: path parameters, query
+  parameters, header parameters, cookie parameters, JSON body, form
+  body, multipart body, combinations of several parameter locations on
+  one operation. Assert against what <code>http_server</code> actually received.</p>
+<p><strong>Pickling (<code>SSLContext</code>, <code>_make_thread_locks_pickleable</code>,
+<code>_make_http_errors_pickleable</code>, <code>_make_loggers_pickleable</code>,
+<code>Client.__getstate__</code>/<code>__setstate__</code>/<code>_resurrect_client</code>)</strong>
+- Real <code>pickle.dumps</code>/<code>pickle.loads</code> round-trip of a live <code>Client</code>
+  instance (with a real <code>SSLContext</code>, real retry hook, real logger
+  attached), then use the unpickled client to make a real request
+  against <code>http_server</code> — proves the round-trip produces a <em>working</em>
+  client, not just a structurally-equal one.
+- If feasible in CI, a real <code>multiprocessing.Pool</code> sending the client to
+  a worker process and making a request there is the most faithful test
+  of why this pickling support exists at all; fall back to plain
+  <code>pickle</code> round-trip if multiprocessing proves flaky in CI sandboxes.</p>
+<p><strong><code>Client</code> class runtime (<code>__init__</code>, <code>request</code>, <code>_request</code>,
+<code>_request_callback</code>, auth methods)</strong>
+- <code>request()</code>/<code>_request()</code> against <code>http_server</code> for GET/POST/PUT/PATCH/
+  DELETE, real non-2xx responses (assert real <code>errors.py</code>/<code>urllib</code>
+  exceptions surface correctly), real timeouts (server that sleeps past
+  a short client timeout), real redirects if supported.
+- API key auth: generate a client from <code>security-schemes.yaml</code>, real
+  request against <code>http_server</code>, assert the server actually received the
+  key in the configured location (header/query/cookie).
+- OAuth2 password &amp; client_credentials flows: point the generated client
+  at the fake token endpoint (<code>http_server</code>'s OAuth2 handler) plus a
+  protected resource endpoint on the same server; assert the client
+  performs a real token request, then a real resource request with the
+  real returned bearer token attached. Cover token refresh
+  (<code>_get_oauth2_token_url</code>, cached-token reuse) by asserting the token
+  endpoint is hit once for two resource calls, and hit again after
+  forcing expiry.
+- <code>_request_callback</code>/response-callback (<code>_set_response_callback</code>): real
+  request, assert callback receives the real, readable response.</p>
+<p><strong><code>ClientModule</code> (code generation, lines ~2284–3965 — the other half of
+the gap)</strong>
+- For each fixture (<code>petstore.yaml</code>, <code>uspto.yaml</code> (OAS2), one of the
+  OAS3 examples, plus the three new purpose-built fixtures above):
+  generate source via <code>get_source()</code>/<code>write_client_module</code>, compare
+  against a committed golden file in <code>tests/regression-data/</code> (mirrors
+  the existing <code>test_model.py</code> pattern) as a change-detector.
+  This assertion is available immediately, not
+  worth deferring.
+- Then, for the fixtures that matter most for behavior coverage
+  (parameter-styles, security-schemes, multipart), actually <code>exec</code>/
+  import the generated module and run it against <code>http_server</code> as
+  described above — this simultaneously covers the <em>generation</em> branches
+  (<code>_iter_parameter_method_source</code>, <code>_iter_operation_method_source</code>,
+  <code>_resolve_*</code>, security-scheme source helpers, docstring generation)
+  and the <em>generated code's</em> runtime correctness in one test.
+- OAS2-vs-OAS3 branching (<code>_get_open_api_major_version</code>,
+  <code>_get_api_key_in</code>/<code>_get_api_key_name</code> differences,
+  <code>_iter_oauth2_flows</code>): covered by using both an OAS2 fixture (uspto)
+  and OAS3 fixtures with security schemes.
+- Error paths: malformed/inconsistent operation definitions that should
+  raise — check <code>errors.py</code> usages in <code>client.py</code> for what's reachable
+  (e.g. duplicate method names, unresolvable <code>$ref</code> in a security
+  scheme) and add one fixture per raise site actually reachable through
+  the public API.
+- <code>save()</code> / round-trip: write to a real temp file (<code>tmp_path</code>), re-read
+  it, assert content matches; parser re-load if <code>ClientModule</code> supports
+  reading back an existing module (mirrors <code>ModelModule._parse_existing_module</code>).</p>
+<h3 id="srcoapimodelpy-64-target-90"><code>src/oapi/model.py</code> (64% → target ~90%+)</h3>
+<ul>
+<li>Use the existing OAS example fixtures (petstore, uspto,
+  callback-example, link-example, api-with-examples, petstore-expanded)
+  through <code>ModelModule</code> the same way <code>languagetool.py</code> already is —
+  today only <code>languagetool-swagger.json</code> is run through <code>ModelModule</code> in
+  <code>test_model.py</code>; the other six fixtures are only used for
+  parse/dereference testing (<code>test_openapi_examples</code>), not for model
+  generation. Wiring them through <code>ModelModule</code> with golden-file
+  comparison is close to free and should immediately raise coverage.</li>
+<li>Add <code>polymorphic-schemas.yaml</code> (above) to specifically hit:
+  <code>_Modeler.merge_schemas_properties</code>, <code>merge_array_schemas</code>,
+  <code>merge_dictionary_schemas</code>, <code>get_merged_schemas_object_class</code>,
+  <code>polymorph_property</code>, <code>extend_property_schemas</code>,
+  <code>iter_dereferenced_schemas</code>.</li>
+<li><code>OAPIDuplicateClassNameError</code>: construct a fixture (or a custom
+  <code>class_name_from_pointer</code> callback passed to <code>ModelModule</code>) that
+  deliberately produces a collision; assert the real error is raised.</li>
+<li><code>write_model_module</code> + <code>save()</code>: real temp-file round trip
+  (<code>tmp_path</code>), including the "module already exists, parse and diff"
+  path (<code>_parse_existing_module</code>, <code>_ModuleParser</code>) by writing once,
+  mutating the source spec slightly, and regenerating.</li>
+<li><code>get_default_class_name_from_pointer</code> already has direct unit tests;
+  extend with edge cases already implied by nearby uncovered lines
+  (nested pointers, <code>/item</code> suffixes at deeper nesting, non-ASCII
+  names) rather than adding a new mechanism.</li>
+</ul>
+<h3 id="srcoapi_multipart_requestpy-31-target-90"><code>src/oapi/_multipart_request.py</code> (31% → target ~90%+)</h3>
+<ul>
+<li>Direct, real (no-mock) exercise of <code>Headers</code>/<code>Data</code>/<code>Part</code>/<code>Parts</code>/
+  <code>Request</code>/<code>MultipartRequest</code>: dict-protocol methods (<code>pop</code>,
+  <code>popitem</code>, <code>setdefault</code>, <code>update</code>, <code>__delitem__</code>, <code>copy</code>), computed
+  headers (<code>Content-length</code>, <code>Content-type</code>/boundary), nested parts,
+  boundary collision-avoidance (construct data that contains a
+  first-choice boundary substring and assert the real boundary
+  regenerates until collision-free — this is real randomness, not
+  mocked <code>random.choice</code>).</li>
+<li><code>__bytes__</code>/<code>__str__</code> round-trip: assert real multipart byte output
+  parses correctly using stdlib <code>email.parser</code> (a real, independent
+  multipart parser) as an oracle, rather than hand-checking substrings.</li>
+<li>End-to-end: real <code>MultipartRequest</code> sent via <code>urllib.request.urlopen</code>
+  (or through <code>Client</code>) to <code>http_server</code>; server-side, parse the
+  real received body with <code>email.parser</code>/<code>cgi</code>-equivalent and assert
+  the parts match what was sent. This is the real integration test that
+  proves the format is actually valid multipart, not just internally
+  self-consistent.</li>
+</ul>
+<h3 id="srcoapi_utilitiespy-59-target-100"><code>src/oapi/_utilities.py</code> (59% → target 100%)</h3>
+<p>Pure, dependency-free — direct unit tests are already "real" (no I/O to
+fake):
+- <code>rename_parameters</code>: decorate a real function, call with old and new
+  kwarg names, assert correct mapping and pass-through of unmapped args.
+- <code>get_type_format_property</code>/<code>get_string_format_property</code>: table-driven
+  test over every <code>(type_, format_, content_media_type,
+  content_encoding)</code> combination referenced in the OpenAPI spec, asserting
+  the correct real <code>sob.*Property</code> type; assert the <code>ValueError</code> for an
+  unknown <code>type_</code>.
+- <code>iter_distinct</code>: real iterable with duplicates, assert order-preserving
+  dedup.
+- <code>deprecated</code>: assert a real <code>warnings.catch_warnings()</code> capture shows
+  the expected category/message when the wrapped function is called, and
+  that the function's return value still passes through.</p>
+<h3 id="srcoapioasreferencespy-79-target-95"><code>src/oapi/oas/references.py</code> (79% → target ~95%+)</h3>
+<ul>
+<li><code>Resolver</code>/<code>_Document</code>: real dereferencing of local, purpose-built
+  fixture documents (small, inline — not necessarily the big OAI
+  examples) covering: relative and absolute <code>$ref</code> (<code>get_absolute_url</code>,
+  <code>get_relative_url</code>), refs into arrays/dictionaries/object properties
+  (<code>dereference_array_items</code>, <code>dereference_dictionary_values</code>,
+  <code>dereference_object_properties</code>), refs that recurse
+  (<code>prevent_infinite_recursion</code>/<code>reset_recursion_placeholder</code>) and
+  should raise <code>OAPIReferenceLoopError</code> for real cycles, refs to a
+  pointer that doesn't exist → real <code>OAPIReferencePointerError</code>.</li>
+<li><code>_urlopen</code>/<code>get_document</code>: fetch across a <strong>real local HTTP server</strong>
+  (<code>http_server</code> serving a raw YAML/JSON document) in addition to local
+  file paths already covered — multi-document dereferencing where one
+  document <code>$ref</code>s another over HTTP is a realistic scenario for this
+  library and currently untested.</li>
+<li><code>resolve_reference</code>/<code>resolve</code>: assert resolving the same pointer twice
+  returns consistent results (caching behavior implied by <code>_Document</code>
+  structure) and that <code>dereference_all</code> actually mutates in place vs.
+  <code>dereference</code> (non-mutating) if that distinction exists — check
+  current behavior first rather than assuming.</li>
+</ul>
+<h3 id="srcoapioasmodelpy-90-target-97"><code>src/oapi/oas/model.py</code> (90% → target ~97%+)</h3>
+<p>This file is generated (<code>make remodel</code>) but not pure boilerplate — the
+uncovered ranges include real hand-written validation hooks near the end
+of the file (<code>_reference_before_setitem</code>, <code>_reference_after_unmarshal</code>,
+<code>_parameter_after_validate</code>, <code>_schema_after_validate</code>) plus assorted
+version-specific model branches. Don't hand-edit the generated sections;
+test them like any other public behavior:
+- <code>_schema_after_validate</code>: real <code>Schema</code>/<code>Parameter</code> instances with
+  invalid <code>type_</code>/<code>format_</code> combinations (e.g. <code>type_="integer",
+  format_="date"</code>), assert real <code>sob.errors.ValidationError</code> on
+  <code>sob.validate(...)</code>.
+- <code>_parameter_after_validate</code>: a <code>Parameter</code> with both <code>content</code> (&gt;1
+  entry) and <code>schema</code> set, and one with both <code>content</code> and <code>schema</code>
+  simultaneously; assert the real <code>ValidationError</code>.
+- <code>_reference_after_unmarshal</code>/<code>_reference_before_setitem</code>: unmarshal a
+  <code>Reference</code> missing <code>$ref</code> → real <code>ValueError</code>; set an arbitrary
+  extra attribute on a <code>Reference</code> and confirm it's accepted per
+  <code>patternProperties</code> semantics.
+- For the remaining scattered uncovered line ranges (<code>325-336</code>,
+  <code>1377-1385</code>, <code>1671-1690</code>, <code>1750-1766</code>, <code>4385-4405</code>), identify which
+  OAS2-vs-OAS3 model classes/branches they belong to
+  (<code>hatch run hatch-test.py3.10:coverage report -m</code> gives exact ranges)
+  and cover via the OAS2 (uspto) and OAS3 example fixtures already
+  exercised in <code>test_openapi_examples</code>/<code>ModelModule</code> tests above —
+  likely just needs a couple of targeted small fixtures rather than new
+  infrastructure.</p>
+<h2 id="sequencing">Sequencing</h2>
+<ol>
+<li>Land <code>tests/servers.py</code> + <code>tests/conftest.py</code> infrastructure and the
+   three/four new minimal fixtures — nothing else can proceed without
+   these.</li>
+<li><code>_utilities.py</code> and <code>_multipart_request.py</code> (self-contained, fast,
+   unblock nothing else but cheap wins toward 100%).</li>
+<li><code>oas/references.py</code> and <code>oas/model.py</code> validation hooks (self-
+   contained, no server needed except the one HTTP-<code>$ref</code> test).</li>
+<li><code>client.py</code> argument-formatting + content-encoding (pure-function
+   layer) — needed before the end-to-end request tests so failures
+   localize correctly.</li>
+<li><code>client.py</code> <code>Client</code> runtime (<code>http_server</code>-backed): plain requests →
+   retries → auth (API key, then OAuth2) → pickling.</li>
+<li><code>client.py</code> <code>ClientModule</code> generation, paired with the <code>http_server</code>-
+   backed execution of generated clients — largest chunk, do last since
+   it depends on everything above being solid (a bug in the runtime
+   <code>Client</code> would otherwise be masked by/confused with a codegen bug).</li>
+<li><code>model.py</code> <code>ModelModule</code> gaps (independent of the client work; can be
+   parallelized with step 6 by a second contributor if needed).</li>
+</ol>
+<h2 id="definition-of-done">Definition of done</h2>
+<ul>
+<li><code>hatch test -c</code> coverage total materially above the 45% baseline; no
+  individual <code>src/oapi/*.py</code> module below ~85% except where a line range
+  is genuinely unreachable (document any such exclusion with a <code># pragma:
+  no cover</code> and a one-line reason, don't silently skip).</li>
+<li><code>tests/test_client.py</code> has real assertions and the <code>TODO</code>/stub is gone.</li>
+<li>Every new integration test tears down its <code>http_server</code> (fixture/
+  context-manager, not manual <code>try</code>/<code>finally</code> per test) and does not leak
+  threads or bound ports across the run.</li>
+<li><code>make test</code> (<code>hatch fmt --check &amp;&amp; hatch run mypy &amp;&amp; hatch test -c -vv</code>)
+  stays green — new tests fully typed (<code>disallow_untyped_defs</code>), new
+  fixtures/golden files reviewed like code, not just accepted from
+  <code>make refresh-test-data</code> output.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.top"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../../assets/javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>

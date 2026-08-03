@@ -1,0 +1,2385 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://enorganic.github.io/oapi/superpowers/plans/2026-08-02-client-module-codegen-tests/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>ClientModule Code Generation Tests Implementation Plan - oapi</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/style.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#clientmodule-code-generation-tests-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="oapi" class="md-header__button md-logo" aria-label="oapi" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            oapi
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ClientModule Code Generation Tests Implementation Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1M8 13h8v-2H8zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4a5 5 0 0 0 5-5 5 5 0 0 0-5-5"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5M7 15a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/enorganic/oapi/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="oapi" class="md-nav__button md-logo" aria-label="oapi" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    oapi
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/enorganic/oapi/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.client
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.oas.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.oas.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/oapi.oas.references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    oapi.oas.references
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.abc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.abc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.errors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.meta/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.meta
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.properties/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.properties
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.thesaurus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.thesaurus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/sob.version/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    sob.version
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-1-add-a-real-schema-to-security-schemesjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Add a real schema to security-schemes.json
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-2-add-the-generated_client_package-fixture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: Add the generated_client_package fixture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-3-teststest_client_module_helperspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: tests/test_client_module_helpers.py
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-4-teststest_client_module_parameter_stylespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: tests/test_client_module_parameter_styles.py
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-5-teststest_client_module_security_schemespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 5: tests/test_client_module_security_schemes.py
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-6-teststest_client_module_multipartpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 6: tests/test_client_module_multipart.py
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-7-teststest_client_module_polymorphic_responsespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 7: tests/test_client_module_polymorphic_responses.py
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-8-whole-plan-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 8: Whole-plan verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#self-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self-Review
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="clientmodule-code-generation-tests-implementation-plan">ClientModule Code Generation Tests Implementation Plan</h1>
+<blockquote>
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use
+superpowers:subagent-driven-development (recommended) or
+superpowers:executing-plans to implement this plan task-by-task. Steps
+use checkbox (<code>- [ ]</code>) syntax for tracking.</p>
+</blockquote>
+<p><strong>Goal:</strong> Bring <code>src/oapi/client.py</code>'s <code>ClientModule</code> class (lines
+2284-3963, ~1680 lines -- the OpenAPI-to-Python-client code generator,
+the largest remaining chunk of this module) and the free functions
+immediately above it (lines 1929-2281 -- naming/import/parameter-
+representation helpers <code>ClientModule</code> itself calls) from 56% to a
+substantially higher whole-file coverage on <code>client.py</code>, per
+<code>docs/superpowers/specs/2026-08-01-test-coverage-design.md</code>'s step 6
+("<code>client.py</code> <code>ClientModule</code> code generation").</p>
+<p><strong>Architecture:</strong> This plan uses a fundamentally different testing
+strategy than the three prior <code>client.py</code> plans. <code>ClientModule</code> has
+~50 private methods, almost all of which assemble fragments of
+generated Python <em>source text</em> -- unit-testing each one in isolation
+would mean asserting exact generated-source-string output, which is
+brittle and largely tautological (the same "testing that generated
+code says what the generator says" problem already excluded for
+<code>ModelModule</code>-generated constructor boilerplate in an earlier plan).
+Instead, this plan tests <code>ClientModule</code> <strong>black-box, through its real
+output</strong>: for each of the four purpose-built OpenAPI fixtures already
+sitting unused in <code>tests/input-data/</code> since the infrastructure plan
+(<code>parameter-styles.json</code>, <code>security-schemes.json</code>,
+<code>multipart-request-body.json</code>, <code>polymorphic-schemas.json</code> -- each
+fixture's own <code>description</code> field already states it exists "for
+testing <code>oapi.client</code>... code-generation and runtime behavior
+end-to-end"), this plan generates a <strong>real model module and a real
+client module</strong>, loads them as a real importable Python package,
+instantiates the generated <code>Client</code> subclass, and calls its generated
+methods against the real <code>http_test_server</code> -- verifying the actual
+HTTP request that reaches the server (path, query, headers, cookies,
+body) and the actual deserialized response. This single black-box
+pass, across the four fixtures, transitively exercises the overwhelming
+majority of <code>ClientModule</code>'s ~50 private methods (parameter-style
+representation, security-scheme-derived <code>__init__</code> defaults, OAuth2
+flow handling, multipart form-data assembly, polymorphic response type
+resolution, method naming) at once -- confirmed by the coverage delta
+in Task 8 below (56% → 83%, file-wide). A small number of the
+free functions above <code>ClientModule</code> (Task 3) are additionally isolable
+enough to unit-test directly.</p>
+<p>Five new test files:</p>
+<ul>
+<li><code>tests/test_client_module_helpers.py</code> -- direct unit tests for the
+  isolable free functions: <code>_get_relative_module_path</code>, <code>_get_relative_
+  module_import</code>, <code>_schema_defines_model</code>, <code>_iter_path_item_operations</code>,
+  <code>get_default_method_name_from_path_method_operation</code>, <code>_strip_def_
+  decorators</code>.</li>
+<li><code>tests/test_client_module_parameter_styles.py</code> -- generates a real
+  client from <code>parameter-styles.json</code> and executes every one of its 9
+  operations (path <code>simple</code>/<code>label</code>/<code>matrix</code> styles, query <code>form</code>/
+  <code>spaceDelimited</code>/<code>pipeDelimited</code>/<code>deepObject</code> styles, header <code>simple</code>
+  style, cookie <code>form</code> style) against <code>http_test_server</code>, asserting the
+  real path/query/header/cookie that reaches the server.</li>
+<li><code>tests/test_client_module_security_schemes.py</code> -- generates a real
+  client from <code>security-schemes.json</code>, asserts the generated <code>__init__</code>
+  bakes in the right defaults for API-key location/name and OAuth2/OIDC
+  URLs, and executes the API-key (header/query/cookie) and Bearer
+  operations end-to-end.</li>
+<li><code>tests/test_client_module_multipart.py</code> -- generates a real client
+  from <code>multipart-request-body.json</code> and documents a real bug (see
+  Global Constraints).</li>
+<li><code>tests/test_client_module_polymorphic_responses.py</code> -- generates a
+  real client from <code>polymorphic-schemas.json</code> and executes its four
+  operations, asserting <code>allOf</code>-merged, <code>oneOf</code>-resolved,
+  <code>anyOf</code>-resolved, and <code>additionalProperties</code>-dictionary responses all
+  deserialize to the correct real model type.</li>
+</ul>
+<p>Plus two small supporting changes:</p>
+<ul>
+<li><code>tests/conftest.py</code> gains a new <code>generated_client_package</code> fixture
+  (Task 2) -- <code>generated_module_loader</code> (from the infrastructure plan)
+  loads a <em>single</em> generated file, but a generated client module always
+  contains a package-relative <code>from . import model</code> import, so it must
+  be loaded as part of a real package. This fixture generates a real
+  model + client module pair into a real temporary package directory,
+  imports both, and cleans up <code>sys.modules</code>/<code>sys.path</code> afterward.</li>
+<li><code>tests/input-data/security-schemes.json</code> gains one real schema (Task
+  1) -- as originally authored (infrastructure plan), every response in
+  this fixture was a bare <code>{"type": "object"}</code> with no named
+  <code>components/schemas</code> entry, which triggers a real, separate
+  <code>ModelModule</code> bug (an empty-schema OpenAPI document generates a
+  <code>model.py</code> missing a needed <code>sob</code> import, raising <code>NameError</code> on
+  import -- out of <code>client.py</code>'s scope, noted for a future <code>model.py</code>
+  plan). Adding one minimal named schema (<code>ProtectedResource</code>) and
+  referencing it from one response unblocks generating a genuinely
+  loadable/runnable package from this fixture without touching
+  <code>model.py</code>.</li>
+</ul>
+<p><strong>Tech Stack:</strong> Python 3.10, <code>pytest</code>, stdlib (<code>importlib</code>, <code>inspect</code>),
+<code>oapi.model.ModelModule</code>, <code>oapi.client.ClientModule</code> (the systems under
+test, used as real code generators, not mocked), <code>tests/servers.py</code>'s
+<code>http_test_server</code>.</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul>
+<li>Line length 79 (ruff + black), enforced via <code>hatch fmt --check</code>.</li>
+<li>mypy strict on <code>tests/</code>: explicit type annotations on every local
+  variable, per this project's standing preference. All code verified
+  against a real <code>hatch run mypy --strict --ignore-missing-imports</code>
+  run. Generated-module attribute access (<code>client_module.Client</code>,
+  <code>model_module.Pet</code>, etc.) is necessarily untyped -- the modules are
+  loaded dynamically via <code>importlib</code>, so mypy sees <code>ModuleType</code> and
+  treats attribute access as <code>Any</code> -- this is not a new exception to
+  the annotation rule, it's the same dynamic-loading pattern already
+  used (and already accepted by <code>mypy --strict</code>) for <code>generated_module_
+  loader</code> in prior plans.</li>
+<li>Prefer real integration over mocks: no <code>unittest.mock</code>/<code>pytest-mock</code>
+  anywhere in any of the five new files. Every test in this plan
+  generates real source code with the real <code>ModelModule</code>/<code>ClientModule</code>
+  generators, executes it as a real imported Python package, and (for
+  four of the five files) makes real HTTP calls against the real
+  <code>http_test_server</code>. This is the most "real integration" plan in the
+  initiative so far -- no OpenAPI construct is faked; every fixture is
+  a real, validated <code>OpenAPI</code> document.</li>
+<li><strong>Four verified, real, currently-unfixed bugs found while validating
+  this plan's tests (do not deviate from the specified test code trying
+  to "fix" them -- document, don't correct)</strong>:</li>
+<li><strong><code>matrix</code>-style path parameters are completely broken in every
+     generated client.</strong> <code>_represent_dictionary_parameter</code> (client.py)
+     prepends the matrix delimiter to the <em>dictionary key</em> used for
+     string formatting (<code>";id"</code>, since <code>_format_matrix_argument_value</code>'s
+     own output already includes the full <code>;id=value</code> fragment), but
+     the generated path template's <code>str.format(**{...})</code> placeholder
+     is still the bare <code>{id}</code> from the OpenAPI path --
+     <code>"{id}".format(**{";id": ...})</code> cannot find an <code>"id"</code> key in
+     the kwargs dict it was given and raises <code>KeyError</code>. Verified live:
+     <code>client.get_path_matrix_id(id_=[1, 2, 3])</code> against a real
+     generated client raises <code>KeyError: \'id\'</code> every time. Documented
+     in <code>tests/test_client_module_parameter_styles.py</code>'s
+     <code>test_path_matrix_style_raises_key_error</code>.</li>
+<li><strong>A generated client cannot be instantiated with its own defaults
+     whenever its OpenAPI document names a multi-word OAuth2 flow</strong>
+     (<code>authorizationCode</code>/<code>clientCredentials</code> -- i.e. most real-world
+     OAuth2 specs). <code>_iter_oauth2_flows</code> reads flow-type names via
+     <code>sob.utilities.iter_properties_values(security_scheme.flows)</code>,
+     which yields the Python-side snake_case <em>property</em> names of the
+     generated <code>OAuthFlows</code> model (<code>"authorization_code"</code>) rather than
+     the OpenAPI spec's own camelCase flow-type identifiers
+     (<code>"authorizationCode"</code>) that <code>Client.__init__</code>'s own validation
+     requires. The baked-in default <code>oauth2_flows</code> tuple therefore
+     fails that validation immediately on construction. Verified live:
+     <code>Client(url="http://example.com")</code> (no override) against a real
+     generated client raises <code>ValueError</code> every time; the identical
+     construction with an explicit, valid <code>oauth2_flows=(...)</code> succeeds.
+     Documented in <code>tests/test_client_module_security_schemes.py</code>'s
+     <code>test_default_oauth2_flows_value_is_invalid</code>; every other test in
+     that file works around it with an explicit override, exactly as a
+     real caller currently must.</li>
+<li><strong>Every generated multipart operation is unusable</strong>, for the same
+     reason documented in the prior plan
+     (<code>docs/superpowers/plans/2026-08-02-client-runtime-tests.md</code>'s
+     Global Constraints): <code>_request_callback</code> calls <code>request.headers.
+     get("Content-encoding")</code> expecting ordinary <code>dict.get</code> semantics,
+     but a <code>MultipartRequest</code>'s custom <code>Headers</code> object re-raises
+     <code>KeyError</code> when the key is missing (as it always is for an
+     ordinary multipart request) and no <code>default</code> is passed. Verified
+     live against a real <em>generated</em> multipart method (not just
+     <code>Client.request()</code> directly, as the prior plan tested) --
+     <code>client.post_upload(file=b"...", description="...", tags=[...])</code>
+     raises <code>KeyError: \'Content-encoding\'</code> every time. Documented in
+     <code>tests/test_client_module_multipart.py</code>.</li>
+<li><strong>A narrower, separate <code>ModelModule</code> bug</strong> (not <code>ClientModule</code>'s;
+     noted here because it was discovered while building this plan's
+     test fixtures, and blocks generating a runnable package from an
+     OpenAPI document with no named <code>components/schemas</code>): the
+     generated <code>model.py</code>'s trailing <code>_POINTERS_CLASSES: dict[str,
+     type[sob.abc.Model]] = {}</code> line references <code>sob.abc.Model</code> in a
+     variable annotation, but when a document defines no real model
+     classes, <code>ModelModule</code> omits both <code>from __future__ import
+     annotations</code> and <code>import sob</code> from the generated file (since
+     nothing <em>else</em> in the file needs them) -- so that one remaining
+     reference raises <code>NameError: name \'sob\' is not defined</code> on
+     import. Worked around here (Task 1) by giving <code>security-
+     schemes.json</code> one real named schema rather than by fixing
+     <code>ModelModule</code> (out of <code>client.py</code>'s scope) -- noted for whoever
+     picks up the <code>model.py</code>/<code>ModelModule</code> plan next.
+  All four are real, reproducible defects in <code>oapi</code>, flagged directly
+  to the user in conversation, not just recorded here.</li>
+<li><strong>Codegen naming default worth knowing, not a bug</strong>: <code>ClientModule</code>'s
+  <code>use_operation_id</code> parameter defaults to <code>False</code>, so even when an
+  OpenAPI operation has an explicit <code>operationId</code>, generated method
+  names default to being derived from the path and HTTP method instead
+  (<code>get_protected_api_key_header</code>, not <code>get_api_key_header</code>) --
+  <code>get_default_method_name_from_path_method_operation</code> (tested directly
+  in Task 3) is the function responsible, and it's exercised in its
+  default (<code>use_operation_id=False</code>) configuration by every integration
+  test in this plan, matching how <code>ClientModule</code>/<code>write_client_module</code>
+  actually behave without an explicit override.</li>
+<li><strong>Deliberately out of scope for this plan</strong> (diminishing returns,
+  chased and found not worth it): <code>ClientModule</code>'s many optional
+  customization parameters not exercised by a default <code>ClientModule(open_api,
+  model_path=...)</code> call -- <code>imports</code>, <code>init_decorator</code>,
+  <code>include_init_parameters</code>, <code>add_init_parameters</code>, <code>add_init_parameter_
+  docs</code>, <code>init_parameter_defaults</code>/<code>init_parameter_defaults_source</code>,
+  <code>use_operation_id</code>, <code>module_docstring</code>, <code>class_docstring</code> -- and the
+  deprecated <code>Module</code>/<code>write_client_module</code> aliases. Each is a
+  real, independent feature, but covering all of them would mean many
+  more generate-and-load round trips for configuration options with no
+  fixture built to specifically exercise them; the coverage delta
+  already achieved (Task 8) demonstrates the four existing fixtures
+  already exercise the overwhelming majority of <code>ClientModule</code>'s real
+  logic. Not chased further in this plan.</li>
+<li>Verify commands: <code>hatch run hatch-test.py3.10:pytest
+  tests/test_client_module_helpers.py
+  tests/test_client_module_parameter_styles.py
+  tests/test_client_module_security_schemes.py
+  tests/test_client_module_multipart.py
+  tests/test_client_module_polymorphic_responses.py -v</code> (34 tests
+  total: 13 + 9 + 7 + 1 + 4). <code>hatch run mypy --strict
+  --ignore-missing-imports &lt;file&gt;</code> per file -- expect exactly one
+  pre-existing, unrelated finding on <code>tests/servers.py:56</code>
+  (<code>[str-bytes-safe]</code>) whenever <code>servers.py</code> is imported transitively;
+  nothing else.</li>
+<li>Commit scope: this working tree has unrelated pre-existing staged
+  files (<code>.claude/settings.json</code>, <code>.claude/skills/fableplan/SKILL.md</code>,
+  <code>AGENTS.md</code>, <code>.gitignore</code>) belonging to other work-in-progress --
+  <strong>never</strong> include them in a commit. Never a bare <code>git commit -m
+  "..."</code> -- always <code>git commit &lt;exact-path(s)&gt; -m "..."</code> (paths before
+  <code>-m</code>). Never <code>git add -A</code>/<code>.</code>/<code>-u</code>, never <code>git reset</code> in any form to
+  self-fix a mistake -- if a commit's scope looks wrong, stop and
+  report it. Never touch <code>tests/servers.py</code>, <code>src/oapi/client.py</code>, or
+  <code>src/oapi/model.py</code> -- this is a test-only (plus one fixture-data)
+  initiative.</li>
+<li>Known, out-of-scope, pre-existing issue: running the full suite
+  (<code>hatch test -c</code> or <code>hatch run hatch-test.py3.10:pytest tests/</code>) has
+  the unrelated, pre-existing side effect of <code>test_languagetool</code>
+  re-downloading and overwriting <code>tests/input-data/languagetool-
+  swagger.json</code>; run <code>git checkout -- tests/input-data/languagetool-
+  swagger.json</code> afterward if you ran the full suite, before checking
+  <code>git status --porcelain</code>.</li>
+</ul>
+<hr />
+<h2 id="task-1-add-a-real-schema-to-security-schemesjson">Task 1: Add a real schema to <code>security-schemes.json</code></h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/input-data/security-schemes.json</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: nothing new.
+- Produces: a <code>security-schemes.json</code> that <code>ModelModule</code> can turn into
+  a genuinely importable <code>model.py</code> (see Global Constraints, bug 4).</p>
+<ul>
+<li>[ ] <strong>Step 1: Replace the file</strong></li>
+</ul>
+<p>Replace the full contents of <code>tests/input-data/security-schemes.json</code>
+with:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;openapi&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;3.0.3&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;info&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Security Schemes&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Minimal fixture covering apiKey, http, oauth2 (all four flows), and openIdConnect security schemes, for testing `oapi.client` auth code-generation and runtime behavior end-to-end.&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;paths&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;/protected/api-key-header&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;get&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;operationId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;getApiKeyHeader&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;security&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;apiKeyHeader&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]}],</span>
+<span class="w">        </span><span class="nt">&quot;responses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;200&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OK&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">&quot;application/json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                  </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/components/schemas/ProtectedResource&quot;</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">              </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;/protected/api-key-query&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;get&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;operationId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;getApiKeyQuery&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;security&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;apiKeyQuery&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]}],</span>
+<span class="w">        </span><span class="nt">&quot;responses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;200&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OK&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;application/json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">}}}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;/protected/api-key-cookie&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;get&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;operationId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;getApiKeyCookie&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;security&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;apiKeyCookie&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]}],</span>
+<span class="w">        </span><span class="nt">&quot;responses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;200&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OK&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;application/json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">}}}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;/protected/bearer&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;get&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;operationId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;getBearer&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;security&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;httpBearer&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]}],</span>
+<span class="w">        </span><span class="nt">&quot;responses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;200&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OK&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;application/json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">}}}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;/protected/oauth2-password&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;get&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;operationId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;getOauth2Password&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;security&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;oauth2Password&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;read&quot;</span><span class="p">]}],</span>
+<span class="w">        </span><span class="nt">&quot;responses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;200&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OK&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;application/json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">}}}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;/protected/oauth2-client-credentials&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;get&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;operationId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;getOauth2ClientCredentials&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;security&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;oauth2ClientCredentials&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;read&quot;</span><span class="p">]}],</span>
+<span class="w">        </span><span class="nt">&quot;responses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;200&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OK&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;application/json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">}}}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;/protected/oauth2-authorization-code&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;get&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;operationId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;getOauth2AuthorizationCode&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;security&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;oauth2AuthorizationCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;read&quot;</span><span class="p">]}],</span>
+<span class="w">        </span><span class="nt">&quot;responses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;200&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OK&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;application/json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">}}}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;/protected/oauth2-implicit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;get&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;operationId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;getOauth2Implicit&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;security&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;oauth2Implicit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;read&quot;</span><span class="p">]}],</span>
+<span class="w">        </span><span class="nt">&quot;responses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;200&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OK&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;application/json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">}}}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;/protected/open-id-connect&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;get&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;operationId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;getOpenIdConnect&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;security&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;openIdConnect&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]}],</span>
+<span class="w">        </span><span class="nt">&quot;responses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;200&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OK&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;application/json&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">}}}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;components&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;schemas&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;ProtectedResource&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;securitySchemes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;apiKeyHeader&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;apiKey&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;in&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;header&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;X-Api-Key&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;apiKeyQuery&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;apiKey&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;in&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;query&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;api_key&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;apiKeyCookie&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;apiKey&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;in&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cookie&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;api_key&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;httpBearer&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;scheme&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bearer&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;oauth2Password&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;oauth2&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;flows&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;password&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;tokenUrl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://example.com/oauth2/token&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;scopes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;read&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Read access&quot;</span><span class="p">}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;oauth2ClientCredentials&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;oauth2&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;flows&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;clientCredentials&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;tokenUrl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://example.com/oauth2/token&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;scopes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;read&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Read access&quot;</span><span class="p">}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;oauth2AuthorizationCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;oauth2&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;flows&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;authorizationCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;authorizationUrl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://example.com/oauth2/authorize&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;tokenUrl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://example.com/oauth2/token&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;scopes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;read&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Read access&quot;</span><span class="p">}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;oauth2Implicit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;oauth2&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;flows&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;implicit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;authorizationUrl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://example.com/oauth2/authorize&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;scopes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;read&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Read access&quot;</span><span class="p">}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;openIdConnect&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;openIdConnect&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;openIdConnectUrl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://example.com/.well-known/openid-configuration&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>(The only changes from the infrastructure-plan version: a new
+<code>components.schemas.ProtectedResource</code> object schema, and the
+<code>/protected/api-key-header</code> operation's <code>200</code> response now references
+it via <code>$ref</code> instead of an inline bare <code>{"type": "object"}</code>.)</p>
+<ul>
+<li>[ ] <strong>Step 2: Verify</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>json.tool<span class="w"> </span>tests/input-data/security-schemes.json<span class="w"> </span>&gt;<span class="w"> </span>/dev/null<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;valid JSON&quot;</span>
+</code></pre></div>
+Expected: <code>valid JSON</code>. Full end-to-end verification (that this
+actually produces a loadable package) happens in Task 5.</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/input-data/security-schemes.json
+git<span class="w"> </span>commit<span class="w"> </span>tests/input-data/security-schemes.json<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add a named schema to the security-schemes fixture so it generates a loadable model module&quot;</span>
+</code></pre></div>
+<h2 id="task-2-add-the-generated_client_package-fixture">Task 2: Add the <code>generated_client_package</code> fixture</h2>
+<p><strong>Files:</strong>
+- Modify: <code>tests/conftest.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi.client.ClientModule</code>, <code>oapi.model.ModelModule</code>,
+  <code>oapi.oas.model.OpenAPI</code> (existing).
+- Produces: a new <code>generated_client_package</code> pytest fixture, consumed
+  by every other task in this plan.</p>
+<ul>
+<li>[ ] <strong>Step 1: Replace the file</strong></li>
+</ul>
+<p>Replace the full contents of <code>tests/conftest.py</code> with:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">importlib.util</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModuleType</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ClientModule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelModule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAPI</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generated_module_loader</span><span class="p">(</span>
+    <span class="n">tmp_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">]]:</span>
+    <span class="n">loaded_module_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;generated_module&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModuleType</span><span class="p">:</span>
+        <span class="n">module_path</span> <span class="o">=</span> <span class="n">tmp_path</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">module_name</span><span class="si">}</span><span class="s2">.py&quot;</span>
+        <span class="n">module_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">spec_from_file_location</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">module_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">spec</span><span class="o">.</span><span class="n">loader</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Unable to load a module from </span><span class="si">{</span><span class="n">module_path</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">module_from_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">module_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">module</span>
+        <span class="n">loaded_module_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">exec_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">module</span>
+
+    <span class="k">yield</span> <span class="n">load</span>
+    <span class="k">for</span> <span class="n">module_name</span> <span class="ow">in</span> <span class="n">loaded_module_names</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generated_client_package</span><span class="p">(</span>
+    <span class="n">tmp_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">OpenAPI</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates a real `oapi.model`/`oapi.client` module pair from a real</span>
+<span class="sd">    `OpenAPI` document, writes them into a real, importable package (the</span>
+<span class="sd">    generated client module uses a package-relative `from . import</span>
+<span class="sd">    model` import, so it cannot be loaded as a standalone file the way</span>
+<span class="sd">    `generated_module_loader` loads single files), and returns</span>
+<span class="sd">    `(model_module, client_module)`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">loaded_module_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">inserted_sys_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span>
+        <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span><span class="p">,</span> <span class="n">package_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;generated_client_pkg&quot;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">]:</span>
+        <span class="k">nonlocal</span> <span class="n">inserted_sys_path</span>
+        <span class="n">package_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">tmp_path</span> <span class="o">/</span> <span class="n">package_name</span>
+        <span class="n">package_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">()</span>
+        <span class="p">(</span><span class="n">package_dir</span> <span class="o">/</span> <span class="s2">&quot;__init__.py&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">model_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">package_dir</span> <span class="o">/</span> <span class="s2">&quot;model.py&quot;</span>
+        <span class="n">model_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ModelModule</span><span class="p">(</span><span class="n">open_api</span><span class="p">)))</span>
+        <span class="n">client_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">package_dir</span> <span class="o">/</span> <span class="s2">&quot;client.py&quot;</span>
+        <span class="n">ClientModule</span><span class="p">(</span><span class="n">open_api</span><span class="p">,</span> <span class="n">model_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">model_path</span><span class="p">))</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">client_path</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">inserted_sys_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">))</span>
+            <span class="n">inserted_sys_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">)</span>
+        <span class="n">model_module</span><span class="p">:</span> <span class="n">ModuleType</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">package_name</span><span class="si">}</span><span class="s2">.model&quot;</span>
+        <span class="p">)</span>
+        <span class="n">client_module</span><span class="p">:</span> <span class="n">ModuleType</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">package_name</span><span class="si">}</span><span class="s2">.client&quot;</span>
+        <span class="p">)</span>
+        <span class="n">loaded_module_names</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">package_name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">package_name</span><span class="si">}</span><span class="s2">.model&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">package_name</span><span class="si">}</span><span class="s2">.client&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">model_module</span><span class="p">,</span> <span class="n">client_module</span>
+
+    <span class="k">yield</span> <span class="n">load</span>
+    <span class="k">for</span> <span class="n">module_name</span> <span class="ow">in</span> <span class="n">loaded_module_names</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">inserted_sys_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">inserted_sys_path</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">inserted_sys_path</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/test_conftest.py<span class="w"> </span>-v
+hatch<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>--strict<span class="w"> </span>--ignore-missing-imports<span class="w"> </span>tests/conftest.py
+hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+</code></pre></div>
+Expected: the existing <code>test_conftest.py</code> (from the infrastructure
+plan, exercising <code>generated_module_loader</code>) still passes unmodified --
+confirming this change is additive; mypy <code>Success: no issues found in
+1 source file</code>; <code>hatch fmt --check</code> clean.</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/conftest.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/conftest.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add generated_client_package fixture for loading real generated model+client packages&quot;</span>
+</code></pre></div>
+<h2 id="task-3-teststest_client_module_helperspy">Task 3: <code>tests/test_client_module_helpers.py</code></h2>
+<p><strong>Files:</strong>
+- Create: <code>tests/test_client_module_helpers.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>oapi.client._get_relative_module_path</code>, <code>_get_relative_
+  module_import</code>, <code>_schema_defines_model</code>, <code>_iter_path_item_operations</code>,
+  <code>get_default_method_name_from_path_method_operation</code>, <code>_strip_def_
+  decorators</code> (existing). <code>oapi.oas.model.Operation</code>, <code>Parameter</code>,
+  <code>PathItem</code>, <code>Schema</code> (existing).
+- Produces: <code>tests/test_client_module_helpers.py</code>, 13 tests.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the test file</strong></li>
+</ul>
+<p>Create <code>tests/test_client_module_helpers.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.client</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_get_relative_module_import</span><span class="p">,</span>
+    <span class="n">_get_relative_module_path</span><span class="p">,</span>
+    <span class="n">_iter_path_item_operations</span><span class="p">,</span>
+    <span class="n">_schema_defines_model</span><span class="p">,</span>
+    <span class="n">_strip_def_decorators</span><span class="p">,</span>
+    <span class="n">get_default_method_name_from_path_method_operation</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">Operation</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">PathItem</span><span class="p">,</span> <span class="n">Schema</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_relative_module_path_across_directories</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">_get_relative_module_path</span><span class="p">(</span><span class="s2">&quot;a/b/c.py&quot;</span><span class="p">,</span> <span class="s2">&quot;d/e/f.py&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;...a.b.c&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_relative_module_path_within_the_same_directory</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">_get_relative_module_path</span><span class="p">(</span><span class="s2">&quot;a/b/c.py&quot;</span><span class="p">,</span> <span class="s2">&quot;a/b/f.py&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;.c&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_relative_module_import_across_directories</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">result</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_get_relative_module_import</span><span class="p">(</span><span class="s2">&quot;a/b/c.py&quot;</span><span class="p">,</span> <span class="s2">&quot;d/e/f.py&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="s2">&quot;from ...a.b import c&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_relative_module_import_within_the_same_directory</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">result</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_get_relative_module_import</span><span class="p">(</span><span class="s2">&quot;a/b/c.py&quot;</span><span class="p">,</span> <span class="s2">&quot;a/b/f.py&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="s2">&quot;from . import c&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_schema_defines_model_for_object_and_array_types</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">_schema_defines_model</span><span class="p">(</span><span class="n">Schema</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">}))</span> <span class="ow">is</span> <span class="kc">True</span>
+    <span class="k">assert</span> <span class="n">_schema_defines_model</span><span class="p">(</span><span class="n">Schema</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">}))</span> <span class="ow">is</span> <span class="kc">True</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_schema_defines_model_for_primitive_types</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">_schema_defines_model</span><span class="p">(</span><span class="n">Schema</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}))</span> <span class="ow">is</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_schema_defines_model_accepts_a_parameter</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">parameter</span><span class="p">:</span> <span class="n">Parameter</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;in&quot;</span><span class="p">:</span> <span class="s2">&quot;query&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">_schema_defines_model</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_iter_path_item_operations_yields_name_and_operation_pairs</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">path_item</span><span class="p">:</span> <span class="n">PathItem</span> <span class="o">=</span> <span class="n">PathItem</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;get&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;operationId&quot;</span><span class="p">:</span> <span class="s2">&quot;getX&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;post&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;operationId&quot;</span><span class="p">:</span> <span class="s2">&quot;postX&quot;</span><span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">operation</span><span class="p">:</span> <span class="n">Operation</span>
+    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">operation</span><span class="o">.</span><span class="n">operation_id</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">operation</span> <span class="ow">in</span> <span class="n">_iter_path_item_operations</span><span class="p">(</span><span class="n">path_item</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="p">[(</span><span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="s2">&quot;getX&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;post&quot;</span><span class="p">,</span> <span class="s2">&quot;postX&quot;</span><span class="p">)]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_iter_path_item_operations_skips_unset_methods</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">path_item</span><span class="p">:</span> <span class="n">PathItem</span> <span class="o">=</span> <span class="n">PathItem</span><span class="p">({</span><span class="s2">&quot;get&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;operationId&quot;</span><span class="p">:</span> <span class="s2">&quot;getX&quot;</span><span class="p">}})</span>
+    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">name</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">_operation</span> <span class="ow">in</span> <span class="n">_iter_path_item_operations</span><span class="p">(</span><span class="n">path_item</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;get&quot;</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_default_method_name_derives_from_path_when_no_operation_id</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="p">(</span>
+    <span class="kc">None</span>
+<span class="p">):</span>
+    <span class="n">result</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">get_default_method_name_from_path_method_operation</span><span class="p">(</span>
+        <span class="s2">&quot;/foo/</span><span class="si">{id}</span><span class="s2">/bar&quot;</span><span class="p">,</span> <span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="s2">&quot;get_foo_id_bar&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_get_default_method_name_prefers_the_operation_id</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">result</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">get_default_method_name_from_path_method_operation</span><span class="p">(</span>
+        <span class="s2">&quot;/foo/</span><span class="si">{id}</span><span class="s2">/bar&quot;</span><span class="p">,</span> <span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="s2">&quot;myOperationId&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="s2">&quot;my_operation_id&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_strip_def_decorators_removes_a_leading_decorator</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;@decorator</span><span class="se">\n</span><span class="s2">def foo():</span><span class="se">\n</span><span class="s2">    pass</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="n">_strip_def_decorators</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;def foo():</span><span class="se">\n</span><span class="s2">    pass</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_strip_def_decorators_is_a_no_op_without_a_decorator</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;def foo():</span><span class="se">\n</span><span class="s2">    pass</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="n">_strip_def_decorators</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="o">==</span> <span class="n">source</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/test_client_module_helpers.py<span class="w"> </span>-v
+hatch<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>--strict<span class="w"> </span>--ignore-missing-imports<span class="w"> </span>tests/test_client_module_helpers.py
+hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+</code></pre></div>
+Expected: 13 passed; mypy <code>Success: no issues found in 1 source file</code>;
+<code>hatch fmt --check</code> clean. Every assertion's expected value was
+produced by actually calling the real function (including the two
+docstring examples already present on <code>_get_relative_module_path</code>/
+<code>_get_relative_module_import</code>, re-verified live rather than trusted).</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/test_client_module_helpers.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_client_module_helpers.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add coverage for ClientModule&#39;s isolable naming/import helper functions&quot;</span>
+</code></pre></div>
+<h2 id="task-4-teststest_client_module_parameter_stylespy">Task 4: <code>tests/test_client_module_parameter_styles.py</code></h2>
+<p><strong>Files:</strong>
+- Create: <code>tests/test_client_module_parameter_styles.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: the <code>generated_client_package</code> fixture (Task 2).
+  <code>tests/input-data/parameter-styles.json</code> (existing, from the
+  infrastructure plan). <code>tests/servers.py</code>'s <code>Response</code>,
+  <code>http_test_server</code> (existing).
+- Produces: <code>tests/test_client_module_parameter_styles.py</code>, 9 tests.
+- Requires: Task 2.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the test file</strong></li>
+</ul>
+<p>Create <code>tests/test_client_module_parameter_styles.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModuleType</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">servers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Response</span><span class="p">,</span> <span class="n">http_test_server</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAPI</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parameter_styles_client</span><span class="p">(</span>
+    <span class="n">generated_client_package</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span>
+        <span class="p">[</span><span class="n">OpenAPI</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">]</span>
+    <span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModuleType</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;tests/input-data/parameter-styles.json&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">OpenAPI</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">_model_module</span><span class="p">,</span> <span class="n">client_module</span> <span class="o">=</span> <span class="n">generated_client_package</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">client_module</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_path_simple_style</span><span class="p">(</span><span class="n">parameter_styles_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/path/simple/1,2,3&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">parameter_styles_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">get_path_simple_id</span><span class="p">(</span><span class="n">id_</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span> <span class="o">==</span> <span class="s2">&quot;/path/simple/1,2,3&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_path_label_style</span><span class="p">(</span><span class="n">parameter_styles_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/path/label/.1.2.3&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">parameter_styles_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">get_path_label_id</span><span class="p">(</span><span class="n">id_</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span> <span class="o">==</span> <span class="s2">&quot;/path/label/.1.2.3&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_path_matrix_style_raises_key_error</span><span class="p">(</span>
+    <span class="n">parameter_styles_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Documents a real, verified, currently-unfixed codegen bug: every</span>
+<span class="sd">    generated method for a `matrix`-style path parameter crashes with</span>
+<span class="sd">    `KeyError: &#39;id&#39;`. `_represent_dictionary_parameter` (client.py)</span>
+<span class="sd">    prepends the matrix delimiter to the *dictionary key* used for</span>
+<span class="sd">    string formatting (`&quot;;id&quot;`, since `_format_matrix_argument_value`&#39;s</span>
+<span class="sd">    own output already includes the full `;id=value` fragment), but the</span>
+<span class="sd">    generated path template&#39;s `str.format(**{...})` placeholder is</span>
+<span class="sd">    still the bare `{id}` from the OpenAPI path -- `&quot;{id}&quot;.format(</span>
+<span class="sd">    **{&quot;;id&quot;: ...})` cannot find an `&quot;id&quot;` key in the kwargs dict it was</span>
+<span class="sd">    given (only `&quot;;id&quot;` is present) and raises `KeyError`. This means</span>
+<span class="sd">    matrix-style path parameters are completely unusable in any</span>
+<span class="sd">    generated client. Not fixed here (out of this test-only</span>
+<span class="sd">    initiative&#39;s scope) -- flagged to the user directly as well as</span>
+<span class="sd">    documented here.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span><span class="n">responses</span><span class="o">=</span><span class="p">{})</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">parameter_styles_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">):</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">get_path_matrix_id</span><span class="p">(</span><span class="n">id_</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_query_form_style</span><span class="p">(</span><span class="n">parameter_styles_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/query/form&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">parameter_styles_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">get_query_form</span><span class="p">(</span><span class="n">ids</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">query</span> <span class="o">==</span> <span class="s2">&quot;ids=1,2,3&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_query_space_delimited_style</span><span class="p">(</span>
+    <span class="n">parameter_styles_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/query/space-delimited&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">parameter_styles_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">get_query_space_delimited</span><span class="p">(</span><span class="n">ids</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">query</span> <span class="o">==</span> <span class="s2">&quot;ids=1</span><span class="si">%202%</span><span class="s2">203&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_query_pipe_delimited_style</span><span class="p">(</span>
+    <span class="n">parameter_styles_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/query/pipe-delimited&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">parameter_styles_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">get_query_pipe_delimited</span><span class="p">(</span><span class="n">ids</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">query</span> <span class="o">==</span> <span class="s2">&quot;ids=1|2|3&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_query_deep_object_style</span><span class="p">(</span><span class="n">parameter_styles_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/query/deep-object&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">parameter_styles_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">get_query_deep_object</span><span class="p">(</span><span class="n">filter_</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">})</span>
+        <span class="k">assert</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">query</span> <span class="o">==</span> <span class="s2">&quot;filter[a]=1&amp;filter[b]=2&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_header_simple_style</span><span class="p">(</span><span class="n">parameter_styles_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/header/simple&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">parameter_styles_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">get_header_simple</span><span class="p">(</span><span class="n">x_ids</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-Ids&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;1,2&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_cookie_form_style</span><span class="p">(</span><span class="n">parameter_styles_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/cookie/form&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">parameter_styles_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">get_cookie_form</span><span class="p">(</span><span class="n">ids</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Cookie&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;ids=1,2&quot;</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/test_client_module_parameter_styles.py<span class="w"> </span>-v
+hatch<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>--strict<span class="w"> </span>--ignore-missing-imports<span class="w"> </span>tests/test_client_module_parameter_styles.py
+hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+</code></pre></div>
+Expected: 9 passed in a few seconds (each test regenerates and
+re-imports a real package -- real, bounded overhead, not a flake);
+mypy <code>Success: no issues found in 1 source file</code>; <code>hatch fmt --check</code>
+clean. Every expected path/query/header/cookie value was produced by
+actually running the generated method against the real
+<code>http_test_server</code> and reading <code>RecordedRequest</code>'s real fields.</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/test_client_module_parameter_styles.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_client_module_parameter_styles.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add end-to-end coverage for ClientModule&#39;s argument-style code generation&quot;</span>
+</code></pre></div>
+<h2 id="task-5-teststest_client_module_security_schemespy">Task 5: <code>tests/test_client_module_security_schemes.py</code></h2>
+<p><strong>Files:</strong>
+- Create: <code>tests/test_client_module_security_schemes.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: the <code>generated_client_package</code> fixture (Task 2).
+  <code>tests/input-data/security-schemes.json</code> (Task 1). <code>tests/servers.py</code>'s
+  <code>Response</code>, <code>http_test_server</code> (existing).
+- Produces: <code>tests/test_client_module_security_schemes.py</code>, 7 tests.
+- Requires: Tasks 1, 2.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the test file</strong></li>
+</ul>
+<p>Create <code>tests/test_client_module_security_schemes.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModuleType</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">servers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Response</span><span class="p">,</span> <span class="n">http_test_server</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAPI</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">security_schemes_client</span><span class="p">(</span>
+    <span class="n">generated_client_package</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span>
+        <span class="p">[</span><span class="n">OpenAPI</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">]</span>
+    <span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModuleType</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;tests/input-data/security-schemes.json&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">OpenAPI</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">_model_module</span><span class="p">,</span> <span class="n">client_module</span> <span class="o">=</span> <span class="n">generated_client_package</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">client_module</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_init_bakes_in_the_first_api_key_schemes_location_and_name</span><span class="p">(</span>
+    <span class="n">security_schemes_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The OpenAPI document declares three `apiKey` security schemes</span>
+<span class="sd">    (header/query/cookie) across different operations, but a generated</span>
+<span class="sd">    `Client` has one shared `api_key_in`/`api_key_name` default pair --</span>
+<span class="sd">    codegen picks the first `apiKey` scheme it encounters. Other</span>
+<span class="sd">    locations remain reachable by passing `api_key_in`/`api_key_name`</span>
+<span class="sd">    explicitly when constructing the client (see the query/cookie tests</span>
+<span class="sd">    below), which isn&#39;t a bug -- a single client instance can only default</span>
+<span class="sd">    to one location.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">signature</span><span class="p">:</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Signature</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span>
+        <span class="n">security_schemes_client</span><span class="o">.</span><span class="n">Client</span><span class="o">.</span><span class="fm">__init__</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;api_key_in&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">default</span> <span class="o">==</span> <span class="s2">&quot;header&quot;</span>
+    <span class="k">assert</span> <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;api_key_name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">default</span> <span class="o">==</span> <span class="s2">&quot;X-Api-Key&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_init_bakes_in_oauth2_and_oidc_urls_from_the_security_schemes</span><span class="p">(</span>
+    <span class="n">security_schemes_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">signature</span><span class="p">:</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Signature</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span>
+        <span class="n">security_schemes_client</span><span class="o">.</span><span class="n">Client</span><span class="o">.</span><span class="fm">__init__</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;oauth2_token_url&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">default</span>
+        <span class="o">==</span> <span class="s2">&quot;https://example.com/oauth2/token&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;oauth2_authorization_url&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">default</span>
+        <span class="o">==</span> <span class="s2">&quot;https://example.com/oauth2/authorize&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;open_id_connect_url&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">default</span>
+        <span class="o">==</span> <span class="s2">&quot;https://example.com/.well-known/openid-configuration&quot;</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_default_oauth2_flows_value_is_invalid</span><span class="p">(</span>
+    <span class="n">security_schemes_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Documents a real, verified, currently-unfixed codegen bug: a</span>
+<span class="sd">    generated `Client` for an OpenAPI document with named OAuth2 flows</span>
+<span class="sd">    cannot be instantiated with its own defaults. `_iter_oauth2_flows`</span>
+<span class="sd">    (client.py) reads flow-type names via `sob.utilities.</span>
+<span class="sd">    iter_properties_values(security_scheme.flows)`, which yields the</span>
+<span class="sd">    Python-side (snake_case) *property* names of the generated</span>
+<span class="sd">    `OAuthFlows` model -- e.g. `&quot;authorization_code&quot;` -- rather than the</span>
+<span class="sd">    OpenAPI spec&#39;s own camelCase flow-type identifiers (`&quot;authorization</span>
+<span class="sd">    Code&quot;`) that `Client.__init__`&#39;s own validation (and its `Literal`</span>
+<span class="sd">    parameter type) require. The baked-in default `oauth2_flows` tuple</span>
+<span class="sd">    therefore fails that same validation immediately on construction,</span>
+<span class="sd">    for *any* generated client whose OpenAPI document has a</span>
+<span class="sd">    multi-word-named OAuth2 flow (`authorizationCode`/</span>
+<span class="sd">    `clientCredentials` -- i.e. most real-world OAuth2 specs). The</span>
+<span class="sd">    workaround (used by every other test in this file) is passing an</span>
+<span class="sd">    explicit, valid `oauth2_flows` override. Not fixed here (out of</span>
+<span class="sd">    this test-only initiative&#39;s scope) -- flagged to the user directly</span>
+<span class="sd">    as well as documented here.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;oauth2_flows&quot;</span><span class="p">):</span>
+        <span class="n">security_schemes_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://example.com&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_api_key_header_authentication</span><span class="p">(</span>
+    <span class="n">security_schemes_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{</span>
+            <span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/protected/api-key-header&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s1">&#39;{&quot;name&quot;: &quot;x&quot;}&#39;</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">security_schemes_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span>
+            <span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;secret123&quot;</span><span class="p">,</span> <span class="n">oauth2_flows</span><span class="o">=</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">get_protected_api_key_header</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-Api-Key&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;secret123&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_api_key_query_authentication_with_an_explicit_location</span><span class="p">(</span>
+    <span class="n">security_schemes_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{</span>
+            <span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/protected/api-key-query&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s1">&#39;{&quot;name&quot;: &quot;x&quot;}&#39;</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">security_schemes_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span>
+            <span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+            <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;qkey&quot;</span><span class="p">,</span>
+            <span class="n">api_key_in</span><span class="o">=</span><span class="s2">&quot;query&quot;</span><span class="p">,</span>
+            <span class="n">api_key_name</span><span class="o">=</span><span class="s2">&quot;api_key&quot;</span><span class="p">,</span>
+            <span class="n">oauth2_flows</span><span class="o">=</span><span class="p">(),</span>
+        <span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">get_protected_api_key_query</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">query</span> <span class="o">==</span> <span class="s2">&quot;api_key=qkey&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_api_key_cookie_authentication_with_an_explicit_location</span><span class="p">(</span>
+    <span class="n">security_schemes_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{</span>
+            <span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/protected/api-key-cookie&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s1">&#39;{&quot;name&quot;: &quot;x&quot;}&#39;</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">security_schemes_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span>
+            <span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+            <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;ckey&quot;</span><span class="p">,</span>
+            <span class="n">api_key_in</span><span class="o">=</span><span class="s2">&quot;cookie&quot;</span><span class="p">,</span>
+            <span class="n">api_key_name</span><span class="o">=</span><span class="s2">&quot;api_key&quot;</span><span class="p">,</span>
+            <span class="n">oauth2_flows</span><span class="o">=</span><span class="p">(),</span>
+        <span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">get_protected_api_key_cookie</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Cookie&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;api_key=ckey&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_bearer_authentication</span><span class="p">(</span><span class="n">security_schemes_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{</span>
+            <span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/protected/bearer&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s1">&#39;{&quot;name&quot;: &quot;x&quot;}&#39;</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">security_schemes_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span>
+            <span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">bearer_token</span><span class="o">=</span><span class="s2">&quot;tok&quot;</span><span class="p">,</span> <span class="n">oauth2_flows</span><span class="o">=</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">get_protected_bearer</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">server</span><span class="o">.</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Authorization&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;Bearer tok&quot;</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/test_client_module_security_schemes.py<span class="w"> </span>-v
+hatch<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>--strict<span class="w"> </span>--ignore-missing-imports<span class="w"> </span>tests/test_client_module_security_schemes.py
+hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+</code></pre></div>
+Expected: 7 passed; mypy <code>Success: no issues found in 1 source file</code>;
+<code>hatch fmt --check</code> clean. This is the task that both confirms Task 1's
+fixture fix (the package must load at all) and documents the real
+<code>oauth2_flows</code> codegen bug from Global Constraints.</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/test_client_module_security_schemes.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_client_module_security_schemes.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add end-to-end coverage for ClientModule&#39;s security-scheme code generation&quot;</span>
+</code></pre></div>
+<h2 id="task-6-teststest_client_module_multipartpy">Task 6: <code>tests/test_client_module_multipart.py</code></h2>
+<p><strong>Files:</strong>
+- Create: <code>tests/test_client_module_multipart.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: the <code>generated_client_package</code> fixture (Task 2).
+  <code>tests/input-data/multipart-request-body.json</code> (existing, from the
+  infrastructure plan). <code>tests/servers.py</code>'s <code>Response</code>,
+  <code>http_test_server</code> (existing).
+- Produces: <code>tests/test_client_module_multipart.py</code>, 1 test.
+- Requires: Task 2.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the test file</strong></li>
+</ul>
+<p>Create <code>tests/test_client_module_multipart.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModuleType</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">servers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Response</span><span class="p">,</span> <span class="n">http_test_server</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAPI</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">multipart_client</span><span class="p">(</span>
+    <span class="n">generated_client_package</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span>
+        <span class="p">[</span><span class="n">OpenAPI</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">]</span>
+    <span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModuleType</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;tests/input-data/multipart-request-body.json&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">OpenAPI</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">_model_module</span><span class="p">,</span> <span class="n">client_module</span> <span class="o">=</span> <span class="n">generated_client_package</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">client_module</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_generated_multipart_method_raises_key_error</span><span class="p">(</span>
+    <span class="n">multipart_client</span><span class="p">:</span> <span class="n">ModuleType</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Documents the same real, verified, currently-unfixed bug already</span>
+<span class="sd">    covered directly against `Client.request()` in</span>
+<span class="sd">    `tests/test_client_request_runtime.py`&#39;s</span>
+<span class="sd">    `test_request_multipart_crashes_missing_content_encoding_header`,</span>
+<span class="sd">    confirmed here to also break *generated* multipart operations (the</span>
+<span class="sd">    exact scenario `tests/input-data/multipart-request-body.json` was</span>
+<span class="sd">    built to exercise, per the infrastructure plan): `_request_callback`</span>
+<span class="sd">    calls `request.headers.get(&quot;Content-encoding&quot;)` expecting ordinary</span>
+<span class="sd">    `dict.get` semantics, but a `MultipartRequest`&#39;s custom `Headers`</span>
+<span class="sd">    object re-raises `KeyError` when no `default` is passed and the key</span>
+<span class="sd">    is missing -- which it always is for an ordinary multipart request.</span>
+<span class="sd">    Every generated multipart operation is therefore unusable as-is.</span>
+<span class="sd">    Not fixed here (out of this test-only initiative&#39;s scope) --</span>
+<span class="sd">    flagged to the user directly as well as documented here.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;/upload&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">multipart_client</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;Content-encoding&quot;</span><span class="p">):</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">post_upload</span><span class="p">(</span>
+                <span class="n">file</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;filedata&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;a file&quot;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/test_client_module_multipart.py<span class="w"> </span>-v
+hatch<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>--strict<span class="w"> </span>--ignore-missing-imports<span class="w"> </span>tests/test_client_module_multipart.py
+hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+</code></pre></div>
+Expected: 1 passed; mypy <code>Success: no issues found in 1 source file</code>;
+<code>hatch fmt --check</code> clean.</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/test_client_module_multipart.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_client_module_multipart.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: document that generated multipart operations crash (Content-encoding KeyError)&quot;</span>
+</code></pre></div>
+<h2 id="task-7-teststest_client_module_polymorphic_responsespy">Task 7: <code>tests/test_client_module_polymorphic_responses.py</code></h2>
+<p><strong>Files:</strong>
+- Create: <code>tests/test_client_module_polymorphic_responses.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: the <code>generated_client_package</code> fixture (Task 2).
+  <code>tests/input-data/polymorphic-schemas.json</code> (existing, from the
+  infrastructure plan). <code>tests/servers.py</code>'s <code>Response</code>,
+  <code>http_test_server</code> (existing).
+- Produces: <code>tests/test_client_module_polymorphic_responses.py</code>, 4
+  tests.
+- Requires: Task 2.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the test file</strong></li>
+</ul>
+<p>Create <code>tests/test_client_module_polymorphic_responses.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModuleType</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">servers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Response</span><span class="p">,</span> <span class="n">http_test_server</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">oapi.oas.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAPI</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">polymorphic_client</span><span class="p">(</span>
+    <span class="n">generated_client_package</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span>
+        <span class="p">[</span><span class="n">OpenAPI</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">]</span>
+    <span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">]:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;tests/input-data/polymorphic-schemas.json&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">open_api</span><span class="p">:</span> <span class="n">OpenAPI</span> <span class="o">=</span> <span class="n">OpenAPI</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">generated_client_package</span><span class="p">(</span><span class="n">open_api</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_array_of_allof_merged_schema_response</span><span class="p">(</span>
+    <span class="n">polymorphic_client</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">model_module</span><span class="p">,</span> <span class="n">client_module</span> <span class="o">=</span> <span class="n">polymorphic_client</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{</span>
+            <span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/pets&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                <span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s1">&#39;[{&quot;name&quot;: &quot;Rex&quot;, &quot;species&quot;: &quot;dog&quot;, &quot;status&quot;: &quot;sold&quot;}]&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">client_module</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">pets</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_pets</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">pets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="n">pet</span> <span class="o">=</span> <span class="n">pets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pet</span><span class="p">,</span> <span class="n">model_module</span><span class="o">.</span><span class="n">Pet</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">pet</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Rex&quot;</span>
+        <span class="k">assert</span> <span class="n">pet</span><span class="o">.</span><span class="n">species</span> <span class="o">==</span> <span class="s2">&quot;dog&quot;</span>
+        <span class="k">assert</span> <span class="n">pet</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;sold&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_oneof_response_infers_the_matching_variant</span><span class="p">(</span>
+    <span class="n">polymorphic_client</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">model_module</span><span class="p">,</span> <span class="n">client_module</span> <span class="o">=</span> <span class="n">polymorphic_client</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{</span>
+            <span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/shapes&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s1">&#39;{&quot;radius&quot;: 5}&#39;</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">client_module</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_shapes</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">model_module</span><span class="o">.</span><span class="n">Circle</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">shape</span><span class="o">.</span><span class="n">radius</span> <span class="o">==</span> <span class="mi">5</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_anyof_response_infers_the_matching_variant</span><span class="p">(</span>
+    <span class="n">polymorphic_client</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">model_module</span><span class="p">,</span> <span class="n">client_module</span> <span class="o">=</span> <span class="n">polymorphic_client</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{</span>
+            <span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/contacts&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s1">&#39;{&quot;email&quot;: &quot;a@b.com&quot;}&#39;</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">client_module</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">contact</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_contacts</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">contact</span><span class="p">,</span> <span class="n">model_module</span><span class="o">.</span><span class="n">EmailContact</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">contact</span><span class="o">.</span><span class="n">email</span> <span class="o">==</span> <span class="s2">&quot;a@b.com&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_additional_properties_dictionary_response</span><span class="p">(</span>
+    <span class="n">polymorphic_client</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">ModuleType</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_model_module</span><span class="p">,</span> <span class="n">client_module</span> <span class="o">=</span> <span class="n">polymorphic_client</span>
+    <span class="k">with</span> <span class="n">http_test_server</span><span class="p">(</span>
+        <span class="n">responses</span><span class="o">=</span><span class="p">{</span>
+            <span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;/tags&quot;</span><span class="p">):</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="sa">b</span><span class="s1">&#39;{&quot;a&quot;: &quot;1&quot;, &quot;b&quot;: &quot;2&quot;}&#39;</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">server</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">client_module</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_tags</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">dict</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/test_client_module_polymorphic_responses.py<span class="w"> </span>-v
+hatch<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>--strict<span class="w"> </span>--ignore-missing-imports<span class="w"> </span>tests/test_client_module_polymorphic_responses.py
+hatch<span class="w"> </span>fmt<span class="w"> </span>--formatter
+hatch<span class="w"> </span>fmt<span class="w"> </span>--check
+</code></pre></div>
+Expected: 4 passed; mypy <code>Success: no issues found in 1 source file</code>;
+<code>hatch fmt --check</code> clean. Confirms real, correct polymorphic-type
+resolution end-to-end: <code>allOf</code> merging (<code>Pet</code>), <code>oneOf</code> (<code>Shape</code> -&gt;
+<code>Circle</code>), <code>anyOf</code> (<code>Contact</code> -&gt; <code>EmailContact</code>), and a plain
+<code>additionalProperties</code> dictionary response.</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/test_client_module_polymorphic_responses.py
+git<span class="w"> </span>commit<span class="w"> </span>tests/test_client_module_polymorphic_responses.py<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add end-to-end coverage for ClientModule&#39;s polymorphic response-type resolution&quot;</span>
+</code></pre></div>
+<h2 id="task-8-whole-plan-verification">Task 8: Whole-plan verification</h2>
+<p><strong>Files:</strong>
+- None modified (verification only).</p>
+<ul>
+<li>[ ] <strong>Step 1: Run every new file together, plus the full existing suite</strong></li>
+</ul>
+<p><div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/test_client_module_helpers.py<span class="w"> </span>tests/test_client_module_parameter_styles.py<span class="w"> </span>tests/test_client_module_security_schemes.py<span class="w"> </span>tests/test_client_module_multipart.py<span class="w"> </span>tests/test_client_module_polymorphic_responses.py<span class="w"> </span>-v
+hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:pytest<span class="w"> </span>tests/<span class="w"> </span>-q
+git<span class="w"> </span>checkout<span class="w"> </span>--<span class="w"> </span>tests/input-data/languagetool-swagger.json
+</code></pre></div>
+Expected: 34 passed for the five new files together; 373 passed for
+the full suite (339 before this plan's tests existed, plus 34).</p>
+<ul>
+<li>[ ] <strong>Step 2: Confirm the coverage delta</strong></li>
+</ul>
+<p><div class="highlight"><pre><span></span><code>hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:coverage<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/<span class="w"> </span>-q
+hatch<span class="w"> </span>run<span class="w"> </span>hatch-test.py3.10:coverage<span class="w"> </span>report<span class="w"> </span>-m<span class="w"> </span>--include<span class="o">=</span><span class="s2">&quot;*/client.py&quot;</span>
+git<span class="w"> </span>checkout<span class="w"> </span>--<span class="w"> </span>tests/input-data/languagetool-swagger.json
+</code></pre></div>
+Expected: <code>src/oapi/client.py</code> moves from 56% (this plan's starting
+point) to roughly 83%, file-wide -- confirming the black-box,
+generate-and-execute strategy transitively covers the large majority
+of <code>ClientModule</code> despite no test directly calling any of its ~50
+private methods.</p>
+<ul>
+<li>[ ] <strong>Step 3: Update project memory</strong></li>
+</ul>
+<p>Update the <code>project-oapi-test-coverage-initiative</code> memory file to note
+this plan complete and move to the final remaining step (the <code>model.py</code>
+<code>ModelModule</code> plan), per the standing blanket-execution-approval
+instruction -- no user confirmation needed for this step. Make sure the
+memory update prominently notes all four real bugs from Global
+Constraints (matrix-style path parameters, the <code>oauth2_flows</code> codegen
+mismatch, the multipart <code>KeyError</code> recurrence, and the <code>ModelModule</code>
+empty-schema <code>NameError</code>), since three of them are genuine defects
+worth surfacing beyond just this plan document, and the fourth is a
+concrete pointer for the next plan.</p>
+<hr />
+<h2 id="self-review">Self-Review</h2>
+<p><strong>1. Spec coverage:</strong> The spec's step 6 ("<code>client.py</code> <code>ClientModule</code>
+code generation... paired with executing generated clients against
+<code>http_test_server</code>") is followed precisely -- every one of the four
+purpose-built fixtures from the infrastructure plan is finally used for
+its stated purpose, each generating a real client, loading it as a real
+package, and executing it against the real <code>http_test_server</code>. The
+free-function helpers immediately above <code>ClientModule</code> are covered
+directly (Task 3) since they're genuinely isolable pure functions,
+matching this initiative's established distinction between "isolable
+pure logic gets a direct unit test" and "generated-source-text assembly
+gets tested through its real output."</p>
+<p><strong>2. Placeholder scan:</strong> No "TBD"/"add appropriate handling"/"similar to
+Task N" language. Every line of test code, and the new <code>conftest.py</code>
+fixture itself, was executed against the real generators before being
+written into this document. Four genuine bugs were discovered this way
+(three in <code>ClientModule</code>/<code>client.py</code>, one in <code>ModelModule</code>) and are
+documented as real, current behavior rather than "fixed," each verified
+by tracing the source and then confirming live against a real generated
+package -- not assumed. One genuine test-authoring mistake was caught
+during validation (an <code>isinstance(pets, list)</code> assertion that was wrong
+because a generated array response deserializes to a real <code>sob.Array</code>
+subclass, not a plain <code>list</code> -- fixed to check length/indexing instead)
+before it ever reached this document.</p>
+<p><strong>3. Type consistency:</strong> <code>generated_client_package</code> (Task 2) is the one
+new fixture every other task's file depends on; its return type
+(<code>tuple[ModuleType, ModuleType]</code>) is used consistently everywhere it's
+consumed. <code>Response</code>/<code>http_test_server</code> continue to be imported the
+same way established in every prior plan's test files touching
+<code>tests/servers.py</code>.</p>
+<hr />
+<p><strong>Plan complete and saved to
+<code>docs/superpowers/plans/2026-08-02-client-module-codegen-tests.md</code>.</strong>
+Per the standing blanket authorization for this initiative
+([[feedback-autonomous-plan-execution]]), proceeding directly to
+subagent-driven execution on branch <code>test-coverage</code> without further
+confirmation.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.top"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../../../assets/javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>
