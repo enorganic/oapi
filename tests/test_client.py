@@ -200,30 +200,27 @@ def test_format_simple_argument_value_with_a_dictionary_not_exploded() -> None:
     assert _format_simple_argument_value({"a": 1, "b": 2}) == "a,1,b,2"
 
 
-def test_format_simple_argument_value_dict_explode_iterates_dict_keys() -> (
+def test_format_simple_argument_value_dict_explode_uses_key_value_pairs() -> (
     None
 ):
     """
-    `_format_simple_argument_value`'s exploded-dictionary branch iterates
-    `value` directly (`for item in value`), which -- for a plain `dict` --
-    yields its *keys*, not `(key, value)` pairs. `item[0]`/`item[1]` then
-    index into that key string rather than a tuple. This only avoids
-    crashing when every key is at least 2 characters long, and the
-    "value" half of the output is actually the second character of the
-    key, not the dictionary's mapped value. This is real, current
-    behavior of the function -- documented here, not corrected.
+    `_format_simple_argument_value`'s exploded-dictionary branch used to
+    iterate `value` directly (`for item in value`), which -- for a plain
+    `dict` -- yields its *keys*, not `(key, value)` pairs, so `item[0]`/
+    `item[1]` indexed into the key string itself instead. Fixed by
+    iterating `value.items()`.
     """
     result: str = _format_simple_argument_value(
         {"ab": 1, "cd": 2}, explode=True
     )
-    assert result == "a=b,c=d"
+    assert result == "ab=1,cd=2"
 
 
-def test_format_simple_argument_value_dict_explode_crashes_on_short_keys() -> (
+def test_format_simple_argument_value_dict_explode_handles_short_keys() -> (
     None
 ):
-    with pytest.raises(IndexError):
-        _format_simple_argument_value({"a": 1, "b": 2}, explode=True)
+    result: str = _format_simple_argument_value({"a": 1, "b": 2}, explode=True)
+    assert result == "a=1,b=2"
 
 
 def test_format_simple_argument_value_rejects_unsupported_types() -> None:
@@ -243,11 +240,11 @@ def test_format_label_argument_value_with_a_sequence_exploded() -> None:
     assert _format_label_argument_value([1, 2, 3], explode=True) == ".1.2.3"
 
 
-def test_format_label_argument_value_dict_explode_shares_the_dict_quirk() -> (
+def test_format_label_argument_value_dict_explode_uses_key_value_pairs() -> (
     None
 ):
-    with pytest.raises(IndexError):
-        _format_label_argument_value({"a": 1, "b": 2}, explode=True)
+    result: str = _format_label_argument_value({"a": 1, "b": 2}, explode=True)
+    assert result == ".a=1.b=2"
 
 
 def test_format_label_argument_value_rejects_unsupported_exploded_types() -> (
@@ -275,17 +272,19 @@ def test_format_matrix_argument_value_with_a_sequence_not_exploded() -> None:
     assert result == ";id=3,4,5"
 
 
-def test_format_matrix_argument_value_dict_explode_shares_the_dict_quirk() -> (
+def test_format_matrix_argument_value_dict_explode_uses_key_value_pairs() -> (
     None
 ):
     """
     Like `_format_simple_argument_value`, the exploded-dictionary branch
-    here also does `for item in value` over a plain `dict`, hitting the
-    same "iterates keys, not pairs" issue when a key is a single
-    character.
+    here also used to do `for item in value` over a plain `dict`,
+    iterating its keys rather than `(key, value)` pairs. Fixed by
+    iterating `value.items()`.
     """
-    with pytest.raises(IndexError):
+    result: str | dict[str, str] | collections.abc.Sequence[str] | None = (
         _format_matrix_argument_value("id", {"a": 1, "b": 2}, explode=True)
+    )
+    assert result == ";a=1;b=2"
 
 
 def test_format_matrix_argument_value_rejects_unsupported_exploded_types() -> (
@@ -413,20 +412,24 @@ def test_format_deep_object_argument_value_with_a_nested_dictionary() -> None:
     assert result == {"id[a][b]": "1"}
 
 
-def test_format_deep_object_argument_value_dict_of_sequence_is_broken() -> (
+def test_format_deep_object_argument_value_dict_of_primitive_sequence() -> (
     None
 ):
     """
     A dictionary value whose entry is itself a sequence of primitives
-    (rather than a sequence of dictionaries) hits a genuine bug: the
+    (rather than a sequence of dictionaries) used to crash: the
     recursive call for each primitive item returns a plain formatted
-    string (e.g. `"1"`), and the caller then does
-    `deep_object.update(**that_string)`, which fails because a `str` is
-    not a mapping. This is real, current behavior -- documented here, not
-    corrected.
+    string (e.g. `"1"`), and the caller unconditionally did
+    `deep_object.update(**that_string)`, which fails because a `str`
+    is not a mapping. Fixed by only merging the recursive result as a
+    mapping when it actually is one, and otherwise assigning it
+    directly (mirroring how the top-level sequence branch already
+    handles the same distinction).
     """
-    with pytest.raises(TypeError, match="argument after \\*\\*"):
+    result: str | dict[str, str] | collections.abc.Sequence[str] | None = (
         _format_deep_object_argument_value("id", {"a": [1, 2]}, explode=True)
+    )
+    assert result == {"id[a][0]": "1", "id[a][1]": "2"}
 
 
 def test_format_deep_object_argument_value_dict_rejects_bad_types() -> None:
@@ -1207,21 +1210,22 @@ def test_encode_and_decode_content_are_case_and_whitespace_insensitive() -> (
     assert _decode_content(encoded, " GZIP ") == data
 
 
-def test_encode_content_comma_branch_only_applies_the_first_encoding() -> None:
+def test_encode_content_comma_branch_applies_each_encoding_in_order() -> None:
     """
-    A comma-separated `content_encoding` is meant to apply each encoding
-    in the order listed. `_encode_content`'s comma branch instead
-    recursively *decodes* the still-plain data using the remaining
-    tokens before applying the first one -- a genuine bug in the current
-    source, documented here rather than corrected. It happens not to
-    raise when the remaining token (`"identity"`) is unrecognized, since
-    `_decode_content` silently returns unrecognized-encoding data
-    unchanged; the practical effect is that only the first-listed
-    encoding (`gzip`) is actually applied.
+    A comma-separated `content_encoding` applies each encoding in the
+    order listed: the first-listed encoding first (innermost), then
+    each remaining encoding on top of that result (outermost last).
+    `_encode_content`'s comma branch used to instead recursively
+    *decode* the still-plain data using the remaining tokens before
+    applying the first one -- a genuine bug, fixed by recursively
+    re-encoding instead. Verified against a real two-stage encoding
+    chain and round-tripped through the (already-correct)
+    `_decode_content`.
     """
     data: bytes = b'{"hello": "world"}' * 50
-    encoded: bytes = _encode_content(data, "gzip,identity")
-    assert gzip.decompress(encoded) == data
+    encoded: bytes = _encode_content(data, "gzip,deflate")
+    assert encoded == zlib.compress(gzip.compress(data))
+    assert _decode_content(encoded, "gzip,deflate") == data
 
 
 def test_decode_content_comma_branch_reverses_a_real_encoding_chain() -> None:

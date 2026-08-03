@@ -228,7 +228,7 @@ def _format_simple_argument_value(
         if explode:
             return ",".join(
                 f"{item[0]}={_format_primitive_value(item[1])}"
-                for item in value
+                for item in value.items()
             )
         return ",".join(
             map(
@@ -254,7 +254,7 @@ def _format_label_argument_value(
         if isinstance(value, dict):
             argument_value = ".".join(
                 f"{item[0]}={_format_primitive_value(item[1])}"
-                for item in value
+                for item in value.items()
             )
         elif isinstance(value, collections.abc.Sequence):
             argument_value = ".".join(
@@ -283,7 +283,7 @@ def _format_matrix_argument_value(
         if isinstance(value, dict):
             argument_value = "".join(
                 (f";{item[0]}={_format_primitive_value(item[1])}")
-                for item in value
+                for item in value.items()
             )
         elif isinstance(value, collections.abc.Sequence):
             value_: _PrimitiveValueTypes
@@ -417,22 +417,34 @@ def _format_deep_object_argument_value(  # noqa: C901
                     _format_primitive_value(value_) or ""  # type: ignore
                 )
             elif isinstance(value_, collections.abc.Sequence):
+                item_name: str
                 for index, value_item in enumerate(value_):
-                    deep_object.update(
-                        **typing.cast(
-                            "dict",
-                            _format_deep_object_argument_value(
-                                name=(
-                                    f"{name}.{key}[{index}]"
-                                    if use_dot_notation
-                                    else f"{name}[{key}][{index}]"
-                                ),
-                                value=value_item,
-                                explode=explode,
-                                use_dot_notation=use_dot_notation,
-                            ),
+                    item_name = (
+                        f"{name}.{key}[{index}]"
+                        if use_dot_notation
+                        else f"{name}[{key}][{index}]"
+                    )
+                    formatted_item_value: typing.Any = (
+                        _format_deep_object_argument_value(
+                            name=item_name,
+                            value=value_item,
+                            explode=explode,
+                            use_dot_notation=use_dot_notation,
                         )
                     )
+                    # A sequence item is itself a dict-like/itemized
+                    # value (e.g. `{"a": [{"x": 1}]}`) when the
+                    # recursive call returns a `dict` -- merge it in.
+                    # A *primitive* sequence item (e.g. `{"a": [1, 2]}`)
+                    # instead returns a plain `str`/`None`, which is
+                    # not a mapping and must be assigned directly
+                    # rather than passed to `dict.update(**...)`.
+                    if isinstance(formatted_item_value, _ITEMIZED_TYPES):
+                        deep_object.update(
+                            **typing.cast("dict", formatted_item_value)
+                        )
+                    else:
+                        deep_object[item_name] = formatted_item_value or ""
             else:
                 raise TypeError(value_)
         return deep_object
@@ -761,12 +773,18 @@ def _encode_content(data: bytes, content_encoding: str) -> bytes:
     if not data:
         return data
     if "," in content_encoding:
-        # Encode content in the order provided
+        # Encode content in the order provided: the first-listed
+        # encoding is applied first (innermost), then each remaining
+        # encoding is applied on top of that result (outermost last)
+        # -- the exact inverse of `_decode_content`'s comma branch,
+        # which undoes the outermost (last-listed) encoding first.
         content_encodings: str
         content_encoding, _, content_encodings = content_encoding.partition(
             ","
         )
-        data = _decode_content(data, content_encodings)
+        return _encode_content(
+            _encode_content(data, content_encoding), content_encodings
+        )
     content_encoding = content_encoding.lower().strip()
     if content_encoding == "gzip":
         data = gzip.compress(data)
