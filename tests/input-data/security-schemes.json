@@ -1,0 +1,196 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Security Schemes",
+    "description": "Minimal fixture covering apiKey, http, oauth2 (all four flows), and openIdConnect security schemes, for testing `oapi.client` auth code-generation and runtime behavior end-to-end.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/protected/api-key-header": {
+      "get": {
+        "operationId": "getApiKeyHeader",
+        "security": [{"apiKeyHeader": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedResource"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/protected/api-key-query": {
+      "get": {
+        "operationId": "getApiKeyQuery",
+        "security": [{"apiKeyQuery": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/protected/api-key-cookie": {
+      "get": {
+        "operationId": "getApiKeyCookie",
+        "security": [{"apiKeyCookie": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/protected/bearer": {
+      "get": {
+        "operationId": "getBearer",
+        "security": [{"httpBearer": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/protected/oauth2-password": {
+      "get": {
+        "operationId": "getOauth2Password",
+        "security": [{"oauth2Password": ["read"]}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/protected/oauth2-client-credentials": {
+      "get": {
+        "operationId": "getOauth2ClientCredentials",
+        "security": [{"oauth2ClientCredentials": ["read"]}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/protected/oauth2-authorization-code": {
+      "get": {
+        "operationId": "getOauth2AuthorizationCode",
+        "security": [{"oauth2AuthorizationCode": ["read"]}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/protected/oauth2-implicit": {
+      "get": {
+        "operationId": "getOauth2Implicit",
+        "security": [{"oauth2Implicit": ["read"]}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/protected/open-id-connect": {
+      "get": {
+        "operationId": "getOpenIdConnect",
+        "security": [{"openIdConnect": []}],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ProtectedResource": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"}
+        }
+      }
+    },
+    "securitySchemes": {
+      "apiKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Api-Key"
+      },
+      "apiKeyQuery": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "api_key"
+      },
+      "apiKeyCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "api_key"
+      },
+      "httpBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "oauth2Password": {
+        "type": "oauth2",
+        "flows": {
+          "password": {
+            "tokenUrl": "https://example.com/oauth2/token",
+            "scopes": {"read": "Read access"}
+          }
+        }
+      },
+      "oauth2ClientCredentials": {
+        "type": "oauth2",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://example.com/oauth2/token",
+            "scopes": {"read": "Read access"}
+          }
+        }
+      },
+      "oauth2AuthorizationCode": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://example.com/oauth2/authorize",
+            "tokenUrl": "https://example.com/oauth2/token",
+            "scopes": {"read": "Read access"}
+          }
+        }
+      },
+      "oauth2Implicit": {
+        "type": "oauth2",
+        "flows": {
+          "implicit": {
+            "authorizationUrl": "https://example.com/oauth2/authorize",
+            "scopes": {"read": "Read access"}
+          }
+        }
+      },
+      "openIdConnect": {
+        "type": "openIdConnect",
+        "openIdConnectUrl": "https://example.com/.well-known/openid-configuration"
+      }
+    }
+  }
+}

@@ -17,4 +17,6 @@ schemas
 !.gitignore
 !.markdownlint.yaml
 !.editorconfig
+!.claude
+.claude/settings.local.json
 site

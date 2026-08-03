@@ -1,0 +1,195 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Parameter Styles",
+    "description": "Minimal fixture exercising every OpenAPI 3 parameter `style`, for testing `oapi.client`'s argument-formatting functions end-to-end.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/path/simple/{id}": {
+      "get": {
+        "operationId": "getPathSimple",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {"type": "array", "items": {"type": "integer"}}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/path/label/{id}": {
+      "get": {
+        "operationId": "getPathLabel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "style": "label",
+            "explode": true,
+            "schema": {"type": "array", "items": {"type": "integer"}}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/path/matrix/{id}": {
+      "get": {
+        "operationId": "getPathMatrix",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "style": "matrix",
+            "explode": true,
+            "schema": {
+              "type": "object",
+              "additionalProperties": {"type": "integer"}
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/query/form": {
+      "get": {
+        "operationId": "getQueryForm",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "style": "form",
+            "explode": false,
+            "schema": {"type": "array", "items": {"type": "integer"}}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/query/space-delimited": {
+      "get": {
+        "operationId": "getQuerySpaceDelimited",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "style": "spaceDelimited",
+            "schema": {"type": "array", "items": {"type": "integer"}}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/query/pipe-delimited": {
+      "get": {
+        "operationId": "getQueryPipeDelimited",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "style": "pipeDelimited",
+            "schema": {"type": "array", "items": {"type": "integer"}}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/query/deep-object": {
+      "get": {
+        "operationId": "getQueryDeepObject",
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "style": "deepObject",
+            "explode": true,
+            "schema": {
+              "type": "object",
+              "additionalProperties": {"type": "string"}
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/header/simple": {
+      "get": {
+        "operationId": "getHeaderSimple",
+        "parameters": [
+          {
+            "name": "X-Ids",
+            "in": "header",
+            "style": "simple",
+            "schema": {"type": "array", "items": {"type": "integer"}}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/cookie/form": {
+      "get": {
+        "operationId": "getCookieForm",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "cookie",
+            "style": "form",
+            "explode": false,
+            "schema": {"type": "array", "items": {"type": "integer"}}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    }
+  }
+}

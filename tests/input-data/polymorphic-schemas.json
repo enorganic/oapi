@@ -1,0 +1,133 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Polymorphic Schemas",
+    "description": "Minimal fixture covering `allOf` merging, `oneOf`/`anyOf` polymorphism, array schemas, dictionary (`additionalProperties`) schemas, and enums, for testing `oapi.model`'s `_Modeler` merge/polymorph code paths.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/pets": {
+      "get": {
+        "operationId": "getPets",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {"$ref": "#/components/schemas/Pet"}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shapes": {
+      "get": {
+        "operationId": "getShapes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Shape"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contacts": {
+      "get": {
+        "operationId": "getContacts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Contact"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tags": {
+      "get": {
+        "operationId": "getTags",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {"type": "string"}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Status": {
+        "type": "string",
+        "enum": ["available", "pending", "sold"]
+      },
+      "NamedEntity": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {"name": {"type": "string"}}
+      },
+      "Pet": {
+        "allOf": [
+          {"$ref": "#/components/schemas/NamedEntity"},
+          {
+            "type": "object",
+            "properties": {
+              "species": {"type": "string"},
+              "status": {"$ref": "#/components/schemas/Status"}
+            }
+          }
+        ]
+      },
+      "Circle": {
+        "type": "object",
+        "required": ["radius"],
+        "properties": {"radius": {"type": "number"}}
+      },
+      "Square": {
+        "type": "object",
+        "required": ["side"],
+        "properties": {"side": {"type": "number"}}
+      },
+      "Shape": {
+        "oneOf": [
+          {"$ref": "#/components/schemas/Circle"},
+          {"$ref": "#/components/schemas/Square"}
+        ]
+      },
+      "EmailContact": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {"email": {"type": "string"}}
+      },
+      "PhoneContact": {
+        "type": "object",
+        "required": ["phone"],
+        "properties": {"phone": {"type": "string"}}
+      },
+      "Contact": {
+        "anyOf": [
+          {"$ref": "#/components/schemas/EmailContact"},
+          {"$ref": "#/components/schemas/PhoneContact"}
+        ]
+      }
+    }
+  }
+}
