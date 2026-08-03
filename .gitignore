@@ -20,3 +20,4 @@ schemas
 !.claude
 .claude/settings.local.json
 site
+uv.lock
